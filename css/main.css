@@ -1,0 +1,178 @@
+:root {
+  --bg: #0A1622;
+  --s1: #101E30;
+  --s2: #16283e;
+  --txt: #EAF2FA;
+  --mut: #93A3B8;
+  --brd: #1f3348;
+  --blu: #00D9B5;
+  --blu-rgb: 0, 217, 181;
+  --red: #ff6b6b;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+}
+
+input, select, button {
+  font: inherit;
+}
+
+.tela-login {
+  max-width: 360px;
+  margin: 15vh auto;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.form-login {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: 1.5rem;
+}
+
+.form-login input {
+  padding: .7rem .9rem;
+  border-radius: 10px;
+  border: 1px solid var(--brd);
+  background: var(--s1);
+  color: var(--txt);
+}
+
+.login-botoes {
+  display: flex;
+  gap: .5rem;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  padding: .7rem 1rem;
+  background: var(--blu);
+  color: #06231d;
+  font-weight: 600;
+  flex: 1;
+}
+
+.login-botoes button[name="signup"] {
+  background: transparent;
+  color: var(--blu);
+  border: 1px solid var(--blu);
+}
+
+.login-erro {
+  color: var(--red);
+  min-height: 1.2em;
+  font-size: .85rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--brd);
+}
+
+.topbar-titulo { font-weight: 700; letter-spacing: -.02em; }
+
+.btn-logout {
+  background: transparent;
+  color: var(--mut);
+  border: 1px solid var(--brd);
+  flex: none;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .75rem;
+  padding: 1rem 1.25rem;
+}
+
+.kpi {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: 12px;
+  padding: .9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.kpi-label { color: var(--mut); font-size: .75rem; }
+.kpi-valor { font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em; }
+.kpi-pos { color: var(--blu); }
+.kpi-neg { color: var(--red); }
+
+.categorias, .lancamentos { padding: 0 1.25rem 1rem; }
+
+.categorias ul, .lista-lancamentos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.categorias li {
+  display: flex;
+  justify-content: space-between;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+}
+
+.form-lancamento {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: .5rem;
+  padding: 1rem 1.25rem;
+}
+
+.form-lancamento input, .form-lancamento select {
+  padding: .6rem .7rem;
+  border-radius: 8px;
+  border: 1px solid var(--brd);
+  background: var(--s1);
+  color: var(--txt);
+}
+
+.form-lancamento button { grid-column: 1 / -1; }
+
+.lanc {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: .5rem;
+  align-items: center;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  margin: 0 1.25rem;
+}
+
+.lanc.receita .lanc-valor { color: var(--blu); }
+.lanc.despesa .lanc-valor { color: var(--red); }
+
+.lanc-remover {
+  background: transparent;
+  color: var(--mut);
+  flex: none;
+  padding: .2rem .5rem;
+}
+
+@media (max-width: 560px) {
+  .form-lancamento { grid-template-columns: 1fr 1fr; }
+  .lanc { grid-template-columns: 1fr 1fr; grid-auto-rows: auto; }
+}

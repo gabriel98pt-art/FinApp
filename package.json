@@ -1,0 +1,9 @@
+{
+  "name": "finapp",
+  "private": true,
+  "type": "module",
+  "description": "PWA financeiro pessoal — vanilla JS, sem build step, Firebase Auth + Realtime Database.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

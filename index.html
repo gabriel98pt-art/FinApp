@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FinApp</title>
+  <meta name="theme-color" content="#0A2540" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./css/main.css" />
+</head>
+<body>
+  <main id="tela-login" class="tela-login">
+    <h1>FinApp</h1>
+    <form id="form-login" class="form-login">
+      <input name="email" type="email" placeholder="E-mail" required autocomplete="email" />
+      <input name="password" type="password" placeholder="Senha" required autocomplete="current-password" minlength="6" />
+      <div class="login-botoes">
+        <button type="submit" name="acao" value="login">Entrar</button>
+        <button type="submit" name="signup" value="1">Criar conta</button>
+      </div>
+      <p id="login-erro" class="login-erro" role="alert"></p>
+    </form>
+  </main>
+
+  <div id="tela-app" hidden>
+    <header class="topbar">
+      <span class="topbar-titulo">FinApp</span>
+      <button id="btn-logout" class="btn-logout">Sair</button>
+    </header>
+    <div id="dashboard"></div>
+    <div id="lancamentos"></div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
