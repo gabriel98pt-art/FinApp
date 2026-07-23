@@ -1,0 +1,32 @@
+.seletor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  width: fit-content;
+}
+
+.seta {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  color: var(--mut);
+}
+
+.seta:hover {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.rotulo {
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-width: 122px;
+  text-align: center;
+  text-transform: capitalize;
+}

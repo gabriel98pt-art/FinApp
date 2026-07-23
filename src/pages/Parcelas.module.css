@@ -1,0 +1,177 @@
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtitulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.adicionar {
+  color: var(--blu);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+}
+
+.adicionar:hover {
+  background: var(--s2);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.parcela {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.info {
+  min-width: 0;
+}
+
+.nome {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.detalhe {
+  color: var(--mut);
+  font-size: 0.78rem;
+}
+
+.progresso {
+  font-weight: 800;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--blu);
+  white-space: nowrap;
+}
+
+.quitada {
+  color: var(--grn);
+}
+
+.barra {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--s2);
+  overflow: hidden;
+}
+
+.preenchido {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--blu);
+  transition: width 0.3s var(--ease-enter);
+}
+
+.proxima {
+  color: var(--mut);
+  font-size: 0.8rem;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acao {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--blu);
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 7px 10px;
+}
+
+.acao:hover {
+  background: var(--s3);
+}
+
+.perigo {
+  color: var(--red);
+}
+
+/* Formulário da sheet */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.campo input,
+.campo select {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.linhaDupla {
+  display: flex;
+  gap: 10px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--txt);
+}
+
+.erro {
+  color: var(--red);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}

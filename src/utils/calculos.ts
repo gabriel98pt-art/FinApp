@@ -68,6 +68,27 @@ export function somarMeses(ym: YearMonth, n: number): YearMonth {
   return `${ny}-${String(nm).padStart(2, "0")}`;
 }
 
+const MESES_PT = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
+/** '2026-07' → 'julho 2026'. */
+export function rotuloMes(ym: YearMonth): string {
+  const [y, m] = ym.split("-").map(Number);
+  return `${MESES_PT[(m ?? 1) - 1]} ${y}`;
+}
+
 /** Filtra os lançamentos que CONTAM como despesa nos KPIs/resumos.
  *  Pagamentos de fatura (origem 'fat') ficam de fora: a compra no cartão já
  *  contou como despesa no mês dela — contar também o pagamento seria contar
