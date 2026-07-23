@@ -1,4 +1,7 @@
 .DS_Store
 node_modules/
+dist/
 firebase-debug.log
 .firebase/
+SPEC_REESCRITA_COMPLETA.md
+*.local

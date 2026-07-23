@@ -14,18 +14,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
-      - name: Syntax-check todos os módulos JS
-        run: |
-          for f in $(find js -name '*.js'); do
-            node --check "$f"
-          done
+      - name: Instalar dependências
+        run: npm ci
 
-      - name: Rodar testes automatizados (node --test)
-        run: node --test
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Formatação (Prettier)
+        run: npm run format:check
+
+      - name: Testes (Vitest)
+        run: npm test
+
+      - name: Build (tsc + vite)
+        run: npm run build
 
       - name: Validar JSON (manifest, firebase config, rules)
         run: |
-          for f in manifest.json firebase.json database.rules.json .firebaserc; do
+          for f in public/manifest.json firebase.json database.rules.json .firebaserc; do
             node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"
           done

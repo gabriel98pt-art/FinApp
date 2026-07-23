@@ -1,0 +1,17 @@
+{
+  "name": "FinApp",
+  "short_name": "FinApp",
+  "description": "Finanças pessoais",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A1622",
+  "theme_color": "#0A1622",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
