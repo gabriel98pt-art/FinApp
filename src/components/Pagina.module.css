@@ -1,0 +1,27 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.titulo {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.emConstrucao {
+  background: var(--s1);
+  border: 1px dashed var(--brd);
+  border-radius: var(--r-card);
+  padding: 24px;
+  color: var(--mut);
+  font-size: 0.9rem;
+  text-align: center;
+}

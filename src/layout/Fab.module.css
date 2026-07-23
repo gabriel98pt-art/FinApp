@@ -1,0 +1,27 @@
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 41;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blu);
+  color: var(--bg);
+  box-shadow: var(--sh-card);
+  transition: transform 0.15s ease;
+}
+
+.fab:active {
+  transform: scale(0.92);
+}
+
+/* Desktop: sem nav inferior, o FAB desce para o canto */
+@media (min-width: 768px) {
+  .fab {
+    bottom: 24px;
+    right: 24px;
+  }
+}

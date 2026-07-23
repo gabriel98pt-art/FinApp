@@ -1,0 +1,52 @@
+.barra {
+  position: sticky;
+  top: 59px; /* logo abaixo do header */
+  z-index: 29;
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  overflow-x: auto;
+  border-left: none;
+  border-right: none;
+  scrollbar-width: none;
+}
+
+.barra::-webkit-scrollbar {
+  display: none;
+}
+
+.aba {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  color: var(--mut);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.aba:hover {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.aba:active {
+  transform: scale(0.97);
+}
+
+.ativa,
+.ativa:hover {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+@media (max-width: 767px) {
+  .barra {
+    display: none;
+  }
+}

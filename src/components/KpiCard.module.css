@@ -1,0 +1,43 @@
+.card {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card-hi);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rotulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.valor {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.acento {
+  color: var(--blu);
+}
+
+.verde {
+  color: var(--grn);
+}
+
+.vermelho {
+  color: var(--red);
+}
+
+.amarelo {
+  color: var(--ylw);
+}
