@@ -1,18 +1,29 @@
 import type { Cents, Id, YearMonth } from "./common";
 
-/** Compra parcelada ativa (antigo `par`, seção 4.3). Cada mês gera um
- *  lançamento de despesa vinculado por `parcelaId`/`parcelaMes`. */
+/** Compra parcelada (antigo `par`, seção 4.3). Comportamento portado do app
+ *  de referência:
+ *  - o VALOR de cada mês vem da divisão exata do total em centavos (o resto
+ *    vai às primeiras parcelas: 55,99 em 3× → 18,67 + 18,66 + 18,66), a não
+ *    ser que haja ajuste manual daquele mês em `overridePorMes`;
+ *  - cada mês pago gera um lançamento de despesa vinculado por
+ *    `parcelaId`/`parcelaMes` (origem 'parc');
+ *  - `autoDebit` + `cartao`: o débito mensal entra no cálculo da fatura
+ *    do cartão (seção 4.1). */
 export interface Parcela {
   id: Id;
   descricao: string;
-  valorParcela: Cents;
-  totalParcelas: number;
+  /** Total da compra em centavos. */
+  total: Cents;
+  numParcelas: number;
   /** Mês da primeira parcela. */
   primeiroMes: YearMonth;
-  /** Cartão vinculado — se for de crédito, o débito mensal entra na fatura. */
-  cartao?: string | null;
   categoria?: string;
-  /** Marcada quando houve quitação antecipada (soma das restantes num único
-   *  lançamento, removendo os futuros individuais). */
-  quitada?: boolean;
+  /** Cartão vinculado (opcional). */
+  cartao?: string | null;
+  /** Débito automático no cartão: entra no cálculo da fatura. */
+  autoDebit?: boolean;
+  /** Ajuste manual do valor de um mês específico. */
+  overridePorMes?: Record<YearMonth, Cents>;
+  /** Meses já pagos. */
+  pagoPorMes: Record<YearMonth, boolean>;
 }

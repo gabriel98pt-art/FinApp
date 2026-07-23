@@ -59,6 +59,24 @@ export function mesAtual(): YearMonth {
   return mesDe(hojeIso());
 }
 
+/** Soma n meses a um 'YYYY-MM' (n pode ser negativo). */
+export function somarMeses(ym: YearMonth, n: number): YearMonth {
+  const [y, m] = ym.split("-").map(Number);
+  const total = y * 12 + (m - 1) + n;
+  const ny = Math.floor(total / 12);
+  const nm = total - ny * 12 + 1;
+  return `${ny}-${String(nm).padStart(2, "0")}`;
+}
+
+/** Filtra os lançamentos que CONTAM como despesa nos KPIs/resumos.
+ *  Pagamentos de fatura (origem 'fat') ficam de fora: a compra no cartão já
+ *  contou como despesa no mês dela — contar também o pagamento seria contar
+ *  duas vezes (bug conhecido do app antigo, seção 4.1, a não reproduzir).
+ *  O destino claro deles é a tela Cartões (total pago da fatura). */
+export function despesasNosTotais<T extends { origem?: string }>(itens: T[]): T[] {
+  return itens.filter((d) => d.origem !== "fat");
+}
+
 /** Ordena por data decrescente (mais recente primeiro), estável. */
 export function ordenarPorDataDesc<T extends ItemComValor>(itens: T[]): T[] {
   return [...itens].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));

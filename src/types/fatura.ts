@@ -1,10 +1,14 @@
 import type { Cents, Id, IsoDate, YearMonth } from "./common";
 
-/** Um pagamento (total ou parcial) de fatura de cartão. */
+/** Um pagamento (total ou parcial) de fatura de cartão. `id` é o id do
+ *  lançamento de despesa (origem 'fat') criado junto — remover o pagamento
+ *  remove também esse lançamento. */
 export interface PagamentoFatura {
   id: Id;
   data: IsoDate;
   valor: Cents;
+  /** Conta/cartão de débito de onde o dinheiro saiu. */
+  de?: string;
 }
 
 /** Lista de pagamentos de um cartão num mês. Registros legados no formato

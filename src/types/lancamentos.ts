@@ -40,10 +40,15 @@ export interface DespesaCorrente extends LancamentoBase {
   categoria: string;
   contaCartao?: string;
   origem?: OrigemLancamento;
+  /** Nota livre (ex. "2ª de 5" numa parcela, "Ref. julho" num pagamento de fatura). */
+  nota?: string;
   /** Vínculo com a parcela que gerou este lançamento (antigo `_pid`). */
   parcelaId?: Id;
-  /** Mês da parcela dentro do plano (antigo `_pm`). */
-  parcelaMes?: YearMonth;
+  /** Mês da parcela dentro do plano (antigo `_pm`); 'quit' = quitação antecipada. */
+  parcelaMes?: YearMonth | "quit";
+  /** Num pagamento de fatura (origem 'fat'): qual cartão/mês ele quita. */
+  fatCartao?: string;
+  fatMes?: YearMonth;
   /** Id do backup legado "Quick€" para deduplicação na importação (antigo `_qfId`). */
   qfId?: string;
 }
