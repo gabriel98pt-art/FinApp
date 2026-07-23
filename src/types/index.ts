@@ -1,6 +1,7 @@
 export type * from "./common";
 export type * from "./config";
 export type * from "./fatura";
+export type * from "./importacao";
 export type * from "./lancamentos";
 export type * from "./parcela";
 export type * from "./planeamento";
