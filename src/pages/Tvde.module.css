@@ -1,0 +1,397 @@
+.hero {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card-hi);
+  padding: 18px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--blu);
+}
+
+.heroRotulo {
+  color: var(--mut);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.heroValor {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: var(--track-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--blu);
+}
+
+.heroChips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.heroChips span {
+  background: var(--s2);
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mut);
+}
+
+.abas {
+  display: flex;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.abaBotao {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.abaAtiva {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtitulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.adicionar {
+  color: var(--blu);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+}
+
+.adicionar:hover {
+  background: var(--s2);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.semana {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.semanaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  min-width: 0;
+  flex: 1;
+}
+
+.semanaNome {
+  font-weight: 700;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badgeTeste {
+  font-style: normal;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--ylw);
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+
+.semanaDetalhe {
+  color: var(--mut);
+  font-size: 0.72rem;
+}
+
+.semanaLado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.semanaLucro {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--grn);
+}
+
+.acaoMini {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--blu);
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 6px 9px;
+}
+
+.perigo {
+  color: var(--red);
+}
+
+.notaEur {
+  color: var(--mut);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Tabelas mês/período */
+.tabela {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linhaTab {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  align-items: center;
+}
+
+.linhaTab:nth-child(even) {
+  background: var(--s2);
+}
+
+.linhaCab {
+  color: var(--mut);
+  font-weight: 700;
+  font-size: 0.72rem;
+  background: none !important;
+}
+
+.mesNome {
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.liquido {
+  font-weight: 800;
+  color: var(--grn);
+}
+
+.vazioTab {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 18px;
+}
+
+/* Extras: Seg. Social + despesas */
+.extras {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blocoExtra {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blocoTitulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.blocoNota {
+  color: var(--mut);
+  font-size: 0.78rem;
+}
+
+.linhaDupla {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.linhaDupla input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  color: var(--txt);
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 110px;
+}
+
+.botaoMini {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  padding: 9px 14px;
+}
+
+.listaSimples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listaSimples li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  font-variant-numeric: tabular-nums;
+}
+
+.remover {
+  color: var(--red);
+  padding: 0 4px;
+}
+
+/* Formulário da semana */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campoLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.campoLinha input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  color: var(--txt);
+  font-size: 0.95rem;
+  width: 130px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.campoLinha input:focus,
+.campo input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.linhaTripla {
+  display: flex;
+  gap: 8px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.campo input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  color: var(--txt);
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--txt);
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}
