@@ -24,6 +24,10 @@ export interface Parcela {
   autoDebit?: boolean;
   /** Ajuste manual do valor de um mês específico. */
   overridePorMes?: Record<YearMonth, Cents>;
-  /** Meses já pagos. */
-  pagoPorMes: Record<YearMonth, boolean>;
+  /** Meses já pagos. `true` = pago por fora da fatura (manual/quitação) —
+   *  deixa de contar no débito automático das faturas seguintes; `"fatura"` =
+   *  quitado pela própria fatura do cartão — continua contando no cálculo,
+   *  para o devido histórico não mudar. (Correção do double-charge do app
+   *  antigo, mesma família dos bugs da seção 4.1.) */
+  pagoPorMes: Record<YearMonth, boolean | "fatura">;
 }

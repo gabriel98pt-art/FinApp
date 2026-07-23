@@ -5,16 +5,17 @@
 
 import { onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "./firebase";
-import type { DespesaCorrente, Id, Receita } from "../types";
+import type { DespesaCorrente, Id, Parcela, Receita } from "../types";
 
-type Dominio = "receitas" | "despesasCorrentes";
+type Dominio = "receitas" | "despesasCorrentes" | "parcelas";
 
-function caminho(uid: string, dominio: Dominio, id?: Id): string {
+export function caminhoDominio(uid: string, dominio: Dominio, id?: Id): string {
   return `users/${uid}/fin_v5/${dominio}${id ? `/${id}` : ""}`;
 }
+const caminho = caminhoDominio;
 
 /** RTDB rejeita `undefined` — remove chaves opcionais vazias antes de gravar. */
-function semIndefinidos<T extends object>(dados: T): T {
+export function semIndefinidos<T extends object>(dados: T): T {
   return Object.fromEntries(Object.entries(dados).filter(([, v]) => v !== undefined)) as T;
 }
 
@@ -69,3 +70,10 @@ export const criarDespesa = (uid: string, dados: Omit<DespesaCorrente, "id">) =>
 export const atualizarDespesa = (uid: string, item: DespesaCorrente) =>
   atualizar(uid, "despesasCorrentes", item);
 export const removerDespesa = (uid: string, id: Id) => remover(uid, "despesasCorrentes", id);
+
+// ---- Parcelas ----
+export const observarParcelas = (uid: string, cb: (itens: Parcela[]) => void) =>
+  observar<Parcela>(uid, "parcelas", cb);
+export const criarParcela = (uid: string, dados: Omit<Parcela, "id">) =>
+  criar<Parcela>(uid, "parcelas", dados);
+export const removerParcela = (uid: string, id: Id) => remover(uid, "parcelas", id);

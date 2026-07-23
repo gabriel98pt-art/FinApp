@@ -46,11 +46,16 @@ export interface DadosFatura {
   transferencias: Transferencia[];
 }
 
-/** Débito automático das parcelas vinculadas ao cartão num mês do ciclo. */
+/** Débito automático das parcelas vinculadas ao cartão num mês do ciclo.
+ *  Mês pago por FORA da fatura (`true`: pagamento manual ou quitação
+ *  antecipada) sai do cálculo — cobrá-lo de novo seria dupla contagem.
+ *  Mês quitado PELA fatura (`"fatura"`) continua contando, senão o devido
+ *  de uma fatura já paga mudaria depois do pagamento. */
 function debitoAutomaticoParcelas(cartao: string, ciclo: YearMonth, parcelas: Parcela[]): Cents {
   return parcelas.reduce((s, p) => {
     if (p.cartao !== cartao || !p.autoDebit) return s;
     if (!mesesDaParcela(p).includes(ciclo)) return s;
+    if (p.pagoPorMes[ciclo] === true) return s;
     return s + valorDaParcela(p, ciclo);
   }, 0);
 }

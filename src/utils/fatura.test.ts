@@ -127,6 +127,34 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
   });
 });
 
+describe("parcelas autoDebit vs estado de pagamento (double-charge do app antigo)", () => {
+  const parcela: Parcela = {
+    id: "p1",
+    descricao: "Telemóvel",
+    total: 30000,
+    numParcelas: 10,
+    primeiroMes: "2026-01",
+    cartao: CARTAO,
+    autoDebit: true,
+    pagoPorMes: {},
+  };
+
+  test("mês quitado antecipadamente (true) sai das faturas futuras", () => {
+    const quitada = { ...parcela, pagoPorMes: { "2026-06": true } as Parcela["pagoPorMes"] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", { ...vazio, parcelas: [quitada] })).toBe(0);
+  });
+
+  test("mês quitado pela própria fatura ('fatura') continua no devido — histórico estável", () => {
+    const viaFatura = {
+      ...parcela,
+      pagoPorMes: { "2026-06": "fatura" } as Parcela["pagoPorMes"],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", { ...vazio, parcelas: [viaFatura] })).toBe(
+      3000,
+    );
+  });
+});
+
 describe("override manual e pagamento parcial", () => {
   const dados: DadosFatura = { ...vazio, despesasCorrentes: [dc({ valor: 10000 })] };
 
