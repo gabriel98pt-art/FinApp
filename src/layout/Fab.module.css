@@ -1,7 +1,8 @@
 .fab {
   position: fixed;
   right: 16px;
-  bottom: calc(88px + env(safe-area-inset-bottom));
+  /* acima da nav E da bolha elevada da aba ativa (que sobe ~20px) */
+  bottom: calc(102px + env(safe-area-inset-bottom));
   z-index: 41;
   width: 56px;
   height: 56px;

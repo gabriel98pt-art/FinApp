@@ -82,7 +82,8 @@
 .veu {
   position: fixed;
   inset: 0;
-  z-index: 38;
+  /* acima do FAB (41), para o menu não ficar tapado */
+  z-index: 42;
   background: rgba(0, 0, 0, 0.35);
   opacity: 0;
   pointer-events: none;
@@ -100,7 +101,7 @@
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: min(100vw - 20px, 430px);
-  z-index: 39;
+  z-index: 43;
   border-radius: var(--r-card);
   box-shadow: var(--sh-card);
   padding: 8px;
