@@ -1,28 +1,26 @@
 .fab {
-  position: fixed;
-  right: 16px;
-  /* acima da nav E da bolha elevada da aba ativa (que sobe ~20px) */
-  bottom: calc(102px + env(safe-area-inset-bottom));
-  z-index: 41;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--blu);
-  color: var(--bg);
-  box-shadow: var(--sh-card);
-  transition: transform 0.15s ease;
+  display: none;
 }
 
-.fab:active {
-  transform: scale(0.92);
-}
-
-/* Desktop: sem nav inferior, o FAB desce para o canto */
+/* Desktop: sem barra inferior, o FAB flutua no canto */
 @media (min-width: 768px) {
   .fab {
-    bottom: 24px;
+    position: fixed;
     right: 24px;
+    bottom: 24px;
+    z-index: 41;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--blu);
+    color: var(--bg);
+    box-shadow: var(--sh-card);
+    transition: transform 0.15s ease;
+  }
+
+  .fab:active {
+    transform: scale(0.92);
   }
 }

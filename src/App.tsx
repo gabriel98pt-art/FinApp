@@ -6,7 +6,7 @@ import { useAuthStore } from "./stores/authStore";
 import { useAplicarTema } from "./hooks/useAplicarTema";
 
 // Lazy loading por página (seção 8 — performance)
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Inicio = lazy(() => import("./pages/Inicio"));
 const Receitas = lazy(() => import("./pages/Receitas"));
 const Despesas = lazy(() => import("./pages/Despesas"));
 const Veiculo = lazy(() => import("./pages/Veiculo"));
@@ -30,7 +30,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppShell />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Inicio />} />
           <Route path="/receitas" element={<Receitas />} />
           <Route path="/despesas" element={<Despesas />} />
           <Route path="/veiculo" element={<Veiculo />} />

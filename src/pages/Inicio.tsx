@@ -3,9 +3,9 @@ import KpiCard from "../components/KpiCard";
 import { formatMoney } from "../utils/money";
 
 // Valores fictícios só para dar corpo visual à casca (Marco 1)
-export default function Dashboard() {
+export default function Inicio() {
   return (
-    <Pagina titulo="Dashboard">
+    <Pagina titulo="Início">
       <Kpis>
         <KpiCard rotulo="Saldo do mês" valor={formatMoney(184532, "EUR")} tom="acento" />
         <KpiCard rotulo="Receitas" valor={formatMoney(320000, "EUR")} tom="verde" />

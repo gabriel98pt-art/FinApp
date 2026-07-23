@@ -3,8 +3,8 @@ import {
   Car,
   CarTaxiFront,
   CreditCard,
+  House,
   Layers,
-  LayoutDashboard,
   Settings,
   Target,
   TrendingDown,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export type AbaId =
-  | "dashboard"
+  | "inicio"
   | "receitas"
   | "despesas"
   | "veiculo"
@@ -35,7 +35,7 @@ export interface AbaDef {
 
 /** Todas as abas do app (seção 3), na ordem da barra desktop. */
 export const ABAS: AbaDef[] = [
-  { id: "dashboard", rota: "/", titulo: "Dashboard", Icone: LayoutDashboard },
+  { id: "inicio", rota: "/", titulo: "Início", Icone: House },
   { id: "receitas", rota: "/receitas", titulo: "Receitas", Icone: TrendingUp },
   { id: "despesas", rota: "/despesas", titulo: "Despesas", Icone: TrendingDown },
   { id: "veiculo", rota: "/veiculo", titulo: "Veículo", Icone: Car },
@@ -48,16 +48,23 @@ export const ABAS: AbaDef[] = [
   { id: "definicoes", rota: "/definicoes", titulo: "Definições", Icone: Settings },
 ];
 
-/** Slots principais da nav mobile. O 5º alterna entre Calendário e TVDE
- *  conforme cfg.showTvde (seção 4.4) — a troca real chega com a store de
- *  configuração; por ora fica Calendário. As restantes vão para o menu "Mais". */
-export function abasNavMobile(showTvde: boolean): AbaDef[] {
-  const quintoSlot: AbaId = showTvde ? "tvde" : "calendario";
-  const ids: AbaId[] = ["dashboard", "receitas", "despesas", "cartoes", quintoSlot];
-  return ids.map((id) => ABAS.find((a) => a.id === id)!);
+function aba(id: AbaId): AbaDef {
+  return ABAS.find((a) => a.id === id)!;
 }
 
-export function abasMenuMais(showTvde: boolean): AbaDef[] {
-  const principais = new Set(abasNavMobile(showTvde).map((a) => a.id));
-  return ABAS.filter((a) => !principais.has(a.id));
-}
+/** Barra mobile (redesenho do Marco 2): Receitas | Despesas | [botão central]
+ *  | Início | Mais. As duas primeiras ficam à esquerda do botão central. */
+export const NAV_MOBILE_ESQUERDA: AbaDef[] = [aba("receitas"), aba("despesas")];
+export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
+
+/** Tudo o que não tem posição fixa na barra vive no menu "Mais". */
+export const ABAS_MENU_MAIS: AbaDef[] = [
+  aba("cartoes"),
+  aba("calendario"),
+  aba("veiculo"),
+  aba("parcelas"),
+  aba("metas"),
+  aba("importar"),
+  aba("tvde"),
+  aba("definicoes"),
+];
