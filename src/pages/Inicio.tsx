@@ -1,12 +1,13 @@
 import Pagina, { EmConstrucao, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
-import { mesAtual, resumoMes, saldoTotal } from "../utils/calculos";
+import { despesasNosTotais, mesAtual, resumoMes, saldoTotal } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 
 export default function Inicio() {
   const receitas = useReceitasStore((s) => s.itens);
-  const despesas = useDespesasStore((s) => s.itens);
+  // Pagamentos de fatura (origem 'fat') ficam fora: a compra já contou (4.1)
+  const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
 
   const resumo = resumoMes(receitas, despesas, mesAtual());
   const acumulado = saldoTotal(receitas, despesas);
