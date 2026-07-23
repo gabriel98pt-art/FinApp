@@ -16,6 +16,7 @@ body {
   color: var(--txt);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-optical-sizing: auto;
 }
 
 h1,
@@ -71,11 +72,11 @@ a {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* prefers-reduced-motion: SEM regra genérica que zera tudo. Cada componente
+   animado tem as próprias regras cirúrgicas dentro do seu .module.css
+   (pulso do FAB desliga; sheet/menu/toast passam a só-opacidade curta) —
+   uma regra global aqui não alcançaria as classes hasheadas dos modules.
+   IMPORTANTE (seção 6 do spec): a física de arrasto real da bottom sheet,
+   quando chegar, NÃO pode ser pega por regra genérica de reduced-motion —
+   arrasto é manipulação direta do usuário, não decoração; usar escape hatch
+   próprio (ex. [data-dragging="true"] { transition: none !important }). */

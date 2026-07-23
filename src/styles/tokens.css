@@ -28,11 +28,23 @@
   --r-card: 16px;
   --r-sm: 9px;
 
-  /* Sombras em camadas, com inset highlight sutil */
-  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35);
+  /* Sombras em camadas, com inset highlight sutil já no estado base */
+  --sh-card:
+    0 1px 2px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --sh-card-hi:
     inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.25),
     0 8px 24px rgba(0, 0, 0, 0.35);
+  --sh: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --sh-div: 0 1px 6px -3px rgba(0, 0, 0, 0.5);
+
+  /* Componentes RGB dos acentos, para sombras/brilhos com alpha */
+  --blu-rgb: 0, 217, 181;
+  --grn-rgb: 74, 222, 128;
+  --red-rgb: 251, 113, 133;
+  --ylw-rgb: 251, 191, 36;
+  --pur-rgb: 176, 141, 252;
 
   /* Material translúcido (header/tabs/nav) */
   --material-bg: rgba(16, 30, 48, 0.72);
@@ -54,10 +66,21 @@
   --ylw: #b45309;
   --pur: #7c4fd8;
 
-  --sh-card: 0 1px 2px rgba(10, 37, 64, 0.06), 0 8px 24px rgba(10, 37, 64, 0.08);
+  --sh-card:
+    0 1px 2px rgba(20, 23, 32, 0.06), 0 4px 14px rgba(20, 23, 32, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
   --sh-card-hi:
     inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(10, 37, 64, 0.06),
     0 8px 24px rgba(10, 37, 64, 0.08);
+  --sh: 0 4px 20px rgba(0, 0, 0, 0.07);
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --sh-div: 0 1px 6px -3px rgba(20, 23, 32, 0.16);
+
+  --blu-rgb: 11, 122, 102;
+  --grn-rgb: 21, 128, 61;
+  --red-rgb: 190, 18, 60;
+  --ylw-rgb: 180, 83, 9;
+  --pur-rgb: 124, 79, 216;
 
   --material-bg: rgba(255, 255, 255, 0.72);
   --material-brd: rgba(10, 37, 64, 0.08);

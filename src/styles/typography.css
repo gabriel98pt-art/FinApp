@@ -1,0 +1,12 @@
+/* Tokens de tipografia: tracking por papel do texto. */
+
+:root {
+  --track-display: -0.025em; /* números grandes de KPI */
+  --track-heading: -0.015em; /* títulos */
+  --track-body: 0em;
+  --track-label: 0.04em; /* rótulos pequenos em caps/etiquetas */
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

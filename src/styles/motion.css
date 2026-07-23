@@ -1,0 +1,16 @@
+/* Tokens de movimento.
+   Convenção: o estado BASE de qualquer overlay/sheet/menu usa
+   --ease-exit/--dur-exit (fechado — sair acelera e é mais rápido);
+   o modificador aberto/visível usa --ease-enter/--dur-enter (entrar
+   desacelera e é mais lento). Mesmo caminho visual, velocidades
+   diferentes por direção. */
+
+:root {
+  --ease-enter: cubic-bezier(0.32, 0.72, 0, 1); /* desacelera — abrir/entrar */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* acelera — fechar/sair */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* leve overshoot — feedback de toque */
+  --dur-fast: 0.15s;
+  --dur-exit: 0.18s;
+  --dur-enter: 0.24s;
+  --dur-enter-lg: 0.3s;
+}
