@@ -1,0 +1,87 @@
+.card {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pur);
+}
+
+.titulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--txt);
+}
+
+.sub {
+  color: var(--mut);
+  font-size: 0.78rem;
+}
+
+.form {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  color: var(--txt);
+  font-size: 0.88rem;
+}
+
+.input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.botao {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+
+.resposta {
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sugestao {
+  font-size: 0.75rem;
+  color: var(--mut);
+  background: var(--s2);
+  border-radius: 99px;
+  padding: 5px 11px;
+}
+
+.sugestao:hover {
+  background: var(--s3);
+  color: var(--txt);
+}

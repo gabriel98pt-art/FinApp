@@ -216,7 +216,20 @@ interface IntentCopiloto {
   run: (q: string, ref: ReferenciaTempo, ctx: ContextoCopiloto) => string | null;
 }
 
-const b = (s: string) => `<b>${s}</b>`;
+/** Escapa metacaracteres HTML — a resposta é renderizada com
+ *  dangerouslySetInnerHTML (só pra permitir o <b> de destaque), e vários
+ *  valores interpolados (nome de categoria/cartão/fonte/parcela) vêm de
+ *  texto livre configurado pelo usuário: sem isso, um nome de categoria tipo
+ *  '<img onerror=...>' viraria XSS armazenado. */
+function escaparHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+const b = (s: string) => `<b>${escaparHtml(s)}</b>`;
 
 export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // combustível/veículo — sem domínio próprio no FinApp ainda; honesto

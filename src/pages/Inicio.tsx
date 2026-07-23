@@ -1,5 +1,6 @@
 import Pagina, { EmConstrucao, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
+import CopilotoCard from "../components/CopilotoCard";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { despesasNosTotais, mesAtual, resumoMes, saldoTotal } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
@@ -28,9 +29,9 @@ export default function Inicio() {
           tom={acumulado >= 0 ? "amarelo" : "vermelho"}
         />
       </Kpis>
-      <EmConstrucao>Orçamento por categoria — Marco 3</EmConstrucao>
-      <EmConstrucao>Resumo anual — Marco 3</EmConstrucao>
-      <EmConstrucao>Copiloto — Marco 3</EmConstrucao>
+      <EmConstrucao>Orçamento por categoria — Marco 4</EmConstrucao>
+      <EmConstrucao>Resumo anual — Marco 4</EmConstrucao>
+      <CopilotoCard />
     </Pagina>
   );
 }
