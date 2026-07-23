@@ -2,12 +2,56 @@
   background: var(--s1);
   border: 1px solid var(--brd);
   border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
+  box-shadow: var(--sh-card);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-card-hi);
+}
+
+/* Aura da categoria: hairline no topo… */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--_a, var(--blu));
+}
+
+/* …e wash de gradiente descendo do topo */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 45% 0;
+  background: linear-gradient(180deg, var(--_a, var(--blu)), transparent);
+  opacity: 0.11;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.card:hover::after {
+  opacity: 0.16;
+}
+
+[data-theme="light"] .card::after {
+  opacity: 0.08;
+}
+
+[data-theme="light"] .card:hover::after {
+  opacity: 0.16;
 }
 
 .rotulo {
@@ -22,7 +66,7 @@
 .valor {
   font-size: 1.25rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
 }
 
