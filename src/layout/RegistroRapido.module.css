@@ -1,0 +1,95 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.seletorTipo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.tipo {
+  padding: 9px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--mut);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.tipoAtivoDespesa {
+  background: var(--red);
+  color: var(--bg);
+}
+
+.tipoAtivoReceita {
+  background: var(--grn);
+  color: var(--bg);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.campo input,
+.campo select {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.linhaDupla {
+  display: flex;
+  gap: 10px;
+}
+
+.erro {
+  color: var(--red);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.salvar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.excluir {
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px;
+}

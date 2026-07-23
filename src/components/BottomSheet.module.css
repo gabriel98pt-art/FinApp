@@ -1,0 +1,56 @@
+.veu {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.veuVisivel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.folha {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(24px);
+  width: min(100vw, 480px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  z-index: 46;
+  border-radius: 22px 22px 0 0;
+  border-bottom: none;
+  box-shadow: var(--sh-card);
+  padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  opacity: 0;
+  pointer-events: none;
+  /* entrada e saída com curvas assimétricas (seção 6) */
+  transition:
+    opacity 0.18s ease,
+    transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.aberta {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.pegador {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--mut);
+  opacity: 0.4;
+  margin: 6px auto 12px;
+}
+
+.titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}

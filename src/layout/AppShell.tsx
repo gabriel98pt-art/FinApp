@@ -4,6 +4,8 @@ import Header from "./Header";
 import TabBar from "./TabBar";
 import MobileNav from "./MobileNav";
 import Fab from "./Fab";
+import RegistroRapido from "./RegistroRapido";
+import Toast from "../components/Toast";
 import { useSyncConta } from "../hooks/useSyncConta";
 import styles from "./AppShell.module.css";
 
@@ -20,6 +22,8 @@ export default function AppShell() {
       </main>
       <MobileNav />
       <Fab />
+      <RegistroRapido />
+      <Toast />
     </>
   );
 }
