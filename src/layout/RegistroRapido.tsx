@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import BottomSheet from "../components/BottomSheet";
-import { CATEGORIAS_DESPESA_PADRAO, FONTES_RECEITA_PADRAO } from "../constants/categorias";
 import {
   atualizarDespesa,
   atualizarReceita,
@@ -10,6 +9,7 @@ import {
   removerReceita,
 } from "../services/lancamentosService";
 import { useAuthStore } from "../stores/authStore";
+import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
@@ -26,11 +26,13 @@ export default function RegistroRapido() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
+  const cfg = useCfgStore((s) => s.cfg);
 
   const [descricao, setDescricao] = useState("");
   const [valorTexto, setValorTexto] = useState("");
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
+  const [conta, setConta] = useState(""); // conta/cartão (opcional)
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -57,11 +59,13 @@ export default function RegistroRapido() {
         setValorTexto(formatCents(editando.valor));
         setData(editando.data);
         setEtiqueta("fonte" in editando ? editando.fonte : editando.categoria);
+        setConta(("fonte" in editando ? editando.conta : editando.contaCartao) ?? "");
       } else {
         setDescricao("");
         setValorTexto("");
         setData(hojeIso());
         setEtiqueta("");
+        setConta("");
       }
     } else if (assinatura === "novo") {
       // Trocou receita↔despesa num lançamento novo: a fonte/categoria não
@@ -70,7 +74,7 @@ export default function RegistroRapido() {
     }
   }
 
-  const opcoes = tipo === "receita" ? FONTES_RECEITA_PADRAO : CATEGORIAS_DESPESA_PADRAO;
+  const opcoes = tipo === "receita" ? cfg.fontesReceita : cfg.categoriasCorrentes;
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -86,11 +90,17 @@ export default function RegistroRapido() {
     setSalvando(true);
     try {
       if (tipo === "receita") {
-        const dados = { descricao, valor, data, fonte: etiquetaFinal };
+        const dados = { descricao, valor, data, fonte: etiquetaFinal, conta: conta || undefined };
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
         else await criarReceita(uid, dados);
       } else {
-        const dados = { descricao, valor, data, categoria: etiquetaFinal };
+        const dados = {
+          descricao,
+          valor,
+          data,
+          categoria: etiquetaFinal,
+          contaCartao: conta || undefined,
+        };
         if (editando) await atualizarDespesa(uid, { ...editando, ...dados });
         else await criarDespesa(uid, dados);
       }
@@ -196,6 +206,21 @@ export default function RegistroRapido() {
             ))}
           </select>
         </label>
+
+        {cfg.contasCartoes.length > 0 && (
+          <label className={styles.campo}>
+            Conta/cartão (opcional)
+            <select value={conta} onChange={(e) => setConta(e.target.value)}>
+              <option value="">Sem conta</option>
+              {cfg.contasCartoes.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                  {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {erro !== null && (
           <p className={styles.erro} role="alert">
