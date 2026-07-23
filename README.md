@@ -24,10 +24,13 @@ Funcionalidades específicas do AppFinanceiro (TVDE, copiloto de perguntas, cart
 
 Nota técnica: o deploy via `firebase_deploy` (MCP) falhava com `"Failed to get instance details"` por um problema de credenciais (ADC sem quota project configurado, afetando a etapa de pré-checagem da API de gerenciamento do RTDB — não era falta do banco). Contornado publicando as regras direto pela REST API do Realtime Database (`PUT /.settings/rules.json`) usando um token do `gcloud auth application-default print-access-token`. O Auth foi publicado normalmente pelo MCP depois de setar o quota project com `gcloud auth application-default set-quota-project finapp1-20d00`.
 
+## Repositório
+
+https://github.com/gabriel98pt-art/FinApp
+
 ## Pendências manuais (não dá pra fazer por API)
 
 1. **Ícones PNG/maskable** — só existe um ícone SVG simples (`icons/icon.svg`) por enquanto. Funciona para a maioria dos navegadores, mas iOS "Adicionar à tela de início" se beneficia de PNGs dedicados (192x192, 512x512) — posso gerar mais tarde se quiser.
-2. **GitHub repo** — ainda não criado. Projeto está só local (`git log` tem o histórico); publicar no GitHub depende de decisão do usuário (criar manualmente e me passar o link, ou autorizar a criação automática).
 
 ## Rodando localmente
 
