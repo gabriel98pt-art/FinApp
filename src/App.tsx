@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./layout/AppShell";
 import Login from "./pages/Login";
 import { useAuthStore } from "./stores/authStore";
+import { useCfgStore } from "./stores/cfgStore";
 import { useAplicarTema } from "./hooks/useAplicarTema";
 
 // Lazy loading por página (seção 8 — performance)
@@ -17,6 +18,16 @@ const Metas = lazy(() => import("./pages/Metas"));
 const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
+
+/** /tvde só existe com o módulo ligado (opt-in por conta, seção 4.4).
+ *  Enquanto a cfg carrega, não redireciona — evita expulsar quem recarrega
+ *  a página já dentro do TVDE. */
+function RotaTvde() {
+  const showTvde = useCfgStore((s) => s.cfg.showTvde);
+  const carregado = useCfgStore((s) => s.carregado);
+  if (carregado && !showTvde) return <Navigate to="/" replace />;
+  return <Tvde />;
+}
 
 export default function App() {
   useAplicarTema();
@@ -39,7 +50,7 @@ export default function App() {
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/metas" element={<Metas />} />
           <Route path="/importar" element={<Importar />} />
-          <Route path="/tvde" element={<Tvde />} />
+          <Route path="/tvde" element={<RotaTvde />} />
           <Route path="/definicoes" element={<Definicoes />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

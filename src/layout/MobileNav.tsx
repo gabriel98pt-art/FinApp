@@ -7,6 +7,7 @@ import {
   NAV_MOBILE_ESQUERDA,
   type AbaDef,
 } from "../constants/abas";
+import { useCfgStore } from "../stores/cfgStore";
 import { useUiStore } from "../stores/uiStore";
 import styles from "./MobileNav.module.css";
 
@@ -32,8 +33,11 @@ export default function MobileNav() {
   const [maisAberto, setMaisAberto] = useState(false);
   const { pathname } = useLocation();
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  // TVDE é opt-in por conta (seção 4.4)
+  const showTvde = useCfgStore((s) => s.cfg.showTvde);
 
-  const maisAtivo = ABAS_MENU_MAIS.some((a) => a.rota === pathname);
+  const abasMais = ABAS_MENU_MAIS.filter((a) => a.id !== "tvde" || showTvde);
+  const maisAtivo = abasMais.some((a) => a.rota === pathname);
   const fecharMais = () => setMaisAberto(false);
 
   return (
@@ -45,7 +49,7 @@ export default function MobileNav() {
       />
 
       <div className={`${styles.menuMais} ${maisAberto ? styles.menuAberto : ""}`}>
-        {ABAS_MENU_MAIS.map(({ id, rota, titulo, Icone }) => (
+        {abasMais.map(({ id, rota, titulo, Icone }) => (
           <NavLink
             key={id}
             to={rota}
