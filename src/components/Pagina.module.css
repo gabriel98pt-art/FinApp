@@ -30,7 +30,9 @@
   }
 
   .kpis > * {
-    animation: kpiEntrada 0.22s ease both;
+    /* backwards, não both: fill retido de transform:none mataria o
+       hover-elevate do card (animation ganha de transition) */
+    animation: kpiEntrada 0.22s ease backwards;
   }
 
   .kpis > *:nth-child(2) {
