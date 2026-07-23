@@ -1,0 +1,253 @@
+.entrada {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entradaTitulo {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.entradaSub {
+  color: var(--mut);
+  font-size: 0.8rem;
+}
+
+.textarea {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 0.85rem;
+  font-family: ui-monospace, monospace;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.entradaAcoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.botaoPrimario {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: var(--r-sm);
+  padding: 10px 16px;
+}
+
+.botaoPrimario:disabled {
+  opacity: 0.5;
+}
+
+.botao {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--s2);
+  color: var(--txt);
+  font-weight: 600;
+  font-size: 0.82rem;
+  border-radius: var(--r-sm);
+  padding: 9px 14px;
+}
+
+.botao:hover {
+  background: var(--s3);
+}
+
+.arquivoOculto {
+  display: none;
+}
+
+.resumo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.linkBotao {
+  color: var(--blu);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.acoesLote {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filtros {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtros::-webkit-scrollbar {
+  display: none;
+}
+
+.filtroBotao {
+  white-space: nowrap;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  color: var(--mut);
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 6px 12px;
+}
+
+.filtroAtivo {
+  background: var(--blu);
+  color: var(--bg);
+  border-color: var(--blu);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linha {
+  display: flex;
+  gap: 10px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px;
+}
+
+.linhaAcao {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.linhaAcao input {
+  width: 18px;
+  height: 18px;
+}
+
+.linhaCorpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linhaTopo {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.linhaDesc {
+  font-weight: 700;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valorPositivo {
+  color: var(--grn);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.valorNegativo {
+  color: var(--red);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.linhaMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--mut);
+}
+
+.badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 3px 9px;
+}
+
+.confAlta {
+  color: var(--grn);
+  background: color-mix(in srgb, var(--grn) 14%, transparent);
+}
+
+.confMedia {
+  color: var(--ylw);
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+}
+
+.confBaixa {
+  color: var(--mut);
+  background: var(--s2);
+}
+
+.categoriaSelect {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  color: var(--txt);
+  font-size: 0.75rem;
+}
+
+.motivoDup {
+  color: var(--ylw);
+  font-size: 0.72rem;
+}
+
+.confirmar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+  position: sticky;
+  bottom: calc(110px + env(safe-area-inset-bottom));
+}
+
+.confirmar:disabled {
+  opacity: 0.5;
+}
+
+@media (min-width: 768px) {
+  .confirmar {
+    position: static;
+  }
+}
