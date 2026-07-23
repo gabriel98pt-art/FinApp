@@ -1,0 +1,64 @@
+/* Tokens de design — paleta "Confiança & Tecnologia" (navy + teal), seção 6 do spec.
+   Valores exatos do app de referência: não redesenhar, preservar. */
+
+:root {
+  /* Dark (padrão) */
+  --bg: #0a1622;
+  --s1: #101e30;
+  --s2: #16283f;
+  --s3: #1e3349;
+  --txt: #eaf1f7;
+  --mut: #93a5b8;
+  --brd: #1e3349;
+
+  --blu: #00d9b5; /* acento primário / ações */
+  --grn: #4ade80;
+  --red: #fb7185;
+  --ylw: #fbbf24;
+  --pur: #b08dfc;
+
+  /* Série de cores dos gráficos */
+  --ch-blu: #0a836f;
+  --ch-grn: #31aa5d;
+  --ch-ylw: #c09013;
+  --ch-red: #e93650;
+  --ch-pur: #9b6de8;
+
+  /* Raios */
+  --r-card: 16px;
+  --r-sm: 9px;
+
+  /* Sombras em camadas, com inset highlight sutil */
+  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --sh-card-hi:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+
+  /* Material translúcido (header/tabs/nav) */
+  --material-bg: rgba(16, 30, 48, 0.72);
+  --material-brd: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] {
+  --bg: #f5f7fa;
+  --s1: #fff;
+  --s2: #eef2f6;
+  --s3: #dce3ea;
+  --txt: #0a2540;
+  --mut: #5b6b7c;
+  --brd: #dce3ea;
+
+  --blu: #0b7a66;
+  --grn: #15803d;
+  --red: #be123c;
+  --ylw: #b45309;
+  --pur: #7c4fd8;
+
+  --sh-card: 0 1px 2px rgba(10, 37, 64, 0.06), 0 8px 24px rgba(10, 37, 64, 0.08);
+  --sh-card-hi:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(10, 37, 64, 0.06),
+    0 8px 24px rgba(10, 37, 64, 0.08);
+
+  --material-bg: rgba(255, 255, 255, 0.72);
+  --material-brd: rgba(10, 37, 64, 0.08);
+}
