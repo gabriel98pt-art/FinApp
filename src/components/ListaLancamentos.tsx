@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import type { Cents, Id, IsoDate } from "../types";
+import type { Cents, Currency, Id, IsoDate } from "../types";
 import { formatMoney } from "../utils/money";
 import styles from "./ListaLancamentos.module.css";
 
@@ -23,6 +23,7 @@ export default function ListaLancamentos({
   carregado,
   tom,
   vazio,
+  moeda,
   aoAdicionar,
   aoEditar,
 }: {
@@ -31,6 +32,7 @@ export default function ListaLancamentos({
   carregado: boolean;
   tom: "verde" | "vermelho";
   vazio: string;
+  moeda: Currency;
   aoAdicionar: () => void;
   aoEditar: (id: Id) => void;
 }) {
@@ -61,7 +63,7 @@ export default function ListaLancamentos({
                 <span
                   className={`${styles.valor} ${tom === "verde" ? styles.verde : styles.vermelho}`}
                 >
-                  {tom === "verde" ? "+" : "−"} {formatMoney(item.valor, "EUR")}
+                  {tom === "verde" ? "+" : "−"} {formatMoney(item.valor, moeda)}
                 </span>
               </button>
             </li>

@@ -1,11 +1,14 @@
 import Pagina, { EmConstrucao, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
+import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { despesasNosTotais, mesAtual, resumoMes, saldoTotal } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 
 export default function Inicio() {
+  const moeda = useCfgStore((s) => s.cfg.currency);
+  const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
   // Pagamentos de fatura (origem 'fat') ficam fora: a compra já contou (4.1)
   const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
@@ -18,15 +21,16 @@ export default function Inicio() {
       <Kpis>
         <KpiCard
           rotulo="Saldo do mês"
-          valor={formatMoney(resumo.saldo, "EUR")}
+          valor={formatMoney(resumo.saldo, moeda)}
           tom={resumo.saldo >= 0 ? "acento" : "vermelho"}
         />
-        <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, "EUR")} tom="verde" />
-        <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, "EUR")} tom="vermelho" />
+        <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, moeda)} tom="verde" />
+        <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, moeda)} tom="vermelho" />
         <KpiCard
           rotulo="Poupança"
-          valor={formatMoney(acumulado, "EUR")}
+          valor={formatMoney(acumulado, moeda)}
           tom={acumulado >= 0 ? "amarelo" : "vermelho"}
+          discreto={modoDiscreto}
         />
       </Kpis>
       <EmConstrucao>Orçamento por categoria — Marco 4</EmConstrucao>

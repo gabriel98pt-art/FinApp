@@ -32,6 +32,7 @@ function CartaoFatura({
   aoAjustar: () => void;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const cfg = useCfgStore((s) => s.cfg);
   const paga = fatura.devido > 0 && fatura.restante === 0;
 
   return (
@@ -54,16 +55,18 @@ function CartaoFatura({
       <div className={styles.valores}>
         <div>
           <p className={styles.rotuloValor}>Devido</p>
-          <p className={styles.valor}>{formatMoney(fatura.devido, "EUR")}</p>
+          <p className={styles.valor}>{formatMoney(fatura.devido, cfg.currency)}</p>
         </div>
         <div>
           <p className={styles.rotuloValor}>Pago</p>
-          <p className={`${styles.valor} ${styles.verde}`}>{formatMoney(fatura.pago, "EUR")}</p>
+          <p className={`${styles.valor} ${styles.verde}`}>
+            {formatMoney(fatura.pago, cfg.currency)}
+          </p>
         </div>
         <div>
           <p className={styles.rotuloValor}>Restante</p>
           <p className={`${styles.valor} ${fatura.restante > 0 ? styles.amarelo : styles.verde}`}>
-            {formatMoney(fatura.restante, "EUR")}
+            {formatMoney(fatura.restante, cfg.currency)}
           </p>
         </div>
       </div>
@@ -77,7 +80,7 @@ function CartaoFatura({
                 {p.de ? ` · ${p.de}` : ""}
               </span>
               <span className={styles.pagamentoValor}>
-                {formatMoney(p.valor, "EUR")}
+                {formatMoney(p.valor, cfg.currency)}
                 <button
                   className={styles.remover}
                   onClick={() => {
@@ -220,7 +223,7 @@ export default function Cartoes() {
       mostrarToast(
         valor === null
           ? "✓ Reposto para cálculo automático"
-          : `✓ Fatura manual: ${formatMoney(valor, "EUR")}`,
+          : `✓ Fatura manual: ${formatMoney(valor, cfg.currency)}`,
       );
       setAjustando(null);
     } catch {
@@ -235,9 +238,13 @@ export default function Cartoes() {
       </div>
 
       <Kpis>
-        <KpiCard rotulo="Devido no mês" valor={formatMoney(totalDevido, "EUR")} tom="acento" />
-        <KpiCard rotulo="Pago" valor={formatMoney(totalPago, "EUR")} tom="verde" />
-        <KpiCard rotulo="Restante" valor={formatMoney(totalRestante, "EUR")} tom="amarelo" />
+        <KpiCard
+          rotulo="Devido no mês"
+          valor={formatMoney(totalDevido, cfg.currency)}
+          tom="acento"
+        />
+        <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
+        <KpiCard rotulo="Restante" valor={formatMoney(totalRestante, cfg.currency)} tom="amarelo" />
       </Kpis>
 
       {cfgCarregada && cartoesCredito.length === 0 ? (
@@ -304,8 +311,9 @@ export default function Cartoes() {
         {pagando && (
           <form className={styles.form} onSubmit={submeterPagamento}>
             <p className={styles.resumoPagar}>
-              Devido {formatMoney(pagando.devido, "EUR")} · Pago {formatMoney(pagando.pago, "EUR")}{" "}
-              · Restante {formatMoney(pagando.restante, "EUR")}
+              Devido {formatMoney(pagando.devido, cfg.currency)} · Pago{" "}
+              {formatMoney(pagando.pago, cfg.currency)} · Restante{" "}
+              {formatMoney(pagando.restante, cfg.currency)}
             </p>
             <label className={styles.campo}>
               Valor (€) — pode ser parcial
@@ -343,7 +351,7 @@ export default function Cartoes() {
         {ajustando && (
           <form className={styles.form} onSubmit={submeterAjuste}>
             <p className={styles.resumoPagar}>
-              Cálculo automático: {formatMoney(ajustando.devidoAutomatico, "EUR")}
+              Cálculo automático: {formatMoney(ajustando.devidoAutomatico, cfg.currency)}
             </p>
             <label className={styles.campo}>
               Valor manual (€) — vazio volta ao automático

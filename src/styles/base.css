@@ -58,6 +58,17 @@ a {
   outline-offset: 2px;
 }
 
+/* Modo discreto (seção 4.6): blur nos elementos sensíveis, sem esconder o
+   resto da navegação. Qualquer componente pode optar aplicando a classe
+   global .discreto — hoje só o valor de KPI de Poupança usa isso; Orçamento/
+   Resumo Anual/breakdown por categoria entram quando esses quadros forem
+   construídos (Marco 4). */
+[data-discreto="true"] .discreto {
+  filter: blur(5px);
+  transition: filter 0.15s ease;
+  user-select: none;
+}
+
 /* Material translúcido das superfícies de navegação, com fallback sólido */
 .material {
   background: var(--s1);

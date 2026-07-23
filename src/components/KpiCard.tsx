@@ -24,15 +24,19 @@ export default function KpiCard({
   rotulo,
   valor,
   tom = "neutro",
+  discreto = false,
 }: {
   rotulo: string;
   valor: string;
   tom?: TomKpi;
+  /** Modo discreto (seção 4.6): só o valor borra, o rótulo continua legível
+   *  — permite navegar em público sem esconder a interface inteira. */
+  discreto?: boolean;
 }) {
   return (
     <div className={styles.card} style={{ "--_a": TOM_COR[tom] } as CSSProperties}>
       <p className={styles.rotulo}>{rotulo}</p>
-      <p className={`${styles.valor} ${TOM_CLASSE[tom]}`}>{valor}</p>
+      <p className={`${styles.valor} ${TOM_CLASSE[tom]} ${discreto ? "discreto" : ""}`}>{valor}</p>
     </div>
   );
 }

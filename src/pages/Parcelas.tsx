@@ -15,7 +15,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { Parcela } from "../types";
+import type { Currency, Parcela } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import {
@@ -28,7 +28,7 @@ import {
 } from "../utils/parcelas";
 import styles from "./Parcelas.module.css";
 
-function LinhaParcela({ p }: { p: Parcela }) {
+function LinhaParcela({ p, moeda }: { p: Parcela; moeda: Currency }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const despesas = useDespesasStore((s) => s.itens);
   const quitada = parcelaQuitada(p);
@@ -54,7 +54,7 @@ function LinhaParcela({ p }: { p: Parcela }) {
         <div className={styles.info}>
           <p className={styles.nome}>{p.descricao}</p>
           <p className={styles.detalhe}>
-            {formatMoney(p.total, "EUR")}
+            {formatMoney(p.total, moeda)}
             {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
           </p>
         </div>
@@ -69,7 +69,7 @@ function LinhaParcela({ p }: { p: Parcela }) {
 
       {!quitada && proximo !== undefined && (
         <p className={styles.proxima}>
-          Próxima: {formatMoney(valorDaParcela(p, proximo), "EUR")} em {rotuloMes(proximo)}
+          Próxima: {formatMoney(valorDaParcela(p, proximo), moeda)} em {rotuloMes(proximo)}
         </p>
       )}
 
@@ -105,13 +105,13 @@ function LinhaParcela({ p }: { p: Parcela }) {
               const totalQuit = valorQuitacao(p);
               if (
                 !window.confirm(
-                  `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, "EUR")}\n\nUma única despesa de quitação será criada hoje.`,
+                  `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)}\n\nUma única despesa de quitação será criada hoje.`,
                 )
               )
                 return;
               void agir(
                 () => quitarParcela(uid!, p),
-                `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, "EUR")}`,
+                `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
               );
             }}
           >
@@ -265,6 +265,7 @@ function FormNovaParcela({ aberta, aoFechar }: { aberta: boolean; aoFechar: () =
 }
 
 export default function Parcelas() {
+  const moeda = useCfgStore((s) => s.cfg.currency);
   const parcelas = useParcelasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
   const [novaAberta, setNovaAberta] = useState(false);
@@ -281,8 +282,8 @@ export default function Parcelas() {
     <Pagina titulo="Parcelas">
       <Kpis>
         <KpiCard rotulo="Em andamento" valor={String(ativas.length)} />
-        <KpiCard rotulo="Débito mensal" valor={formatMoney(debitoMensal, "EUR")} tom="vermelho" />
-        <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, "EUR")} tom="amarelo" />
+        <KpiCard rotulo="Débito mensal" valor={formatMoney(debitoMensal, moeda)} tom="vermelho" />
+        <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="amarelo" />
       </Kpis>
 
       <div className={styles.cabecalho}>
@@ -301,7 +302,7 @@ export default function Parcelas() {
       ) : (
         <div className={styles.lista}>
           {[...ativas, ...quitadas].map((p) => (
-            <LinhaParcela key={p.id} p={p} />
+            <LinhaParcela key={p.id} p={p} moeda={moeda} />
           ))}
         </div>
       )}

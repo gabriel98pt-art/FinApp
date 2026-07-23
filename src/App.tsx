@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import { useAuthStore } from "./stores/authStore";
 import { useCfgStore } from "./stores/cfgStore";
 import { useAplicarTema } from "./hooks/useAplicarTema";
+import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
 
 // Lazy loading por página (seção 8 — performance)
 const Inicio = lazy(() => import("./pages/Inicio"));
@@ -31,6 +32,7 @@ function RotaTvde() {
 
 export default function App() {
   useAplicarTema();
+  useAplicarModoDiscreto();
   const status = useAuthStore((s) => s.status);
 
   // Nada de piscar tela: espera o Firebase restaurar a sessão persistida

@@ -7,6 +7,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   theme: "dark",
   currency: "EUR",
   showTvde: false,
+  modoDiscreto: false,
   fontesReceita: FONTES_RECEITA_PADRAO,
   categoriasFixas: ["Casa", "Assinaturas", "Saúde", "Outros"],
   categoriasCorrentes: CATEGORIAS_DESPESA_PADRAO,

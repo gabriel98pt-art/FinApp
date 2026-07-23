@@ -1,6 +1,7 @@
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
@@ -15,6 +16,7 @@ import {
 import { formatMoney } from "../utils/money";
 
 export default function Despesas() {
+  const moeda = useCfgStore((s) => s.cfg.currency);
   const itens = useDespesasStore((s) => s.itens);
   const carregado = useDespesasStore((s) => s.carregado);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
@@ -42,11 +44,11 @@ export default function Despesas() {
       <Kpis>
         <KpiCard
           rotulo="Total do mês"
-          valor={formatMoney(totalDoMes(contadas, mes), "EUR")}
+          valor={formatMoney(totalDoMes(contadas, mes), moeda)}
           tom="vermelho"
         />
         <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-        <KpiCard rotulo="Total geral" valor={formatMoney(total(contadas), "EUR")} />
+        <KpiCard rotulo="Total geral" valor={formatMoney(total(contadas), moeda)} />
       </Kpis>
 
       <ListaLancamentos
@@ -60,6 +62,7 @@ export default function Despesas() {
         }))}
         carregado={carregado}
         tom="vermelho"
+        moeda={moeda}
         vazio="Nenhuma despesa ainda — toque em Adicionar para lançar a primeira."
         aoAdicionar={() => abrirRegistro("despesa")}
         aoEditar={editar}

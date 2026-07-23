@@ -37,6 +37,34 @@ export async function adicionarCartao(
   });
 }
 
+type ListaDeCategorias = "categoriasFixas" | "categoriasCorrentes" | "fontesReceita";
+
+/** Adiciona um item a uma das 3 listas configuráveis (categorias de despesa
+ *  fixa/corrente, fontes de receita) — usadas no Registro Rápido, Cartões e
+ *  Parcelas. */
+export async function adicionarItemLista(
+  uid: string,
+  cfg: ConfigConta,
+  lista: ListaDeCategorias,
+  item: string,
+) {
+  const nome = item.trim();
+  if (!nome) throw new Error("Nome vazio.");
+  if (cfg[lista].includes(nome)) throw new Error("Já existe um item com esse nome.");
+  await update(ref(db, caminho(uid)), { [lista]: [...cfg[lista], nome] });
+}
+
+/** Remove um item de uma das 3 listas configuráveis. Não apaga lançamentos
+ *  que já usam essa categoria — eles continuam mostrando o nome antigo. */
+export async function removerItemLista(
+  uid: string,
+  cfg: ConfigConta,
+  lista: ListaDeCategorias,
+  item: string,
+) {
+  await update(ref(db, caminho(uid)), { [lista]: cfg[lista].filter((x) => x !== item) });
+}
+
 /** Override manual da fatura (seção 4.1) — `null` volta ao cálculo automático. */
 export async function definirFaturaManual(
   uid: string,

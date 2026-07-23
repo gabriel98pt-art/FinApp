@@ -10,6 +10,9 @@ export interface ConfigConta {
   currency: Currency;
   /** Módulo TVDE é opt-in por conta; convidados nascem com ele desligado. */
   showTvde: boolean;
+  /** Blur visual em elementos sensíveis (poupança, orçamento, resumo anual,
+   *  breakdown por categoria) — seção 4.6. Não esconde o resto da navegação. */
+  modoDiscreto: boolean;
 
   /** Fontes de receita (antigo `src`). */
   fontesReceita: string[];
