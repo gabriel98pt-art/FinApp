@@ -5,14 +5,26 @@
   background: rgba(0, 0, 0, 0.45);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.22s ease;
+  transition: opacity var(--dur-exit) var(--ease-exit);
 }
 
+/* Blur fraco só quando visível — a base fechada não tem blur nenhum */
 .veuVisivel {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity var(--dur-enter) var(--ease-enter);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .veuVisivel {
+    background: rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Superfície sólida (não vidro): sheet carrega conteúdo denso e o material
+   translúcido é reservado a header/tabs/nav (seção 6) */
 .folha {
   position: fixed;
   bottom: 0;
@@ -22,22 +34,28 @@
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
   z-index: 46;
-  border-radius: 22px 22px 0 0;
+  background: var(--s1);
+  border: 1px solid var(--brd);
   border-bottom: none;
+  border-radius: 22px 22px 0 0;
   box-shadow: var(--sh-card);
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   opacity: 0;
   pointer-events: none;
-  /* entrada e saída com curvas assimétricas (seção 6) */
+  /* fechado = base: sair acelera e é mais rápido (motion.css) */
   transition:
-    opacity 0.18s ease,
-    transform 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
 }
 
 .aberta {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(-50%) translateY(0);
+  /* aberto: entrar desacelera e é mais lento */
+  transition:
+    opacity var(--dur-enter-lg) var(--ease-enter),
+    transform var(--dur-enter-lg) var(--ease-enter);
 }
 
 .pegador {
@@ -53,4 +71,13 @@
   font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 14px;
+}
+
+/* Reduced motion: abre/fecha só por opacidade curta, sem deslizar.
+   (O futuro drag físico NÃO passa por aqui — ver nota em base.css.) */
+@media (prefers-reduced-motion: reduce) {
+  .folha {
+    transition: opacity 0.15s ease !important;
+    transform: translateX(-50%) !important;
+  }
 }

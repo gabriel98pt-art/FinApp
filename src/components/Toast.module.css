@@ -16,14 +16,26 @@
   text-align: center;
   opacity: 0;
   pointer-events: none;
+  /* fechado = base: sair acelera e é mais rápido (motion.css) */
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
 }
 
 .visivel {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  /* visível: entrar desacelera e é mais lento */
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    transform var(--dur-enter) var(--ease-enter);
+}
+
+/* Reduced motion: só opacidade, sem deslizar */
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transform: translateX(-50%) !important;
+  }
 }
 
 @media (min-width: 768px) {

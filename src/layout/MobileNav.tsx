@@ -44,7 +44,7 @@ export default function MobileNav() {
         aria-hidden
       />
 
-      <div className={`${styles.menuMais} material ${maisAberto ? styles.menuAberto : ""}`}>
+      <div className={`${styles.menuMais} ${maisAberto ? styles.menuAberto : ""}`}>
         {ABAS_MENU_MAIS.map(({ id, rota, titulo, Icone }) => (
           <NavLink
             key={id}

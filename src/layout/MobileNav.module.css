@@ -72,11 +72,37 @@
   box-shadow: var(--sh-card);
   border: 4px solid var(--bg);
   margin-top: -26px; /* eleva acima da borda superior da barra */
-  transition: transform 0.15s ease;
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+
+/* Pulso respirando — só quando o SO permite movimento */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fabPulse {
+    0%,
+    100% {
+      box-shadow:
+        0 4px 22px rgba(var(--blu-rgb), 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+      box-shadow:
+        0 4px 30px rgba(var(--blu-rgb), 0.7),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .central {
+    animation: fabPulse 3s ease-in-out infinite;
+  }
+
+  .central:hover {
+    animation-play-state: paused;
+  }
 }
 
 .central:active {
   transform: scale(0.92);
+  animation: none;
 }
 
 /* Menu "Mais" — abre/fecha por opacidade + pointer-events, nunca display */
@@ -87,14 +113,25 @@
   background: rgba(0, 0, 0, 0.35);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--dur-exit) var(--ease-exit);
 }
 
+/* Blur fraco só quando visível — a base fechada não tem blur nenhum */
 .veuVisivel {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity var(--dur-enter) var(--ease-enter);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .veuVisivel {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Superfície sólida (não vidro) — o material translúcido fica só na barra */
 .menuMais {
   position: fixed;
   bottom: calc(84px + env(safe-area-inset-bottom));
@@ -102,6 +139,8 @@
   transform: translateX(-50%) translateY(8px);
   width: min(100vw - 20px, 430px);
   z-index: 43;
+  background: var(--s1);
+  border: 1px solid var(--brd);
   border-radius: var(--r-card);
   box-shadow: var(--sh-card);
   padding: 8px;
@@ -110,15 +149,28 @@
   gap: 4px;
   opacity: 0;
   pointer-events: none;
+  /* fechado = base: sair acelera e é mais rápido (motion.css) */
   transition:
-    opacity 0.22s cubic-bezier(0.2, 0.9, 0.3, 1),
-    transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
 }
 
 .menuAberto {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(-50%) translateY(0);
+  /* aberto: entrar desacelera e é mais lento */
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    transform var(--dur-enter) var(--ease-enter);
+}
+
+/* Reduced motion: menu abre/fecha só por opacidade curta */
+@media (prefers-reduced-motion: reduce) {
+  .menuMais {
+    transition: opacity 0.15s ease !important;
+    transform: translateX(-50%) !important;
+  }
 }
 
 .itemMais {

@@ -23,7 +23,7 @@ export default function BottomSheet({
         aria-hidden
       />
       <div
-        className={`${styles.folha} material ${aberta ? styles.aberta : ""}`}
+        className={`${styles.folha} ${aberta ? styles.aberta : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}

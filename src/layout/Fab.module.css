@@ -17,10 +17,36 @@
     background: var(--blu);
     color: var(--bg);
     box-shadow: var(--sh-card);
-    transition: transform 0.15s ease;
+    transition: transform var(--dur-fast) var(--ease-spring);
   }
 
   .fab:active {
     transform: scale(0.92);
+    animation: none;
+  }
+}
+
+/* Pulso respirando — só quando o SO permite movimento */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  @keyframes fabPulse {
+    0%,
+    100% {
+      box-shadow:
+        0 4px 22px rgba(var(--blu-rgb), 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+      box-shadow:
+        0 4px 30px rgba(var(--blu-rgb), 0.7),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .fab {
+    animation: fabPulse 3s ease-in-out infinite;
+  }
+
+  .fab:hover {
+    animation-play-state: paused;
   }
 }
