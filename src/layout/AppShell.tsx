@@ -4,9 +4,11 @@ import Header from "./Header";
 import TabBar from "./TabBar";
 import MobileNav from "./MobileNav";
 import Fab from "./Fab";
+import { useSyncConta } from "../hooks/useSyncConta";
 import styles from "./AppShell.module.css";
 
 export default function AppShell() {
+  useSyncConta();
   return (
     <>
       <Header />
