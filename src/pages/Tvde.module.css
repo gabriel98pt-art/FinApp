@@ -91,6 +91,11 @@
   font-weight: 700;
 }
 
+.cabecalhoAcoes {
+  display: flex;
+  gap: 4px;
+}
+
 .adicionar {
   color: var(--blu);
   font-size: 0.85rem;

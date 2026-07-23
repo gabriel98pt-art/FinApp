@@ -260,9 +260,26 @@ export default function Tvde() {
         <>
           <div className={styles.cabecalho}>
             <h3 className={styles.subtitulo}>Semanas</h3>
-            <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
-              + Semana atual ({semanaAtualN})
-            </button>
+            <div className={styles.cabecalhoAcoes}>
+              <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
+                + Semana atual ({semanaAtualN})
+              </button>
+              <button
+                className={styles.adicionar}
+                onClick={() => {
+                  const resposta = window.prompt("Número da semana (1 = semana de referência):");
+                  if (!resposta) return;
+                  const nSem = parseInt(resposta, 10);
+                  if (!Number.isFinite(nSem) || nSem < 1 || nSem > 500) {
+                    mostrarToast("Número de semana inválido.");
+                    return;
+                  }
+                  setEditando(nSem);
+                }}
+              >
+                + Outra…
+              </button>
+            </div>
           </div>
           {carregado && numeros.length === 0 ? (
             <EstadoVazio
