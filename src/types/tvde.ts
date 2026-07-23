@@ -1,29 +1,46 @@
 import type { Cents, Id, IsoDate, YearMonth } from "./common";
 
-/** Semana de trabalho TVDE (antigo `tvde.weeks`).
- *  ATENÇÃO (seção 4.4): as fórmulas vêm de uma planilha original e não podem
- *  mudar de comportamento — os campos de valores serão fixados no marco que
- *  portar o módulo, validados contra a planilha. Moeda sempre EUR. */
+/** Semana de trabalho TVDE (seção 4.4) — a unidade central do módulo.
+ *  Campos e fórmulas fixados a partir da planilha original do dono do produto
+ *  (portados do financas.html, linhas ~10200-10470): NÃO alterar comportamento
+ *  sem validação explícita. Valores monetários em centavos.
+ *
+ *  A semana N é derivada de cfg.inicioSemana1: começa em inicio+(N-1)*7 dias
+ *  e vai até +6. Não guardamos datas na semana — só o número (chave do mapa). */
 export interface SemanaTvde {
-  id: Id;
-  inicio: IsoDate;
-  fim: IsoDate;
-  /** Ganhos brutos por plataforma (ex. 'uber', 'bolt'). */
-  ganhos: Record<string, Cents>;
-  gorjetas?: Cents;
-  portagens?: Cents;
-  /** Semana "teste": conta para dinheiro real (mês, período, receita, Segurança
-   *  Social) mas some de TODO indicador de performance — split intencional. */
-  teste: boolean;
+  /** Faturamento — a base das contas. */
+  fat: Cents;
+  /** Portagens. */
+  port: Cents;
+  /** Aluguel. */
+  alu: Cents;
+  /** Recarga frota (paga pela frota, descontada da receita). */
+  recF: Cents;
+  /** Extra (soma ao lucro). */
+  extra: Cents;
+  /** Gorjetas — SÓ anotação; NUNCA entram no lucro. */
+  gorj: Cents;
+  /** Recarga própria (sai do lucro; ver [[feedback_tvde_recargas]]). */
+  recP: Cents;
+  horas: number;
+  viag: number;
+  /** % frota GRAVADA na própria semana ao criar — histórico protegido:
+   *  mudar a config depois não recalcula semanas antigas. */
+  pct: number;
+  /** Semana de teste: conta para DINHEIRO REAL (mês, período, Seg. Social,
+   *  lançamento de receita) mas some de TODO indicador de performance. */
+  teste?: boolean;
 }
 
-/** Segurança Social — rastreada por mês de PAGAMENTO, não por período de
- *  faturamento (desfasamento trimestral real, seção 4.4). */
-export interface SegurancaSocialTvde {
-  id: Id;
-  mesPagamento: YearMonth;
-  valor: Cents;
-  trimestreReferencia?: string;
+export interface ConfigTvde {
+  /** Segunda-feira em que começa a semana 1 (no app de origem: 2026-03-02). */
+  inicioSemana1: IsoDate;
+  /** % frota padrão para semanas novas. */
+  pctFrota: number;
+  /** Aluguel semanal padrão. */
+  aluguel: Cents;
+  metaSem: Cents;
+  metaMes: Cents;
 }
 
 export interface DespesaTvde {
@@ -31,26 +48,20 @@ export interface DespesaTvde {
   data: IsoDate;
   descricao: string;
   valor: Cents;
-  categoria?: string;
 }
 
-export interface LancamentoTvde {
-  id: Id;
-  data: IsoDate;
-  descricao: string;
-  valor: Cents;
-  tipo: "receita" | "despesa";
-}
-
-export interface ConfigTvde {
-  metaSemanal?: Cents;
-}
-
-/** Módulo TVDE, completamente autocontido (antigo `S.tvde`). */
+/** Módulo TVDE, completamente autocontido (antigo `S.tvde`).
+ *  Moeda SEMPRE EUR, independente da moeda da conta (seção 4.4). */
 export interface DadosTvde {
-  semanas: SemanaTvde[];
-  segurancaSocial: SegurancaSocialTvde[];
-  despesas: DespesaTvde[];
-  lancamentos: LancamentoTvde[];
   cfg: ConfigTvde;
+  /** Semanas por número (chave string "1", "2", …). */
+  semanas: Record<string, SemanaTvde>;
+  /** Segurança Social por MÊS DE PAGAMENTO (quando saiu da conta) — há um
+   *  desfasamento trimestral real (seção 4.4). */
+  segPorMes: Record<YearMonth, Cents>;
+  /** Semana → id da Receita lançada nas finanças (evita lançar 2x; o undo
+   *  remove dos dois lados). */
+  lancamentos: Record<string, Id>;
+  /** Despesas próprias do módulo, separadas das Despesas gerais. */
+  despesas: DespesaTvde[];
 }
