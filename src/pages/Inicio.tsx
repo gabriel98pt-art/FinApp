@@ -22,7 +22,7 @@ export default function Inicio() {
         <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, "EUR")} tom="verde" />
         <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, "EUR")} tom="vermelho" />
         <KpiCard
-          rotulo="Poupança (acumulada)"
+          rotulo="Poupança"
           valor={formatMoney(acumulado, "EUR")}
           tom={acumulado >= 0 ? "amarelo" : "vermelho"}
         />
