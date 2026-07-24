@@ -1,0 +1,284 @@
+.cardMeta {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card-hi);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardMetaTopo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardMetaTitulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.badgeOk {
+  color: var(--grn);
+  background: color-mix(in srgb, var(--grn) 14%, transparent);
+}
+
+.badgeAlerta {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
+
+.cardMetaGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 480px) {
+  .cardMetaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.saldoGrande {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: var(--track-display);
+  line-height: 1.1;
+}
+
+.cardMetaSub {
+  color: var(--mut);
+  font-size: 0.72rem;
+  margin: 4px 0 8px;
+}
+
+.barra {
+  height: 9px;
+  border-radius: 5px;
+  background: var(--s2);
+  overflow: hidden;
+}
+
+.preenchido {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s var(--ease-enter);
+}
+
+.preenchidoOk {
+  background: var(--grn);
+}
+
+.preenchidoMeio {
+  background: var(--ylw);
+}
+
+.preenchidoAlerta {
+  background: var(--red);
+}
+
+.cardMetaLinhas {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.linhaValor {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.linhaValor span:first-child {
+  color: var(--mut);
+}
+
+.linhaSaldo {
+  border-top: 1px solid var(--brd);
+  padding-top: 6px;
+  font-weight: 700;
+}
+
+.verde {
+  color: var(--grn);
+}
+
+.vermelho {
+  color: var(--red);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.subtitulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.adicionar {
+  color: var(--blu);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+}
+
+.adicionar:hover {
+  background: var(--s2);
+}
+
+.fundos {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 620px) {
+  .fundos {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fundoCard {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fundoTopo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fundoNome {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.remover {
+  color: var(--red);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.fundoStat {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.fundoAtual {
+  font-weight: 800;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fundoPct {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--mut);
+  background: var(--s2);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+
+.fundoFalta {
+  font-size: 0.78rem;
+  color: var(--mut);
+}
+
+.fundoFalta strong {
+  color: var(--txt);
+}
+
+.fundoAtingido {
+  font-size: 0.78rem;
+  color: var(--grn);
+  font-weight: 600;
+}
+
+.fundoProj {
+  font-size: 0.72rem;
+  color: var(--mut);
+}
+
+.contribuirBotao {
+  width: 100%;
+  background: var(--s2);
+  color: var(--blu);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  padding: 9px;
+  margin-top: 4px;
+}
+
+.contribuirBotao:hover {
+  background: var(--s3);
+}
+
+/* Formulários */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.campo input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.campo input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}
