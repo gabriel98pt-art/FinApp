@@ -43,6 +43,20 @@ export function totalVeiculoMes(veiculo: DadosVeiculo, ym: YearMonth, mesReal: Y
   );
 }
 
+/** Total acumulado de todos os tempos (para KPIs "geral"/"poupança"): cargas
+ *  e despesas contam sempre (sempre realizadas); cada fixa conta o valor ×
+ *  quantos meses foram marcados pagos — mesma filosofia "só o que foi
+ *  realmente pago" aplicada ao histórico inteiro, não só ao mês corrente. */
+export function totalVeiculoGeral(veiculo: DadosVeiculo): Cents {
+  const cargas = veiculo.cargas.reduce((s, c) => s + c.custo, 0);
+  const despesas = veiculo.despesas.reduce((s, d) => s + d.valor, 0);
+  const fixas = veiculo.despesasFixas.reduce((s, f) => {
+    const mesesPagos = Object.values(f.pagoPorMes).filter(Boolean).length;
+    return s + f.valor * mesesPagos;
+  }, 0);
+  return cargas + despesas + fixas;
+}
+
 export function lancamentosDoMesVeiculo(veiculo: DadosVeiculo, ym: YearMonth) {
   return {
     cargas: veiculo.cargas.filter((c) => mesDe(c.data) === ym),

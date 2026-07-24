@@ -4,6 +4,7 @@ import {
   contribuicaoFixasVeiculoMes,
   totalCargasMes,
   totalDespesasVeiculoMes,
+  totalVeiculoGeral,
   totalVeiculoMes,
 } from "./veiculo";
 
@@ -91,5 +92,23 @@ describe("totalVeiculoMes — soma as 3 fontes (Parte A)", () => {
 
   test("veículo vazio dá zero", () => {
     expect(totalVeiculoMes(veiculo(), "2026-07", "2026-07")).toBe(0);
+  });
+});
+
+describe("totalVeiculoGeral — acumulado de todos os tempos", () => {
+  test("fixa conta valor × meses marcados pagos", () => {
+    const v = veiculo({
+      cargas: [carga({ custo: 1000 }), carga({ custo: 500, data: "2026-01-01" })],
+      despesas: [despesa({ valor: 3000 })],
+      despesasFixas: [
+        fixa({ valor: 4500, pagoPorMes: { "2026-06": true, "2026-07": true } }), // 2 meses
+        fixa({ valor: 2000, pagoPorMes: { "2026-07": false } }), // nunca marcada paga
+      ],
+    });
+    expect(totalVeiculoGeral(v)).toBe(1000 + 500 + 3000 + 4500 * 2);
+  });
+
+  test("veículo vazio dá zero", () => {
+    expect(totalVeiculoGeral(veiculo())).toBe(0);
   });
 });

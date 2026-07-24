@@ -11,6 +11,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 import type { FaturaCalculada, TipoCartao, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import {
@@ -151,6 +152,7 @@ export default function Cartoes() {
   const cfgCarregada = useCfgStore((s) => s.carregado);
   const despesas = useDespesasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
+  const veiculo = useVeiculoStore((s) => s.dados);
 
   const [mes, setMes] = useState<YearMonth>(mesAtual());
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
@@ -162,7 +164,7 @@ export default function Cartoes() {
 
   const dados: DadosFatura = {
     despesasFixas: [],
-    despesasFixasVeiculo: [],
+    despesasFixasVeiculo: veiculo.despesasFixas,
     despesasCorrentes: despesas,
     parcelas,
     transferencias: [],

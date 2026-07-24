@@ -3,18 +3,23 @@ import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
-import { despesasNosTotais, mesAtual, resumoMes, saldoTotal } from "../utils/calculos";
+import { useVeiculoStore } from "../stores/veiculoStore";
+import { mesAtual, saldoTotal } from "../utils/calculos";
+import { resumoMesCompleto } from "../utils/resumoMensal";
+import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
 
 export default function Inicio() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
-  // Pagamentos de fatura (origem 'fat') ficam fora: a compra já contou (4.1)
-  const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
+  const despesas = useDespesasStore((s) => s.itens);
+  const veiculo = useVeiculoStore((s) => s.dados);
 
-  const resumo = resumoMes(receitas, despesas, mesAtual());
-  const acumulado = saldoTotal(receitas, despesas);
+  const mes = mesAtual();
+  // despesa do mês inclui o veículo (Parte A) — fonte única em utils/resumoMensal.ts
+  const resumo = resumoMesCompleto(receitas, despesas, veiculo, mes, mes);
+  const acumulado = saldoTotal(receitas, despesas) - totalVeiculoGeral(veiculo);
 
   return (
     <Pagina titulo="Início">

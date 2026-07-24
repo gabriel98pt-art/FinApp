@@ -5,14 +5,10 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
-import {
-  despesasNosTotais,
-  doMes,
-  mesAtual,
-  ordenarPorDataDesc,
-  total,
-  totalDoMes,
-} from "../utils/calculos";
+import { useVeiculoStore } from "../stores/veiculoStore";
+import { despesasNosTotais, doMes, mesAtual, ordenarPorDataDesc, total } from "../utils/calculos";
+import { despesaRealizadaMes } from "../utils/resumoMensal";
+import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
 
 export default function Despesas() {
@@ -20,11 +16,15 @@ export default function Despesas() {
   const itens = useDespesasStore((s) => s.itens);
   const carregado = useDespesasStore((s) => s.carregado);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const veiculo = useVeiculoStore((s) => s.dados);
 
   const mes = mesAtual();
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
+  // total do mês/geral inclui o veículo (Parte A) — fonte única em utils/
+  const totalDoMesComVeiculo = despesaRealizadaMes(itens, veiculo, mes, mes);
+  const totalGeralComVeiculo = total(contadas) + totalVeiculoGeral(veiculo);
 
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
@@ -44,11 +44,11 @@ export default function Despesas() {
       <Kpis>
         <KpiCard
           rotulo="Total do mês"
-          valor={formatMoney(totalDoMes(contadas, mes), moeda)}
+          valor={formatMoney(totalDoMesComVeiculo, moeda)}
           tom="vermelho"
         />
         <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-        <KpiCard rotulo="Total geral" valor={formatMoney(total(contadas), moeda)} />
+        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
       </Kpis>
 
       <ListaLancamentos
