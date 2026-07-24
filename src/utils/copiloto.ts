@@ -4,10 +4,21 @@
 // Lista ordenada de intents (mais específico → mais genérico); o primeiro
 // cujo test() bate vence.
 
-import type { Cents, ConfigConta, DespesaCorrente, Parcela, Receita, YearMonth } from "../types";
+import type {
+  Cents,
+  ConfigConta,
+  DadosVeiculo,
+  DespesaCorrente,
+  EventoCalendario,
+  Parcela,
+  Receita,
+  YearMonth,
+} from "../types";
 import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
+import { proximosEventos } from "./calendario";
 import { calcularFatura, type DadosFatura } from "./fatura";
 import { mesesNaoPagos, valorDaParcela } from "./parcelas";
+import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
 
 const ACENTOS: Record<string, string> = {
@@ -171,19 +182,33 @@ export interface ContextoCopiloto {
   despesas: DespesaCorrente[];
   parcelas: Parcela[];
   cfg: ConfigConta;
+  veiculo: DadosVeiculo;
+  eventos: EventoCalendario[];
   /** Mês real de hoje — usado pra decidir se "projeção no ritmo atual" faz
    *  sentido (só quando a pergunta é sobre o mês corrente de verdade). */
   mesReal: YearMonth;
   diaDeHoje: number;
 }
 
-function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
-  return { receitas: totalDoMes(ctx.receitas, ym), despesas: totalDoMes(ctx.despesas, ym) };
+/** 'YYYY-MM-DD' de hoje, reconstruído de mesReal+diaDeHoje (mesma fonte que
+ *  o resto do contexto, sem introduzir um terceiro "agora" independente). */
+function hojeDoContexto(ctx: ContextoCopiloto): string {
+  return `${ctx.mesReal}-${String(ctx.diaDeHoje).padStart(2, "0")}`;
 }
 
+/** Despesas do mês somando veículo (Parte A) — fonte única com o resto do app. */
+function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
+  const despesas = totalDoMes(ctx.despesas, ym) + totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
+  return { receitas: totalDoMes(ctx.receitas, ym), despesas };
+}
+
+/** Breakdown por categoria do mês, com o veículo entrando num bucket
+ *  'Veículo' único (mesmo padrão do _cpCatTotals da origem). */
 function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
+  const totalVeic = totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
+  if (totalVeic > 0) ct["Veículo"] = (ct["Veículo"] || 0) + totalVeic;
   return ct;
 }
 
@@ -204,11 +229,15 @@ function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
 function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
   return {
     despesasFixas: [],
-    despesasFixasVeiculo: [],
+    despesasFixasVeiculo: ctx.veiculo.despesasFixas,
     despesasCorrentes: ctx.despesas,
     parcelas: ctx.parcelas,
     transferencias: [],
   };
+}
+
+function dataCurta(d: string): string {
+  return `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 }
 
 interface IntentCopiloto {
@@ -232,12 +261,37 @@ function escaparHtml(s: string): string {
 const b = (s: string) => `<b>${escaparHtml(s)}</b>`;
 
 export const INTENTS_COPILOTO: IntentCopiloto[] = [
-  // combustível/veículo — sem domínio próprio no FinApp ainda; honesto
+  // combustível / carregamento elétrico
   {
-    test: (q) =>
-      /combust|gasolina|carregament|abasteci|veiculo|\bcarro\b|manutenc|limpeza|lavagem/.test(q),
-    run: () =>
-      "Ainda não há dados de veículo registados nesta conta (o módulo de veículo chega num marco futuro).",
+    test: (q) => /combust|gasolina|carregament|abasteci/.test(q),
+    run: (q, ref, ctx) => {
+      if (q.includes("ultimo") || q.includes("ultima")) {
+        const ordenadas = [...ctx.veiculo.cargas].sort((a, b2) => (a.data < b2.data ? 1 : -1));
+        if (!ordenadas.length) return "Ainda não há registos de combustível/carregamento.";
+        const c = ordenadas[0];
+        return `O último carregamento foi em ${b(dataCurta(c.data))}${c.local ? ` em ${b(c.local)}` : ""}, no valor de ${b(formatMoney(c.custo, ctx.cfg.currency))}.`;
+      }
+      const total = totalCargasMes(ctx.veiculo, ref.ym);
+      return total > 0
+        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em combustível/carregamento em ${ref.label}.`
+        : `Não há gastos de combustível/carregamento registados em ${ref.label}.`;
+    },
+  },
+  // manutenção / limpeza do veículo
+  {
+    test: (q) => /manutenc|limpeza|lavagem/.test(q),
+    run: (_q, ref, ctx) => {
+      const total = totalDespesasVeiculoMes(ctx.veiculo, ref.ym);
+      return total > 0
+        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em manutenção/limpeza do veículo em ${ref.label}.`
+        : `Não há gastos de manutenção/limpeza registados em ${ref.label}.`;
+    },
+  },
+  // veículo genérico (soma tudo: cargas + despesas + fixas)
+  {
+    test: (q) => /veiculo|\bcarro\b/.test(q),
+    run: (_q, ref, ctx) =>
+      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
   },
   // parcela específica (por nome)
   {
@@ -256,7 +310,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const abertos = mesesNaoPagos(p);
       if (!abertos.length) return `A parcela ${b(p.descricao)} já está totalmente paga.`;
       const restante = abertos.reduce((s, m) => s + valorDaParcela(p, m), 0);
-      return `Faltam ${b(String(abertos.length))} parcela(s) de ${b(p.descricao)}, no total de ${b(formatMoney(restante, "EUR"))}. Próxima em ${b(rotuloMes(abertos[0]))}.`;
+      return `Faltam ${b(String(abertos.length))} parcela(s) de ${b(p.descricao)}, no total de ${b(formatMoney(restante, ctx.cfg.currency))}. Próxima em ${b(rotuloMes(abertos[0]))}.`;
     },
   },
   // parcelas agregado
@@ -272,7 +326,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         }
       }
       return n
-        ? `Tem ${b(String(n))} parcela(s) por pagar, no total de ${b(formatMoney(total, "EUR"))}.`
+        ? `Tem ${b(String(n))} parcela(s) por pagar, no total de ${b(formatMoney(total, ctx.cfg.currency))}.`
         : "Não há parcelas em aberto.";
     },
   },
@@ -284,7 +338,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const total = ctx.despesas
         .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ref.ym)
         .reduce((s, d) => s + d.valor, 0);
-      return `Gastou ${b(formatMoney(total, "EUR"))} no cartão ${b(cartao)} em ${ref.label}.`;
+      return `Gastou ${b(formatMoney(total, ctx.cfg.currency))} no cartão ${b(cartao)} em ${ref.label}.`;
     },
   },
   // cartões agregado / mais usado
@@ -302,7 +356,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         }))
         .sort((a, b2) => b2.total - a.total);
       if (!linhas[0].total) return `Não há despesas em nenhum cartão em ${ref.label}.`;
-      return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].cartao)}, com ${b(formatMoney(linhas[0].total, "EUR"))} em despesas.`;
+      return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].cartao)}, com ${b(formatMoney(linhas[0].total, ctx.cfg.currency))} em despesas.`;
     },
   },
   // receita por fonte específica
@@ -314,7 +368,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         .filter((r) => mesDe(r.data) === ref.ym && r.fonte === fonte)
         .reduce((s, r) => s + r.valor, 0);
       return total > 0
-        ? `Recebeu ${b(formatMoney(total, "EUR"))} de ${b(fonte)} em ${ref.label}.`
+        ? `Recebeu ${b(formatMoney(total, ctx.cfg.currency))} de ${b(fonte)} em ${ref.label}.`
         : `Não há receitas de ${b(fonte)} registadas em ${ref.label}.`;
     },
   },
@@ -328,7 +382,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       if (!val) return `Não há gastos em ${b(cat)} em ${ref.label}.`;
       const totalDesp = Object.values(ct).reduce((s, v) => s + v, 0);
       const pct = totalDesp > 0 ? Math.round((val / totalDesp) * 100) : 0;
-      return `Gastou ${b(formatMoney(val, "EUR"))} em ${b(cat)} em ${ref.label} — ${pct}% do total de despesas do mês.`;
+      return `Gastou ${b(formatMoney(val, ctx.cfg.currency))} em ${b(cat)} em ${ref.label} — ${pct}% do total de despesas do mês.`;
     },
   },
   // orçamento (categorias com teto configurado — seção 4.8)
@@ -362,7 +416,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       if (parcelasPendentes.length) partes.push(`${parcelasPendentes.length} parcela(s)`);
       if (faturasComRestante.length) {
         const totalFat = faturasComRestante.reduce((s, f) => s + f.restante, 0);
-        partes.push(`fatura(s) em ${b(formatMoney(totalFat, "EUR"))}`);
+        partes.push(`fatura(s) em ${b(formatMoney(totalFat, ctx.cfg.currency))}`);
       }
       return `Tem ${partes.join(" e ")} por pagar/lançar em ${ref.label}.`;
     },
@@ -374,12 +428,12 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const t = totaisDoMes(ctx, ref.ym);
       const saldo = t.receitas - t.despesas;
       const meta = ctx.cfg.metaPoupanca;
-      let base = `A meta de poupança é ${b(formatMoney(meta, "EUR"))}. Em ${ref.label} o saldo está em ${b(formatMoney(saldo, "EUR"))} — ${saldo >= meta ? "acima" : "abaixo"} da meta.`;
+      let base = `A meta de poupança é ${b(formatMoney(meta, ctx.cfg.currency))}. Em ${ref.label} o saldo está em ${b(formatMoney(saldo, ctx.cfg.currency))} — ${saldo >= meta ? "acima" : "abaixo"} da meta.`;
       if (/ritmo|projec|vou bater/.test(q) && ref.ym === ctx.mesReal && ctx.diaDeHoje > 0) {
         const [ay, am] = ref.ym.split("-").map(Number);
         const ultimoDia = new Date(ay, am, 0).getDate();
         const projecao = Math.round((saldo / ctx.diaDeHoje) * ultimoDia);
-        base += ` No ritmo actual, a projecção para o fim do mês é ${b(formatMoney(projecao, "EUR"))} (${projecao >= meta ? "bate" : "não bate"} a meta).`;
+        base += ` No ritmo actual, a projecção para o fim do mês é ${b(formatMoney(projecao, ctx.cfg.currency))} (${projecao >= meta ? "bate" : "não bate"} a meta).`;
       }
       return base;
     },
@@ -391,18 +445,31 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const { melhor, pior } = melhorPiorMes(ctx, parseInt(ctx.mesReal.slice(0, 4), 10));
       if (q.includes("melhor"))
         return melhor
-          ? `O melhor mês do ano foi ${b(rotuloMes(melhor.ym))}, com saldo de ${b(formatMoney(melhor.saldo, "EUR"))}.`
+          ? `O melhor mês do ano foi ${b(rotuloMes(melhor.ym))}, com saldo de ${b(formatMoney(melhor.saldo, ctx.cfg.currency))}.`
           : "Ainda não há dados suficientes este ano.";
       return pior
-        ? `O pior mês do ano foi ${b(rotuloMes(pior.ym))}, com saldo de ${b(formatMoney(pior.saldo, "EUR"))}.`
+        ? `O pior mês do ano foi ${b(rotuloMes(pior.ym))}, com saldo de ${b(formatMoney(pior.saldo, ctx.cfg.currency))}.`
         : "Ainda não há dados suficientes este ano.";
     },
   },
-  // calendário — sem domínio próprio no FinApp ainda; honesto
+  // calendário / próximos eventos (mesma janela de 7 dias da tela Calendário)
   {
     test: (q) => /calendari|evento|agenda|proxim/.test(q),
-    run: () =>
-      "Ainda não há eventos de calendário registados nesta conta (o módulo de calendário chega num marco futuro).",
+    run: (_q, _ref, ctx) => {
+      const proximos = proximosEventos(ctx.eventos, hojeDoContexto(ctx), 7);
+      if (!proximos.length) return "Não há eventos agendados nos próximos 7 dias.";
+      return (
+        "Nos próximos 7 dias: " +
+        proximos
+          .slice(0, 5)
+          .map(
+            (e) =>
+              `${b(e.titulo)} em ${dataCurta(e.data)}${e.valor !== undefined ? ` (${formatMoney(e.valor, ctx.cfg.currency)})` : ""}`,
+          )
+          .join("; ") +
+        "."
+      );
+    },
   },
   // resumo do mês ou do ano
   {
@@ -418,14 +485,15 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           rec += t.receitas;
           desp += t.despesas;
         }
-        return `Em ${ref.year} recebeu ${b(formatMoney(rec, "EUR"))} e gastou ${b(formatMoney(desp, "EUR"))} — saldo de ${b(formatMoney(rec - desp, "EUR"))}.`;
+        return `Em ${ref.year} recebeu ${b(formatMoney(rec, ctx.cfg.currency))} e gastou ${b(formatMoney(desp, ctx.cfg.currency))} — saldo de ${b(formatMoney(rec - desp, ctx.cfg.currency))}.`;
       }
       const t = totaisDoMes(ctx, ref.ym);
       const ct = categoriasDoMes(ctx, ref.ym);
       const chaves = Object.keys(ct);
       const maior = chaves.length ? chaves.reduce((a, c) => (ct[c] > ct[a] ? c : a)) : null;
-      let msg = `Em ${ref.label} recebeu ${b(formatMoney(t.receitas, "EUR"))} e gastou ${b(formatMoney(t.despesas, "EUR"))} — saldo de ${b(formatMoney(t.receitas - t.despesas, "EUR"))}.`;
-      if (maior) msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], "EUR")}).`;
+      let msg = `Em ${ref.label} recebeu ${b(formatMoney(t.receitas, ctx.cfg.currency))} e gastou ${b(formatMoney(t.despesas, ctx.cfg.currency))} — saldo de ${b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency))}.`;
+      if (maior)
+        msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], ctx.cfg.currency)}).`;
       return msg;
     },
   },
@@ -443,23 +511,23 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           rec += t.receitas;
           desp += t.despesas;
         }
-        return `O saldo de ${ref.year} é ${b(formatMoney(rec - desp, "EUR"))}.`;
+        return `O saldo de ${ref.year} é ${b(formatMoney(rec - desp, ctx.cfg.currency))}.`;
       }
       const t = totaisDoMes(ctx, ref.ym);
-      return `O saldo de ${ref.label} é ${b(formatMoney(t.receitas - t.despesas, "EUR"))} (receitas menos despesas).`;
+      return `O saldo de ${ref.label} é ${b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency))} (receitas menos despesas).`;
     },
   },
   // receitas genérico
   {
     test: (q) => /receita|recebi|entrou|ganhei/.test(q),
     run: (_q, ref, ctx) =>
-      `Recebeu ${b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, "EUR"))} em ${ref.label}.`,
+      `Recebeu ${b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency))} em ${ref.label}.`,
   },
   // despesas genérico
   {
     test: (q) => /despes|gastei|\bgasto\b/.test(q),
     run: (_q, ref, ctx) =>
-      `Gastou ${b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, "EUR"))} em ${ref.label}.`,
+      `Gastou ${b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, ctx.cfg.currency))} em ${ref.label}.`,
   },
 ];
 

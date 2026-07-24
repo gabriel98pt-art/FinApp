@@ -14,6 +14,8 @@ function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
     receitas: [],
     despesas: [],
     parcelas: [],
+    veiculo: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
+    eventos: [],
     cfg: CONFIG_PADRAO,
     mesReal: "2026-07",
     diaDeHoje: 23,
@@ -155,5 +157,69 @@ describe("responderPergunta — intents (seção 3.9)", () => {
   test("pergunta sem nenhum intent reconhecido cai na resposta padrão", () => {
     const resp = responderPergunta("qual é a capital da frança", ctx());
     expect(resp).toMatch(/Ainda não sei responder/);
+  });
+
+  test("veículo: carregamento do mês com dados reais (não mais 'sem dados')", () => {
+    const resp = responderPergunta(
+      "quanto gastei de carregamento este mes?",
+      ctx({
+        veiculo: {
+          cargas: [
+            { id: "c1", data: "2026-07-10", kwh: 40, precoKwh: 25, custo: 1000, local: "Casa" },
+          ],
+          despesas: [],
+          despesasFixas: [],
+          quilometragem: [],
+        },
+      }),
+    );
+    expect(resp).toContain("10,00");
+    expect(resp).not.toMatch(/marco futuro/);
+  });
+
+  test("saldo do mês inclui o gasto do veículo", () => {
+    const resp = responderPergunta(
+      "qual o saldo?",
+      ctx({
+        receitas,
+        despesas: [],
+        veiculo: {
+          cargas: [
+            { id: "c1", data: "2026-07-10", kwh: 40, precoKwh: 25, custo: 50000, local: "Casa" },
+          ],
+          despesas: [],
+          despesasFixas: [],
+          quilometragem: [],
+        },
+      }),
+    );
+    // receitas 2000,00 − veículo 500,00 = 1500,00
+    expect(resp).toContain("1.500,00");
+  });
+
+  test("calendário: próximos 7 dias com evento real", () => {
+    const resp = responderPergunta(
+      "o que tenho agendado",
+      ctx({
+        eventos: [{ id: "e1", titulo: "Dentista", data: "2026-07-25" }],
+        mesReal: "2026-07",
+        diaDeHoje: 20,
+      }),
+    );
+    expect(resp).toContain("Dentista");
+    expect(resp).not.toMatch(/marco futuro/);
+  });
+
+  test("calendário: sem eventos na janela responde honestamente", () => {
+    const resp = responderPergunta("proximos eventos", ctx());
+    expect(resp).toMatch(/Não há eventos agendados/);
+  });
+
+  test("moeda segue a configuração da conta, não fica fixa em EUR", () => {
+    const resp = responderPergunta(
+      "qual o saldo?",
+      ctx({ receitas, despesas: [], cfg: cfgCom({ currency: "BRL" }) }),
+    );
+    expect(resp).toContain("R$");
   });
 });
