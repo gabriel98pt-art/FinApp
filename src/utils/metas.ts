@@ -1,7 +1,15 @@
 // Metas (seção 3, Parte C) — funções puras portadas de renderMetas()
 // (financas.html ~5699-5760). Meta mensal, fundos e poupança de 12 meses.
 
-import type { Cents, DadosVeiculo, DespesaCorrente, Fundo, Receita, YearMonth } from "../types";
+import type {
+  Cents,
+  DadosVeiculo,
+  DespesaCorrente,
+  DespesaFixa,
+  Fundo,
+  Receita,
+  YearMonth,
+} from "../types";
 import { totalDoMes } from "./calculos";
 import { despesaRealizadaMes } from "./resumoMensal";
 
@@ -28,6 +36,7 @@ export interface MetaMensal {
 export function calcularMetaMensal(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
@@ -35,7 +44,7 @@ export function calcularMetaMensal(
   metaConfigurada: Cents,
 ): MetaMensal {
   const rec = totalDoMes(receitas, ym);
-  const desp = despesaRealizadaMes(despesasCorrentes, veiculo, ym, mesReal);
+  const desp = despesaRealizadaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal);
   const saldo = rec - desp;
   const meta = metaConfigurada || META_POUPANCA_PADRAO;
   const pct = meta > 0 ? Math.max(0, Math.min(100, Math.round((saldo / meta) * 100))) : 0;
@@ -65,13 +74,14 @@ export function totalFundos(fundos: Fundo[]): TotalFundos {
 export function poupancaMeses(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
   veiculo: DadosVeiculo,
   meses: YearMonth[],
   mesReal: YearMonth,
 ): Cents {
   return meses.reduce((s, ym) => {
     const rec = totalDoMes(receitas, ym);
-    const desp = despesaRealizadaMes(despesasCorrentes, veiculo, ym, mesReal);
+    const desp = despesaRealizadaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal);
     return s + Math.max(0, rec - desp);
   }, 0);
 }

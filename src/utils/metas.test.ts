@@ -21,7 +21,7 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
 
   test("mês corrente: fixa do veículo ainda não paga NÃO conta na despesa", () => {
     const v = veiculo({ despesasFixas: [fixaVeiculo] });
-    const m = calcularMetaMensal(receitas, [], v, "2026-07", "2026-07", 10, 100000);
+    const m = calcularMetaMensal(receitas, [], [], v, "2026-07", "2026-07", 10, 100000);
     expect(m.despesas).toBe(0);
     expect(m.saldo).toBe(200000);
   });
@@ -29,9 +29,53 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
   test("mês fechado (mês passado): a mesma fixa conta o valor cheio", () => {
     const v = veiculo({ despesasFixas: [fixaVeiculo] });
     // mesReal é agosto → julho já fechou
-    const m = calcularMetaMensal(receitas, [], v, "2026-07", "2026-08", 10, 100000);
+    const m = calcularMetaMensal(receitas, [], [], v, "2026-07", "2026-08", 10, 100000);
     expect(m.despesas).toBe(5000);
     expect(m.saldo).toBe(195000);
+  });
+
+  test("mês corrente: fixa geral ainda não paga NÃO conta na despesa", () => {
+    const fixaGeral: DespesaFixa = {
+      id: "fg1",
+      descricao: "Aluguel",
+      valor: 45000,
+      categoria: "Casa",
+      pagoPorMes: {},
+    };
+    const m = calcularMetaMensal(
+      receitas,
+      [],
+      [fixaGeral],
+      veiculo(),
+      "2026-07",
+      "2026-07",
+      10,
+      100000,
+    );
+    expect(m.despesas).toBe(0);
+    expect(m.saldo).toBe(200000);
+  });
+
+  test("mês fechado: a fixa geral conta o valor cheio", () => {
+    const fixaGeral: DespesaFixa = {
+      id: "fg1",
+      descricao: "Aluguel",
+      valor: 45000,
+      categoria: "Casa",
+      pagoPorMes: {},
+    };
+    const m = calcularMetaMensal(
+      receitas,
+      [],
+      [fixaGeral],
+      veiculo(),
+      "2026-07",
+      "2026-08",
+      10,
+      100000,
+    );
+    expect(m.despesas).toBe(45000);
+    expect(m.saldo).toBe(155000);
   });
 
   test("pct clampado entre 0 e 100, mesmo com saldo negativo ou acima da meta", () => {
@@ -41,6 +85,7 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     const negativo = calcularMetaMensal(
       receitas,
       despesas,
+      [],
       veiculo(),
       "2026-07",
       "2026-07",
@@ -50,29 +95,29 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(negativo.pct).toBe(0);
     expect(negativo.atingiu).toBe(false);
 
-    const acima = calcularMetaMensal(receitas, [], veiculo(), "2026-07", "2026-07", 10, 1000);
+    const acima = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 10, 1000);
     expect(acima.pct).toBe(100);
     expect(acima.atingiu).toBe(true);
   });
 
   test("meta 0/não configurada cai no padrão de 50000 (500 unidades)", () => {
-    const m = calcularMetaMensal(receitas, [], veiculo(), "2026-07", "2026-07", 10, 0);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 10, 0);
     expect(m.meta).toBe(50000);
   });
 
   test("badge: mês corrente em curso não é 'fechado' antes do último dia", () => {
-    const m = calcularMetaMensal(receitas, [], veiculo(), "2026-07", "2026-07", 15, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 15, 100000);
     expect(m.fechado).toBe(false);
   });
 
   test("badge: mês corrente no último dia já é 'fechado'", () => {
     // julho/2026 tem 31 dias
-    const m = calcularMetaMensal(receitas, [], veiculo(), "2026-07", "2026-07", 31, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 31, 100000);
     expect(m.fechado).toBe(true);
   });
 
   test("badge: qualquer mês que não seja o real está sempre fechado", () => {
-    const m = calcularMetaMensal(receitas, [], veiculo(), "2026-06", "2026-07", 1, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-06", "2026-07", 1, 100000);
     expect(m.fechado).toBe(true);
   });
 });
@@ -99,6 +144,7 @@ describe("poupancaMeses — soma só o saldo POSITIVO de cada mês", () => {
     const total = poupancaMeses(
       receitasMultimes,
       despesasMultimes,
+      [],
       veiculo(),
       ["2026-06", "2026-07"],
       "2026-07",

@@ -4,9 +4,14 @@ import CopilotoCard from "../components/CopilotoCard";
 import OrcamentoCard from "../components/OrcamentoCard";
 import ResumoAnual from "../components/ResumoAnual";
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+} from "../stores/lancamentosStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, saldoTotal } from "../utils/calculos";
+import { totalFixasGeral } from "../utils/despesasFixas";
 import { resumoMesCompleto } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
@@ -16,12 +21,15 @@ export default function Inicio() {
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const mes = mesAtual();
-  // despesa do mês inclui o veículo (Parte A) — fonte única em utils/resumoMensal.ts
-  const resumo = resumoMesCompleto(receitas, despesas, veiculo, mes, mes);
-  const acumulado = saldoTotal(receitas, despesas) - totalVeiculoGeral(veiculo);
+  // despesa do mês inclui fixas gerais + veículo (Parte A) — fonte única em
+  // utils/resumoMensal.ts
+  const resumo = resumoMesCompleto(receitas, despesas, despesasFixas, veiculo, mes, mes);
+  const acumulado =
+    saldoTotal(receitas, despesas) - totalFixasGeral(despesasFixas) - totalVeiculoGeral(veiculo);
 
   return (
     <Pagina titulo="Início">

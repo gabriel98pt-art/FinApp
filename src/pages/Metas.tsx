@@ -8,7 +8,11 @@ import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosSer
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useFundosStore } from "../stores/fundosStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+} from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesesRecentes, rotuloMes } from "../utils/calculos";
@@ -21,6 +25,7 @@ export default function Metas() {
   const cfg = useCfgStore((s) => s.cfg);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const fundos = useFundosStore((s) => s.itens);
   const carregado = useFundosStore((s) => s.carregado);
@@ -32,6 +37,7 @@ export default function Metas() {
   const meta = calcularMetaMensal(
     receitas,
     despesas,
+    despesasFixas,
     veiculo,
     real,
     real,
@@ -39,7 +45,14 @@ export default function Metas() {
     cfg.metaPoupanca,
   );
   const { atual: fundosAtual, alvo: fundosAlvo } = totalFundos(fundos);
-  const poupado12m = poupancaMeses(receitas, despesas, veiculo, mesesRecentes(12, real), real);
+  const poupado12m = poupancaMeses(
+    receitas,
+    despesas,
+    despesasFixas,
+    veiculo,
+    mesesRecentes(12, real),
+    real,
+  );
   const taxaPoupanca =
     meta.receitas > 0 ? Math.round((Math.max(0, meta.saldo) / meta.receitas) * 100) : 0;
 

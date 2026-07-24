@@ -1,5 +1,9 @@
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+} from "../stores/lancamentosStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, mesesRecentes, totalDoMes } from "../utils/calculos";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
@@ -36,6 +40,7 @@ export default function ResumoAnual({
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const real = mesAtual();
@@ -44,7 +49,7 @@ export default function ResumoAnual({
   const celulas = lista.map((ym) => {
     const futuro = ym > real;
     const r = totalDoMes(receitas, ym);
-    const d = futuro ? 0 : despesaRealizadaMes(despesas, veiculo, ym, real);
+    const d = futuro ? 0 : despesaRealizadaMes(despesas, despesasFixas, veiculo, ym, real);
     const [, mi] = ym.split("-").map(Number);
     return { ym, futuro, receitas: r, despesas: d, saldo: r - d, rotulo: MESES_ABREV[mi - 1] };
   });
