@@ -110,12 +110,11 @@ describe("desfazer — cenário EXATO do bug antigo (seção 4.7, NÃO reproduzi
     expect(r.estado).toBe(vivo);
   });
 
-  test("undo com só 1 entrada ainda funciona (mesmo com o botão desabilitado)", () => {
-    // podeDesfazer() fica false aqui (índice=0 antes da chamada — ver o
-    // describe de baixo), mas a função em si continua correta se forçada:
+  test("undo com só 1 entrada funciona, e o botão reflete isso (podeDesfazer true)", () => {
     // "vivo" é a edição real feita depois de empilhar "s0".
     let h = pilhaVazia();
     h = empilhar(h, "s0");
+    expect(podeDesfazer(h)).toBe(true);
     const r1 = desfazer(h, "vivo");
     expect(r1.estado).toBe("s0");
   });
@@ -155,7 +154,9 @@ describe("podeDesfazer / podeRefazer — habilitação dos botões", () => {
     expect(podeRefazer(h)).toBe(false);
 
     h = empilhar(h, "s0");
-    expect(podeDesfazer(h)).toBe(false); // só 1 entrada — nada antes dela
+    // 1 entrada já é um estado válido pra desfazer (volta ao vazio) — bug
+    // off-by-one corrigido aqui (era `indice > 0`, virou `indice >= 0`).
+    expect(podeDesfazer(h)).toBe(true);
     h = empilhar(h, "s1");
     expect(podeDesfazer(h)).toBe(true);
     expect(podeRefazer(h)).toBe(false); // no topo, nada pra refazer

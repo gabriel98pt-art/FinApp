@@ -66,7 +66,7 @@ export function refazer(h: HistoricoStack): ResultadoHistorico {
 }
 
 export function podeDesfazer(h: HistoricoStack): boolean {
-  return h.indice > 0;
+  return h.indice >= 0;
 }
 
 export function podeRefazer(h: HistoricoStack): boolean {
