@@ -68,6 +68,14 @@ export function somarMeses(ym: YearMonth, n: number): YearMonth {
   return `${ny}-${String(nm).padStart(2, "0")}`;
 }
 
+/** Últimos n meses terminando em `ate` (incluído), em ordem crescente.
+ *  Portado de getLast(n, from). */
+export function mesesRecentes(n: number, ate: YearMonth): YearMonth[] {
+  const meses: YearMonth[] = [];
+  for (let i = n - 1; i >= 0; i--) meses.push(somarMeses(ate, -i));
+  return meses;
+}
+
 /** Soma n dias a uma data 'YYYY-MM-DD' (n pode ser negativo). Usa meio-dia
  *  UTC pra não escorregar de dia por causa de DST. */
 export function somarDias(data: IsoDate, n: number): IsoDate {
