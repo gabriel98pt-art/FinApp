@@ -11,12 +11,15 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
 import { useFundosStore } from "../stores/fundosStore";
+import { useHistoricoStore } from "../stores/historicoStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 
 export function iniciarSyncConta(uid: string): () => void {
+  useHistoricoStore.getState().iniciar(uid);
+
   const paraReceitas = observarReceitas(uid, (itens) =>
     useReceitasStore.setState({ itens, carregado: true }),
   );
@@ -60,5 +63,6 @@ export function iniciarSyncConta(uid: string): () => void {
     useVeiculoStore.setState({ dados: VEICULO_VAZIO, carregado: false });
     useEventosStore.setState({ itens: [], carregado: false });
     useFundosStore.setState({ itens: [], carregado: false });
+    useHistoricoStore.getState().parar();
   };
 }
