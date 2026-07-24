@@ -1,31 +1,65 @@
-import { TrendingDown } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { ArrowLeftRight, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import SeletorMes from "../components/SeletorMes";
+import {
+  alternarPagoDespesaFixa,
+  atualizarDespesaFixa,
+  criarDespesaFixa,
+  criarTransferencia,
+  removerDespesaFixa,
+  removerTransferencia,
+} from "../services/lancamentosService";
+import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { despesasNosTotais, doMes, mesAtual, ordenarPorDataDesc, total } from "../utils/calculos";
+import { totalFixasGeral } from "../utils/despesasFixas";
+import { fixaAtivaNoMes } from "../utils/fatura";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
-import { formatMoney } from "../utils/money";
+import { formatMoney, parseMoney } from "../utils/money";
+import type { DespesaFixa, Id, YearMonth } from "../types";
+import styles from "./Despesas.module.css";
+
+type Aba = "correntes" | "fixas" | "transferencias";
+
+function agir(acao: () => Promise<unknown>, ok: string) {
+  return acao()
+    .then(() => mostrarToast(ok))
+    .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
+}
 
 export default function Despesas() {
+  const uid = useAuthStore((s) => s.sessao?.uid);
   const moeda = useCfgStore((s) => s.cfg.currency);
+  const cfg = useCfgStore((s) => s.cfg);
   const itens = useDespesasStore((s) => s.itens);
   const carregado = useDespesasStore((s) => s.carregado);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const transferencias = useTransferenciasStore((s) => s.itens);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
   const veiculo = useVeiculoStore((s) => s.dados);
+
+  const [aba, setAba] = useState<Aba>("correntes");
 
   const mes = mesAtual();
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
-  // total do mês/geral inclui o veículo (Parte A) — fonte única em utils/
-  const totalDoMesComVeiculo = despesaRealizadaMes(itens, veiculo, mes, mes);
-  const totalGeralComVeiculo = total(contadas) + totalVeiculoGeral(veiculo);
+  // total do mês/geral inclui fixas gerais + veículo (Parte A) — fonte única em utils/
+  const totalDoMesComVeiculo = despesaRealizadaMes(itens, despesasFixas, veiculo, mes, mes);
+  const totalGeralComVeiculo =
+    total(contadas) + totalFixasGeral(despesasFixas) + totalVeiculoGeral(veiculo);
 
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
@@ -40,36 +74,369 @@ export default function Despesas() {
     abrirRegistro("despesa", id);
   }
 
+  // ---- mês exibido na aba Fixas (toggle pago/pendente por mês) ----
+  const [mesFixas, setMesFixas] = useState<YearMonth>(mes);
+
+  // ---- formulário de despesa fixa (criar/editar) ----
+  const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
+  const [dfDescricao, setDfDescricao] = useState("");
+  const [dfValor, setDfValor] = useState("");
+  const [dfCategoria, setDfCategoria] = useState("");
+  const [dfContaCartao, setDfContaCartao] = useState("");
+  const [dfInicio, setDfInicio] = useState("");
+  const [dfFim, setDfFim] = useState("");
+
+  function iniciarEdicaoFixa(f: DespesaFixa) {
+    setDfEditandoId(f.id);
+    setDfDescricao(f.descricao);
+    setDfValor((f.valor / 100).toFixed(2).replace(".", ","));
+    setDfCategoria(f.categoria);
+    setDfContaCartao(f.contaCartao ?? "");
+    setDfInicio(f.inicio ?? "");
+    setDfFim(f.fim ?? "");
+  }
+
+  function limparFormFixa() {
+    setDfEditandoId(null);
+    setDfDescricao("");
+    setDfValor("");
+    setDfContaCartao("");
+    setDfInicio("");
+    setDfFim("");
+  }
+
+  async function salvarFixa(e: FormEvent) {
+    e.preventDefault();
+    const valor = parseMoney(dfValor);
+    if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
+    if (!dfDescricao.trim()) return mostrarToast("Descrição obrigatória.");
+    const dados = {
+      descricao: dfDescricao,
+      valor,
+      categoria: dfCategoria || cfg.categoriasFixas[0] || "Outros",
+      contaCartao: dfContaCartao || undefined,
+      inicio: dfInicio || undefined,
+      fim: dfFim || undefined,
+    };
+    if (dfEditandoId) {
+      const atual = despesasFixas.find((f) => f.id === dfEditandoId);
+      if (!atual) return;
+      await agir(
+        () => atualizarDespesaFixa(uid!, { ...atual, ...dados }),
+        "✓ Despesa fixa atualizada",
+      );
+    } else {
+      await agir(
+        () => criarDespesaFixa(uid!, { ...dados, pagoPorMes: {} }),
+        "✓ Despesa fixa criada",
+      );
+    }
+    limparFormFixa();
+  }
+
+  // ---- formulário de transferência (criar) ----
+  const [tfData, setTfData] = useState(mes + "-01");
+  const [tfDe, setTfDe] = useState("");
+  const [tfPara, setTfPara] = useState("");
+  const [tfValor, setTfValor] = useState("");
+  const [tfDescricao, setTfDescricao] = useState("");
+
+  async function salvarTransferencia(e: FormEvent) {
+    e.preventDefault();
+    const valor = parseMoney(tfValor);
+    if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
+    if (!tfDe || !tfPara) return mostrarToast("Escolha origem e destino.");
+    if (tfDe === tfPara) return mostrarToast("Origem e destino não podem ser iguais.");
+    await agir(
+      () =>
+        criarTransferencia(uid!, {
+          data: tfData,
+          de: tfDe,
+          para: tfPara,
+          valor,
+          descricao: tfDescricao || undefined,
+        }),
+      "✓ Transferência registrada",
+    );
+    setTfValor("");
+    setTfDescricao("");
+  }
+
   return (
     <Pagina titulo="Despesas">
-      <Kpis>
-        <KpiCard
-          rotulo="Total do mês"
-          valor={formatMoney(totalDoMesComVeiculo, moeda)}
-          tom="vermelho"
-        />
-        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
-      </Kpis>
+      <div className={styles.abas} role="tablist">
+        {(
+          [
+            ["correntes", "Despesas"],
+            ["fixas", "Fixas"],
+            ["transferencias", "Transferências"],
+          ] as const
+        ).map(([id, nome]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={aba === id}
+            className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
+            onClick={() => setAba(id)}
+          >
+            {nome}
+          </button>
+        ))}
+      </div>
 
-      <ListaLancamentos
-        titulo="Lançamentos"
-        itens={ordenarPorDataDesc(itens).map((d) => ({
-          id: d.id,
-          descricao: d.descricao,
-          valor: d.valor,
-          data: d.data,
-          etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
-        }))}
-        carregado={carregado}
-        tom="vermelho"
-        moeda={moeda}
-        vazio="Nenhuma despesa ainda"
-        vazioSub="Toque em Adicionar para lançar a primeira."
-        vazioIcone={TrendingDown}
-        aoAdicionar={() => abrirRegistro("despesa")}
-        aoEditar={editar}
-      />
+      {aba === "correntes" && (
+        <>
+          <Kpis>
+            <KpiCard
+              rotulo="Total do mês"
+              valor={formatMoney(totalDoMesComVeiculo, moeda)}
+              tom="vermelho"
+            />
+            <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+            <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
+          </Kpis>
+
+          <ListaLancamentos
+            titulo="Lançamentos"
+            itens={ordenarPorDataDesc(itens).map((d) => ({
+              id: d.id,
+              descricao: d.descricao,
+              valor: d.valor,
+              data: d.data,
+              etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
+            }))}
+            carregado={carregado}
+            tom="vermelho"
+            moeda={moeda}
+            vazio="Nenhuma despesa ainda"
+            vazioSub="Toque em Adicionar para lançar a primeira."
+            vazioIcone={TrendingDown}
+            aoAdicionar={() => abrirRegistro("despesa")}
+            aoEditar={editar}
+          />
+        </>
+      )}
+
+      {aba === "fixas" && (
+        <>
+          <div className={styles.linhaMes}>
+            <SeletorMes mes={mesFixas} aoMudar={setMesFixas} />
+          </div>
+
+          <form className={styles.form} onSubmit={salvarFixa}>
+            <p className={styles.formTitulo}>
+              {dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
+            </p>
+            <label className={styles.campo}>
+              Descrição
+              <input
+                value={dfDescricao}
+                onChange={(e) => setDfDescricao(e.target.value)}
+                required
+              />
+            </label>
+            <div className={styles.linhaDupla}>
+              <label className={styles.campo}>
+                Valor mensal
+                <input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={dfValor}
+                  onChange={(e) => setDfValor(e.target.value)}
+                  required
+                />
+              </label>
+              <label className={styles.campo}>
+                Categoria
+                <select value={dfCategoria} onChange={(e) => setDfCategoria(e.target.value)}>
+                  {cfg.categoriasFixas.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className={styles.campo}>
+              Conta/cartão (opcional — se for crédito, entra na fatura)
+              <select value={dfContaCartao} onChange={(e) => setDfContaCartao(e.target.value)}>
+                <option value="">Sem conta</option>
+                {cfg.contasCartoes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                    {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className={styles.linhaDupla}>
+              <label className={styles.campo}>
+                Início (opcional)
+                <input
+                  type="month"
+                  value={dfInicio}
+                  onChange={(e) => setDfInicio(e.target.value)}
+                />
+              </label>
+              <label className={styles.campo}>
+                Fim (opcional)
+                <input type="month" value={dfFim} onChange={(e) => setDfFim(e.target.value)} />
+              </label>
+            </div>
+            <button type="submit" className={styles.salvar}>
+              {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
+            </button>
+            {dfEditandoId && (
+              <button type="button" className={styles.cancelar} onClick={limparFormFixa}>
+                Cancelar edição
+              </button>
+            )}
+          </form>
+
+          <div className={styles.lista}>
+            {despesasFixas.length === 0 ? (
+              <p className={styles.vazio}>Nenhuma despesa fixa ainda.</p>
+            ) : (
+              despesasFixas
+                .filter((f) => fixaAtivaNoMes(f, mesFixas))
+                .map((f) => {
+                  const paga = !!f.pagoPorMes[mesFixas];
+                  return (
+                    <div key={f.id} className={styles.item}>
+                      <div>
+                        <p className={styles.itemNome}>{f.descricao}</p>
+                        <p className={styles.itemDetalhe}>
+                          {f.categoria}
+                          {f.contaCartao ? ` · ${f.contaCartao}` : ""}
+                        </p>
+                      </div>
+                      <div className={styles.itemLado}>
+                        <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
+                        <button
+                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          onClick={() =>
+                            void agir(
+                              () => alternarPagoDespesaFixa(uid!, f.id, mesFixas, !paga),
+                              paga ? "Marcado como pendente" : "✓ Pago",
+                            )
+                          }
+                        >
+                          {paga ? "Pago" : "Pendente"}
+                        </button>
+                        <button
+                          className={styles.editar}
+                          onClick={() => iniciarEdicaoFixa(f)}
+                          aria-label="Editar fixa"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className={styles.remover}
+                          onClick={() => {
+                            if (!window.confirm(`Excluir "${f.descricao}"?`)) return;
+                            void agir(() => removerDespesaFixa(uid!, f.id), "Excluída");
+                          }}
+                          aria-label="Excluir fixa"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
+        </>
+      )}
+
+      {aba === "transferencias" && (
+        <>
+          <form className={styles.form} onSubmit={salvarTransferencia}>
+            <p className={styles.formTitulo}>Nova transferência</p>
+            <div className={styles.linhaDupla}>
+              <label className={styles.campo}>
+                Valor
+                <input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={tfValor}
+                  onChange={(e) => setTfValor(e.target.value)}
+                  required
+                />
+              </label>
+              <label className={styles.campo}>
+                Data
+                <input
+                  type="date"
+                  value={tfData}
+                  onChange={(e) => setTfData(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <div className={styles.linhaDupla}>
+              <label className={styles.campo}>
+                De
+                <select value={tfDe} onChange={(e) => setTfDe(e.target.value)} required>
+                  <option value="">Escolher…</option>
+                  {cfg.contasCartoes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.campo}>
+                Para
+                <select value={tfPara} onChange={(e) => setTfPara(e.target.value)} required>
+                  <option value="">Escolher…</option>
+                  {cfg.contasCartoes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className={styles.campo}>
+              Descrição (opcional)
+              <input value={tfDescricao} onChange={(e) => setTfDescricao(e.target.value)} />
+            </label>
+            <button type="submit" className={styles.salvar}>
+              Registrar transferência
+            </button>
+          </form>
+
+          <div className={styles.lista}>
+            {transferencias.length === 0 ? (
+              <p className={styles.vazio}>Nenhuma transferência ainda.</p>
+            ) : (
+              ordenarPorDataDesc(transferencias).map((t) => (
+                <div key={t.id} className={styles.item}>
+                  <div>
+                    <p className={styles.itemNome}>
+                      {t.de} <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
+                      {t.para}
+                    </p>
+                    <p className={styles.itemDetalhe}>
+                      {t.descricao ? `${t.descricao} · ` : ""}
+                      {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
+                    </p>
+                  </div>
+                  <div className={styles.itemLado}>
+                    <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
+                    <button
+                      className={styles.remover}
+                      onClick={() => void agir(() => removerTransferencia(uid!, t.id), "Removida")}
+                      aria-label="Remover transferência"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </Pagina>
   );
 }
