@@ -1,0 +1,197 @@
+.linhaMes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.novoBotao {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+}
+
+.grid {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 10px;
+}
+
+.cabecalhoSemana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  color: var(--mut);
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.diasGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.dia {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.dia:hover {
+  background: var(--s2);
+}
+
+.diaForaDoMes {
+  color: var(--mut);
+  opacity: 0.45;
+}
+
+.diaHoje {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 800;
+}
+
+.pontoEvento {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ylw);
+}
+
+.diaHoje .pontoEvento {
+  background: var(--bg);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.secaoTitulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.vazio {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 14px;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px;
+}
+
+.itemNome {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.itemDetalhe {
+  color: var(--mut);
+  font-size: 0.75rem;
+}
+
+.itemValor {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.itemLado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remover {
+  color: var(--red);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.novoNoDiaBotao {
+  width: 100%;
+  color: var(--blu);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+/* Formulário */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.campo input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.campo input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}

@@ -68,6 +68,15 @@ export function somarMeses(ym: YearMonth, n: number): YearMonth {
   return `${ny}-${String(nm).padStart(2, "0")}`;
 }
 
+/** Soma n dias a uma data 'YYYY-MM-DD' (n pode ser negativo). Usa meio-dia
+ *  UTC pra não escorregar de dia por causa de DST. */
+export function somarDias(data: IsoDate, n: number): IsoDate {
+  const [y, m, d] = data.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return dt.toISOString().slice(0, 10);
+}
+
 const MESES_PT = [
   "janeiro",
   "fevereiro",
