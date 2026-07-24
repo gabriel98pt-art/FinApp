@@ -5,6 +5,7 @@
 import { onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type {
   CargaEletrica,
   DadosVeiculo,
@@ -67,12 +68,14 @@ export function observarVeiculo(uid: string, cb: (dados: DadosVeiculo) => void):
 }
 
 async function criar<T extends { id: Id }>(uid: string, sub: SubDominio, dados: Omit<T, "id">) {
+  snapshotHistorico();
   const novo = push(ref(db, caminho(uid, sub)));
   await set(novo, semIndefinidos(dados));
   return novo.key!;
 }
 
 async function remover(uid: string, sub: SubDominio, id: Id) {
+  snapshotHistorico();
   await remove(ref(db, caminho(uid, sub, id)));
 }
 
@@ -97,6 +100,7 @@ export async function alternarPagoFixaVeiculo(
   mes: YearMonth,
   pago: boolean,
 ) {
+  snapshotHistorico();
   const r = ref(db, `${caminho(uid, "despesasFixas", fixaId)}/pagoPorMes/${mes}`);
   if (pago) await set(r, true);
   else await remove(r);

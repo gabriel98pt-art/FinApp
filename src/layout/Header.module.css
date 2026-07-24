@@ -21,6 +21,12 @@
   color: var(--blu);
 }
 
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .acao {
   display: grid;
   place-items: center;
@@ -28,10 +34,17 @@
   height: 38px;
   border-radius: var(--r-sm);
   color: var(--mut);
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .acao:hover {
   background: var(--s2);
   color: var(--txt);
+}
+
+.acao:disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }

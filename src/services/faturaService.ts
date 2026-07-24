@@ -5,6 +5,7 @@
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type { Cents, DespesaCorrente, PagamentoFatura, Parcela, YearMonth } from "../types";
 import { hojeIso } from "../utils/calculos";
 import { cicloDaFatura } from "../utils/fatura";
@@ -35,6 +36,7 @@ export interface ContextoPagamento {
  *    normal (sem contaCartao — o dinheiro saiu via fatura), para o dinheiro
  *    da parcela nunca ficar invisível nos totais (bug 2 da seção 4.1). */
 export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
+  snapshotHistorico();
   const hoje = hojeIso();
   const ciclo = cicloDaFatura(ctx.mes);
   const atualizacoes: Record<string, unknown> = {};
@@ -93,6 +95,7 @@ export async function removerPagamentoFatura(
   pagamento: PagamentoFatura,
   pagamentosAtuais: PagamentoFatura[],
 ) {
+  snapshotHistorico();
   const restantes = pagamentosAtuais.filter((p) => p.id !== pagamento.id);
   const atualizacoes: Record<string, unknown> = {
     [`despesasCorrentes/${pagamento.id}`]: null,
@@ -108,6 +111,7 @@ export async function reabrirFatura(
   mes: YearMonth,
   pagamentos: PagamentoFatura[],
 ) {
+  snapshotHistorico();
   const atualizacoes: Record<string, unknown> = {
     [`cfg/faturasPagas/${cartao}/${mes}`]: null,
   };

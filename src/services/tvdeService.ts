@@ -5,6 +5,7 @@
 import { onValue, push, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type {
   Cents,
   ConfigTvde,
@@ -73,31 +74,37 @@ export function observarTvde(uid: string, cb: (dados: DadosTvde) => void): () =>
 }
 
 export async function salvarConfigTvde(uid: string, mudancas: Partial<ConfigTvde>) {
+  snapshotHistorico();
   await update(ref(db, `${raiz(uid)}/cfg`), mudancas);
 }
 
 export async function salvarSemana(uid: string, n: number, semana: SemanaTvde) {
+  snapshotHistorico();
   await set(ref(db, `${raiz(uid)}/semanas/${n}`), semIndefinidos(semana));
 }
 
 /** Remove a semana. A UI impede remover semana já lançada nas finanças
  *  (desfazer o lançamento primeiro). */
 export async function removerSemana(uid: string, n: number) {
+  snapshotHistorico();
   await remove(ref(db, `${raiz(uid)}/semanas/${n}`));
 }
 
 export async function definirSegMes(uid: string, mes: YearMonth, valor: Cents | null) {
+  snapshotHistorico();
   const r = ref(db, `${raiz(uid)}/segPorMes/${mes}`);
   if (valor === null || valor === 0) await remove(r);
   else await set(r, valor);
 }
 
 export async function criarDespesaTvde(uid: string, dados: Omit<DespesaTvde, "id">) {
+  snapshotHistorico();
   const novo = push(ref(db, `${raiz(uid)}/despesas`));
   await set(novo, semIndefinidos(dados));
 }
 
 export async function removerDespesaTvde(uid: string, id: Id) {
+  snapshotHistorico();
   await remove(ref(db, `${raiz(uid)}/despesas/${id}`));
 }
 
@@ -108,6 +115,7 @@ export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTv
   if (dados.lancamentos[String(n)]) throw new Error("Semana já lançada nas finanças.");
   const semana = dados.semanas[String(n)];
   if (!semana) throw new Error("Semana inexistente.");
+  snapshotHistorico();
   const lucro = Math.round(calcularSemana(semana, dados.cfg.pctFrota).lucro);
   const receitaId = push(ref(db, `users/${uid}/fin_v5/receitas`)).key!;
   const receita: Omit<Receita, "id"> = {
@@ -124,6 +132,7 @@ export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTv
 
 /** Desfaz o lançamento: remove a receita das finanças E a marca — juntos. */
 export async function desfazerLancamentoSemana(uid: string, n: number, receitaId: Id) {
+  snapshotHistorico();
   await update(ref(db, `users/${uid}/fin_v5`), {
     [`receitas/${receitaId}`]: null,
     [`tvde/lancamentos/${n}`]: null,

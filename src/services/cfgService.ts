@@ -2,6 +2,7 @@
 
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type { Cents, ConfigConta, YearMonth } from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -31,6 +32,7 @@ export async function adicionarCartao(
   tipo: TipoCartao,
 ) {
   if (cfg.contasCartoes.includes(nome)) throw new Error("Já existe um cartão com esse nome.");
+  snapshotHistorico();
   await update(ref(db, caminho(uid)), {
     contasCartoes: [...cfg.contasCartoes, nome],
     [`tipoCartao/${nome}`]: tipo,
@@ -52,6 +54,7 @@ export async function adicionarItemLista(
   const nome = item.trim();
   if (!nome) throw new Error("Nome vazio.");
   if (cfg[lista].includes(nome)) throw new Error("Já existe um item com esse nome.");
+  snapshotHistorico();
   await update(ref(db, caminho(uid)), { [lista]: [...cfg[lista], nome] });
 }
 
@@ -63,11 +66,13 @@ export async function removerItemLista(
   lista: ListaDeCategorias,
   item: string,
 ) {
+  snapshotHistorico();
   await update(ref(db, caminho(uid)), { [lista]: cfg[lista].filter((x) => x !== item) });
 }
 
 /** Teto de orçamento mensal por categoria (seção 4.8) — `null`/0 remove o teto. */
 export async function definirOrcamento(uid: string, categoria: string, valor: Cents | null) {
+  snapshotHistorico();
   const r = ref(db, caminho(uid, `/orcamentos/${categoria}`));
   if (valor === null || valor === 0) await remove(r);
   else await set(r, valor);
@@ -80,6 +85,7 @@ export async function definirFaturaManual(
   mes: YearMonth,
   valor: Cents | null,
 ) {
+  snapshotHistorico();
   const r = ref(db, caminho(uid, `/faturaManual/${cartao}/${mes}`));
   if (valor === null) await remove(r);
   else await set(r, valor);

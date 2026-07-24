@@ -3,6 +3,7 @@
 import { onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type { Cents, Fundo, Id } from "../types";
 
 const caminho = (uid: string, id?: Id) => `users/${uid}/fin_v5/fundos${id ? `/${id}` : ""}`;
@@ -17,16 +18,19 @@ export function observarFundos(uid: string, cb: (itens: Fundo[]) => void): () =>
 }
 
 export async function criarFundo(uid: string, dados: Omit<Fundo, "id">) {
+  snapshotHistorico();
   const novo = push(ref(db, caminho(uid)));
   await set(novo, semIndefinidos(dados));
   return novo.key!;
 }
 
 export async function removerFundo(uid: string, id: Id) {
+  snapshotHistorico();
   await remove(ref(db, caminho(uid, id)));
 }
 
 /** Contribuir com um fundo — soma ao valor atual guardado. */
 export async function contribuirFundo(uid: string, fundo: Fundo, valor: Cents) {
+  snapshotHistorico();
   await set(ref(db, `${caminho(uid, fundo.id)}/atual`), fundo.atual + valor);
 }

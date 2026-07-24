@@ -4,6 +4,7 @@
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { criarParcela as criarParcelaBase, semIndefinidos } from "./lancamentosService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type { DespesaCorrente, Parcela, YearMonth } from "../types";
 import { hojeIso } from "../utils/calculos";
 import { mesesDaParcela, mesesNaoPagos, valorDaParcela, valorQuitacao } from "../utils/parcelas";
@@ -17,6 +18,7 @@ export const criarParcela = criarParcelaBase;
  *  Parcela autoDebit: o lançamento sai SEM contaCartao (o dinheiro sai direto,
  *  não vira compra nova no cartão — evita dupla contagem na fatura). */
 export async function pagarMesParcela(uid: string, p: Parcela, mes: YearMonth) {
+  snapshotHistorico();
   const idx = mesesDaParcela(p).indexOf(mes) + 1;
   const lancamento: Omit<DespesaCorrente, "id"> = {
     descricao: p.descricao,
@@ -44,6 +46,7 @@ export async function estornarMesParcela(
   mes: YearMonth,
   despesas: DespesaCorrente[],
 ) {
+  snapshotHistorico();
   const atualizacoes: Record<string, unknown> = {
     [`parcelas/${p.id}/pagoPorMes/${mes}`]: null,
   };
@@ -61,6 +64,7 @@ export async function estornarMesParcela(
 export async function quitarParcela(uid: string, p: Parcela) {
   const abertos = mesesNaoPagos(p);
   if (abertos.length === 0) return;
+  snapshotHistorico();
   const total = valorQuitacao(p);
   const lancamento: Omit<DespesaCorrente, "id"> = {
     descricao: `${p.descricao} (quitação)`,
@@ -83,5 +87,6 @@ export async function quitarParcela(uid: string, p: Parcela) {
 /** Exclui a parcela. Os lançamentos já pagos ficam — são dinheiro real que
  *  saiu e continuam visíveis como despesas normais. */
 export async function excluirParcela(uid: string, p: Parcela) {
+  snapshotHistorico();
   await update(ref(db, raiz(uid)), { [`parcelas/${p.id}`]: null });
 }

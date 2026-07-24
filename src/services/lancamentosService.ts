@@ -5,6 +5,7 @@
 
 import { onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "./firebase";
+import { snapshotHistorico } from "../stores/historicoStore";
 import type { DespesaCorrente, Id, Parcela, Receita } from "../types";
 
 type Dominio = "receitas" | "despesasCorrentes" | "parcelas";
@@ -40,17 +41,20 @@ async function criar<T extends { id: Id }>(
   dominio: Dominio,
   dados: Omit<T, "id">,
 ): Promise<Id> {
+  snapshotHistorico();
   const novo = push(ref(db, caminho(uid, dominio)));
   await set(novo, semIndefinidos(dados));
   return novo.key!;
 }
 
 async function atualizar<T extends { id: Id }>(uid: string, dominio: Dominio, item: T) {
+  snapshotHistorico();
   const { id, ...dados } = item;
   await set(ref(db, caminho(uid, dominio, id)), semIndefinidos(dados));
 }
 
 async function remover(uid: string, dominio: Dominio, id: Id) {
+  snapshotHistorico();
   await remove(ref(db, caminho(uid, dominio, id)));
 }
 
