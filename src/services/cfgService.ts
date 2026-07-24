@@ -37,7 +37,8 @@ export async function adicionarCartao(
   });
 }
 
-type ListaDeCategorias = "categoriasFixas" | "categoriasCorrentes" | "fontesReceita";
+type ListaDeCategorias =
+  "categoriasFixas" | "categoriasCorrentes" | "fontesReceita" | "locaisCarregamento";
 
 /** Adiciona um item a uma das 3 listas configuráveis (categorias de despesa
  *  fixa/corrente, fontes de receita) — usadas no Registro Rápido, Cartões e

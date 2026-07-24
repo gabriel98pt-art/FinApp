@@ -1,0 +1,187 @@
+.linhaMes {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.abas {
+  display: flex;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.abaBotao {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.abaAtiva {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vazio {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 18px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px;
+}
+
+.itemNome {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.itemDetalhe {
+  color: var(--mut);
+  font-size: 0.75rem;
+}
+
+.itemValor {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.itemLado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.remover {
+  color: var(--red);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.badgeToggle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.badgePago {
+  color: var(--grn);
+  background: color-mix(in srgb, var(--grn) 14%, transparent);
+}
+
+.badgePendente {
+  color: var(--ylw);
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+}
+
+/* Formulários */
+.form {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formTitulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.campo input,
+.campo select {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  color: var(--txt);
+  font-size: 0.92rem;
+  width: 100%;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.linhaDupla {
+  display: flex;
+  gap: 10px;
+}
+
+.seletorTipo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.tipoBotao {
+  padding: 8px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mut);
+}
+
+.tipoAtivo {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 11px;
+  font-size: 0.95rem;
+}

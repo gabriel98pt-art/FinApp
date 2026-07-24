@@ -4,11 +4,13 @@
 import { observarConfig } from "./cfgService";
 import { observarDespesas, observarParcelas, observarReceitas } from "./lancamentosService";
 import { observarTvde, TVDE_VAZIO } from "./tvdeService";
+import { observarVeiculo, VEICULO_VAZIO } from "./veiculoService";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 
 export function iniciarSyncConta(uid: string): () => void {
   const paraReceitas = observarReceitas(uid, (itens) =>
@@ -26,6 +28,9 @@ export function iniciarSyncConta(uid: string): () => void {
   );
   const paraCfg = observarConfig(uid, (cfg) => useCfgStore.setState({ cfg, carregado: true }));
   const paraTvde = observarTvde(uid, (dados) => useTvdeStore.setState({ dados, carregado: true }));
+  const paraVeiculo = observarVeiculo(uid, (dados) =>
+    useVeiculoStore.setState({ dados, carregado: true }),
+  );
 
   return () => {
     paraReceitas();
@@ -33,11 +38,13 @@ export function iniciarSyncConta(uid: string): () => void {
     paraParcelas();
     paraCfg();
     paraTvde();
+    paraVeiculo();
     // Nunca deixar dados de uma conta visíveis para a próxima (seção 4.9)
     useReceitasStore.setState({ itens: [], carregado: false });
     useDespesasStore.setState({ itens: [], carregado: false });
     useParcelasStore.setState({ itens: [], carregado: false });
     useCfgStore.setState({ cfg: CONFIG_PADRAO, carregado: false });
     useTvdeStore.setState({ dados: TVDE_VAZIO, carregado: false });
+    useVeiculoStore.setState({ dados: VEICULO_VAZIO, carregado: false });
   };
 }
