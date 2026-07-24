@@ -16,4 +16,6 @@ export interface Fundo {
   nome: string;
   alvo: Cents;
   atual: Cents;
+  /** Prazo opcional — habilita a projeção "≈ X/mês necessários". */
+  prazo?: IsoDate;
 }
