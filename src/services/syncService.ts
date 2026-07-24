@@ -4,7 +4,13 @@
 import { observarConfig } from "./cfgService";
 import { observarEventos } from "./eventosService";
 import { observarFundos } from "./fundosService";
-import { observarDespesas, observarParcelas, observarReceitas } from "./lancamentosService";
+import {
+  observarDespesas,
+  observarDespesasFixas,
+  observarParcelas,
+  observarReceitas,
+  observarTransferencias,
+} from "./lancamentosService";
 import { observarTvde, TVDE_VAZIO } from "./tvdeService";
 import { observarVeiculo, VEICULO_VAZIO } from "./veiculoService";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -12,7 +18,12 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
 import { useFundosStore } from "../stores/fundosStore";
 import { useHistoricoStore } from "../stores/historicoStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -44,6 +55,16 @@ export function iniciarSyncConta(uid: string): () => void {
   const paraFundos = observarFundos(uid, (itens) =>
     useFundosStore.setState({ itens, carregado: true }),
   );
+  const paraDespesasFixas = observarDespesasFixas(uid, (itens) =>
+    useDespesasFixasStore.setState({
+      // RTDB omite mapas vazios — pagoPorMes precisa existir sempre
+      itens: itens.map((f) => ({ ...f, pagoPorMes: f.pagoPorMes ?? {} })),
+      carregado: true,
+    }),
+  );
+  const paraTransferencias = observarTransferencias(uid, (itens) =>
+    useTransferenciasStore.setState({ itens, carregado: true }),
+  );
 
   return () => {
     paraReceitas();
@@ -54,6 +75,8 @@ export function iniciarSyncConta(uid: string): () => void {
     paraVeiculo();
     paraEventos();
     paraFundos();
+    paraDespesasFixas();
+    paraTransferencias();
     // Nunca deixar dados de uma conta visíveis para a próxima (seção 4.9)
     useReceitasStore.setState({ itens: [], carregado: false });
     useDespesasStore.setState({ itens: [], carregado: false });
@@ -63,6 +86,8 @@ export function iniciarSyncConta(uid: string): () => void {
     useVeiculoStore.setState({ dados: VEICULO_VAZIO, carregado: false });
     useEventosStore.setState({ itens: [], carregado: false });
     useFundosStore.setState({ itens: [], carregado: false });
+    useDespesasFixasStore.setState({ itens: [], carregado: false });
+    useTransferenciasStore.setState({ itens: [], carregado: false });
     useHistoricoStore.getState().parar();
   };
 }

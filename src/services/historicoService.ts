@@ -12,7 +12,12 @@ import { db } from "./firebase";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
 import { useFundosStore } from "../stores/fundosStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -43,6 +48,8 @@ export function capturarEstadoAtual(): string {
     },
     eventos: paraMapa(useEventosStore.getState().itens),
     fundos: paraMapa(useFundosStore.getState().itens),
+    despesasFixas: paraMapa(useDespesasFixasStore.getState().itens),
+    transferencias: paraMapa(useTransferenciasStore.getState().itens),
     cfg: useCfgStore.getState().cfg,
     tvde: useTvdeStore.getState().dados,
   };

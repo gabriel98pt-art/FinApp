@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { DespesaCorrente, Receita } from "../types";
+import type { DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../types";
 
 /** Estado espelho do RTDB — alimentado só pelo syncService, nunca por
  *  componentes. `carregado` distingue "sem dados" de "ainda carregando".
@@ -27,5 +27,25 @@ export const useDespesasStore = create<ListaState<DespesaCorrente>>()(
       carregado: false,
     }),
     { name: "finapp-despesas" },
+  ),
+);
+
+export const useDespesasFixasStore = create<ListaState<DespesaFixa>>()(
+  persist(
+    (): ListaState<DespesaFixa> => ({
+      itens: [],
+      carregado: false,
+    }),
+    { name: "finapp-despesasFixas" },
+  ),
+);
+
+export const useTransferenciasStore = create<ListaState<Transferencia>>()(
+  persist(
+    (): ListaState<Transferencia> => ({
+      itens: [],
+      carregado: false,
+    }),
+    { name: "finapp-transferencias" },
   ),
 );
