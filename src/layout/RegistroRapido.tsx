@@ -140,6 +140,7 @@ export default function RegistroRapido() {
       aberta={aberta}
       aoFechar={fecharRegistro}
       titulo={editando ? "Editar lançamento" : "Registro rápido"}
+      arrastavel
     >
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (

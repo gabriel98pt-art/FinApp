@@ -67,6 +67,27 @@
   margin: 6px auto 12px;
 }
 
+/* Zona de arrasto do drag-to-close (seção 6): cobre pegador+título, mesma
+   área da origem (.qsh-drag-zone). touch-action:none troca o preventDefault
+   manual por engano do navegador — Pointer Events já cuidam do resto. */
+.zonaArrasto {
+  touch-action: none;
+  cursor: grab;
+}
+
+.zonaArrasto:active {
+  cursor: grabbing;
+}
+
+/* Durante o arrasto, o JS escreve o transform a cada frame (física de mola
+   por rAF) — a transition CSS tem que sair do caminho, senão o navegador
+   tenta animar entre valores já defasados (lag atrás do dedo). Ver nota em
+   base.css: escape hatch próprio, não a regra genérica de reduced-motion. */
+.folha[data-dragging="true"] {
+  transition: none !important;
+  will-change: transform;
+}
+
 .titulo {
   font-size: 1.05rem;
   font-weight: 700;
