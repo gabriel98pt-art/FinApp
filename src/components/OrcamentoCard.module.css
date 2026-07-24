@@ -1,0 +1,76 @@
+.card {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.vazio {
+  color: var(--mut);
+  font-size: 0.82rem;
+}
+
+.link {
+  color: var(--blu);
+  font-weight: 600;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.linha {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.linhaTopo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.categoria {
+  font-weight: 600;
+}
+
+.dentro {
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.estourado {
+  color: var(--red);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.barra {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--s2);
+  overflow: hidden;
+}
+
+.preenchido {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--blu);
+  transition: width 0.3s var(--ease-enter);
+}
+
+.preenchidoEstourado {
+  background: var(--red);
+}

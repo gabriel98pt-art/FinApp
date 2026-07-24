@@ -3,12 +3,18 @@ import { CarTaxiFront, Download, EyeOff, LogOut, Moon, Sun, Upload, X } from "lu
 import Pagina from "../components/Pagina";
 import { exportarBackup, importarBackup } from "../services/backupService";
 import { sair } from "../services/authService";
-import { adicionarItemLista, atualizarConfig, removerItemLista } from "../services/cfgService";
+import {
+  adicionarItemLista,
+  atualizarConfig,
+  definirOrcamento,
+  removerItemLista,
+} from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
-import type { ConfigConta, Currency } from "../types";
+import type { Cents, ConfigConta, Currency } from "../types";
+import { formatCents, parseMoney } from "../utils/money";
 import styles from "./Definicoes.module.css";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
@@ -84,6 +90,52 @@ function EditorLista({
           Adicionar
         </button>
       </form>
+    </div>
+  );
+}
+
+function LinhaOrcamento({
+  categoria,
+  tetoAtual,
+  uid,
+}: {
+  categoria: string;
+  tetoAtual: Cents | undefined;
+  uid: string;
+}) {
+  const [texto, setTexto] = useState(tetoAtual ? formatCents(tetoAtual) : "");
+  const [salvando, setSalvando] = useState(false);
+
+  async function salvar() {
+    const t = texto.trim();
+    const valor = t === "" ? null : parseMoney(t);
+    if (t !== "" && (valor === null || valor < 0)) {
+      mostrarToast("Valor inválido.");
+      setTexto(tetoAtual ? formatCents(tetoAtual) : "");
+      return;
+    }
+    setSalvando(true);
+    try {
+      await definirOrcamento(uid, categoria, valor);
+    } catch {
+      mostrarToast("Não foi possível salvar o teto.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className={styles.linhaOrcamento}>
+      <span className={styles.orcamentoCategoria}>{categoria}</span>
+      <input
+        className={styles.inputPequeno}
+        inputMode="decimal"
+        placeholder="sem teto"
+        value={texto}
+        disabled={salvando}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={salvar}
+      />
     </div>
   );
 }
@@ -229,6 +281,16 @@ export default function Definicoes() {
         cfg={cfg}
         uid={uid}
       />
+
+      <div className={styles.grupo}>
+        <p className={styles.grupoTitulo}>Orçamento por categoria</p>
+        <p className={styles.nota}>Teto mensal de despesa — deixe em branco pra não ter teto.</p>
+        <div className={styles.listaOrcamento}>
+          {cfg.categoriasCorrentes.map((c) => (
+            <LinhaOrcamento key={c} categoria={c} tetoAtual={cfg.orcamentos[c]} uid={uid} />
+          ))}
+        </div>
+      </div>
 
       <div className={styles.grupo}>
         <p className={styles.grupoTitulo}>Backup</p>

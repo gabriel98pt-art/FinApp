@@ -33,6 +33,7 @@ export default function ResumoAnual({
   titulo?: string;
 }) {
   const moeda = useCfgStore((s) => s.cfg.currency);
+  const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
@@ -68,7 +69,7 @@ export default function ResumoAnual({
             className={`${styles.celula} ${c.futuro ? styles.futura : c.saldo > 0 ? styles.positiva : c.saldo < 0 ? styles.negativa : ""}`}
           >
             <span className={styles.mes}>{c.rotulo}</span>
-            <span className={styles.valor}>
+            <span className={`${styles.valor} ${modoDiscreto ? "discreto" : ""}`}>
               {c.futuro
                 ? "·"
                 : c.saldo === 0
@@ -78,7 +79,7 @@ export default function ResumoAnual({
           </div>
         ))}
       </div>
-      <div className={styles.rodape}>
+      <div className={`${styles.rodape} ${modoDiscreto ? "discreto" : ""}`}>
         <span>
           Receitas <strong className={styles.verde}>{formatMoney(totalReceitas, moeda)}</strong>
         </span>

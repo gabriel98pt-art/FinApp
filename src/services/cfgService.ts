@@ -66,6 +66,13 @@ export async function removerItemLista(
   await update(ref(db, caminho(uid)), { [lista]: cfg[lista].filter((x) => x !== item) });
 }
 
+/** Teto de orçamento mensal por categoria (seção 4.8) — `null`/0 remove o teto. */
+export async function definirOrcamento(uid: string, categoria: string, valor: Cents | null) {
+  const r = ref(db, caminho(uid, `/orcamentos/${categoria}`));
+  if (valor === null || valor === 0) await remove(r);
+  else await set(r, valor);
+}
+
 /** Override manual da fatura (seção 4.1) — `null` volta ao cálculo automático. */
 export async function definirFaturaManual(
   uid: string,

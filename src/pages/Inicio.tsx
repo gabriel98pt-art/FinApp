@@ -1,6 +1,7 @@
-import Pagina, { EmConstrucao, Kpis } from "../components/Pagina";
+import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
+import OrcamentoCard from "../components/OrcamentoCard";
 import ResumoAnual from "../components/ResumoAnual";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -39,7 +40,7 @@ export default function Inicio() {
           discreto={modoDiscreto}
         />
       </Kpis>
-      <EmConstrucao>Orçamento por categoria — chega nesta mesma parte</EmConstrucao>
+      <OrcamentoCard />
       <ResumoAnual meses={6} titulo="Resumo Anual" />
       <CopilotoCard />
     </Pagina>
