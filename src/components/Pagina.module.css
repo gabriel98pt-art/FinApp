@@ -81,13 +81,3 @@
   color: var(--mut);
   font-size: 0.85rem;
 }
-
-.emConstrucao {
-  background: var(--s1);
-  border: 1px dashed var(--brd);
-  border-radius: var(--r-card);
-  padding: 24px;
-  color: var(--mut);
-  font-size: 0.9rem;
-  text-align: center;
-}

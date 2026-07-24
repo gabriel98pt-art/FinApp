@@ -1,4 +1,6 @@
 import { Plus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
 import { formatMoney } from "../utils/money";
 import styles from "./ListaLancamentos.module.css";
@@ -23,6 +25,8 @@ export default function ListaLancamentos({
   carregado,
   tom,
   vazio,
+  vazioSub,
+  vazioIcone,
   moeda,
   aoAdicionar,
   aoEditar,
@@ -32,6 +36,8 @@ export default function ListaLancamentos({
   carregado: boolean;
   tom: "verde" | "vermelho";
   vazio: string;
+  vazioSub?: string;
+  vazioIcone: LucideIcon;
   moeda: Currency;
   aoAdicionar: () => void;
   aoEditar: (id: Id) => void;
@@ -48,7 +54,7 @@ export default function ListaLancamentos({
       {!carregado ? (
         <p className={styles.vazio}>Carregando…</p>
       ) : itens.length === 0 ? (
-        <p className={styles.vazio}>{vazio}</p>
+        <EstadoVazio Icone={vazioIcone} mensagem={vazio} sub={vazioSub} />
       ) : (
         <ul className={styles.lista}>
           {itens.map((item) => (

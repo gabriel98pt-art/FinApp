@@ -64,12 +64,20 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     });
   });
 
-  test("3) regra de palavra-chave (Continente → Mercado)", () => {
+  test("3) regra de palavra-chave (Continente → Mercado, categoria configurada na conta)", () => {
+    const cls = classificarLancamento(linha({ descricao: "COMPRA CONTINENTE LX" }), {
+      parcelas: [],
+      categoriasConfiguradas: ["Mercado"],
+    });
+    expect(cls).toMatchObject({ tipo: "despesa", categoria: "Mercado", confianca: "high" });
+  });
+
+  test("3b) regra de palavra-chave sugere categoria que a conta NÃO tem → cai em 'Outros', não na primeira da lista", () => {
     const cls = classificarLancamento(linha({ descricao: "COMPRA CONTINENTE LX" }), {
       parcelas: [],
       categoriasConfiguradas: [],
     });
-    expect(cls).toMatchObject({ tipo: "despesa", categoria: "Mercado", confianca: "high" });
+    expect(cls).toMatchObject({ tipo: "despesa", categoria: "Outros", confianca: "high" });
   });
 
   test("regra de transferência com sinal de crédito fica marcada incerta", () => {

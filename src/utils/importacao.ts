@@ -361,9 +361,19 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
         // Sinal inconsistente com o tipo: marcar como incerto
         const incerto =
           (regra.tipo === "transferencia" && isCredit) || (regra.tipo === "receita" && !isCredit);
+        // A regra pode sugerir uma categoria (ex. "Veículo") que a conta não
+        // tem configurada — cai explicitamente em "Outros" em vez de deixar
+        // uma categoria inválida (o <select> na UI, sem essa opção, acaba
+        // mostrando o primeiro item da lista por baixo do valor real).
+        const categoria =
+          regra.tipo === "despesa" &&
+          regra.categoria !== null &&
+          !ctx.categoriasConfiguradas.includes(regra.categoria)
+            ? "Outros"
+            : regra.categoria;
         return {
           tipo: regra.tipo,
-          categoria: regra.categoria,
+          categoria,
           incerto,
           confianca: incerto ? "medium" : "high",
           motivo: `regra: "${kw}"`,

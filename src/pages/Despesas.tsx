@@ -1,3 +1,4 @@
+import { TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
@@ -63,7 +64,9 @@ export default function Despesas() {
         carregado={carregado}
         tom="vermelho"
         moeda={moeda}
-        vazio="Nenhuma despesa ainda — toque em Adicionar para lançar a primeira."
+        vazio="Nenhuma despesa ainda"
+        vazioSub="Toque em Adicionar para lançar a primeira."
+        vazioIcone={TrendingDown}
         aoAdicionar={() => abrirRegistro("despesa")}
         aoEditar={editar}
       />

@@ -1,3 +1,4 @@
+import { TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
@@ -39,7 +40,9 @@ export default function Receitas() {
         carregado={carregado}
         tom="verde"
         moeda={moeda}
-        vazio="Nenhuma receita ainda — toque em Adicionar para lançar a primeira."
+        vazio="Nenhuma receita ainda"
+        vazioSub="Toque em Adicionar para lançar a primeira."
+        vazioIcone={TrendingUp}
         aoAdicionar={() => abrirRegistro("receita")}
         aoEditar={(id) => abrirRegistro("receita", id)}
       />

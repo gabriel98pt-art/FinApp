@@ -17,8 +17,7 @@ export function Kpis({ children }: { children: ReactNode }) {
   return <div className={styles.kpis}>{children}</div>;
 }
 
-/** Empty state padronizado (seção 7): para telas/listas REAIS sem dados —
- *  diferente do EmConstrucao, que marca funcionalidade ainda não construída. */
+/** Empty state padronizado (seção 7): para telas/listas REAIS sem dados. */
 export function EstadoVazio({
   Icone,
   mensagem,
@@ -35,15 +34,6 @@ export function EstadoVazio({
       </span>
       <p className={styles.estadoVazioMsg}>{mensagem}</p>
       {sub !== undefined && <p className={styles.estadoVazioSub}>{sub}</p>}
-    </div>
-  );
-}
-
-/** Quadro provisório para conteúdo que chega nos próximos marcos. */
-export function EmConstrucao({ children }: { children?: ReactNode }) {
-  return (
-    <div className={styles.emConstrucao}>
-      {children ?? "Em construção — chega no próximo marco."}
     </div>
   );
 }
