@@ -1,0 +1,80 @@
+.card {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: 6px;
+}
+
+.celula {
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mes {
+  font-size: 0.62rem;
+  color: var(--mut);
+  font-weight: 600;
+}
+
+.valor {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--mut);
+}
+
+.futura {
+  opacity: 0.45;
+}
+
+.positiva {
+  background: color-mix(in srgb, var(--grn) 14%, transparent);
+}
+
+.positiva .valor {
+  color: var(--grn);
+}
+
+.negativa {
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
+
+.negativa .valor {
+  color: var(--red);
+}
+
+.rodape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.75rem;
+  color: var(--mut);
+}
+
+.verde {
+  color: var(--grn);
+}
+
+.vermelho {
+  color: var(--red);
+}
