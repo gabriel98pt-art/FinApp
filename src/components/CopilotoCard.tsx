@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { Sparkles } from "lucide-react";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useEventosStore } from "../stores/eventosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -18,6 +23,8 @@ export default function CopilotoCard() {
   const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const transferencias = useTransferenciasStore((s) => s.itens);
   const eventos = useEventosStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
 
@@ -32,6 +39,8 @@ export default function CopilotoCard() {
       despesas,
       parcelas,
       veiculo,
+      despesasFixas,
+      transferencias,
       eventos,
       cfg,
       mesReal: mesAtual(),

@@ -9,9 +9,11 @@ import type {
   ConfigConta,
   DadosVeiculo,
   DespesaCorrente,
+  DespesaFixa,
   EventoCalendario,
   Parcela,
   Receita,
+  Transferencia,
   YearMonth,
 } from "../types";
 import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
@@ -183,6 +185,10 @@ export interface ContextoCopiloto {
   parcelas: Parcela[];
   cfg: ConfigConta;
   veiculo: DadosVeiculo;
+  /** Despesas fixas gerais e transferências — só usadas no cálculo de fatura
+   *  (intent "pendentes"); opcionais para não quebrar chamadores existentes. */
+  despesasFixas?: DespesaFixa[];
+  transferencias?: Transferencia[];
   eventos: EventoCalendario[];
   /** Mês real de hoje — usado pra decidir se "projeção no ritmo atual" faz
    *  sentido (só quando a pergunta é sobre o mês corrente de verdade). */
@@ -228,11 +234,11 @@ function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
 
 function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
   return {
-    despesasFixas: [],
+    despesasFixas: ctx.despesasFixas ?? [],
     despesasFixasVeiculo: ctx.veiculo.despesasFixas,
     despesasCorrentes: ctx.despesas,
     parcelas: ctx.parcelas,
-    transferencias: [],
+    transferencias: ctx.transferencias ?? [],
   };
 }
 

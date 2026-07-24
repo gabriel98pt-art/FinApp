@@ -8,7 +8,11 @@ import { adicionarCartao, definirFaturaManual } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -151,6 +155,8 @@ export default function Cartoes() {
   const cfg = useCfgStore((s) => s.cfg);
   const cfgCarregada = useCfgStore((s) => s.carregado);
   const despesas = useDespesasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const transferencias = useTransferenciasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
@@ -163,11 +169,11 @@ export default function Cartoes() {
   const [pagarDe, setPagarDe] = useState("");
 
   const dados: DadosFatura = {
-    despesasFixas: [],
+    despesasFixas,
     despesasFixasVeiculo: veiculo.despesasFixas,
     despesasCorrentes: despesas,
     parcelas,
-    transferencias: [],
+    transferencias,
   };
 
   const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");

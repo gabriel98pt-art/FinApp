@@ -113,6 +113,41 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
     expect(calcularFaturaAutomatica(CARTAO, "2026-11", dados)).toBe(0); // ciclo out > fim
   });
 
+  test("despesa fixa geral (não do veículo) vinculada ao cartão entra no cálculo", () => {
+    const fixaGeral: DespesaFixa = {
+      id: "fg1",
+      descricao: "Netflix",
+      valor: 1500,
+      categoria: "Assinaturas",
+      contaCartao: CARTAO,
+      pagoPorMes: {},
+    };
+    const dados: DadosFatura = { ...vazio, despesasFixas: [fixaGeral] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500);
+    // vinculada a outro cartão: não entra
+    const outro = { ...fixaGeral, contaCartao: "Outro Cartão" };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", { ...vazio, despesasFixas: [outro] })).toBe(
+      0,
+    );
+  });
+
+  test("transferência de saída contra o cartão de crédito entra no cálculo", () => {
+    const saida: Transferencia = {
+      id: "t1",
+      data: "2026-06-15",
+      de: CARTAO,
+      para: "Conta Principal",
+      valor: 3000,
+    };
+    const dados: DadosFatura = { ...vazio, transferencias: [saida] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(3000);
+    // transferência de ENTRADA no cartão (para, não de) não entra
+    const entrada: Transferencia = { ...saida, id: "t2", de: "Conta Principal", para: CARTAO };
+    expect(
+      calcularFaturaAutomatica(CARTAO, "2026-07", { ...vazio, transferencias: [entrada] }),
+    ).toBe(0);
+  });
+
   test("BUG 1 (não reproduzir): pagamento de fatura no ciclo não entra na fatura seguinte", () => {
     const dados: DadosFatura = {
       ...vazio,
