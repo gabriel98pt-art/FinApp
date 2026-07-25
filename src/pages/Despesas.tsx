@@ -1,12 +1,16 @@
 import { useState, type FormEvent } from "react";
 import { ArrowLeftRight, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
+import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import SeletorCategoria from "../components/SeletorCategoria";
+import SeletorData from "../components/SeletorData";
 import SeletorMes from "../components/SeletorMes";
 import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
+  atualizarTransferencia,
   criarDespesaFixa,
   criarTransferencia,
   removerDespesaFixa,
@@ -26,6 +30,7 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import {
   despesasNosTotais,
   doMes,
+  hojeIso,
   mesAtual,
   ordenarPorDataDesc,
   rotuloMes,
@@ -36,7 +41,7 @@ import { fixaAtivaNoMes } from "../utils/fatura";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney, parseMoney } from "../utils/money";
-import type { DespesaFixa, Id } from "../types";
+import type { DespesaFixa, Id, Transferencia } from "../types";
 import styles from "./Despesas.module.css";
 
 type Aba = "correntes" | "fixas" | "transferencias";
@@ -86,44 +91,59 @@ export default function Despesas() {
     abrirRegistro("despesa", id);
   }
 
-  // ---- formulário de despesa fixa (criar/editar) ----
+  // ---- caixa de despesa fixa (criar/editar na mesma folha — itens 2 e 7) ----
+  const [dfAberta, setDfAberta] = useState(false);
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
   const [dfDescricao, setDfDescricao] = useState("");
+  const [dfNota, setDfNota] = useState("");
   const [dfValor, setDfValor] = useState("");
   const [dfCategoria, setDfCategoria] = useState("");
   const [dfContaCartao, setDfContaCartao] = useState("");
+  const [dfDia, setDfDia] = useState("");
   const [dfInicio, setDfInicio] = useState("");
   const [dfFim, setDfFim] = useState("");
 
-  function iniciarEdicaoFixa(f: DespesaFixa) {
+  function abrirNovaFixa() {
+    setDfEditandoId(null);
+    setDfDescricao("");
+    setDfNota("");
+    setDfValor("");
+    setDfCategoria(cfg.categoriasFixas[0] ?? "");
+    setDfContaCartao("");
+    setDfDia("");
+    setDfInicio("");
+    setDfFim("");
+    setDfAberta(true);
+  }
+
+  function abrirEdicaoFixa(f: DespesaFixa) {
     setDfEditandoId(f.id);
     setDfDescricao(f.descricao);
+    setDfNota(f.nota ?? "");
     setDfValor((f.valor / 100).toFixed(2).replace(".", ","));
     setDfCategoria(f.categoria);
     setDfContaCartao(f.contaCartao ?? "");
+    setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
     setDfInicio(f.inicio ?? "");
     setDfFim(f.fim ?? "");
-  }
-
-  function limparFormFixa() {
-    setDfEditandoId(null);
-    setDfDescricao("");
-    setDfValor("");
-    setDfContaCartao("");
-    setDfInicio("");
-    setDfFim("");
+    setDfAberta(true);
   }
 
   async function salvarFixa(e: FormEvent) {
     e.preventDefault();
     const valor = parseMoney(dfValor);
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
-    if (!dfDescricao.trim()) return mostrarToast("Descrição obrigatória.");
+    if (!dfDescricao.trim()) return mostrarToast("Nome obrigatório.");
+    const dia = dfDia.trim() === "" ? undefined : Number(dfDia);
+    if (dia !== undefined && (!Number.isInteger(dia) || dia < 1 || dia > 31))
+      return mostrarToast("Dia do vencimento deve ser entre 1 e 31.");
     const dados = {
       descricao: dfDescricao,
+      nota: dfNota.trim() || undefined,
       valor,
       categoria: dfCategoria || cfg.categoriasFixas[0] || "Outros",
       contaCartao: dfContaCartao || undefined,
+      diaVencimento: dia,
       inicio: dfInicio || undefined,
       fim: dfFim || undefined,
     };
@@ -140,15 +160,48 @@ export default function Despesas() {
         "✓ Despesa fixa criada",
       );
     }
-    limparFormFixa();
+    setDfAberta(false);
   }
 
-  // ---- formulário de transferência (criar) ----
-  const [tfData, setTfData] = useState(mes + "-01");
+  async function excluirFixa() {
+    const atual = despesasFixas.find((f) => f.id === dfEditandoId);
+    if (!atual) return;
+    if (!window.confirm(`Excluir "${atual.descricao}"?`)) return;
+    setDfAberta(false);
+    await agir(() => removerDespesaFixa(uid!, atual.id), "Despesa fixa excluída");
+  }
+
+  // ---- caixa de transferência (criar/editar) ----
+  const [tfAberta, setTfAberta] = useState(false);
+  const [tfEditandoId, setTfEditandoId] = useState<Id | null>(null);
+  const [tfData, setTfData] = useState(hojeIso());
   const [tfDe, setTfDe] = useState("");
   const [tfPara, setTfPara] = useState("");
   const [tfValor, setTfValor] = useState("");
   const [tfDescricao, setTfDescricao] = useState("");
+  const [tfNota, setTfNota] = useState("");
+
+  function abrirNovaTransferencia() {
+    setTfEditandoId(null);
+    setTfData(hojeIso());
+    setTfDe("");
+    setTfPara("");
+    setTfValor("");
+    setTfDescricao("");
+    setTfNota("");
+    setTfAberta(true);
+  }
+
+  function abrirEdicaoTransferencia(t: Transferencia) {
+    setTfEditandoId(t.id);
+    setTfData(t.data);
+    setTfDe(t.de);
+    setTfPara(t.para);
+    setTfValor((t.valor / 100).toFixed(2).replace(".", ","));
+    setTfDescricao(t.descricao ?? "");
+    setTfNota(t.nota ?? "");
+    setTfAberta(true);
+  }
 
   async function salvarTransferencia(e: FormEvent) {
     e.preventDefault();
@@ -156,19 +209,31 @@ export default function Despesas() {
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!tfDe || !tfPara) return mostrarToast("Escolha origem e destino.");
     if (tfDe === tfPara) return mostrarToast("Origem e destino não podem ser iguais.");
-    await agir(
-      () =>
-        criarTransferencia(uid!, {
-          data: tfData,
-          de: tfDe,
-          para: tfPara,
-          valor,
-          descricao: tfDescricao || undefined,
-        }),
-      "✓ Transferência registrada",
-    );
-    setTfValor("");
-    setTfDescricao("");
+    const dados = {
+      data: tfData,
+      de: tfDe,
+      para: tfPara,
+      valor,
+      descricao: tfDescricao || undefined,
+      nota: tfNota.trim() || undefined,
+    };
+    if (tfEditandoId) {
+      await agir(
+        () => atualizarTransferencia(uid!, { ...dados, id: tfEditandoId }),
+        "✓ Transferência atualizada",
+      );
+    } else {
+      await agir(() => criarTransferencia(uid!, dados), "✓ Transferência registrada");
+    }
+    setTfAberta(false);
+  }
+
+  async function excluirTransferencia() {
+    if (!tfEditandoId) return;
+    if (!window.confirm("Excluir esta transferência?")) return;
+    const id = tfEditandoId;
+    setTfAberta(false);
+    await agir(() => removerTransferencia(uid!, id), "Transferência excluída");
   }
 
   return (
@@ -239,73 +304,12 @@ export default function Despesas() {
             <SeletorMes mes={mes} aoMudar={setMes} />
           </div>
 
-          <form className={styles.form} onSubmit={salvarFixa}>
-            <p className={styles.formTitulo}>
-              {dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
-            </p>
-            <label className={styles.campo}>
-              Descrição
-              <input
-                value={dfDescricao}
-                onChange={(e) => setDfDescricao(e.target.value)}
-                required
-              />
-            </label>
-            <div className={styles.linhaDupla}>
-              <label className={styles.campo}>
-                Valor mensal
-                <input
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={dfValor}
-                  onChange={(e) => setDfValor(e.target.value)}
-                  required
-                />
-              </label>
-              <label className={styles.campo}>
-                Categoria
-                <select value={dfCategoria} onChange={(e) => setDfCategoria(e.target.value)}>
-                  {cfg.categoriasFixas.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <label className={styles.campo}>
-              Conta/cartão (opcional — se for crédito, entra na fatura)
-              <select value={dfContaCartao} onChange={(e) => setDfContaCartao(e.target.value)}>
-                <option value="">Sem conta</option>
-                {cfg.contasCartoes.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                    {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className={styles.linhaDupla}>
-              <label className={styles.campo}>
-                Início (opcional)
-                <input
-                  type="month"
-                  value={dfInicio}
-                  onChange={(e) => setDfInicio(e.target.value)}
-                />
-              </label>
-              <label className={styles.campo}>
-                Fim (opcional)
-                <input type="month" value={dfFim} onChange={(e) => setDfFim(e.target.value)} />
-              </label>
-            </div>
-            <button type="submit" className={styles.salvar}>
-              {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
+          <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Despesas fixas</p>
+            <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
+              + Adicionar despesa fixa
             </button>
-            {dfEditandoId && (
-              <button type="button" className={styles.cancelar} onClick={limparFormFixa}>
-                Cancelar edição
-              </button>
-            )}
-          </form>
+          </div>
 
           <div className={styles.lista}>
             {despesasFixas.length === 0 ? (
@@ -317,44 +321,30 @@ export default function Despesas() {
                   const paga = !!f.pagoPorMes[mes];
                   return (
                     <div key={f.id} className={styles.item}>
-                      <div>
-                        <p className={styles.itemNome}>{f.descricao}</p>
-                        <p className={styles.itemDetalhe}>
-                          {f.categoria}
-                          {f.contaCartao ? ` · ${f.contaCartao}` : ""}
-                        </p>
-                      </div>
-                      <div className={styles.itemLado}>
+                      {/* Linha inteira abre a caixa de edição (item 7); só o
+                          selo Pago/Pendente continua com ação própria. */}
+                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
+                        <span className={styles.itemTexto}>
+                          <span className={styles.itemNome}>{f.descricao}</span>
+                          <span className={styles.itemDetalhe}>
+                            {f.categoria}
+                            {f.contaCartao ? ` · ${f.contaCartao}` : ""}
+                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                          </span>
+                        </span>
                         <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
-                        <button
-                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                          onClick={() =>
-                            void agir(
-                              () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
-                              paga ? "Marcado como pendente" : "✓ Pago",
-                            )
-                          }
-                        >
-                          {paga ? "Pago" : "Pendente"}
-                        </button>
-                        <button
-                          className={styles.editar}
-                          onClick={() => iniciarEdicaoFixa(f)}
-                          aria-label="Editar fixa"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className={styles.remover}
-                          onClick={() => {
-                            if (!window.confirm(`Excluir "${f.descricao}"?`)) return;
-                            void agir(() => removerDespesaFixa(uid!, f.id), "Excluída");
-                          }}
-                          aria-label="Excluir fixa"
-                        >
-                          ×
-                        </button>
-                      </div>
+                      </button>
+                      <button
+                        className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                        onClick={() =>
+                          void agir(
+                            () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
+                            paga ? "Marcado como pendente" : "✓ Pago",
+                          )
+                        }
+                      >
+                        {paga ? "Pago" : "Pendente"}
+                      </button>
                     </div>
                   );
                 })
@@ -365,61 +355,12 @@ export default function Despesas() {
 
       {aba === "transferencias" && (
         <>
-          <form className={styles.form} onSubmit={salvarTransferencia}>
-            <p className={styles.formTitulo}>Nova transferência</p>
-            <div className={styles.linhaDupla}>
-              <label className={styles.campo}>
-                Valor
-                <input
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={tfValor}
-                  onChange={(e) => setTfValor(e.target.value)}
-                  required
-                />
-              </label>
-              <label className={styles.campo}>
-                Data
-                <input
-                  type="date"
-                  value={tfData}
-                  onChange={(e) => setTfData(e.target.value)}
-                  required
-                />
-              </label>
-            </div>
-            <div className={styles.linhaDupla}>
-              <label className={styles.campo}>
-                De
-                <select value={tfDe} onChange={(e) => setTfDe(e.target.value)} required>
-                  <option value="">Escolher…</option>
-                  {cfg.contasCartoes.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className={styles.campo}>
-                Para
-                <select value={tfPara} onChange={(e) => setTfPara(e.target.value)} required>
-                  <option value="">Escolher…</option>
-                  {cfg.contasCartoes.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <label className={styles.campo}>
-              Descrição (opcional)
-              <input value={tfDescricao} onChange={(e) => setTfDescricao(e.target.value)} />
-            </label>
-            <button type="submit" className={styles.salvar}>
-              Registrar transferência
+          <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Transferências entre contas</p>
+            <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
+              + Adicionar transferência
             </button>
-          </form>
+          </div>
 
           <div className={styles.lista}>
             {transferencias.length === 0 ? (
@@ -427,32 +368,165 @@ export default function Despesas() {
             ) : (
               ordenarPorDataDesc(transferencias).map((t) => (
                 <div key={t.id} className={styles.item}>
-                  <div>
-                    <p className={styles.itemNome}>
-                      {t.de} <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
-                      {t.para}
-                    </p>
-                    <p className={styles.itemDetalhe}>
-                      {t.descricao ? `${t.descricao} · ` : ""}
-                      {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                    </p>
-                  </div>
-                  <div className={styles.itemLado}>
+                  <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
+                    <span className={styles.itemTexto}>
+                      <span className={styles.itemNome}>
+                        {t.de}{" "}
+                        <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
+                        {t.para}
+                      </span>
+                      <span className={styles.itemDetalhe}>
+                        {t.descricao ? `${t.descricao} · ` : ""}
+                        {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
+                      </span>
+                    </span>
                     <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
-                    <button
-                      className={styles.remover}
-                      onClick={() => void agir(() => removerTransferencia(uid!, t.id), "Removida")}
-                      aria-label="Remover transferência"
-                    >
-                      ×
-                    </button>
-                  </div>
+                  </button>
                 </div>
               ))
             )}
           </div>
         </>
       )}
+
+      {/* Caixa única de despesa fixa: cria e edita (itens 2, 7, 11, 16, 17, 19) */}
+      <BottomSheet
+        aberta={dfAberta}
+        aoFechar={() => setDfAberta(false)}
+        titulo={dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
+      >
+        <form className={styles.formFolha} onSubmit={salvarFixa}>
+          <label className={styles.campo}>
+            Nome
+            <input value={dfDescricao} onChange={(e) => setDfDescricao(e.target.value)} required />
+          </label>
+          <label className={styles.campo}>
+            Descrição (opcional)
+            <input value={dfNota} onChange={(e) => setDfNota(e.target.value)} />
+          </label>
+          <div className={styles.linhaDupla}>
+            <label className={styles.campo}>
+              Valor mensal
+              <input
+                inputMode="decimal"
+                placeholder="0,00"
+                value={dfValor}
+                onChange={(e) => setDfValor(e.target.value)}
+                required
+              />
+            </label>
+            <label className={styles.campo}>
+              Dia do vencimento
+              <input
+                inputMode="numeric"
+                placeholder="1-31"
+                value={dfDia}
+                onChange={(e) => setDfDia(e.target.value)}
+              />
+            </label>
+          </div>
+          <SeletorCategoria
+            valor={dfCategoria}
+            opcoes={cfg.categoriasFixas}
+            aoMudar={setDfCategoria}
+          />
+          <label className={styles.campo}>
+            Conta/cartão (opcional — se for crédito, entra na fatura)
+            <select value={dfContaCartao} onChange={(e) => setDfContaCartao(e.target.value)}>
+              <option value="">Sem conta</option>
+              {cfg.contasCartoes.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                  {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className={styles.linhaDupla}>
+            <label className={styles.campo}>
+              Início (opcional)
+              <input type="month" value={dfInicio} onChange={(e) => setDfInicio(e.target.value)} />
+            </label>
+            <label className={styles.campo}>
+              Fim (opcional)
+              <input type="month" value={dfFim} onChange={(e) => setDfFim(e.target.value)} />
+            </label>
+          </div>
+          <button type="submit" className={styles.salvar}>
+            {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
+          </button>
+          {dfEditandoId && (
+            <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
+              Excluir despesa fixa
+            </button>
+          )}
+        </form>
+      </BottomSheet>
+
+      {/* Caixa única de transferência: cria e edita */}
+      <BottomSheet
+        aberta={tfAberta}
+        aoFechar={() => setTfAberta(false)}
+        titulo={tfEditandoId ? "Editar transferência" : "Nova transferência"}
+      >
+        <form className={styles.formFolha} onSubmit={salvarTransferencia}>
+          <label className={styles.campo}>
+            Valor
+            <input
+              inputMode="decimal"
+              placeholder="0,00"
+              value={tfValor}
+              onChange={(e) => setTfValor(e.target.value)}
+              required
+            />
+          </label>
+          <SeletorData valor={tfData} aoMudar={setTfData} />
+          <div className={styles.linhaDupla}>
+            <label className={styles.campo}>
+              De
+              <select value={tfDe} onChange={(e) => setTfDe(e.target.value)} required>
+                <option value="">Escolher…</option>
+                {cfg.contasCartoes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.campo}>
+              Para
+              <select value={tfPara} onChange={(e) => setTfPara(e.target.value)} required>
+                <option value="">Escolher…</option>
+                {cfg.contasCartoes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className={styles.campo}>
+            Nome (opcional)
+            <input value={tfDescricao} onChange={(e) => setTfDescricao(e.target.value)} />
+          </label>
+          <label className={styles.campo}>
+            Descrição (opcional)
+            <input value={tfNota} onChange={(e) => setTfNota(e.target.value)} />
+          </label>
+          <button type="submit" className={styles.salvar}>
+            {tfEditandoId ? "Salvar alterações" : "Registrar transferência"}
+          </button>
+          {tfEditandoId && (
+            <button
+              type="button"
+              className={styles.excluir}
+              onClick={() => void excluirTransferencia()}
+            >
+              Excluir transferência
+            </button>
+          )}
+        </form>
+      </BottomSheet>
     </Pagina>
   );
 }

@@ -74,6 +74,15 @@ async function criar<T extends { id: Id }>(uid: string, sub: SubDominio, dados: 
   return novo.key!;
 }
 
+/** Edição de um item já existente (item 5) — mesma forma do
+ *  `atualizarDespesaFixa` de lancamentosService: reescreve o nó inteiro sem os
+ *  campos indefinidos, mantendo o id como chave. */
+async function atualizar<T extends { id: Id }>(uid: string, sub: SubDominio, item: T) {
+  snapshotHistorico();
+  const { id, ...dados } = item;
+  await set(ref(db, caminho(uid, sub, id)), semIndefinidos(dados));
+}
+
 async function remover(uid: string, sub: SubDominio, id: Id) {
   snapshotHistorico();
   await remove(ref(db, caminho(uid, sub, id)));
@@ -82,16 +91,22 @@ async function remover(uid: string, sub: SubDominio, id: Id) {
 // ---- Cargas elétricas ----
 export const criarCarga = (uid: string, dados: Omit<CargaEletrica, "id">) =>
   criar<CargaEletrica>(uid, "cargas", dados);
+export const atualizarCarga = (uid: string, item: CargaEletrica) =>
+  atualizar<CargaEletrica>(uid, "cargas", item);
 export const removerCarga = (uid: string, id: Id) => remover(uid, "cargas", id);
 
 // ---- Despesas variáveis do veículo ----
 export const criarDespesaVeiculo = (uid: string, dados: Omit<DespesaVeiculo, "id">) =>
   criar<DespesaVeiculo>(uid, "despesas", dados);
+export const atualizarDespesaVeiculo = (uid: string, item: DespesaVeiculo) =>
+  atualizar<DespesaVeiculo>(uid, "despesas", item);
 export const removerDespesaVeiculo = (uid: string, id: Id) => remover(uid, "despesas", id);
 
 // ---- Despesas fixas do veículo ----
 export const criarFixaVeiculo = (uid: string, dados: Omit<DespesaFixa, "id">) =>
   criar<DespesaFixa>(uid, "despesasFixas", dados);
+export const atualizarFixaVeiculo = (uid: string, item: DespesaFixa) =>
+  atualizar<DespesaFixa>(uid, "despesasFixas", item);
 export const removerFixaVeiculo = (uid: string, id: Id) => remover(uid, "despesasFixas", id);
 
 export async function alternarPagoFixaVeiculo(
@@ -109,4 +124,6 @@ export async function alternarPagoFixaVeiculo(
 // ---- Quilometragem ----
 export const criarKm = (uid: string, dados: Omit<RegistroKm, "id">) =>
   criar<RegistroKm>(uid, "quilometragem", dados);
+export const atualizarKm = (uid: string, item: RegistroKm) =>
+  atualizar<RegistroKm>(uid, "quilometragem", item);
 export const removerKm = (uid: string, id: Id) => remover(uid, "quilometragem", id);

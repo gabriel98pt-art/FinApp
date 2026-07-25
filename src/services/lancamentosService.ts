@@ -88,6 +88,7 @@ export const observarParcelas = (uid: string, cb: (itens: Parcela[]) => void) =>
   observar<Parcela>(uid, "parcelas", cb);
 export const criarParcela = (uid: string, dados: Omit<Parcela, "id">) =>
   criar<Parcela>(uid, "parcelas", dados);
+export const atualizarParcela = (uid: string, item: Parcela) => atualizar(uid, "parcelas", item);
 export const removerParcela = (uid: string, id: Id) => remover(uid, "parcelas", id);
 
 // ---- Despesas fixas gerais (aluguel, assinaturas, seguro etc. — fora do
@@ -117,4 +118,6 @@ export const observarTransferencias = (uid: string, cb: (itens: Transferencia[])
   observar<Transferencia>(uid, "transferencias", cb);
 export const criarTransferencia = (uid: string, dados: Omit<Transferencia, "id">) =>
   criar<Transferencia>(uid, "transferencias", dados);
+export const atualizarTransferencia = (uid: string, item: Transferencia) =>
+  atualizar(uid, "transferencias", item);
 export const removerTransferencia = (uid: string, id: Id) => remover(uid, "transferencias", id);
