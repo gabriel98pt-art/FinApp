@@ -102,3 +102,11 @@
     transform: translateX(-50%) !important;
   }
 }
+
+/* ~20% a mais que o padrão (item 23) — usada só pelo Registro rápido.
+   No desktop cresce a largura; no telemóvel, onde a largura já é 100vw,
+   o ganho vem da margem menor no topo. */
+.folhaGrande {
+  width: min(100vw, 576px);
+  max-height: calc(100dvh - 38px);
+}

@@ -11,13 +11,14 @@ import {
   removerReceita,
 } from "../services/lancamentosService";
 import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
+import { criarParcela } from "../services/parcelasService";
 import { adicionarItemLista } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
-import { hojeIso } from "../utils/calculos";
+import { hojeIso, mesDe } from "../utils/calculos";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./RegistroRapido.module.css";
 
@@ -47,6 +48,9 @@ export default function RegistroRapido() {
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
   const [kwh, setKwh] = useState(""); // só carga elétrica
+  // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
+  const [parcelada, setParcelada] = useState(false);
+  const [numParcelas, setNumParcelas] = useState("3");
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -83,12 +87,15 @@ export default function RegistroRapido() {
         setEtiqueta("");
         setConta("");
         setKwh("");
+        setParcelada(false);
+        setNumParcelas("3");
       }
     } else if (assinatura === "novo") {
       // Trocou de tipo num lançamento novo: a fonte/categoria não se traduz
       // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
       setKwh("");
+      setParcelada(false);
     }
   }
 
@@ -142,6 +149,24 @@ export default function RegistroRapido() {
           categoria: etiquetaFinal,
           nota: descricao.trim() || undefined,
         });
+      } else if (tipo === "despesa" && parcelada && !editando) {
+        // Valor preenchido = total DA COMPRA; a divisão por mês é da Parcela.
+        const n = parseInt(numParcelas, 10);
+        if (!Number.isInteger(n) || n < 2) {
+          setErro("Escolha em quantas parcelas — pelo menos 2.");
+          setSalvando(false);
+          return;
+        }
+        await criarParcela(uid, {
+          descricao,
+          total: valor,
+          numParcelas: n,
+          primeiroMes: mesDe(data),
+          categoria: etiquetaFinal,
+          cartao: conta || null,
+          autoDebit: !!conta && cfg.tipoCartao[conta] === "credit",
+          pagoPorMes: {},
+        });
       } else if (tipo === "receita") {
         const dados = { descricao, valor, data, fonte: etiquetaFinal, conta: conta || undefined };
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
@@ -162,11 +187,13 @@ export default function RegistroRapido() {
           ? "Alterações salvas"
           : tipo === "receita"
             ? "Receita adicionada"
-            : tipo === "carga"
-              ? "Carregamento registado"
-              : tipo === "despesaVeiculo"
-                ? "Despesa do veículo adicionada"
-                : "Despesa adicionada",
+            : tipo === "despesa" && parcelada
+              ? `Parcela criada em ${numParcelas}x`
+              : tipo === "carga"
+                ? "Carregamento registado"
+                : tipo === "despesaVeiculo"
+                  ? "Despesa do veículo adicionada"
+                  : "Despesa adicionada",
       );
       fecharRegistro();
     } catch {
@@ -198,6 +225,7 @@ export default function RegistroRapido() {
       aoFechar={fecharRegistro}
       titulo={editando ? "Editar lançamento" : "Registro rápido"}
       arrastavel
+      tamanho="grande"
     >
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (
@@ -267,18 +295,75 @@ export default function RegistroRapido() {
         )}
 
         {!ehVeiculo && cfg.contasCartoes.length > 0 && (
-          <label className={styles.campo}>
-            Conta/cartão (opcional)
-            <select value={conta} onChange={(e) => setConta(e.target.value)}>
-              <option value="">Sem conta</option>
+          <div className={styles.campo}>
+            <span>Cartão</span>
+            <div className={styles.fileiraContas} role="radiogroup" aria-label="Cartão">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={conta === ""}
+                className={`${styles.conta} ${conta === "" ? styles.contaAtiva : ""}`}
+                onClick={() => setConta("")}
+              >
+                Sem conta
+              </button>
               {cfg.contasCartoes.map((c) => (
-                <option key={c} value={c}>
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={conta === c}
+                  className={`${styles.conta} ${conta === c ? styles.contaAtiva : ""}`}
+                  onClick={() => setConta(c)}
+                >
                   {c}
                   {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
-                </option>
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
+        )}
+
+        {/* item 24: um toque transforma a despesa numa compra parcelada */}
+        {tipo === "despesa" && !editando && (
+          <div className={styles.campo}>
+            <button
+              type="button"
+              aria-pressed={parcelada}
+              className={`${styles.parceladaToggle} ${parcelada ? styles.parceladaAtiva : ""}`}
+              onClick={() => setParcelada(!parcelada)}
+            >
+              Parcelada
+            </button>
+            {parcelada && (
+              <>
+                <span className={styles.parceladaPergunta}>Quantas parcelas?</span>
+                <div className={styles.fileiraContas}>
+                  {[2, 3, 6, 10, 12, 24].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-pressed={numParcelas === String(n)}
+                      className={`${styles.conta} ${numParcelas === String(n) ? styles.contaAtiva : ""}`}
+                      onClick={() => setNumParcelas(String(n))}
+                    >
+                      {n}x
+                    </button>
+                  ))}
+                  <input
+                    className={styles.numParcelas}
+                    inputMode="numeric"
+                    aria-label="Número de parcelas"
+                    value={numParcelas}
+                    onChange={(e) => setNumParcelas(e.target.value)}
+                  />
+                </div>
+                <span className={styles.parceladaNota}>
+                  O valor acima é o TOTAL da compra — a divisão por mês é feita na tela Parcelas.
+                </span>
+              </>
+            )}
+          </div>
         )}
 
         {erro !== null && (

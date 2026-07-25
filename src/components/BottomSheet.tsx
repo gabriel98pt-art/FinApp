@@ -21,6 +21,7 @@ export default function BottomSheet({
   children,
   arrastavel = false,
   nivel = 0,
+  tamanho = "padrao",
 }: {
   aberta: boolean;
   aoFechar: () => void;
@@ -29,6 +30,9 @@ export default function BottomSheet({
   arrastavel?: boolean;
   /** 0 = folha comum; 1+ = aberta de dentro de outra folha. */
   nivel?: number;
+  /** "grande" dá ~20% a mais de área — hoje só o Registro rápido usa
+   *  (item 23). As demais folhas do app continuam no tamanho padrão. */
+  tamanho?: "padrao" | "grande";
 }) {
   const folhaRef = useRef<HTMLDivElement>(null);
   const veuRef = useRef<HTMLDivElement>(null);
@@ -45,7 +49,9 @@ export default function BottomSheet({
       />
       <div
         ref={folhaRef}
-        className={`${styles.folha} ${aberta ? styles.aberta : ""}`}
+        className={`${styles.folha} ${tamanho === "grande" ? styles.folhaGrande : ""} ${
+          aberta ? styles.aberta : ""
+        }`}
         style={nivel ? { zIndex: 46 + nivel * 2 } : undefined}
         role="dialog"
         aria-modal="true"

@@ -99,3 +99,61 @@
   font-weight: 600;
   padding: 6px;
 }
+
+/* Conta/cartão como nomes clicáveis, não dropdown (item 18) */
+.fileiraContas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.conta {
+  background: var(--s2);
+  color: var(--mut);
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.conta:hover {
+  color: var(--txt);
+}
+
+.contaAtiva {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+/* Despesa parcelada num toque (item 24) */
+.parceladaToggle {
+  align-self: flex-start;
+  background: var(--s2);
+  color: var(--mut);
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 9px 14px;
+}
+
+.parceladaAtiva {
+  background: var(--pur);
+  color: var(--bg);
+}
+
+.parceladaPergunta {
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.parceladaNota {
+  font-size: 0.75rem;
+  color: var(--mut);
+}
+
+.numParcelas {
+  width: 74px;
+  flex: none;
+  text-align: center;
+}
