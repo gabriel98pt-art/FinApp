@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Paginador from "./Paginador";
 import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
 import { total as somar } from "../utils/calculos";
@@ -97,27 +98,7 @@ export default function ListaLancamentos({
             ))}
           </ul>
 
-          {paginas > 1 && (
-            <div className={styles.pager}>
-              <button
-                onClick={() => setPagina(paginaAtual - 1)}
-                disabled={paginaAtual <= 1}
-                aria-label="Página anterior"
-              >
-                <ChevronLeft size={16} aria-hidden />
-              </button>
-              <span>
-                {paginaAtual} / {paginas}
-              </span>
-              <button
-                onClick={() => setPagina(paginaAtual + 1)}
-                disabled={paginaAtual >= paginas}
-                aria-label="Página seguinte"
-              >
-                <ChevronRight size={16} aria-hidden />
-              </button>
-            </div>
-          )}
+          <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />
 
           <div className={styles.rodape}>
             <span>{rotuloTotal}</span>

@@ -88,38 +88,6 @@
   white-space: nowrap;
 }
 
-/* Paginação — 15 por página, igual ao app de referência */
-.pager {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px 10px 4px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--mut);
-  font-variant-numeric: tabular-nums;
-}
-
-.pager button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  color: var(--txt);
-  background: var(--s2);
-}
-
-.pager button:hover:not(:disabled) {
-  background: var(--s3);
-}
-
-.pager button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
 /* Rodapé: total de TODOS os itens do mês, não só da página visível */
 .rodape {
   display: flex;

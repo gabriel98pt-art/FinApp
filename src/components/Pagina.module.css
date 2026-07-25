@@ -16,8 +16,17 @@
   gap: 12px;
 }
 
-/* Mobile: 2 por linha sempre (previsível), exceto no modo denso (TVDE) */
+/* Bloco com paginador (Kpis no mobile, >2 cartões, fora do modo denso):
+   só a página atual (no máx. 2 cartões) é filha de .kpis, então o grid abaixo
+   já lida com 1 ou 2 colunas sem precisar de regra extra pro mobile. */
+.kpisBloco {
+  display: flex;
+  flex-direction: column;
+}
+
 @media (max-width: 767px) {
+  /* Sem paginador (≤2 cartões na tela, ex. Calendário): ainda força os 2 na
+     mesma linha em vez de deixar o auto-fit empilhar num ecrã estreito. */
   .kpis {
     grid-template-columns: repeat(2, 1fr);
   }
