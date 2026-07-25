@@ -17,6 +17,7 @@ import {
 import { adicionarItemLista } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, mesDe, rotuloMes } from "../utils/calculos";
@@ -40,7 +41,8 @@ export default function Veiculo() {
   const carregado = useVeiculoStore((s) => s.carregado);
 
   const [aba, setAba] = useState<Aba>("resumo");
-  const [mes, setMes] = useState(mesAtual());
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
   const real = mesAtual();
 
   const gastoDoMes = totalVeiculoMes(dados, mes, real);

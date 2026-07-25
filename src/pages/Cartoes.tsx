@@ -8,6 +8,7 @@ import { adicionarCartao, definirFaturaManual } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
@@ -16,8 +17,8 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { FaturaCalculada, TipoCartao, YearMonth } from "../types";
-import { mesAtual, rotuloMes } from "../utils/calculos";
+import type { FaturaCalculada, TipoCartao } from "../types";
+import { rotuloMes } from "../utils/calculos";
 import {
   calcularFatura,
   cicloDaFatura,
@@ -160,7 +161,8 @@ export default function Cartoes() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
-  const [mes, setMes] = useState<YearMonth>(mesAtual());
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
   const [novoNome, setNovoNome] = useState("");

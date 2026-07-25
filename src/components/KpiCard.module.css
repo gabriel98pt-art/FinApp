@@ -3,9 +3,11 @@
   border: 1px solid var(--brd);
   border-radius: var(--r-card);
   box-shadow: var(--sh-card);
-  padding: 14px 16px;
+  /* --kpi-* vêm do grid (Pagina.module.css): o modo denso encolhe o card */
+  padding: var(--kpi-pad, 14px 16px);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
   min-width: 0;
   position: relative;
@@ -55,16 +57,25 @@
 }
 
 .rotulo {
-  font-size: 0.78rem;
+  font-size: var(--kpi-rotulo-fs, 0.78rem);
   font-weight: 600;
   color: var(--mut);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
 }
 
 .valor {
-  font-size: 1.25rem;
+  font-size: var(--kpi-valor-fs, 1.25rem);
+  text-align: center;
+  /* sem isto o valor pode ficar mais largo que o card (o card tem
+     overflow:hidden) e sair cortado no meio do número */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 800;
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;

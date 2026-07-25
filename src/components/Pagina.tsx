@@ -12,9 +12,11 @@ export default function Pagina({ titulo, children }: { titulo: string; children?
   );
 }
 
-/** Grid responsivo de KPIs — auto-fit protege número ímpar de itens (seção 7). */
-export function Kpis({ children }: { children: ReactNode }) {
-  return <div className={styles.kpis}>{children}</div>;
+/** Grid responsivo de KPIs — auto-fit protege número ímpar de itens (seção 7).
+ *  No mobile são sempre 2 por linha, pra a grade ser previsível; `denso` mantém
+ *  4 colunas também no mobile (usado só no TVDE). */
+export function Kpis({ children, denso = false }: { children: ReactNode; denso?: boolean }) {
+  return <div className={`${styles.kpis} ${denso ? styles.kpisDenso : ""}`}>{children}</div>;
 }
 
 /** Empty state padronizado (seção 7): para telas/listas REAIS sem dados. */

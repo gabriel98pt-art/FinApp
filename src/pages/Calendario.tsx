@@ -8,6 +8,7 @@ import { criarEvento, removerEvento } from "../services/eventosService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import {
   diasComEventoNoMes,
@@ -15,7 +16,7 @@ import {
   eventosDoMes,
   proximosEventos,
 } from "../utils/calendario";
-import { hojeIso, mesAtual } from "../utils/calculos";
+import { hojeIso } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import type { YearMonth } from "../types";
 import styles from "./Calendario.module.css";
@@ -56,7 +57,8 @@ export default function Calendario() {
   const eventos = useEventosStore((s) => s.itens);
   const carregado = useEventosStore((s) => s.carregado);
 
-  const [mes, setMes] = useState(mesAtual());
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
   const [titulo, setTitulo] = useState("");

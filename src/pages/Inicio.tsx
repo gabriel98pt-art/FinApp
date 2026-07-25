@@ -1,6 +1,7 @@
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
+import DonutCategoriaCard from "../components/DonutCategoriaCard";
 import OrcamentoCard from "../components/OrcamentoCard";
 import ResumoAnual from "../components/ResumoAnual";
 import { useCfgStore } from "../stores/cfgStore";
@@ -34,13 +35,13 @@ export default function Inicio() {
   return (
     <Pagina titulo="Início">
       <Kpis>
+        <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, moeda)} tom="verde" />
+        <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, moeda)} tom="vermelho" />
         <KpiCard
           rotulo="Saldo do mês"
           valor={formatMoney(resumo.saldo, moeda)}
           tom={resumo.saldo >= 0 ? "acento" : "vermelho"}
         />
-        <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, moeda)} tom="verde" />
-        <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, moeda)} tom="vermelho" />
         <KpiCard
           rotulo="Poupança"
           valor={formatMoney(acumulado, moeda)}
@@ -48,6 +49,7 @@ export default function Inicio() {
           discreto={modoDiscreto}
         />
       </Kpis>
+      <DonutCategoriaCard />
       <OrcamentoCard />
       <ResumoAnual meses={6} titulo="Resumo Anual" />
       <CopilotoCard />

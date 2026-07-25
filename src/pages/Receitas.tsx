@@ -2,10 +2,12 @@ import { TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import SeletorMes from "../components/SeletorMes";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
 import { useUiStore } from "../stores/uiStore";
-import { doMes, mesAtual, ordenarPorDataDesc, total, totalDoMes } from "../utils/calculos";
+import { doMes, ordenarPorDataDesc, rotuloMes, total, totalDoMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 
 export default function Receitas() {
@@ -14,23 +16,31 @@ export default function Receitas() {
   const carregado = useReceitasStore((s) => s.carregado);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
 
-  const mes = mesAtual();
+  // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
+
+  const doMesExibido = doMes(itens, mes);
 
   return (
     <Pagina titulo="Receitas">
+      <SeletorMes mes={mes} aoMudar={setMes} />
+
       <Kpis>
         <KpiCard
           rotulo="Total do mês"
           valor={formatMoney(totalDoMes(itens, mes), moeda)}
           tom="verde"
         />
-        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(itens, mes).length)} />
+        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMesExibido.length)} />
         <KpiCard rotulo="Total geral" valor={formatMoney(total(itens), moeda)} />
       </Kpis>
 
       <ListaLancamentos
+        /* key: trocar de mês remonta a lista e volta pra página 1 */
+        key={mes}
         titulo="Lançamentos"
-        itens={ordenarPorDataDesc(itens).map((r) => ({
+        itens={ordenarPorDataDesc(doMesExibido).map((r) => ({
           id: r.id,
           descricao: r.descricao,
           valor: r.valor,
@@ -40,7 +50,8 @@ export default function Receitas() {
         carregado={carregado}
         tom="verde"
         moeda={moeda}
-        vazio="Nenhuma receita ainda"
+        rotuloTotal={`Total ${rotuloMes(mes)}`}
+        vazio={`Nenhuma receita em ${rotuloMes(mes)}`}
         vazioSub="Toque em Adicionar para lançar a primeira."
         vazioIcone={TrendingUp}
         aoAdicionar={() => abrirRegistro("receita")}

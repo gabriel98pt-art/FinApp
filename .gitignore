@@ -5,3 +5,5 @@ firebase-debug.log
 .firebase/
 SPEC_REESCRITA_COMPLETA.md
 *.local
+.vercel
+.env*

@@ -16,6 +16,24 @@
   gap: 12px;
 }
 
+/* Mobile: 2 por linha sempre (previsível), exceto no modo denso (TVDE) */
+@media (max-width: 767px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 4 num ecrã estreito só cabe com o card mais compacto (vars lidas em
+     KpiCard.module.css) */
+  .kpisDenso {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    --kpi-pad: 10px 5px;
+    --kpi-rotulo-fs: 0.66rem;
+    /* fluida: a 320px ainda cabe um valor tipo "€ 12.345,67" nos 4 cards */
+    --kpi-valor-fs: clamp(0.6rem, 2.9vw, 0.86rem);
+  }
+}
+
 /* Entrada dos KPIs em stagger — só quando o SO não pede menos movimento */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes kpiEntrada {

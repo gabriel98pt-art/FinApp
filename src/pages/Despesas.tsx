@@ -14,6 +14,7 @@ import {
 } from "../services/lancamentosService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
@@ -22,13 +23,20 @@ import {
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { despesasNosTotais, doMes, mesAtual, ordenarPorDataDesc, total } from "../utils/calculos";
+import {
+  despesasNosTotais,
+  doMes,
+  mesAtual,
+  ordenarPorDataDesc,
+  rotuloMes,
+  total,
+} from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes } from "../utils/fatura";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney, parseMoney } from "../utils/money";
-import type { DespesaFixa, Id, YearMonth } from "../types";
+import type { DespesaFixa, Id } from "../types";
 import styles from "./Despesas.module.css";
 
 type Aba = "correntes" | "fixas" | "transferencias";
@@ -52,12 +60,16 @@ export default function Despesas() {
 
   const [aba, setAba] = useState<Aba>("correntes");
 
-  const mes = mesAtual();
+  // Mês exibido é compartilhado entre as telas (stores/mesVisivelStore.ts) e
+  // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
+  const mesReal = mesAtual();
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
   // total do mês/geral inclui fixas gerais + veículo (Parte A) — fonte única em utils/
-  const totalDoMesComVeiculo = despesaRealizadaMes(itens, despesasFixas, veiculo, mes, mes);
+  const totalDoMesComVeiculo = despesaRealizadaMes(itens, despesasFixas, veiculo, mes, mesReal);
   const totalGeralComVeiculo =
     total(contadas) + totalFixasGeral(despesasFixas) + totalVeiculoGeral(veiculo);
 
@@ -73,9 +85,6 @@ export default function Despesas() {
     }
     abrirRegistro("despesa", id);
   }
-
-  // ---- mês exibido na aba Fixas (toggle pago/pendente por mês) ----
-  const [mesFixas, setMesFixas] = useState<YearMonth>(mes);
 
   // ---- formulário de despesa fixa (criar/editar) ----
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
@@ -186,6 +195,10 @@ export default function Despesas() {
 
       {aba === "correntes" && (
         <>
+          <div className={styles.linhaMes}>
+            <SeletorMes mes={mes} aoMudar={setMes} />
+          </div>
+
           <Kpis>
             <KpiCard
               rotulo="Total do mês"
@@ -197,8 +210,10 @@ export default function Despesas() {
           </Kpis>
 
           <ListaLancamentos
+            /* key: trocar de mês remonta a lista e volta pra página 1 */
+            key={mes}
             titulo="Lançamentos"
-            itens={ordenarPorDataDesc(itens).map((d) => ({
+            itens={ordenarPorDataDesc(doMes(itens, mes)).map((d) => ({
               id: d.id,
               descricao: d.descricao,
               valor: d.valor,
@@ -208,7 +223,8 @@ export default function Despesas() {
             carregado={carregado}
             tom="vermelho"
             moeda={moeda}
-            vazio="Nenhuma despesa ainda"
+            rotuloTotal={`Total ${rotuloMes(mes)}`}
+            vazio={`Nenhuma despesa em ${rotuloMes(mes)}`}
             vazioSub="Toque em Adicionar para lançar a primeira."
             vazioIcone={TrendingDown}
             aoAdicionar={() => abrirRegistro("despesa")}
@@ -220,7 +236,7 @@ export default function Despesas() {
       {aba === "fixas" && (
         <>
           <div className={styles.linhaMes}>
-            <SeletorMes mes={mesFixas} aoMudar={setMesFixas} />
+            <SeletorMes mes={mes} aoMudar={setMes} />
           </div>
 
           <form className={styles.form} onSubmit={salvarFixa}>
@@ -296,9 +312,9 @@ export default function Despesas() {
               <p className={styles.vazio}>Nenhuma despesa fixa ainda.</p>
             ) : (
               despesasFixas
-                .filter((f) => fixaAtivaNoMes(f, mesFixas))
+                .filter((f) => fixaAtivaNoMes(f, mes))
                 .map((f) => {
-                  const paga = !!f.pagoPorMes[mesFixas];
+                  const paga = !!f.pagoPorMes[mes];
                   return (
                     <div key={f.id} className={styles.item}>
                       <div>
@@ -314,7 +330,7 @@ export default function Despesas() {
                           className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
                           onClick={() =>
                             void agir(
-                              () => alternarPagoDespesaFixa(uid!, f.id, mesFixas, !paga),
+                              () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
                               paga ? "Marcado como pendente" : "✓ Pago",
                             )
                           }
