@@ -4,6 +4,37 @@
 import type { EventoCalendario, IsoDate, YearMonth } from "../types";
 import { mesDe, somarDias } from "./calculos";
 
+/** Rótulos das colunas do grid — domingo primeiro, como `Date#getDay()`. */
+export const DIAS_SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+function isoDeDate(d: Date): IsoDate {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Células do grid mensal: os dias do mês mais o preenchimento das semanas
+ *  incompletas nas pontas. Usado pela tela do Calendário e pelo calendário do
+ *  `SeletorData` — o mesmo desenho nos dois lugares. */
+export function diasDoGrid(ym: YearMonth): { data: IsoDate; foraDoMes: boolean }[] {
+  const [y, m] = ym.split("-").map(Number);
+  const offset = new Date(y, m - 1, 1).getDay(); // 0=domingo
+  const ultimoDiaMes = new Date(y, m, 0).getDate();
+
+  const celulas: { data: IsoDate; foraDoMes: boolean }[] = [];
+  // dias do mês anterior pra preencher a primeira semana
+  for (let i = offset; i > 0; i--) {
+    celulas.push({ data: isoDeDate(new Date(y, m - 1, 1 - i)), foraDoMes: true });
+  }
+  for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+    celulas.push({ data: `${ym}-${String(dia).padStart(2, "0")}`, foraDoMes: false });
+  }
+  // dias do mês seguinte pra fechar a última semana
+  let extra = 1;
+  while (celulas.length % 7 !== 0) {
+    celulas.push({ data: isoDeDate(new Date(y, m, extra++)), foraDoMes: true });
+  }
+  return celulas;
+}
+
 export function eventosDoDia(eventos: EventoCalendario[], dia: IsoDate): EventoCalendario[] {
   return eventos.filter((e) => e.data === dia);
 }

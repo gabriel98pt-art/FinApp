@@ -65,6 +65,58 @@
   font-size: 0.88rem;
 }
 
+/* Lista de categorias com aparência editável (item 19) — uma linha por
+   categoria, com o círculo colorido + emoji à esquerda. */
+.listaCategorias {
+  list-style: none;
+  margin: 0;
+  padding: 4px 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linhaCategoria {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 4px;
+  border-radius: var(--r-sm);
+}
+
+.linhaCategoria:hover {
+  background: var(--s2);
+}
+
+.nomeCategoria {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.acaoCategoria {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  color: var(--mut);
+}
+
+.acaoCategoria:hover {
+  background: var(--s3);
+  color: var(--txt);
+}
+
+.acaoRemover:hover {
+  color: var(--red);
+}
+
 .chips {
   list-style: none;
   margin: 0;

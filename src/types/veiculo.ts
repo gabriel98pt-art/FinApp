@@ -11,6 +11,8 @@ export interface CargaEletrica {
   custo: Cents;
   local: string;
   sessao?: string;
+  /** Descrição livre, separada do nome curto em `local`. */
+  nota?: string;
 }
 
 /** Registro de quilometragem (antigo `veh.km`). */

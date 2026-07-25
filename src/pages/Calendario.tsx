@@ -11,45 +11,16 @@ import { useEventosStore } from "../stores/eventosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import {
+  DIAS_SEMANA,
   diasComEventoNoMes,
+  diasDoGrid,
   eventosDoDia,
   eventosDoMes,
   proximosEventos,
 } from "../utils/calendario";
 import { hojeIso } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
-import type { YearMonth } from "../types";
 import styles from "./Calendario.module.css";
-
-const DIAS_SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
-
-function diasDoGrid(ym: YearMonth): { data: string; foraDoMes: boolean }[] {
-  const [y, m] = ym.split("-").map(Number);
-  const primeiroDia = new Date(y, m - 1, 1);
-  const offset = primeiroDia.getDay(); // 0=domingo
-  const ultimoDiaMes = new Date(y, m, 0).getDate();
-
-  const celulas: { data: string; foraDoMes: boolean }[] = [];
-  // dias do mês anterior pra preencher a primeira semana
-  for (let i = offset; i > 0; i--) {
-    const d = new Date(y, m - 1, 1 - i);
-    celulas.push({ data: isoDeDate(d), foraDoMes: true });
-  }
-  for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-    celulas.push({ data: `${ym}-${String(dia).padStart(2, "0")}`, foraDoMes: false });
-  }
-  while (celulas.length % 7 !== 0) {
-    const ultima = celulas[celulas.length - 1].data;
-    const d = new Date(ultima);
-    d.setDate(d.getDate() + 1);
-    celulas.push({ data: isoDeDate(d), foraDoMes: true });
-  }
-  return celulas;
-}
-
-function isoDeDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export default function Calendario() {
   const uid = useAuthStore((s) => s.sessao?.uid);

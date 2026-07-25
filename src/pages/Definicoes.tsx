@@ -1,11 +1,27 @@
 import { useRef, useState, type FormEvent } from "react";
-import { CarTaxiFront, Download, EyeOff, LogOut, Moon, Sun, Upload, X } from "lucide-react";
+import {
+  CarTaxiFront,
+  Download,
+  EyeOff,
+  LogOut,
+  Moon,
+  Palette,
+  Smile,
+  Sun,
+  Upload,
+  X,
+} from "lucide-react";
 import Pagina from "../components/Pagina";
+import CategoriaBolha from "../components/CategoriaBolha";
+import SeletorCor from "../components/SeletorCor";
+import SeletorEmoji from "../components/SeletorEmoji";
 import { exportarBackup, importarBackup } from "../services/backupService";
 import { sair } from "../services/authService";
 import {
   adicionarItemLista,
   atualizarConfig,
+  definirCorCategoria,
+  definirEmojiCategoria,
   definirOrcamento,
   removerItemLista,
 } from "../services/cfgService";
@@ -38,6 +54,31 @@ function EditorLista({
   uid: string;
 }) {
   const [novo, setNovo] = useState("");
+  // Categoria cujo emoji/cor está sendo escolhido agora (item 19).
+  const [emojiDe, setEmojiDe] = useState<string | null>(null);
+  const [corDe, setCorDe] = useState<string | null>(null);
+
+  async function escolherEmoji(emoji: string | null) {
+    if (!emojiDe) return;
+    const alvo = emojiDe;
+    setEmojiDe(null);
+    try {
+      await definirEmojiCategoria(uid, alvo, emoji);
+    } catch {
+      mostrarToast("Não foi possível salvar o emoji.");
+    }
+  }
+
+  async function escolherCor(cor: string | null) {
+    if (!corDe) return;
+    const alvo = corDe;
+    setCorDe(null);
+    try {
+      await definirCorCategoria(uid, alvo, cor);
+    } catch {
+      mostrarToast("Não foi possível salvar a cor.");
+    }
+  }
 
   async function adicionar(e: FormEvent) {
     e.preventDefault();
@@ -64,16 +105,34 @@ function EditorLista({
     <div className={styles.grupo}>
       <p className={styles.grupoTitulo}>{titulo}</p>
       {itens.length > 0 && (
-        <ul className={styles.chips}>
+        <ul className={styles.listaCategorias}>
           {itens.map((item) => (
-            <li key={item} className={styles.chip}>
-              {item}
+            <li key={item} className={styles.linhaCategoria}>
+              <CategoriaBolha categoria={item} />
+              <span className={styles.nomeCategoria}>{item}</span>
               <button
-                className={styles.chipRemover}
+                className={styles.acaoCategoria}
+                onClick={() => setEmojiDe(item)}
+                aria-label={`Emoji de ${item}`}
+                title="Emoji"
+              >
+                <Smile size={16} aria-hidden />
+              </button>
+              <button
+                className={styles.acaoCategoria}
+                onClick={() => setCorDe(item)}
+                aria-label={`Cor de ${item}`}
+                title="Cor"
+              >
+                <Palette size={16} aria-hidden />
+              </button>
+              <button
+                className={`${styles.acaoCategoria} ${styles.acaoRemover}`}
                 onClick={() => void remover(item)}
                 aria-label={`Remover ${item}`}
+                title="Remover"
               >
-                <X size={12} aria-hidden />
+                <X size={16} aria-hidden />
               </button>
             </li>
           ))}
@@ -90,6 +149,21 @@ function EditorLista({
           Adicionar
         </button>
       </form>
+
+      <SeletorEmoji
+        aberta={emojiDe !== null}
+        aoFechar={() => setEmojiDe(null)}
+        titulo={emojiDe ? `Emoji de ${emojiDe}` : "Emoji"}
+        valor={emojiDe ? (cfg.categoriaEmoji?.[emojiDe] ?? "") : ""}
+        aoEscolher={(e) => void escolherEmoji(e)}
+      />
+      <SeletorCor
+        aberta={corDe !== null}
+        aoFechar={() => setCorDe(null)}
+        titulo={corDe ? `Cor de ${corDe}` : "Cor"}
+        valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
+        aoEscolher={(c) => void escolherCor(c)}
+      />
     </div>
   );
 }

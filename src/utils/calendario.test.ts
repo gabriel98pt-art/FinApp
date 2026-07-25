@@ -1,6 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it, test } from "vitest";
 import type { EventoCalendario } from "../types";
-import { diasComEventoNoMes, eventosDoDia, proximosEventos } from "./calendario";
+import { diasComEventoNoMes, diasDoGrid, eventosDoDia, proximosEventos } from "./calendario";
 import { somarDias } from "./calculos";
 
 function evento(extra: Partial<EventoCalendario> = {}): EventoCalendario {
@@ -48,5 +48,40 @@ describe("proximosEventos — janela de 7 dias (mesma do Copiloto)", () => {
       evento({ id: "a", data: "2026-07-21" }),
     ];
     expect(proximosEventos(eventos, hoje).map((e) => e.id)).toEqual(["a", "b"]);
+  });
+});
+
+describe("diasDoGrid", () => {
+  it("preenche semanas completas (múltiplo de 7)", () => {
+    for (const ym of ["2026-01", "2026-02", "2026-07", "2024-02", "2026-08"]) {
+      expect(diasDoGrid(ym).length % 7).toBe(0);
+    }
+  });
+
+  it("inclui todos os dias do mês, em ordem", () => {
+    const doMes = diasDoGrid("2026-07").filter((c) => !c.foraDoMes);
+    expect(doMes.length).toBe(31);
+    expect(doMes[0].data).toBe("2026-07-01");
+    expect(doMes[30].data).toBe("2026-07-31");
+  });
+
+  it("fecha a última semana com dias do mês seguinte, sem repetir", () => {
+    const datas = diasDoGrid("2026-07").map((c) => c.data);
+    expect(new Set(datas).size).toBe(datas.length);
+    expect(datas[datas.length - 1]).toBe("2026-08-01");
+  });
+
+  it("não adiciona preenchimento quando o mês já fecha em semanas exatas", () => {
+    // fev/2026 começa num domingo e tem 28 dias → 4 semanas cheias
+    const grid = diasDoGrid("2026-02");
+    expect(grid.length).toBe(28);
+    expect(grid.every((c) => !c.foraDoMes)).toBe(true);
+  });
+
+  it("começa no domingo da semana do dia 1", () => {
+    // 01/07/2026 é uma quarta → 3 dias de junho antes
+    const grid = diasDoGrid("2026-07");
+    expect(grid[0].data).toBe("2026-06-28");
+    expect(grid[0].foraDoMes).toBe(true);
   });
 });

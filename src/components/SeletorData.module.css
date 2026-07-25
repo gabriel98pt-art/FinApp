@@ -1,0 +1,138 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.rotulo {
+  display: block;
+}
+
+.atalhos {
+  display: flex;
+  gap: 6px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.atalho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: none;
+  padding: 9px 12px;
+  border-radius: 7px;
+  color: var(--mut);
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.atalho:hover {
+  color: var(--txt);
+}
+
+.escolher {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.atalhoAtivo {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
+}
+
+/* Calendário em grade — mesmo desenho do Calendário, dentro da folha sólida */
+.navMes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 10px;
+}
+
+.seta {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.seta:hover {
+  background: var(--s3);
+}
+
+.mesRotulo {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--txt);
+  text-transform: capitalize;
+}
+
+.cabecalhoSemana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding-bottom: 6px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mut);
+}
+
+.diasGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding-bottom: 12px;
+}
+
+.dia {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  color: var(--txt);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.dia:hover {
+  background: var(--s3);
+}
+
+.diaForaDoMes {
+  color: var(--mut);
+  background: transparent;
+}
+
+.diaHoje {
+  outline: 1px solid var(--blu);
+  outline-offset: -1px;
+}
+
+.diaEscolhido {
+  background: var(--blu);
+  color: var(--bg);
+}
+
+.diaEscolhido:hover {
+  background: var(--blu);
+}

@@ -27,6 +27,14 @@ export interface ConfigConta {
   /** Categorias de despesa do veículo (antigo `vcat`). */
   categoriasVeiculo: string[];
 
+  /** Emoji escolhido por categoria, indexado pelo NOME — compartilhado entre
+   *  despesa fixa/corrente/veículo e fontes de receita (os nomes já se repetem
+   *  entre as listas, ex. "Casa"). Sem entrada = círculo neutro, sem emoji. */
+  categoriaEmoji: Record<string, string>;
+  /** Cor escolhida por categoria, indexada pelo NOME (mesma regra do emoji).
+   *  Sem entrada cai na cor semântica de `coresCategoria`, e depois no cinza. */
+  categoriaCor: Record<string, string>;
+
   /** Meta de poupança mensal (antigo `sgoal`). */
   metaPoupanca: Cents;
   /** Teto de orçamento mensal por categoria (antigo `bud`, seção 4.8). */

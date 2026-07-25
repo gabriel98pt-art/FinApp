@@ -19,6 +19,8 @@ export interface Receita extends LancamentoBase {
   fonte: string;
   conta?: string;
   recorrente?: boolean;
+  /** Descrição livre, separada do nome curto em `descricao`. */
+  nota?: string;
 }
 
 /** Despesa fixa mensal (antigo `df`). Ativa entre `inicio` e `fim`;
@@ -33,6 +35,10 @@ export interface DespesaFixa {
   inicio?: YearMonth;
   fim?: YearMonth | null;
   pagoPorMes: Record<YearMonth, boolean>;
+  /** Dia do mês do vencimento (1-31), usado pra marcar no Calendário. */
+  diaVencimento?: number;
+  /** Descrição livre, separada do nome curto em `descricao`. */
+  nota?: string;
 }
 
 /** Despesa corrente/variável (antigo `dc`). */
@@ -62,4 +68,6 @@ export interface Transferencia {
   para: string;
   valor: Cents;
   descricao?: string;
+  /** Descrição livre, separada do nome curto em `descricao`. */
+  nota?: string;
 }

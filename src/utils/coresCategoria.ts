@@ -46,6 +46,12 @@ const COR_SEMANTICA: Record<string, string> = {
   Outros: "#94a3b8",
 };
 
+/** Cor fixa do nome, se houver — `undefined` para categoria personalizada.
+ *  Usado pelo fallback do visual configurável (`categoriaVisual`). */
+export function corSemanticaDaCategoria(categoria: string): string | undefined {
+  return COR_SEMANTICA[categoria];
+}
+
 /** Paleta de reserva pra categorias personalizadas, ciclada por ordem de
  *  aparição (maior fatia primeiro). */
 export const PALETA_FALLBACK = [

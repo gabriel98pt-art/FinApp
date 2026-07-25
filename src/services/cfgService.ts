@@ -70,6 +70,22 @@ export async function removerItemLista(
   await update(ref(db, caminho(uid)), { [lista]: cfg[lista].filter((x) => x !== item) });
 }
 
+/** Emoji da categoria (item 19) — `null` volta ao círculo sem emoji. */
+export async function definirEmojiCategoria(uid: string, categoria: string, emoji: string | null) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, `/categoriaEmoji/${categoria}`));
+  if (emoji === null || emoji === "") await remove(r);
+  else await set(r, emoji);
+}
+
+/** Cor da categoria (item 19) — `null` volta à cor automática do nome. */
+export async function definirCorCategoria(uid: string, categoria: string, cor: string | null) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, `/categoriaCor/${categoria}`));
+  if (cor === null || cor === "") await remove(r);
+  else await set(r, cor);
+}
+
 /** Teto de orçamento mensal por categoria (seção 4.8) — `null`/0 remove o teto. */
 export async function definirOrcamento(uid: string, categoria: string, valor: Cents | null) {
   snapshotHistorico();

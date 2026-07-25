@@ -1,0 +1,98 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+  flex: 1;
+  min-width: 0;
+}
+
+.rotulo {
+  display: block;
+}
+
+.gatilho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  min-height: 44px;
+  color: var(--txt);
+  font-size: 1rem;
+  text-align: left;
+}
+
+.gatilho:focus-visible {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.vazio {
+  flex: 1;
+  color: var(--mut);
+  font-weight: 600;
+}
+
+.seta {
+  flex: none;
+  color: var(--mut);
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  color: var(--txt);
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.opcao:hover {
+  background: var(--s2);
+}
+
+.opcaoAtiva {
+  background: var(--s2);
+  color: var(--blu);
+}
+
+.semBolha {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px dashed var(--brd);
+}
+
+.aviso {
+  padding: 4px 12px 12px;
+  color: var(--mut);
+  font-size: 0.82rem;
+}
