@@ -10,7 +10,14 @@ import styles from "./Header.module.css";
 /** Rotas cujo conteúdo é por mês — só nelas o seletor aparece (item 1). O
  *  Header é renderizado uma vez em AppShell, fora do <Outlet>, então o mês
  *  fica sempre visível em vez de rolar junto com a página. */
-const ROTAS_COM_MES = ["/receitas", "/despesas", "/cartoes", "/veiculo", "/calendario"];
+const ROTAS_COM_MES = [
+  "/receitas",
+  "/despesas",
+  "/cartoes",
+  "/veiculo",
+  "/calendario",
+  "/transacoes",
+];
 
 export default function Header() {
   const { pathname } = useLocation();

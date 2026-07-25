@@ -16,6 +16,7 @@ const Cartoes = lazy(() => import("./pages/Cartoes"));
 const Parcelas = lazy(() => import("./pages/Parcelas"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
+const Transacoes = lazy(() => import("./pages/Transacoes"));
 const Metas = lazy(() => import("./pages/Metas"));
 const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/parcelas" element={<Parcelas />} />
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/planejamento" element={<Planejamento />} />
+          <Route path="/transacoes" element={<Transacoes />} />
           <Route path="/metas" element={<Metas />} />
           <Route path="/importar" element={<Importar />} />
           <Route path="/tvde" element={<RotaTvde />} />

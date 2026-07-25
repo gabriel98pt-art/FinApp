@@ -1,0 +1,99 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 11px 14px;
+  color: var(--txt);
+  text-align: left;
+}
+
+.linha:hover {
+  background: var(--s2);
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalhe {
+  color: var(--mut);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valor {
+  flex: none;
+  font-weight: 800;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.entrada {
+  color: var(--grn);
+}
+
+.saida {
+  color: var(--red);
+}
+
+.detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.linhaDetalhe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--brd);
+  font-size: 0.88rem;
+  color: var(--mut);
+}
+
+.linhaDetalhe strong {
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+
+.irPara {
+  margin-top: 12px;
+  background: var(--s2);
+  color: var(--txt);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: var(--r-sm);
+  padding: 12px;
+}
+
+.irPara:hover {
+  background: var(--s3);
+}

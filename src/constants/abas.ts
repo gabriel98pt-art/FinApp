@@ -5,6 +5,7 @@ import {
   ClipboardList,
   CreditCard,
   House,
+  ListTree,
   Layers,
   Settings,
   Target,
@@ -23,6 +24,7 @@ export type AbaId =
   | "parcelas"
   | "calendario"
   | "planejamento"
+  | "transacoes"
   | "metas"
   | "importar"
   | "tvde"
@@ -45,6 +47,7 @@ export const ABAS: AbaDef[] = [
   { id: "parcelas", rota: "/parcelas", titulo: "Parcelas", Icone: Layers },
   { id: "calendario", rota: "/calendario", titulo: "Calendário", Icone: CalendarDays },
   { id: "planejamento", rota: "/planejamento", titulo: "Planejamento", Icone: ClipboardList },
+  { id: "transacoes", rota: "/transacoes", titulo: "Transações", Icone: ListTree },
   { id: "metas", rota: "/metas", titulo: "Metas", Icone: Target },
   { id: "importar", rota: "/importar", titulo: "Importar", Icone: Upload },
   { id: "tvde", rota: "/tvde", titulo: "TVDE", Icone: CarTaxiFront },
@@ -62,6 +65,7 @@ export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
 
 /** Tudo o que não tem posição fixa na barra vive no menu "Mais". */
 export const ABAS_MENU_MAIS: AbaDef[] = [
+  aba("transacoes"),
   aba("cartoes"),
   aba("calendario"),
   aba("planejamento"),
