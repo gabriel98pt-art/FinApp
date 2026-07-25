@@ -67,17 +67,51 @@
   font-weight: 800;
 }
 
-.pontoEvento {
+/* Fileira de marcadores do dia: evento manual + os compromissos derivados
+   (fixa, parcela, fatura) — cada tipo com a sua cor (item 11). */
+.marcadores {
   position: absolute;
   bottom: 4px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+
+.pontoEvento,
+.ponto {
   width: 4px;
   height: 4px;
   border-radius: 50%;
+  flex: none;
+}
+
+.pontoEvento {
   background: var(--ylw);
 }
 
-.diaHoje .pontoEvento {
+.ponto_fixa {
+  background: var(--pur);
+}
+
+.ponto_parcela {
+  background: var(--red);
+}
+
+.ponto_fatura {
+  background: var(--blu);
+}
+
+.diaHoje .pontoEvento,
+.diaHoje .ponto {
   background: var(--bg);
+}
+
+/* Na lista do dia, o mesmo ponto identifica o tipo ao lado do nome */
+.itemNome .ponto {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .secao {

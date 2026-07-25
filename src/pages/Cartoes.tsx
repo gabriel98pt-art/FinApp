@@ -11,6 +11,7 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
+  useReceitasStore,
   useTransferenciasStore,
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
@@ -24,10 +25,13 @@ import {
   pagamentosDaFatura,
   type DadosFatura,
 } from "../utils/fatura";
+import { resumosDasContas, type DadosContas } from "../utils/contas";
 import { formatCents, formatMoney, parseMoney } from "../utils/money";
 import styles from "./Cartoes.module.css";
 
-function CartaoFatura({
+/** Controles de fatura do cartão de crédito — agora vivem DENTRO da folha de
+ *  detalhes da conta (item 13), não mais como quadro solto na tela. */
+function ControlesFatura({
   fatura,
   aoPagar,
   aoAjustar,
@@ -41,10 +45,9 @@ function CartaoFatura({
   const paga = fatura.devido > 0 && fatura.restante === 0;
 
   return (
-    <div className={styles.cartao}>
+    <div className={styles.blocoFatura}>
       <div className={styles.topo}>
         <div>
-          <p className={styles.nome}>{fatura.cartao}</p>
           <p className={styles.ciclo}>
             Ciclo: {rotuloMes(cicloDaFatura(fatura.mes))}
             {fatura.overrideManual !== null && (
@@ -160,7 +163,10 @@ export default function Cartoes() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
+  const receitas = useReceitasStore((s) => s.itens);
+
   const mes = useMesVisivelStore((s) => s.mes);
+  const [contaAberta, setContaAberta] = useState<string | null>(null);
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
   const [novoNome, setNovoNome] = useState("");
@@ -176,9 +182,23 @@ export default function Cartoes() {
     transferencias,
   };
 
+  const dadosContas: DadosContas = {
+    receitas,
+    despesasCorrentes: despesas,
+    despesasFixas,
+    despesasFixasVeiculo: veiculo.despesasFixas,
+    transferencias,
+  };
+
   const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
   const contasDebito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] !== "credit");
   const faturas = cartoesCredito.map((c) => calcularFatura(c, mes, dados, cfg));
+  const resumos = resumosDasContas(dadosContas, cfg, mes);
+  const resumoAberto = resumos.find((r) => r.conta === contaAberta) ?? null;
+  const faturaAberta =
+    resumoAberto?.tipo === "credit"
+      ? (faturas.find((f) => f.cartao === resumoAberto.conta) ?? null)
+      : null;
   const totalDevido = faturas.reduce((s, f) => s + f.devido, 0);
   const totalPago = faturas.reduce((s, f) => s + f.pago, 0);
   const totalRestante = faturas.reduce((s, f) => s + f.restante, 0);
@@ -251,28 +271,28 @@ export default function Cartoes() {
         <KpiCard rotulo="Restante" valor={formatMoney(totalRestante, cfg.currency)} tom="amarelo" />
       </Kpis>
 
-      {cfgCarregada && cartoesCredito.length === 0 ? (
+      {cfgCarregada && cfg.contasCartoes.length === 0 ? (
         <EstadoVazio
           Icone={CreditCard}
-          mensagem="Nenhum cartão de crédito"
-          sub="Adicione um cartão abaixo para acompanhar o fluxo de fatura."
+          mensagem="Nenhuma conta ou cartão"
+          sub="Adicione abaixo para acompanhar gastos e faturas."
         />
       ) : (
-        <div className={styles.lista}>
-          {faturas.map((f) => (
-            <CartaoFatura
-              key={f.cartao}
-              fatura={f}
-              aoPagar={() => {
-                setValorTexto(formatCents(f.restante));
-                setPagarDe(contasDebito[0] ?? "");
-                setPagando(f);
-              }}
-              aoAjustar={() => {
-                setValorTexto(f.overrideManual !== null ? formatCents(f.overrideManual) : "");
-                setAjustando(f);
-              }}
-            />
+        <div className={styles.grade}>
+          {resumos.map((r) => (
+            <button key={r.conta} className={styles.quadro} onClick={() => setContaAberta(r.conta)}>
+              <span className={styles.quadroTopo}>
+                <span className={styles.nome}>{r.conta}</span>
+                <span className={styles.tipoBadge}>
+                  {r.tipo === "credit" ? "crédito" : "débito"}
+                </span>
+              </span>
+              <span className={styles.quadroValor}>{formatMoney(r.gastoMes, cfg.currency)}</span>
+              <span className={styles.quadroNota}>
+                {r.transacoesMes} {r.transacoesMes === 1 ? "transação" : "transações"} em{" "}
+                {rotuloMes(mes)}
+              </span>
+            </button>
           ))}
         </div>
       )}
@@ -306,6 +326,61 @@ export default function Cartoes() {
           </button>
         </div>
       </form>
+
+      <BottomSheet
+        aberta={contaAberta !== null}
+        aoFechar={() => setContaAberta(null)}
+        titulo={contaAberta ?? ""}
+      >
+        {resumoAberto && (
+          <div className={styles.detalhes}>
+            <div className={styles.linhaDetalhe}>
+              <span>Tipo</span>
+              <strong>{resumoAberto.tipo === "credit" ? "Crédito" : "Débito"}</strong>
+            </div>
+            <div className={styles.linhaDetalhe}>
+              <span>{resumoAberto.tipo === "credit" ? "Fatura até agora" : "Saldo atual"}</span>
+              <strong>
+                {formatMoney(
+                  resumoAberto.tipo === "credit"
+                    ? (faturaAberta?.devido ?? 0)
+                    : resumoAberto.saldoAtual,
+                  cfg.currency,
+                )}
+              </strong>
+            </div>
+            <div className={styles.linhaDetalhe}>
+              <span>Despesas em {rotuloMes(mes)}</span>
+              <strong>{resumoAberto.despesasMes}</strong>
+            </div>
+            <div className={styles.linhaDetalhe}>
+              <span>Receitas em {rotuloMes(mes)}</span>
+              <strong>{resumoAberto.receitasMes}</strong>
+            </div>
+
+            {faturaAberta && (
+              <ControlesFatura
+                fatura={faturaAberta}
+                aoPagar={() => {
+                  setValorTexto(formatCents(faturaAberta.restante));
+                  setPagarDe(contasDebito[0] ?? "");
+                  setContaAberta(null);
+                  setPagando(faturaAberta);
+                }}
+                aoAjustar={() => {
+                  setValorTexto(
+                    faturaAberta.overrideManual !== null
+                      ? formatCents(faturaAberta.overrideManual)
+                      : "",
+                  );
+                  setContaAberta(null);
+                  setAjustando(faturaAberta);
+                }}
+              />
+            )}
+          </div>
+        )}
+      </BottomSheet>
 
       <BottomSheet
         aberta={pagando !== null}

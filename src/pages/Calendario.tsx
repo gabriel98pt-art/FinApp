@@ -7,8 +7,23 @@ import { criarEvento, removerEvento } from "../services/eventosService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
+import { useParcelasStore } from "../stores/parcelasStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
+import { calcularFatura, type DadosFatura } from "../utils/fatura";
+import {
+  porDia,
+  vencimentosDeFaturas,
+  vencimentosDeFixas,
+  vencimentosDeParcelas,
+  type Vencimento,
+} from "../utils/vencimentos";
 import {
   DIAS_SEMANA,
   diasComEventoNoMes,
@@ -26,6 +41,12 @@ export default function Calendario() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const eventos = useEventosStore((s) => s.itens);
   const carregado = useEventosStore((s) => s.carregado);
+  const cfg = useCfgStore((s) => s.cfg);
+  const despesas = useDespesasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const transferencias = useTransferenciasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
+  const veiculo = useVeiculoStore((s) => s.dados);
 
   const mes = useMesVisivelStore((s) => s.mes);
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
@@ -41,6 +62,27 @@ export default function Calendario() {
   const doMesAtual = eventosDoMes(eventos, mes);
   const proximos7 = proximosEventos(eventos, hoje, 7);
   const eventosDoDiaSel = diaSelecionado ? eventosDoDia(eventos, diaSelecionado) : [];
+
+  // Compromissos do mês que não são evento manual (item 11): fixas gerais e
+  // do veículo, parcelas e faturas dos cartões de crédito.
+  const dadosFatura: DadosFatura = {
+    despesasFixas,
+    despesasFixasVeiculo: veiculo.despesasFixas,
+    despesasCorrentes: despesas,
+    parcelas,
+    transferencias,
+  };
+  const devidoPorCartao = cfg.contasCartoes
+    .filter((c) => cfg.tipoCartao[c] === "credit")
+    .map((c) => ({ cartao: c, devido: calcularFatura(c, mes, dadosFatura, cfg).devido }));
+
+  const vencimentos: Vencimento[] = [
+    ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mes),
+    ...vencimentosDeParcelas(parcelas, mes),
+    ...vencimentosDeFaturas(devidoPorCartao, mes),
+  ];
+  const vencimentosPorDia = porDia(vencimentos);
+  const vencimentosDoDiaSel = diaSelecionado ? (vencimentosPorDia.get(diaSelecionado) ?? []) : [];
 
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
@@ -85,6 +127,8 @@ export default function Calendario() {
         <div className={styles.diasGrid}>
           {grid.map(({ data, foraDoMes }) => {
             const temEvento = diasComEvento.has(data);
+            const doDia = vencimentosPorDia.get(data) ?? [];
+            const tipos = [...new Set(doDia.map((v) => v.tipo))];
             const ehHoje = data === hoje;
             return (
               <button
@@ -93,7 +137,12 @@ export default function Calendario() {
                 onClick={() => setDiaSelecionado(data)}
               >
                 {parseInt(data.slice(8, 10), 10)}
-                {temEvento && <span className={styles.pontoEvento} aria-hidden />}
+                <span className={styles.marcadores} aria-hidden>
+                  {temEvento && <span className={styles.pontoEvento} />}
+                  {tipos.map((t) => (
+                    <span key={t} className={`${styles.ponto} ${styles[`ponto_${t}`]}`} />
+                  ))}
+                </span>
               </button>
             );
           })}
@@ -139,8 +188,28 @@ export default function Calendario() {
           diaSelecionado ? `${diaSelecionado.slice(8, 10)}/${diaSelecionado.slice(5, 7)}` : ""
         }
       >
+        {vencimentosDoDiaSel.length > 0 && (
+          <div className={styles.lista}>
+            {vencimentosDoDiaSel.map((v, i) => (
+              <div key={`${v.tipo}-${i}`} className={styles.item}>
+                <div>
+                  <p className={styles.itemNome}>
+                    <span className={`${styles.ponto} ${styles[`ponto_${v.tipo}`]}`} aria-hidden />{" "}
+                    {v.titulo}
+                  </p>
+                  <p className={styles.itemDetalhe}>{v.detalhe}</p>
+                </div>
+                <span className={styles.itemValor}>{formatMoney(v.valor, moeda)}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {eventosDoDiaSel.length === 0 ? (
-          <p className={styles.vazio}>Nenhum evento neste dia.</p>
+          <p className={styles.vazio}>
+            {vencimentosDoDiaSel.length > 0
+              ? "Nenhum evento manual neste dia."
+              : "Nenhum evento neste dia."}
+          </p>
         ) : (
           <div className={styles.lista}>
             {eventosDoDiaSel.map((e) => (

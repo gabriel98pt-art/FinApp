@@ -1,0 +1,114 @@
+// Resumo por conta/cartão (item 13) — o que cada conta movimentou no mês e,
+// para as de débito, o saldo atual.
+//
+// Duas leituras diferentes de propósito, cada uma na medida certa do que a
+// tela mostra:
+//   - "gasto do mês" é por COMPETÊNCIA: uma fixa ativa no mês conta, tenha
+//     sido marcada como paga ou não (é a mesma regra do cálculo da fatura);
+//   - "saldo atual" é por CAIXA: só sai da conta o que de facto foi pago, ou
+//     seja, fixa só entra nos meses marcados em `pagoPorMes`.
+//
+// Cargas e despesas do veículo não têm conta/cartão no schema, então não
+// entram em nenhuma das duas — não há a quem atribuí-las.
+
+import type {
+  Cents,
+  ConfigConta,
+  DespesaCorrente,
+  DespesaFixa,
+  Receita,
+  TipoCartao,
+  Transferencia,
+  YearMonth,
+} from "../types";
+import { mesDe } from "./calculos";
+import { fixaAtivaNoMes } from "./fatura";
+
+export interface DadosContas {
+  receitas: Receita[];
+  despesasCorrentes: DespesaCorrente[];
+  despesasFixas: DespesaFixa[];
+  despesasFixasVeiculo: DespesaFixa[];
+  transferencias: Transferencia[];
+}
+
+export interface ResumoConta {
+  conta: string;
+  tipo: TipoCartao;
+  /** Competência: quanto a conta gastou no mês exibido. */
+  gastoMes: Cents;
+  /** Quantas movimentações (de qualquer sinal) tocaram a conta no mês. */
+  transacoesMes: number;
+  despesasMes: number;
+  receitasMes: number;
+  /** Caixa, acumulado desde o saldo inicial. Só faz sentido em débito. */
+  saldoAtual: Cents;
+}
+
+/** Soma das fixas da conta ativas naquele mês (competência). */
+function fixasDoMes(fixas: DespesaFixa[], conta: string, mes: YearMonth) {
+  const ativas = fixas.filter((f) => f.contaCartao === conta && fixaAtivaNoMes(f, mes));
+  return { total: ativas.reduce((s, f) => s + f.valor, 0), quantidade: ativas.length };
+}
+
+/** Soma das fixas da conta efetivamente marcadas como pagas (caixa). */
+function fixasPagas(fixas: DespesaFixa[], conta: string): Cents {
+  return fixas
+    .filter((f) => f.contaCartao === conta)
+    .reduce((s, f) => s + Object.values(f.pagoPorMes ?? {}).filter(Boolean).length * f.valor, 0);
+}
+
+export function resumoDaConta(
+  conta: string,
+  dados: DadosContas,
+  cfg: ConfigConta,
+  mes: YearMonth,
+): ResumoConta {
+  const receitasMesLista = dados.receitas.filter((r) => r.conta === conta && mesDe(r.data) === mes);
+  const correntesMes = dados.despesasCorrentes.filter(
+    (d) => d.contaCartao === conta && mesDe(d.data) === mes,
+  );
+  const fixasGerais = fixasDoMes(dados.despesasFixas, conta, mes);
+  const fixasVeiculo = fixasDoMes(dados.despesasFixasVeiculo, conta, mes);
+  const saidasMes = dados.transferencias.filter((t) => t.de === conta && mesDe(t.data) === mes);
+  const entradasMes = dados.transferencias.filter((t) => t.para === conta && mesDe(t.data) === mes);
+
+  const gastoMes =
+    correntesMes.reduce((s, d) => s + d.valor, 0) +
+    fixasGerais.total +
+    fixasVeiculo.total +
+    saidasMes.reduce((s, t) => s + t.valor, 0);
+
+  const despesasMes =
+    correntesMes.length + fixasGerais.quantidade + fixasVeiculo.quantidade + saidasMes.length;
+  const receitasMes = receitasMesLista.length + entradasMes.length;
+
+  const saldoAtual =
+    (cfg.saldosIniciais?.[conta] ?? 0) +
+    dados.receitas.filter((r) => r.conta === conta).reduce((s, r) => s + r.valor, 0) +
+    dados.transferencias.filter((t) => t.para === conta).reduce((s, t) => s + t.valor, 0) -
+    dados.despesasCorrentes
+      .filter((d) => d.contaCartao === conta)
+      .reduce((s, d) => s + d.valor, 0) -
+    dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
+    fixasPagas(dados.despesasFixas, conta) -
+    fixasPagas(dados.despesasFixasVeiculo, conta);
+
+  return {
+    conta,
+    tipo: cfg.tipoCartao?.[conta] === "credit" ? "credit" : "debit",
+    gastoMes,
+    transacoesMes: despesasMes + receitasMes,
+    despesasMes,
+    receitasMes,
+    saldoAtual,
+  };
+}
+
+export function resumosDasContas(
+  dados: DadosContas,
+  cfg: ConfigConta,
+  mes: YearMonth,
+): ResumoConta[] {
+  return cfg.contasCartoes.map((c) => resumoDaConta(c, dados, cfg, mes));
+}

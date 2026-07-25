@@ -5,6 +5,7 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
+import SeletorSemana from "../components/SeletorSemana";
 import {
   alternarPagoFixaVeiculo,
   atualizarCarga,
@@ -29,6 +30,7 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import { fixaAtivaNoMes } from "../utils/fatura";
+import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "../utils/veiculo";
 import type { CargaEletrica, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import styles from "./Veiculo.module.css";
@@ -62,6 +64,21 @@ export default function Veiculo() {
   const kmDoMes = dados.quilometragem
     .filter((k) => mesDe(k.data) === mes)
     .reduce((s, k) => s + k.km, 0);
+
+  // Visão Mês / Semana da aba Carregamentos (item 10).
+  const [visaoCargas, setVisaoCargas] = useState<"mes" | "semana">("mes");
+  const [semanaIdx, setSemanaIdx] = useState(0);
+  const semanas = semanasDoMes(mes);
+  const [mesDaSemana, setMesDaSemana] = useState(mes);
+  if (mesDaSemana !== mes) {
+    setMesDaSemana(mes);
+    setSemanaIdx(indiceDaSemana(semanas, hojeIso()));
+  }
+  const semanaAtual = semanas[Math.min(semanaIdx, semanas.length - 1)];
+  const cargasVisiveis =
+    visaoCargas === "semana" && semanaAtual
+      ? naSemana(dados.cargas, semanaAtual)
+      : dados.cargas.filter((c) => mesDe(c.data) === mes);
 
   // ---- caixa de quilometragem (criar/editar — itens 2, 5, 7) ----
   const [kmAberta, setKmAberta] = useState(false);
@@ -413,11 +430,39 @@ export default function Veiculo() {
             </button>
           </div>
 
+          <div className={styles.linhaVisao}>
+            <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
+              {(
+                [
+                  ["mes", "Mês"],
+                  ["semana", "Semana"],
+                ] as const
+              ).map(([id, nome]) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={visaoCargas === id}
+                  className={`${styles.visaoBotao} ${visaoCargas === id ? styles.visaoAtiva : ""}`}
+                  onClick={() => setVisaoCargas(id)}
+                >
+                  {nome}
+                </button>
+              ))}
+            </div>
+            {visaoCargas === "semana" && (
+              <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+            )}
+          </div>
+
           <div className={styles.lista}>
-            {dados.cargas.length === 0 ? (
-              <p className={styles.vazio}>Nenhum carregamento ainda.</p>
+            {cargasVisiveis.length === 0 ? (
+              <p className={styles.vazio}>
+                {visaoCargas === "semana" && semanaAtual
+                  ? `Nenhum carregamento em ${rotuloDaSemana(semanaAtual)}.`
+                  : `Nenhum carregamento em ${rotuloMes(mes)}.`}
+              </p>
             ) : (
-              [...dados.cargas]
+              [...cargasVisiveis]
                 .sort((a, b) => (a.data < b.data ? 1 : -1))
                 .map((c) => (
                   <div key={c.id} className={styles.item}>

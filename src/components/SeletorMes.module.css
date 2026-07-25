@@ -52,3 +52,10 @@
   height: 28px;
   flex: none;
 }
+
+/* O SeletorSemana reusa este módulo; as setas dele podem ficar desativadas
+   nas pontas do mês. */
+.seta:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}

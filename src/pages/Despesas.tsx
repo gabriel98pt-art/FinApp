@@ -7,7 +7,9 @@ import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
 import SeletorOrdem from "../components/SeletorOrdem";
+import SeletorSemana from "../components/SeletorSemana";
 import { compararPorOrdem, type Ordem } from "../utils/ordem";
+import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
@@ -67,6 +69,9 @@ export default function Despesas() {
   const [aba, setAba] = useState<Aba>("correntes");
   // Ordem da lista de correntes (item 14) — não persiste entre visitas.
   const [ordem, setOrdem] = useState<Ordem>("recentes");
+  // Visão Mês / Semana da lista de correntes (item 10).
+  const [visao, setVisao] = useState<"mes" | "semana">("mes");
+  const [semanaIdx, setSemanaIdx] = useState(0);
 
   // Mês exibido é compartilhado entre as telas (stores/mesVisivelStore.ts) e
   // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
@@ -79,6 +84,19 @@ export default function Despesas() {
   const totalDoMesComVeiculo = despesaRealizadaMes(itens, despesasFixas, veiculo, mes, mesReal);
   const totalGeralComVeiculo =
     total(contadas) + totalFixasGeral(despesasFixas) + totalVeiculoGeral(veiculo);
+
+  // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje
+  // (ou na primeira, quando hoje está fora do mês).
+  const semanas = semanasDoMes(mes);
+  const idxPadrao = indiceDaSemana(semanas, hojeIso());
+  const [mesDaSemana, setMesDaSemana] = useState(mes);
+  if (mesDaSemana !== mes) {
+    setMesDaSemana(mes);
+    setSemanaIdx(idxPadrao);
+  }
+  const semanaAtual = semanas[Math.min(semanaIdx, semanas.length - 1)];
+  const doPeriodo =
+    visao === "semana" && semanaAtual ? naSemana(itens, semanaAtual) : doMes(itens, mes);
 
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
@@ -272,13 +290,37 @@ export default function Despesas() {
             <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
           </Kpis>
 
+          <div className={styles.linhaVisao}>
+            <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
+              {(
+                [
+                  ["mes", "Mês"],
+                  ["semana", "Semana"],
+                ] as const
+              ).map(([id, nome]) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={visao === id}
+                  className={`${styles.visaoBotao} ${visao === id ? styles.visaoAtiva : ""}`}
+                  onClick={() => setVisao(id)}
+                >
+                  {nome}
+                </button>
+              ))}
+            </div>
+            {visao === "semana" && (
+              <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+            )}
+          </div>
+
           <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
 
           <ListaLancamentos
             /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
-            key={`${mes}-${ordem}`}
+            key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
             titulo="Despesas correntes"
-            itens={[...doMes(itens, mes)].sort(compararPorOrdem(ordem)).map((d) => ({
+            itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => ({
               id: d.id,
               descricao: d.descricao,
               valor: d.valor,
@@ -288,8 +330,16 @@ export default function Despesas() {
             carregado={carregado}
             tom="vermelho"
             moeda={moeda}
-            rotuloTotal={`Total ${rotuloMes(mes)}`}
-            vazio={`Nenhuma despesa em ${rotuloMes(mes)}`}
+            rotuloTotal={
+              visao === "semana" && semanaAtual
+                ? `Total ${rotuloDaSemana(semanaAtual)}`
+                : `Total ${rotuloMes(mes)}`
+            }
+            vazio={
+              visao === "semana" && semanaAtual
+                ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
+                : `Nenhuma despesa em ${rotuloMes(mes)}`
+            }
             vazioSub="Toque em Adicionar para lançar a primeira."
             vazioIcone={TrendingDown}
             aoAdicionar={() => abrirRegistro("despesa")}

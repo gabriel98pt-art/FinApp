@@ -238,3 +238,37 @@
   font-weight: 600;
   padding: 6px;
 }
+
+/* Alternador Mês / Semana (item 10) */
+.linhaVisao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.alternadorVisao {
+  display: flex;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.visaoBotao {
+  padding: 7px 14px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+}
+
+.visaoBotao:hover {
+  color: var(--txt);
+}
+
+.visaoAtiva {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
+}

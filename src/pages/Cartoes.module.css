@@ -281,3 +281,91 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* Grade de quadros, um por conta/cartão — débito e crédito (item 13) */
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.quadro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 14px;
+  color: var(--txt);
+  text-align: left;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.quadro:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-card-hi);
+}
+
+.quadroTopo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tipoBadge {
+  flex: none;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--mut);
+  background: var(--s2);
+  border-radius: 99px;
+  padding: 3px 8px;
+}
+
+.quadroValor {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.quadroNota {
+  font-size: 0.72rem;
+  color: var(--mut);
+}
+
+/* Folha de detalhes da conta */
+.detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.linhaDetalhe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--brd);
+  font-size: 0.88rem;
+  color: var(--mut);
+}
+
+.linhaDetalhe strong {
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Controles de fatura dentro da folha */
+.blocoFatura {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+}
