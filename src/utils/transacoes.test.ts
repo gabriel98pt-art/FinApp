@@ -116,6 +116,26 @@ describe("transacoesDoMes", () => {
     expect(t).toHaveLength(1);
   });
 
+  it("tira o ajuste de reconciliação — não é uma transação real", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        despesasCorrentes: [
+          {
+            id: "d1",
+            descricao: "Ajuste",
+            valor: 500000,
+            data: "2026-07-08",
+            categoria: "Ajuste",
+            origem: "recon",
+          },
+        ],
+      },
+      "2026-07",
+    );
+    expect(t).toHaveLength(0);
+  });
+
   it("fixa só aparece no mês em que foi marcada como paga", () => {
     const fixa = {
       id: "f1",

@@ -1,13 +1,16 @@
 // Extrato geral do mês (item 22): um feed único com tudo que movimenta
 // dinheiro, vindo dos seis domínios que hoje vivem em telas separadas.
 //
-// Duas decisões que evitam contar a mesma coisa duas vezes:
+// Três decisões sobre o que conta:
 //   - despesa corrente com origem 'parc' fica de fora: ela é o lançamento
 //     gerado por uma parcela, e a parcela já entra no feed pelo seu próprio
 //     item (senão a compra apareceria duplicada no mês em que foi paga);
 //   - pagamento de fatura (origem 'fat') FICA: é dinheiro saindo da conta de
 //     facto, e num extrato isso tem que aparecer, mesmo já tendo contado a
-//     compra original no mês dela.
+//     compra original no mês dela;
+//   - ajuste de reconciliação bancária (origem 'recon') fica de fora: não é
+//     uma transação real, é uma correção de saldo (mesma regra de
+//     `despesasNosTotais`, `utils/calculos.ts`).
 //
 // Fixa e parcela não têm data exata: caem no `diaVencimento` quando existe,
 // senão no dia 1 do mês — só pra terem um lugar na ordenação.
@@ -80,7 +83,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
   }
 
   for (const d of dados.despesasCorrentes) {
-    if (mesDe(d.data) !== ym || d.origem === "parc") continue;
+    if (mesDe(d.data) !== ym || d.origem === "parc" || d.origem === "recon") continue;
     itens.push({
       chave: `despesa-${d.id}`,
       refId: d.id,

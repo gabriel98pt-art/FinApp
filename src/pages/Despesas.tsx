@@ -409,10 +409,10 @@ export default function Despesas() {
           </div>
 
           <div className={styles.lista}>
-            {transferencias.length === 0 ? (
-              <p className={styles.vazio}>Nenhuma transferência ainda.</p>
+            {doMes(transferencias, mes).length === 0 ? (
+              <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
             ) : (
-              ordenarPorDataDesc(transferencias).map((t) => (
+              ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (
                 <div key={t.id} className={styles.item}>
                   <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
                     <span className={styles.itemTexto}>

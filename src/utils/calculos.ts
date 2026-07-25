@@ -111,8 +111,11 @@ export function rotuloMes(ym: YearMonth): string {
  *  contou como despesa no mês dela — contar também o pagamento seria contar
  *  duas vezes (bug conhecido do app antigo, seção 4.1, a não reproduzir).
  *  O destino claro deles é a tela Cartões (total pago da fatura). */
+/** Exclui pagamentos de fatura ('fat') e ajustes de reconciliação bancária
+ *  ('recon') dos totais — nenhum dos dois é uma despesa real (mesma regra do
+ *  app de referência, `totCorrManual`: `!d._src`). */
 export function despesasNosTotais<T extends { origem?: string }>(itens: T[]): T[] {
-  return itens.filter((d) => d.origem !== "fat");
+  return itens.filter((d) => d.origem !== "fat" && d.origem !== "recon");
 }
 
 /** Ordena por data decrescente (mais recente primeiro), estável. */

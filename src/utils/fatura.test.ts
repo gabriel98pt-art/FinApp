@@ -275,4 +275,10 @@ describe("BUG 1/2 (não reproduzir): destino único de cada lançamento nos tota
     const parcelaMensal = dc({ valor: 1867, origem: "parc", categoria: "Parcelas" });
     expect(despesasNosTotais([parcelaMensal])).toEqual([parcelaMensal]);
   });
+
+  test("ajuste de reconciliação (origem recon) fica fora dos totais — não é despesa real", () => {
+    const compra = dc({ valor: 1500 });
+    const ajuste = dc({ valor: 500000, origem: "recon", categoria: "Ajuste" });
+    expect(despesasNosTotais([compra, ajuste])).toEqual([compra]);
+  });
 });
