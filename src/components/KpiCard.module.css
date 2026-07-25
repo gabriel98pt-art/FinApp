@@ -96,3 +96,13 @@
 .amarelo {
   color: var(--ylw);
 }
+
+/* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual do card
+   — inclusive o hover-elevate herdado de .card. */
+.clicavel {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+}

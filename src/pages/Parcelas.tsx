@@ -352,7 +352,7 @@ export default function Parcelas() {
 
   return (
     <Pagina titulo="Parcelas">
-      <Kpis>
+      <Kpis pagina="parcelas">
         <KpiCard rotulo="Em andamento" valor={String(ativas.length)} />
         <KpiCard rotulo="Débito mensal" valor={formatMoney(debitoMensal, moeda)} tom="vermelho" />
         <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="amarelo" />

@@ -3,7 +3,6 @@ import { CalendarDays } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
-import SeletorMes from "../components/SeletorMes";
 import { criarEvento, removerEvento } from "../services/eventosService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -29,7 +28,6 @@ export default function Calendario() {
   const carregado = useEventosStore((s) => s.carregado);
 
   const mes = useMesVisivelStore((s) => s.mes);
-  const setMes = useMesVisivelStore((s) => s.setMes);
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
   const [titulo, setTitulo] = useState("");
@@ -73,7 +71,6 @@ export default function Calendario() {
       </Kpis>
 
       <div className={styles.linhaMes}>
-        <SeletorMes mes={mes} aoMudar={setMes} />
         <button className={styles.novoBotao} onClick={() => setNovoAberto(true)}>
           + Evento
         </button>

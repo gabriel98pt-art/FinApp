@@ -6,7 +6,6 @@ import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
-import SeletorMes from "../components/SeletorMes";
 import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
@@ -68,7 +67,6 @@ export default function Despesas() {
   // Mês exibido é compartilhado entre as telas (stores/mesVisivelStore.ts) e
   // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
   const mes = useMesVisivelStore((s) => s.mes);
-  const setMes = useMesVisivelStore((s) => s.setMes);
   const mesReal = mesAtual();
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
@@ -260,11 +258,7 @@ export default function Despesas() {
 
       {aba === "correntes" && (
         <>
-          <div className={styles.linhaMes}>
-            <SeletorMes mes={mes} aoMudar={setMes} />
-          </div>
-
-          <Kpis>
+          <Kpis pagina="despesas">
             <KpiCard
               rotulo="Total do mês"
               valor={formatMoney(totalDoMesComVeiculo, moeda)}
@@ -300,10 +294,6 @@ export default function Despesas() {
 
       {aba === "fixas" && (
         <>
-          <div className={styles.linhaMes}>
-            <SeletorMes mes={mes} aoMudar={setMes} />
-          </div>
-
           <div className={styles.cabecalhoLista}>
             <p className={styles.tituloSecao}>Despesas fixas</p>
             <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>

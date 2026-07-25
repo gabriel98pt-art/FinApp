@@ -2,7 +2,6 @@ import { TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
-import SeletorMes from "../components/SeletorMes";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
@@ -18,15 +17,12 @@ export default function Receitas() {
 
   // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
   const mes = useMesVisivelStore((s) => s.mes);
-  const setMes = useMesVisivelStore((s) => s.setMes);
 
   const doMesExibido = doMes(itens, mes);
 
   return (
     <Pagina titulo="Receitas">
-      <SeletorMes mes={mes} aoMudar={setMes} />
-
-      <Kpis>
+      <Kpis pagina="receitas">
         <KpiCard
           rotulo="Total do mês"
           valor={formatMoney(totalDoMes(itens, mes), moeda)}

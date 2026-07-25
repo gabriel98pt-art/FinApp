@@ -106,7 +106,7 @@ export default function Metas() {
 
   return (
     <Pagina titulo="Metas">
-      <Kpis>
+      <Kpis pagina="metas">
         <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, cfg.currency)} tom="acento" />
         <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupanca}%`} tom="verde" />
         <KpiCard

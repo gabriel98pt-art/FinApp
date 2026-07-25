@@ -3,7 +3,6 @@ import { CreditCard } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
-import SeletorMes from "../components/SeletorMes";
 import { adicionarCartao, definirFaturaManual } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import { useAuthStore } from "../stores/authStore";
@@ -162,7 +161,6 @@ export default function Cartoes() {
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const mes = useMesVisivelStore((s) => s.mes);
-  const setMes = useMesVisivelStore((s) => s.setMes);
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
   const [novoNome, setNovoNome] = useState("");
@@ -243,11 +241,7 @@ export default function Cartoes() {
 
   return (
     <Pagina titulo="Cartões">
-      <div className={styles.linhaMes}>
-        <SeletorMes mes={mes} aoMudar={setMes} />
-      </div>
-
-      <Kpis>
+      <Kpis pagina="cartoes">
         <KpiCard
           rotulo="Devido no mês"
           valor={formatMoney(totalDevido, cfg.currency)}

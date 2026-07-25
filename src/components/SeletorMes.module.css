@@ -30,3 +30,25 @@
   text-align: center;
   text-transform: capitalize;
 }
+
+/* Variante do header (item 1): sem fundo próprio — o header já é a superfície
+   — e rótulo que encolhe em vez de forçar largura. */
+.compacto {
+  background: transparent;
+  border-color: transparent;
+  max-width: 100%;
+}
+
+.compacto .rotulo {
+  min-width: 0;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compacto .seta {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}

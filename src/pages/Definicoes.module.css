@@ -225,3 +225,39 @@
   min-width: 0;
   text-align: right;
 }
+
+/* Escolha dos 2 KPIs por página no mobile (item 8) */
+.grupoKpis {
+  padding: 2px 8px 6px;
+}
+
+.nomePagina {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mut);
+  padding-bottom: 5px;
+}
+
+.chipsKpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chipKpi {
+  background: var(--s2);
+  color: var(--mut);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 6px 11px;
+}
+
+.chipKpi:hover {
+  color: var(--txt);
+}
+
+.chipKpiAtivo {
+  background: var(--blu);
+  color: var(--bg);
+}

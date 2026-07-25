@@ -1,10 +1,22 @@
 import { Moon, Redo2, Sun, Undo2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import SeletorMes from "../components/SeletorMes";
 import { useHistoricoStore } from "../stores/historicoStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useThemeStore } from "../stores/themeStore";
 import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./Header.module.css";
 
+/** Rotas cujo conteúdo é por mês — só nelas o seletor aparece (item 1). O
+ *  Header é renderizado uma vez em AppShell, fora do <Outlet>, então o mês
+ *  fica sempre visível em vez de rolar junto com a página. */
+const ROTAS_COM_MES = ["/receitas", "/despesas", "/cartoes", "/veiculo", "/calendario"];
+
 export default function Header() {
+  const { pathname } = useLocation();
+  const mes = useMesVisivelStore((s) => s.mes);
+  const setMes = useMesVisivelStore((s) => s.setMes);
+  const mostrarMes = ROTAS_COM_MES.includes(pathname);
   const theme = useThemeStore((s) => s.theme);
   const alternarTema = useThemeStore((s) => s.alternarTema);
   const podeUndo = useHistoricoStore((s) => podeDesfazer(s.pilha));
@@ -17,6 +29,11 @@ export default function Header() {
       <h1 className={styles.logo}>
         Fin<span>App</span>
       </h1>
+      {mostrarMes && (
+        <div className={styles.mes}>
+          <SeletorMes mes={mes} aoMudar={setMes} compacto />
+        </div>
+      )}
       <div className={styles.acoes}>
         <button
           className={styles.acao}

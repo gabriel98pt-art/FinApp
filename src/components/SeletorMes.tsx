@@ -6,12 +6,16 @@ import styles from "./SeletorMes.module.css";
 export default function SeletorMes({
   mes,
   aoMudar,
+  compacto = false,
 }: {
   mes: YearMonth;
   aoMudar: (novo: YearMonth) => void;
+  /** Versão estreita, para o header fixo (item 1): num telemóvel o rótulo
+   *  largo do padrão empurraria o logo pra fora. */
+  compacto?: boolean;
 }) {
   return (
-    <div className={styles.seletor}>
+    <div className={`${styles.seletor} ${compacto ? styles.compacto : ""}`}>
       <button
         className={styles.seta}
         onClick={() => aoMudar(somarMeses(mes, -1))}

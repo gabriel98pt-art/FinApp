@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
+import { KPIS_POR_PAGINA } from "../constants/kpis";
 import SeletorCor from "../components/SeletorCor";
 import SeletorEmoji from "../components/SeletorEmoji";
 import { exportarBackup, importarBackup } from "../services/backupService";
@@ -164,6 +165,62 @@ function EditorLista({
         valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
         aoEscolher={(c) => void escolherCor(c)}
       />
+    </div>
+  );
+}
+
+/** Escolha dos 2 KPIs que a página mostra no mobile (item 8). No desktop
+ *  continuam todos visíveis; TVDE fica de fora, sempre com os 4. */
+function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
+  async function alternar(paginaId: string, rotulo: string, atuais: string[]) {
+    let novos: string[];
+    if (atuais.includes(rotulo)) {
+      // Não deixa ficar com menos de 2 — desmarcar o 3º é o que troca.
+      if (atuais.length <= 2) return;
+      novos = atuais.filter((r) => r !== rotulo);
+    } else {
+      // Já tem 2: o mais antigo sai e o novo entra.
+      novos = [...atuais, rotulo].slice(-2);
+    }
+    try {
+      await atualizarConfig(uid, {
+        kpisMobile: { ...cfg.kpisMobile, [paginaId]: [novos[0], novos[1]] },
+      });
+    } catch {
+      mostrarToast("Não foi possível salvar.");
+    }
+  }
+
+  return (
+    <div className={styles.grupo}>
+      <p className={styles.grupoTitulo}>KPIs no mobile</p>
+      <p className={styles.nota}>
+        Cada página mostra 2 cartões no telemóvel — escolha quais. No computador continuam
+        aparecendo todos.
+      </p>
+      {KPIS_POR_PAGINA.map((pag) => {
+        const atuais = cfg.kpisMobile?.[pag.id] ?? pag.rotulos.slice(0, 2);
+        return (
+          <div key={pag.id} className={styles.grupoKpis}>
+            <p className={styles.nomePagina}>{pag.titulo}</p>
+            <div className={styles.chipsKpis}>
+              {pag.rotulos.map((r) => {
+                const ativo = atuais.includes(r);
+                return (
+                  <button
+                    key={r}
+                    className={`${styles.chipKpi} ${ativo ? styles.chipKpiAtivo : ""}`}
+                    aria-pressed={ativo}
+                    onClick={() => void alternar(pag.id, r, [...atuais])}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -355,6 +412,8 @@ export default function Definicoes() {
         cfg={cfg}
         uid={uid}
       />
+
+      <EscolhaKpis cfg={cfg} uid={uid} />
 
       <div className={styles.grupo}>
         <p className={styles.grupoTitulo}>Orçamento por categoria</p>

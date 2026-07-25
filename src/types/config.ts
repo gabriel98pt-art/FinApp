@@ -35,6 +35,10 @@ export interface ConfigConta {
    *  Sem entrada cai na cor semântica de `coresCategoria`, e depois no cinza. */
   categoriaCor: Record<string, string>;
 
+  /** Quais 2 KPIs cada página mostra no mobile, por id de página (item 8).
+   *  Sem entrada = os 2 primeiros da tela. No desktop aparecem todos. */
+  kpisMobile: Record<string, [string, string]>;
+
   /** Meta de poupança mensal (antigo `sgoal`). */
   metaPoupanca: Cents;
   /** Teto de orçamento mensal por categoria (antigo `bud`, seção 4.8). */

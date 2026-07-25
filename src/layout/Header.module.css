@@ -11,7 +11,19 @@
   border-top: none;
 }
 
+/* Seletor de mês fixo no header (item 1): centrado entre o logo e as ações,
+   com min-width 0 pra que num telemóvel estreito ele encolha em vez de
+   empurrar o logo pra fora. */
+.mes {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+}
+
 .logo {
+  flex: none;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.02em;

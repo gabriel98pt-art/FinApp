@@ -25,6 +25,7 @@ export default function KpiCard({
   valor,
   tom = "neutro",
   discreto = false,
+  aoClicar,
 }: {
   rotulo: string;
   valor: string;
@@ -32,11 +33,29 @@ export default function KpiCard({
   /** Modo discreto (seção 4.6): só o valor borra, o rótulo continua legível
    *  — permite navegar em público sem esconder a interface inteira. */
   discreto?: boolean;
+  /** Torna o card um botão, mantendo o visual (item 15). Sem isto ele
+   *  continua sendo um `<div>` — a maioria dos KPIs não leva a lugar nenhum. */
+  aoClicar?: () => void;
 }) {
-  return (
-    <div className={styles.card} style={{ "--_a": TOM_COR[tom] } as CSSProperties}>
+  const estilo = { "--_a": TOM_COR[tom] } as CSSProperties;
+  const conteudo = (
+    <>
       <p className={styles.rotulo}>{rotulo}</p>
       <p className={`${styles.valor} ${TOM_CLASSE[tom]} ${discreto ? "discreto" : ""}`}>{valor}</p>
+    </>
+  );
+
+  if (aoClicar) {
+    return (
+      <button className={`${styles.card} ${styles.clicavel}`} style={estilo} onClick={aoClicar}>
+        {conteudo}
+      </button>
+    );
+  }
+
+  return (
+    <div className={styles.card} style={estilo}>
+      {conteudo}
     </div>
   );
 }

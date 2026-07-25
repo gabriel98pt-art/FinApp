@@ -17,6 +17,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   categoriasVeiculo: ["Manutenção", "Seguro", "Portagens", "Revisão", "Outros"],
   categoriaEmoji: {},
   categoriaCor: {},
+  kpisMobile: {},
   metaPoupanca: 0,
   orcamentos: {},
   saldosIniciais: {},

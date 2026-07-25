@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
@@ -18,6 +19,7 @@ import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
 
 export default function Inicio() {
+  const navegar = useNavigate();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
@@ -34,9 +36,19 @@ export default function Inicio() {
 
   return (
     <Pagina titulo="Início">
-      <Kpis>
-        <KpiCard rotulo="Receitas" valor={formatMoney(resumo.receitas, moeda)} tom="verde" />
-        <KpiCard rotulo="Despesas" valor={formatMoney(resumo.despesas, moeda)} tom="vermelho" />
+      <Kpis pagina="inicio">
+        <KpiCard
+          rotulo="Receitas"
+          valor={formatMoney(resumo.receitas, moeda)}
+          tom="verde"
+          aoClicar={() => navegar("/receitas")}
+        />
+        <KpiCard
+          rotulo="Despesas"
+          valor={formatMoney(resumo.despesas, moeda)}
+          tom="vermelho"
+          aoClicar={() => navegar("/despesas")}
+        />
         <KpiCard
           rotulo="Saldo do mês"
           valor={formatMoney(resumo.saldo, moeda)}

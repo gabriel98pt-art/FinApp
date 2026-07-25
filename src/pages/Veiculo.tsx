@@ -5,7 +5,6 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
-import SeletorMes from "../components/SeletorMes";
 import {
   alternarPagoFixaVeiculo,
   atualizarCarga,
@@ -55,7 +54,6 @@ export default function Veiculo() {
 
   const [aba, setAba] = useState<Aba>("resumo");
   const mes = useMesVisivelStore((s) => s.mes);
-  const setMes = useMesVisivelStore((s) => s.setMes);
   const real = mesAtual();
 
   const gastoDoMes = totalVeiculoMes(dados, mes, real);
@@ -325,11 +323,7 @@ export default function Veiculo() {
 
   return (
     <Pagina titulo="Veículo">
-      <div className={styles.linhaMes}>
-        <SeletorMes mes={mes} aoMudar={setMes} />
-      </div>
-
-      <Kpis>
+      <Kpis pagina="veiculo">
         <KpiCard
           rotulo="Gasto do mês"
           valor={formatMoney(gastoDoMes, cfg.currency)}
