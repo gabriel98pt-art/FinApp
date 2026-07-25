@@ -45,7 +45,21 @@
   gap: 10px;
 }
 
+/* Corpo clicável do cartão: abre a caixa de edição (item 7). As ações
+   Pagar/Quitar continuam botões irmãos, fora dele. */
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  color: var(--txt);
+  text-align: left;
+}
+
 .info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -72,6 +86,7 @@
 }
 
 .barra {
+  display: block;
   height: 6px;
   border-radius: 3px;
   background: var(--s2);
@@ -174,4 +189,19 @@
   border-radius: var(--r-sm);
   padding: 12px;
   font-size: 1rem;
+}
+
+.preenchido {
+  display: block;
+}
+
+.excluirParcela {
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px;
+}
+
+.proxima {
+  display: block;
 }

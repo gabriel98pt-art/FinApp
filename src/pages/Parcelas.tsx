@@ -3,23 +3,22 @@ import { Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
+import SeletorCategoria from "../components/SeletorCategoria";
 import {
   criarParcela,
-  estornarMesParcela,
   excluirParcela,
   pagarMesParcela,
   quitarParcela,
 } from "../services/parcelasService";
+import { atualizarParcela } from "../services/lancamentosService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { Currency, Parcela } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import {
-  mesesDaParcela,
   mesesNaoPagos,
   parcelaQuitada,
   progressoDaParcela,
@@ -28,16 +27,20 @@ import {
 } from "../utils/parcelas";
 import styles from "./Parcelas.module.css";
 
-function LinhaParcela({ p, moeda }: { p: Parcela; moeda: Currency }) {
+function LinhaParcela({
+  p,
+  moeda,
+  aoEditar,
+}: {
+  p: Parcela;
+  moeda: Currency;
+  aoEditar: (p: Parcela) => void;
+}) {
   const uid = useAuthStore((s) => s.sessao?.uid);
-  const despesas = useDespesasStore((s) => s.itens);
   const quitada = parcelaQuitada(p);
   const { pagas, total } = progressoDaParcela(p);
   const abertos = mesesNaoPagos(p);
   const proximo = abertos[0];
-  // estorno: só meses pagos por FORA da fatura (true) podem ser estornados aqui
-  const pagosManuais = mesesDaParcela(p).filter((m) => p.pagoPorMes[m] === true);
-  const ultimoPago = pagosManuais[pagosManuais.length - 1];
 
   async function agir(acao: () => Promise<void>, msg: string) {
     try {
@@ -50,28 +53,37 @@ function LinhaParcela({ p, moeda }: { p: Parcela; moeda: Currency }) {
 
   return (
     <div className={styles.parcela}>
-      <div className={styles.topo}>
-        <div className={styles.info}>
-          <p className={styles.nome}>{p.descricao}</p>
-          <p className={styles.detalhe}>
-            {formatMoney(p.total, moeda)}
-            {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
-          </p>
-        </div>
-        <span className={`${styles.progresso} ${quitada ? styles.quitada : ""}`}>
-          {pagas}/{total}
+      {/* Corpo inteiro abre a caixa de edição, com "Excluir" dentro (item 7) */}
+      <button className={styles.corpo} onClick={() => aoEditar(p)}>
+        <span className={styles.topo}>
+          <span className={styles.info}>
+            <span className={styles.nome}>{p.descricao}</span>
+            <span className={styles.detalhe}>
+              {formatMoney(p.total, moeda)}
+              {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
+              {p.diaVencimento ? ` · dia ${p.diaVencimento}` : ""}
+            </span>
+          </span>
+          <span className={`${styles.progresso} ${quitada ? styles.quitada : ""}`}>
+            {pagas}/{total}
+          </span>
         </span>
-      </div>
 
-      <div className={styles.barra} role="progressbar" aria-valuenow={pagas} aria-valuemax={total}>
-        <div className={styles.preenchido} style={{ width: `${(pagas / total) * 100}%` }} />
-      </div>
+        <span
+          className={styles.barra}
+          role="progressbar"
+          aria-valuenow={pagas}
+          aria-valuemax={total}
+        >
+          <span className={styles.preenchido} style={{ width: `${(pagas / total) * 100}%` }} />
+        </span>
 
-      {!quitada && proximo !== undefined && (
-        <p className={styles.proxima}>
-          Próxima: {formatMoney(valorDaParcela(p, proximo), moeda)} em {rotuloMes(proximo)}
-        </p>
-      )}
+        {!quitada && proximo !== undefined && (
+          <span className={styles.proxima}>
+            Próxima: {formatMoney(valorDaParcela(p, proximo), moeda)} em {rotuloMes(proximo)}
+          </span>
+        )}
+      </button>
 
       <div className={styles.acoes}>
         {!quitada && proximo !== undefined && !p.autoDebit && (
@@ -85,17 +97,6 @@ function LinhaParcela({ p, moeda }: { p: Parcela; moeda: Currency }) {
             }
           >
             Pagar {rotuloMes(proximo).split(" ")[0]}
-          </button>
-        )}
-        {ultimoPago !== undefined && (
-          <button
-            className={styles.acao}
-            onClick={() => {
-              if (!window.confirm(`Estornar ${rotuloMes(ultimoPago)} de "${p.descricao}"?`)) return;
-              void agir(() => estornarMesParcela(uid!, p, ultimoPago, despesas), "↩ Mês estornado");
-            }}
-          >
-            Estornar
           </button>
         )}
         {!quitada && abertos.length > 0 && (
@@ -118,38 +119,53 @@ function LinhaParcela({ p, moeda }: { p: Parcela; moeda: Currency }) {
             Quitar
           </button>
         )}
-        <button
-          className={`${styles.acao} ${styles.perigo}`}
-          onClick={() => {
-            if (
-              !window.confirm(
-                `Excluir a parcela "${p.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
-              )
-            )
-              return;
-            void agir(() => excluirParcela(uid!, p), "Parcela excluída");
-          }}
-        >
-          Excluir
-        </button>
       </div>
     </div>
   );
 }
 
-function FormNovaParcela({ aberta, aoFechar }: { aberta: boolean; aoFechar: () => void }) {
+/** Caixa única de parcela: cria e edita (itens 7, 11, 12, 17, 19). */
+function FormParcela({
+  aberta,
+  aoFechar,
+  editando,
+}: {
+  aberta: boolean;
+  aoFechar: () => void;
+  editando: Parcela | null;
+}) {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const cfg = useCfgStore((s) => s.cfg);
   const [descricao, setDescricao] = useState("");
+  const [nota, setNota] = useState("");
   const [totalTexto, setTotalTexto] = useState("");
   const [num, setNum] = useState("3");
   const [primeiroMes, setPrimeiroMes] = useState(mesAtual());
+  const [dia, setDia] = useState("");
   const [categoria, setCategoria] = useState("");
   const [cartao, setCartao] = useState("");
   const [autoDebit, setAutoDebit] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   const cartaoCredito = cfg.tipoCartao[cartao] === "credit";
+
+  // A folha só monta os campos quando abre; a chave abaixo (em Parcelas)
+  // remonta o componente a cada abertura, então dá pra semear o estado aqui.
+  const [semeadoPara, setSemeadoPara] = useState<string | null>(null);
+  const chave = editando?.id ?? "nova";
+  if (aberta && semeadoPara !== chave) {
+    setSemeadoPara(chave);
+    setDescricao(editando?.descricao ?? "");
+    setNota(editando?.nota ?? "");
+    setTotalTexto(editando ? (editando.total / 100).toFixed(2).replace(".", ",") : "");
+    setNum(String(editando?.numParcelas ?? 3));
+    setPrimeiroMes(editando?.primeiroMes ?? mesAtual());
+    setDia(editando?.diaVencimento ? String(editando.diaVencimento) : "");
+    setCategoria(editando?.categoria ?? "");
+    setCartao(editando?.cartao ?? "");
+    setAutoDebit(!!editando?.autoDebit);
+    setErro(null);
+  }
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -158,36 +174,70 @@ function FormNovaParcela({ aberta, aoFechar }: { aberta: boolean; aoFechar: () =
     if (total === null || total <= 0) return setErro("Valor total inválido.");
     if (!Number.isFinite(numParcelas) || numParcelas < 1)
       return setErro("Nº de parcelas inválido.");
+    const diaNum = dia.trim() === "" ? undefined : Number(dia);
+    if (diaNum !== undefined && (!Number.isInteger(diaNum) || diaNum < 1 || diaNum > 31))
+      return setErro("Dia do vencimento deve ser entre 1 e 31.");
+    const dados = {
+      descricao,
+      nota: nota.trim() || undefined,
+      total,
+      numParcelas,
+      primeiroMes,
+      diaVencimento: diaNum,
+      categoria: categoria || "Parcelas",
+      cartao: cartao || null,
+      autoDebit: cartaoCredito && autoDebit,
+    };
     try {
-      await criarParcela(uid!, {
-        descricao,
-        total,
-        numParcelas,
-        primeiroMes,
-        categoria: categoria || "Parcelas",
-        cartao: cartao || null,
-        autoDebit: cartaoCredito && autoDebit,
-        pagoPorMes: {},
-      });
-      mostrarToast("✓ Parcela criada");
+      if (editando) {
+        await atualizarParcela(uid!, { ...editando, ...dados });
+        mostrarToast("✓ Parcela atualizada");
+      } else {
+        await criarParcela(uid!, { ...dados, pagoPorMes: {} });
+        mostrarToast("✓ Parcela criada");
+      }
+      setSemeadoPara(null);
       aoFechar();
-      setDescricao("");
-      setTotalTexto("");
-      setNum("3");
-      setCartao("");
-      setAutoDebit(false);
-      setErro(null);
     } catch {
       setErro("Não foi possível salvar. Tente de novo.");
     }
   }
 
+  async function excluir() {
+    if (!editando) return;
+    if (
+      !window.confirm(
+        `Excluir a parcela "${editando.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+      )
+    )
+      return;
+    try {
+      await excluirParcela(uid!, editando);
+      mostrarToast("Parcela excluída");
+      setSemeadoPara(null);
+      aoFechar();
+    } catch {
+      setErro("Não foi possível excluir. Tente de novo.");
+    }
+  }
+
   return (
-    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Nova parcela">
+    <BottomSheet
+      aberta={aberta}
+      aoFechar={() => {
+        setSemeadoPara(null);
+        aoFechar();
+      }}
+      titulo={editando ? "Editar parcela" : "Nova parcela"}
+    >
       <form className={styles.form} onSubmit={salvar}>
         <label className={styles.campo}>
-          Descrição
+          Nome
           <input value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
+        </label>
+        <label className={styles.campo}>
+          Descrição (opcional)
+          <input value={nota} onChange={(e) => setNota(e.target.value)} />
         </label>
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
@@ -223,15 +273,21 @@ function FormNovaParcela({ aberta, aoFechar }: { aberta: boolean; aoFechar: () =
             />
           </label>
           <label className={styles.campo}>
-            Categoria
-            <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
-              <option value="">Parcelas</option>
-              {cfg.categoriasCorrentes.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
+            Dia do vencimento
+            <input
+              inputMode="numeric"
+              placeholder="1-31"
+              value={dia}
+              onChange={(e) => setDia(e.target.value)}
+            />
           </label>
         </div>
+        <SeletorCategoria
+          valor={categoria}
+          opcoes={cfg.categoriasCorrentes}
+          aoMudar={setCategoria}
+          rotuloVazio="Parcelas"
+        />
         <label className={styles.campo}>
           Cartão (opcional)
           <select value={cartao} onChange={(e) => setCartao(e.target.value)}>
@@ -257,8 +313,13 @@ function FormNovaParcela({ aberta, aoFechar }: { aberta: boolean; aoFechar: () =
           </p>
         )}
         <button type="submit" className={styles.salvar}>
-          Criar parcela
+          {editando ? "Salvar alterações" : "Criar parcela"}
         </button>
+        {editando && (
+          <button type="button" className={styles.excluirParcela} onClick={() => void excluir()}>
+            Excluir parcela
+          </button>
+        )}
       </form>
     </BottomSheet>
   );
@@ -268,7 +329,18 @@ export default function Parcelas() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const parcelas = useParcelasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
-  const [novaAberta, setNovaAberta] = useState(false);
+  const [folhaAberta, setFolhaAberta] = useState(false);
+  const [editando, setEditando] = useState<Parcela | null>(null);
+
+  function abrirNova() {
+    setEditando(null);
+    setFolhaAberta(true);
+  }
+
+  function abrirEdicao(p: Parcela) {
+    setEditando(p);
+    setFolhaAberta(true);
+  }
 
   const ativas = parcelas.filter((p) => !parcelaQuitada(p));
   const quitadas = parcelas.filter(parcelaQuitada);
@@ -288,7 +360,7 @@ export default function Parcelas() {
 
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Compras parceladas</h3>
-        <button className={styles.adicionar} onClick={() => setNovaAberta(true)}>
+        <button className={styles.adicionar} onClick={abrirNova}>
           + Nova parcela
         </button>
       </div>
@@ -302,12 +374,16 @@ export default function Parcelas() {
       ) : (
         <div className={styles.lista}>
           {[...ativas, ...quitadas].map((p) => (
-            <LinhaParcela key={p.id} p={p} moeda={moeda} />
+            <LinhaParcela key={p.id} p={p} moeda={moeda} aoEditar={abrirEdicao} />
           ))}
         </div>
       )}
 
-      <FormNovaParcela aberta={novaAberta} aoFechar={() => setNovaAberta(false)} />
+      <FormParcela
+        aberta={folhaAberta}
+        aoFechar={() => setFolhaAberta(false)}
+        editando={editando}
+      />
     </Pagina>
   );
 }

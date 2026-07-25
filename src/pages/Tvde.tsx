@@ -163,6 +163,27 @@ function FormSemana({
         <button type="submit" className={styles.salvar}>
           Salvar semana
         </button>
+        {existente && (
+          <button
+            type="button"
+            className={styles.excluirSemana}
+            onClick={() => {
+              if (n === null) return;
+              if (dados.lancamentos[String(n)]) {
+                mostrarToast("Desfaça o lançamento antes de excluir a semana.");
+                return;
+              }
+              if (!window.confirm(`Excluir a semana ${n}?`)) return;
+              aoFechar();
+              setChave(null);
+              void removerSemana(uid!, n)
+                .then(() => mostrarToast("Semana excluída"))
+                .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
+            }}
+          >
+            Excluir semana
+          </button>
+        )}
       </form>
     </BottomSheet>
   );
@@ -338,19 +359,6 @@ export default function Tvde() {
                           Lançar receita
                         </button>
                       )}
-                      <button
-                        className={`${styles.acaoMini} ${styles.perigo}`}
-                        onClick={() => {
-                          if (lancada) {
-                            mostrarToast("Desfaça o lançamento antes de excluir a semana.");
-                            return;
-                          }
-                          if (!window.confirm(`Excluir a semana ${nSem}?`)) return;
-                          void agir(() => removerSemana(uid!, nSem), "Semana excluída");
-                        }}
-                      >
-                        Excluir
-                      </button>
                     </div>
                   </div>
                 );
