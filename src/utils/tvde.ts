@@ -34,6 +34,20 @@ export function fimDaSemana(inicioSemana1: IsoDate, n: number): Date {
   return d;
 }
 
+/** Soma do custo das cargas do veículo que caem dentro do intervalo da semana
+ *  — valor SUGERIDO para `recP` ("Recarga própria"). A recarga própria é a
+ *  que sai do bolso e já está registrada em Veículo → Carregamentos; a de
+ *  frota continua manual, vinda do relatório do dono (item 9). */
+export function recargaPropriaDaSemana(
+  cargas: { data: IsoDate; custo: Cents }[],
+  inicioSemana1: IsoDate,
+  n: number,
+): Cents {
+  const de = paraIso(inicioDaSemana(inicioSemana1, n));
+  const ate = paraIso(fimDaSemana(inicioSemana1, n));
+  return cargas.filter((c) => c.data >= de && c.data <= ate).reduce((soma, c) => soma + c.custo, 0);
+}
+
 /** Dia em que o valor da semana é efetivamente recebido — um dia depois do
  *  fim (a segunda-feira seguinte). */
 export function dataPagamentoDaSemana(inicioSemana1: IsoDate, n: number): IsoDate {

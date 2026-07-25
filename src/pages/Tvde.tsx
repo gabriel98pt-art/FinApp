@@ -14,6 +14,7 @@ import {
 } from "../services/tvdeService";
 import { useAuthStore } from "../stores/authStore";
 import { useTvdeStore } from "../stores/tvdeStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { SemanaTvde } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
@@ -23,6 +24,7 @@ import {
   dadosPorMes,
   dadosPorPeriodo,
   numerosDasSemanas,
+  recargaPropriaDaSemana,
   rotuloDaSemana,
   rotuloDoPeriodo,
   semanaDeHoje,
@@ -60,7 +62,10 @@ function FormSemana({
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const dados = useTvdeStore((s) => s.dados);
+  const cargas = useVeiculoStore((s) => s.dados.cargas);
   const existente = n !== null ? dados.semanas[String(n)] : undefined;
+  // Sugestão de "Recarga própria" vinda das Cargas do veículo (item 9).
+  const recargaAuto = n !== null ? recargaPropriaDaSemana(cargas, dados.cfg.inicioSemana1, n) : 0;
 
   const [valores, setValores] = useState<Record<string, string>>({});
   const [horas, setHoras] = useState("");
@@ -74,7 +79,8 @@ function FormSemana({
     setChave(n);
     const v: Record<string, string> = {};
     for (const [k] of CAMPOS_DINHEIRO) {
-      const c = existente?.[k] ?? (k === "alu" ? dados.cfg.aluguel : 0);
+      const c =
+        existente?.[k] ?? (k === "alu" ? dados.cfg.aluguel : k === "recP" ? recargaAuto : 0);
       v[k] = c ? (c / 100).toFixed(2).replace(".", ",") : "";
     }
     setValores(v);
@@ -133,7 +139,12 @@ function FormSemana({
       <form className={styles.form} onSubmit={salvar}>
         {CAMPOS_DINHEIRO.map(([k, nome]) => (
           <label key={k} className={styles.campoLinha}>
-            <span>{nome}</span>
+            <span>
+              {nome}
+              {k === "recP" && recargaAuto > 0 && (
+                <span className={styles.dicaAuto}> · cargas da semana: {eur(recargaAuto)}</span>
+              )}
+            </span>
             <input
               inputMode="decimal"
               placeholder="0,00"

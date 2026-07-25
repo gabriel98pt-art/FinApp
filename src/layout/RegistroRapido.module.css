@@ -4,6 +4,7 @@
   gap: 14px;
 }
 
+/* 4 tipos (Despesa/Receita/Carga/Desp. veículo) em duas linhas — item 3/6 */
 .seletorTipo {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -31,6 +32,11 @@
 
 .tipoAtivoReceita {
   background: var(--grn);
+  color: var(--bg);
+}
+
+.tipoAtivoVeiculo {
+  background: var(--pur);
   color: var(--bg);
 }
 

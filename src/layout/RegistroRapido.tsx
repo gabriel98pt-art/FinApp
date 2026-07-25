@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import BottomSheet from "../components/BottomSheet";
+import SeletorCategoria from "../components/SeletorCategoria";
+import SeletorData from "../components/SeletorData";
 import {
   atualizarDespesa,
   atualizarReceita,
@@ -8,16 +10,27 @@ import {
   removerDespesa,
   removerReceita,
 } from "../services/lancamentosService";
+import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
+import { adicionarItemLista } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
-import { useUiStore } from "../stores/uiStore";
+import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { hojeIso } from "../utils/calculos";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./RegistroRapido.module.css";
 
-/** Bottom sheet de registro rápido: lança (ou edita) receita/despesa. */
+const TIPOS: { valor: TipoRegistro; rotulo: string; classeAtiva: keyof typeof styles }[] = [
+  { valor: "despesa", rotulo: "Despesa", classeAtiva: "tipoAtivoDespesa" },
+  { valor: "receita", rotulo: "Receita", classeAtiva: "tipoAtivoReceita" },
+  { valor: "carga", rotulo: "Carga", classeAtiva: "tipoAtivoVeiculo" },
+  { valor: "despesaVeiculo", rotulo: "Desp. veículo", classeAtiva: "tipoAtivoVeiculo" },
+];
+
+/** Bottom sheet de registro rápido: lança (ou edita) receita/despesa, e lança
+ *  carga elétrica / despesa do veículo (item 3/6 — estes dois só criam; a
+ *  edição deles fica na tela Veículo). */
 export default function RegistroRapido() {
   const aberta = useUiStore((s) => s.registroAberto);
   const tipo = useUiStore((s) => s.registroTipo);
@@ -33,8 +46,11 @@ export default function RegistroRapido() {
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
+  const [kwh, setKwh] = useState(""); // só carga elétrica
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const ehVeiculo = tipo === "carga" || tipo === "despesaVeiculo";
 
   const editando =
     editandoId !== null
@@ -66,15 +82,22 @@ export default function RegistroRapido() {
         setData(hojeIso());
         setEtiqueta("");
         setConta("");
+        setKwh("");
       }
     } else if (assinatura === "novo") {
-      // Trocou receita↔despesa num lançamento novo: a fonte/categoria não
-      // se traduz entre as listas — limpa só a etiqueta.
+      // Trocou de tipo num lançamento novo: a fonte/categoria não se traduz
+      // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
+      setKwh("");
     }
   }
 
-  const opcoes = tipo === "receita" ? cfg.fontesReceita : cfg.categoriasCorrentes;
+  const opcoes =
+    tipo === "receita"
+      ? cfg.fontesReceita
+      : tipo === "despesaVeiculo"
+        ? cfg.categoriasVeiculo
+        : cfg.categoriasCorrentes;
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -89,7 +112,37 @@ export default function RegistroRapido() {
 
     setSalvando(true);
     try {
-      if (tipo === "receita") {
+      if (tipo === "carga") {
+        const kwhNum = parseFloat(kwh.replace(",", "."));
+        if (!Number.isFinite(kwhNum) || kwhNum <= 0) {
+          setErro("kWh inválido.");
+          setSalvando(false);
+          return;
+        }
+        const local = descricao.trim();
+        if (!local) {
+          setErro("Informe o local do carregamento.");
+          setSalvando(false);
+          return;
+        }
+        await criarCarga(uid, {
+          data,
+          kwh: kwhNum,
+          custo: valor,
+          precoKwh: Math.round(valor / kwhNum),
+          local,
+        });
+        if (!cfg.locaisCarregamento.includes(local)) {
+          await adicionarItemLista(uid, cfg, "locaisCarregamento", local).catch(() => null);
+        }
+      } else if (tipo === "despesaVeiculo") {
+        await criarDespesaVeiculo(uid, {
+          data,
+          valor,
+          categoria: etiquetaFinal,
+          nota: descricao.trim() || undefined,
+        });
+      } else if (tipo === "receita") {
         const dados = { descricao, valor, data, fonte: etiquetaFinal, conta: conta || undefined };
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
         else await criarReceita(uid, dados);
@@ -109,7 +162,11 @@ export default function RegistroRapido() {
           ? "Alterações salvas"
           : tipo === "receita"
             ? "Receita adicionada"
-            : "Despesa adicionada",
+            : tipo === "carga"
+              ? "Carregamento registado"
+              : tipo === "despesaVeiculo"
+                ? "Despesa do veículo adicionada"
+                : "Despesa adicionada",
       );
       fecharRegistro();
     } catch {
@@ -145,41 +202,35 @@ export default function RegistroRapido() {
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (
           <div className={styles.seletorTipo} role="radiogroup" aria-label="Tipo de lançamento">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={tipo === "despesa"}
-              className={`${styles.tipo} ${tipo === "despesa" ? styles.tipoAtivoDespesa : ""}`}
-              onClick={() => abrirRegistro("despesa")}
-            >
-              Despesa
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={tipo === "receita"}
-              className={`${styles.tipo} ${tipo === "receita" ? styles.tipoAtivoReceita : ""}`}
-              onClick={() => abrirRegistro("receita")}
-            >
-              Receita
-            </button>
+            {TIPOS.map((t) => (
+              <button
+                key={t.valor}
+                type="button"
+                role="radio"
+                aria-checked={tipo === t.valor}
+                className={`${styles.tipo} ${tipo === t.valor ? styles[t.classeAtiva] : ""}`}
+                onClick={() => abrirRegistro(t.valor)}
+              >
+                {t.rotulo}
+              </button>
+            ))}
           </div>
         )}
 
         <label className={styles.campo}>
-          Descrição
+          {tipo === "carga" ? "Local" : tipo === "despesaVeiculo" ? "Descrição" : "Descrição"}
           <input
             type="text"
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
-            required
+            required={tipo !== "despesaVeiculo"}
             maxLength={80}
           />
         </label>
 
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
-            Valor (€)
+            {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
             <input
               type="text"
               inputMode="decimal"
@@ -190,25 +241,32 @@ export default function RegistroRapido() {
             />
           </label>
 
-          <label className={styles.campo}>
-            Data
-            <input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
-          </label>
+          {tipo === "carga" && (
+            <label className={styles.campo}>
+              kWh
+              <input
+                type="text"
+                inputMode="decimal"
+                value={kwh}
+                onChange={(e) => setKwh(e.target.value)}
+                required
+              />
+            </label>
+          )}
         </div>
 
-        <label className={styles.campo}>
-          {tipo === "receita" ? "Fonte" : "Categoria"}
-          <select value={etiqueta} onChange={(e) => setEtiqueta(e.target.value)}>
-            <option value="">Escolher…</option>
-            {opcoes.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SeletorData valor={data} aoMudar={setData} />
 
-        {cfg.contasCartoes.length > 0 && (
+        {tipo !== "carga" && (
+          <SeletorCategoria
+            rotulo={tipo === "receita" ? "Fonte" : "Categoria"}
+            valor={etiqueta}
+            opcoes={opcoes}
+            aoMudar={setEtiqueta}
+          />
+        )}
+
+        {!ehVeiculo && cfg.contasCartoes.length > 0 && (
           <label className={styles.campo}>
             Conta/cartão (opcional)
             <select value={conta} onChange={(e) => setConta(e.target.value)}>

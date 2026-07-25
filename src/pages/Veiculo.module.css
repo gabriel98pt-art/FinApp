@@ -210,7 +210,7 @@
 .cabecalhoLista {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -239,4 +239,10 @@
   font-size: 0.88rem;
   font-weight: 600;
   padding: 6px;
+}
+
+/* Cada aba diz o que é, em vez de um cabeçalho genérico (item 4) */
+.tituloSecao {
+  font-weight: 700;
+  font-size: 0.95rem;
 }

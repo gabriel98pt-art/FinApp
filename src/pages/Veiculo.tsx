@@ -413,6 +413,7 @@ export default function Veiculo() {
       {aba === "cargas" && (
         <>
           <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Carregamentos</p>
             <button className={styles.botaoAdicionar} onClick={abrirNovaCarga}>
               + Adicionar carregamento
             </button>
@@ -447,6 +448,7 @@ export default function Veiculo() {
       {aba === "despesas" && (
         <>
           <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Despesas do veículo</p>
             <button className={styles.botaoAdicionar} onClick={abrirNovaDespesa}>
               + Adicionar despesa
             </button>
@@ -480,6 +482,7 @@ export default function Veiculo() {
       {aba === "fixas" && (
         <>
           <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Despesas fixas do veículo</p>
             <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
               + Adicionar despesa fixa
             </button>
@@ -529,6 +532,7 @@ export default function Veiculo() {
       {aba === "km" && (
         <>
           <div className={styles.cabecalhoLista}>
+            <p className={styles.tituloSecao}>Quilometragem</p>
             <button className={styles.botaoAdicionar} onClick={abrirNovoKm}>
               + Adicionar quilometragem
             </button>

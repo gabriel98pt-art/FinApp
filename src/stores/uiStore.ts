@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import type { Id } from "../types";
 
-export type TipoRegistro = "receita" | "despesa";
+/** Tipos que o registro rápido (FAB) sabe lançar. Os dois do veículo são só
+ *  de criação — a edição deles continua na tela Veículo (item 3/6). */
+export type TipoRegistro = "receita" | "despesa" | "carga" | "despesaVeiculo";
 
 interface UiState {
   /** Bottom sheet de registro rápido. `editandoId` presente = modo edição. */

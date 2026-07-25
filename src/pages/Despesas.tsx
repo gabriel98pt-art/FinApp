@@ -277,7 +277,7 @@ export default function Despesas() {
           <ListaLancamentos
             /* key: trocar de mês remonta a lista e volta pra página 1 */
             key={mes}
-            titulo="Lançamentos"
+            titulo="Despesas correntes"
             itens={ordenarPorDataDesc(doMes(itens, mes)).map((d) => ({
               id: d.id,
               descricao: d.descricao,

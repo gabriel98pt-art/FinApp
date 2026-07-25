@@ -408,3 +408,10 @@
   font-weight: 600;
   padding: 6px;
 }
+
+/* Sugestão de recarga própria vinda das cargas do veículo (item 9) */
+.dicaAuto {
+  color: var(--mut);
+  font-size: 0.72rem;
+  font-weight: 500;
+}

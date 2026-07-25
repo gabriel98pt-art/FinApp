@@ -1,8 +1,9 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it, test } from "vitest";
 import type { SemanaTvde } from "../types";
 import {
   calcularSemana,
   dadosPorMes,
+  recargaPropriaDaSemana,
   dadosPorPeriodo,
   dataPagamentoDaSemana,
   fimDaSemana,
@@ -155,5 +156,25 @@ describe("média das últimas 4 vs 4 anteriores (só não-teste)", () => {
     const t = totaisPerformance(semanas, {}, INICIO, 6);
     expect(t.media4).toBe(15500);
     expect(t.prev4).toBe(14500);
+  });
+});
+
+describe("recargaPropriaDaSemana", () => {
+  const cargas = [
+    { data: "2026-07-05", custo: 1000 }, // antes da semana 2
+    { data: "2026-07-06", custo: 1500 }, // 1º dia da semana 2
+    { data: "2026-07-09", custo: 2000 }, // meio da semana 2
+    { data: "2026-07-12", custo: 500 }, // último dia da semana 2
+    { data: "2026-07-13", custo: 9999 }, // já é a semana 3
+  ];
+
+  it("soma só as cargas dentro do intervalo da semana, incluindo as pontas", () => {
+    // semana 1 começa em 2026-06-29 → semana 2 = 06/07 a 12/07
+    expect(recargaPropriaDaSemana(cargas, "2026-06-29", 2)).toBe(4000);
+  });
+
+  it("devolve 0 quando não há carga na semana", () => {
+    expect(recargaPropriaDaSemana(cargas, "2026-06-29", 9)).toBe(0);
+    expect(recargaPropriaDaSemana([], "2026-06-29", 1)).toBe(0);
   });
 });
