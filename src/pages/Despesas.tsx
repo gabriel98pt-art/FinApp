@@ -6,6 +6,8 @@ import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
+import SeletorOrdem from "../components/SeletorOrdem";
+import { compararPorOrdem, type Ordem } from "../utils/ordem";
 import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
@@ -63,6 +65,8 @@ export default function Despesas() {
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const [aba, setAba] = useState<Aba>("correntes");
+  // Ordem da lista de correntes (item 14) — não persiste entre visitas.
+  const [ordem, setOrdem] = useState<Ordem>("recentes");
 
   // Mês exibido é compartilhado entre as telas (stores/mesVisivelStore.ts) e
   // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
@@ -268,11 +272,13 @@ export default function Despesas() {
             <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
           </Kpis>
 
+          <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+
           <ListaLancamentos
-            /* key: trocar de mês remonta a lista e volta pra página 1 */
-            key={mes}
+            /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
+            key={`${mes}-${ordem}`}
             titulo="Despesas correntes"
-            itens={ordenarPorDataDesc(doMes(itens, mes)).map((d) => ({
+            itens={[...doMes(itens, mes)].sort(compararPorOrdem(ordem)).map((d) => ({
               id: d.id,
               descricao: d.descricao,
               valor: d.valor,

@@ -2,6 +2,7 @@ import {
   CalendarDays,
   Car,
   CarTaxiFront,
+  ClipboardList,
   CreditCard,
   House,
   Layers,
@@ -21,6 +22,7 @@ export type AbaId =
   | "cartoes"
   | "parcelas"
   | "calendario"
+  | "planejamento"
   | "metas"
   | "importar"
   | "tvde"
@@ -42,6 +44,7 @@ export const ABAS: AbaDef[] = [
   { id: "cartoes", rota: "/cartoes", titulo: "Cartões", Icone: CreditCard },
   { id: "parcelas", rota: "/parcelas", titulo: "Parcelas", Icone: Layers },
   { id: "calendario", rota: "/calendario", titulo: "Calendário", Icone: CalendarDays },
+  { id: "planejamento", rota: "/planejamento", titulo: "Planejamento", Icone: ClipboardList },
   { id: "metas", rota: "/metas", titulo: "Metas", Icone: Target },
   { id: "importar", rota: "/importar", titulo: "Importar", Icone: Upload },
   { id: "tvde", rota: "/tvde", titulo: "TVDE", Icone: CarTaxiFront },
@@ -61,6 +64,7 @@ export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
 export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("cartoes"),
   aba("calendario"),
+  aba("planejamento"),
   aba("veiculo"),
   aba("parcelas"),
   aba("metas"),

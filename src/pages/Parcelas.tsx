@@ -4,6 +4,8 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import SeletorCategoria from "../components/SeletorCategoria";
+import SeletorOrdem from "../components/SeletorOrdem";
+import { compararPorOrdem, type Ordem } from "../utils/ordem";
 import {
   criarParcela,
   excluirParcela,
@@ -331,6 +333,8 @@ export default function Parcelas() {
   const carregado = useParcelasStore((s) => s.carregado);
   const [folhaAberta, setFolhaAberta] = useState(false);
   const [editando, setEditando] = useState<Parcela | null>(null);
+  // Ordem da lista (item 14) — não persiste entre visitas.
+  const [ordem, setOrdem] = useState<Ordem>("recentes");
 
   function abrirNova() {
     setEditando(null);
@@ -350,6 +354,16 @@ export default function Parcelas() {
   }, 0);
   const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p), 0);
 
+  // Ativas antes das quitadas continua valendo; a ordem escolhida manda
+  // dentro de cada grupo. "Data" aqui é o mês da primeira parcela.
+  const comparar = compararPorOrdem<{ data: string; valor: number; p: Parcela }>(ordem);
+  const ordenar = (lista: Parcela[]) =>
+    lista
+      .map((p) => ({ data: p.primeiroMes, valor: p.total, p }))
+      .sort(comparar)
+      .map((x) => x.p);
+  const visiveis = [...ordenar(ativas), ...ordenar(quitadas)];
+
   return (
     <Pagina titulo="Parcelas">
       <Kpis pagina="parcelas">
@@ -365,6 +379,8 @@ export default function Parcelas() {
         </button>
       </div>
 
+      {parcelas.length > 1 && <SeletorOrdem valor={ordem} aoMudar={setOrdem} />}
+
       {carregado && parcelas.length === 0 ? (
         <EstadoVazio
           Icone={Layers}
@@ -373,7 +389,7 @@ export default function Parcelas() {
         />
       ) : (
         <div className={styles.lista}>
-          {[...ativas, ...quitadas].map((p) => (
+          {visiveis.map((p) => (
             <LinhaParcela key={p.id} p={p} moeda={moeda} aoEditar={abrirEdicao} />
           ))}
         </div>

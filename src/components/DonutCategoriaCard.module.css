@@ -40,6 +40,8 @@
 }
 
 .legenda {
+  display: flex;
+  flex-direction: column;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -92,4 +94,109 @@
   min-width: 68px;
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* O card virou botão e abre a folha detalhada (item 21) */
+.cardBotao {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.cardBotao:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-card-hi);
+}
+
+.linhaTitulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chevron {
+  color: var(--mut);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* Versão maior do mesmo donut, dentro da folha */
+.donutGrande {
+  position: relative;
+  width: min(220px, 62vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin: 4px auto 16px;
+  box-shadow: var(--sh-sm);
+}
+
+.buracoGrande {
+  position: absolute;
+  inset: 17.5%;
+  border-radius: 50%;
+  background: var(--s1);
+}
+
+.fileiraOrdem {
+  display: flex;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  margin-bottom: 10px;
+}
+
+.opcaoOrdem {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.opcaoOrdem:hover {
+  color: var(--txt);
+}
+
+.opcaoOrdemAtiva {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
+}
+
+.listaCompleta {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.linhaCompleta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--brd);
+}
+
+.linhaCompleta:last-child {
+  border-bottom: 0;
+}
+
+.categoriaCompleta {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

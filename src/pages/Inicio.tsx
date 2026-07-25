@@ -3,7 +3,6 @@ import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
 import DonutCategoriaCard from "../components/DonutCategoriaCard";
-import OrcamentoCard from "../components/OrcamentoCard";
 import ResumoAnual from "../components/ResumoAnual";
 import { useCfgStore } from "../stores/cfgStore";
 import {
@@ -62,7 +61,6 @@ export default function Inicio() {
         />
       </Kpis>
       <DonutCategoriaCard />
-      <OrcamentoCard />
       <ResumoAnual meses={6} titulo="Resumo Anual" />
       <CopilotoCard />
     </Pagina>

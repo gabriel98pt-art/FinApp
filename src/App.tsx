@@ -15,6 +15,7 @@ const Veiculo = lazy(() => import("./pages/Veiculo"));
 const Cartoes = lazy(() => import("./pages/Cartoes"));
 const Parcelas = lazy(() => import("./pages/Parcelas"));
 const Calendario = lazy(() => import("./pages/Calendario"));
+const Planejamento = lazy(() => import("./pages/Planejamento"));
 const Metas = lazy(() => import("./pages/Metas"));
 const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/cartoes" element={<Cartoes />} />
           <Route path="/parcelas" element={<Parcelas />} />
           <Route path="/calendario" element={<Calendario />} />
+          <Route path="/planejamento" element={<Planejamento />} />
           <Route path="/metas" element={<Metas />} />
           <Route path="/importar" element={<Importar />} />
           <Route path="/tvde" element={<RotaTvde />} />

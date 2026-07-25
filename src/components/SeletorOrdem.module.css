@@ -1,0 +1,33 @@
+.fileira {
+  display: flex;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fileira::-webkit-scrollbar {
+  display: none;
+}
+
+.opcao {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.opcao:hover {
+  color: var(--txt);
+}
+
+.ativa {
+  background: var(--s3);
+  color: var(--txt);
+}
