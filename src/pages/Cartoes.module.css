@@ -282,10 +282,12 @@
   cursor: default;
 }
 
-/* Grade de quadros, um por conta/cartão — débito e crédito (item 13) */
+/* Lista de quadros, um por conta/cartão — débito e crédito (item 13).
+   Uma coluna em qualquer largura: cada conta ocupa a linha inteira, não
+   lado a lado no desktop. */
 .grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
