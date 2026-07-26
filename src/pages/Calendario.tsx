@@ -32,7 +32,7 @@ import {
   eventosDoMes,
   proximosEventos,
 } from "../utils/calendario";
-import { hojeIso } from "../utils/calculos";
+import { hojeIso, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import styles from "./Calendario.module.css";
 
@@ -116,7 +116,7 @@ export default function Calendario() {
   return (
     <Pagina titulo="Calendário">
       <Kpis>
-        <KpiCard rotulo="Eventos este mês" valor={String(doMesAtual.length)} />
+        <KpiCard rotulo={`Eventos em ${rotuloMes(mes)}`} valor={String(doMesAtual.length)} />
         <KpiCard rotulo="Próximos 7 dias" valor={String(proximos7.length)} tom="amarelo" />
       </Kpis>
 

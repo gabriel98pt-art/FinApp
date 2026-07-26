@@ -206,7 +206,7 @@ export default function Cartoes() {
   async function adicionar(e: FormEvent) {
     e.preventDefault();
     const nome = novoNome.trim();
-    if (!nome) return;
+    if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarCartao(uid!, cfg, nome, novoTipo);
       mostrarToast(`✓ ${novoTipo === "credit" ? "Cartão de crédito" : "Conta/débito"} adicionado`);
@@ -314,10 +314,15 @@ export default function Cartoes() {
         <div className={styles.gerirLinha}>
           <input
             placeholder="Nome (ex. AB Gold)"
+            aria-label="Nome da conta ou cartão"
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
           />
-          <select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value as TipoCartao)}>
+          <select
+            aria-label="Tipo"
+            value={novoTipo}
+            onChange={(e) => setNovoTipo(e.target.value as TipoCartao)}
+          >
             <option value="credit">Crédito</option>
             <option value="debit">Débito</option>
           </select>

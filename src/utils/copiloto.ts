@@ -18,7 +18,8 @@ import type {
 } from "../types";
 import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
 import { proximosEventos } from "./calendario";
-import { calcularFatura, type DadosFatura } from "./fatura";
+import { calcularFatura, fixaAtivaNoMes, type DadosFatura } from "./fatura";
+import { contribuicaoFixasMes } from "./despesasFixas";
 import { contribuicaoParcelasMes, mesesDaParcela, mesesNaoPagos, valorDaParcela } from "./parcelas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
@@ -185,9 +186,11 @@ export interface ContextoCopiloto {
   parcelas: Parcela[];
   cfg: ConfigConta;
   veiculo: DadosVeiculo;
-  /** Despesas fixas gerais e transferências — só usadas no cálculo de fatura
-   *  (intent "pendentes"); opcionais para não quebrar chamadores existentes. */
-  despesasFixas?: DespesaFixa[];
+  /** Despesas fixas gerais — entram no total do mês (mesma regra do resto do
+   *  app) e no cálculo de fatura. Obrigatórias: sem elas o Copiloto devolve
+   *  um número menor que o KPI "Despesas" da mesma tela. */
+  despesasFixas: DespesaFixa[];
+  /** Só usadas no cálculo de fatura (intent "pendentes"). */
   transferencias?: Transferencia[];
   eventos: EventoCalendario[];
   /** Mês real de hoje — usado pra decidir se "projeção no ritmo atual" faz
@@ -202,12 +205,15 @@ function hojeDoContexto(ctx: ContextoCopiloto): string {
   return `${ctx.mesReal}-${String(ctx.diaDeHoje).padStart(2, "0")}`;
 }
 
-/** Despesas do mês somando parcelas e veículo (Parte A) — fonte única com o
- *  resto do app. As parcelas contam pelo plano (mês corrente só as pagas, mês
- *  fechado todas), já que o lançamento espelho ficou fora de ctx.despesas. */
+/** Despesas do mês somando fixas, parcelas e veículo (Parte A) — as MESMAS
+ *  quatro parcelas de despesaRealizadaMes (utils/resumoMensal.ts), pra o
+ *  Copiloto não responder um número menor que o KPI "Despesas" logo acima
+ *  dele no Início. Fixas e parcelas contam pelo plano, com a regra mês
+ *  corrente/mês fechado. */
 function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
   const despesas =
     totalDoMes(ctx.despesas, ym) +
+    contribuicaoFixasMes(ctx.despesasFixas, ym, ctx.mesReal) +
     contribuicaoParcelasMes(ctx.parcelas, ym, ctx.mesReal) +
     totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
   return { receitas: totalDoMes(ctx.receitas, ym), despesas };
@@ -218,6 +224,10 @@ function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
 function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
+  for (const f of ctx.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym))) {
+    if (ym === ctx.mesReal && !f.pagoPorMes[ym]) continue;
+    ct[f.categoria] = (ct[f.categoria] || 0) + f.valor;
+  }
   for (const p of ctx.parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
     if (ym === ctx.mesReal && !p.pagoPorMes[ym]) continue;
     const cat = p.categoria ?? "Parcelas";
@@ -244,7 +254,7 @@ function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
 
 function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
   return {
-    despesasFixas: ctx.despesasFixas ?? [],
+    despesasFixas: ctx.despesasFixas,
     despesasFixasVeiculo: ctx.veiculo.despesasFixas,
     despesasCorrentes: ctx.despesas,
     parcelas: ctx.parcelas,

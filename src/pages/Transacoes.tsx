@@ -52,6 +52,19 @@ export default function Transacoes() {
     veiculo: useVeiculoStore((s) => s.dados),
   };
 
+  // O extrato junta seis domínios: só é "vazio" quando todos já carregaram —
+  // senão a tela afirma "nada movimentado" enquanto o Firebase ainda responde.
+  // Um hook por store, sem curto-circuito: `&&` entre chamadas de hook mudaria
+  // a ordem delas entre renders.
+  const receitasOk = useReceitasStore((s) => s.carregado);
+  const despesasOk = useDespesasStore((s) => s.carregado);
+  const fixasOk = useDespesasFixasStore((s) => s.carregado);
+  const parcelasOk = useParcelasStore((s) => s.carregado);
+  const transferenciasOk = useTransferenciasStore((s) => s.carregado);
+  const veiculoOk = useVeiculoStore((s) => s.carregado);
+  const carregado =
+    receitasOk && despesasOk && fixasOk && parcelasOk && transferenciasOk && veiculoOk;
+
   const itens = transacoesDoMes(dados, mes);
   const entradas = itens.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
   const saidas = itens.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
@@ -76,7 +89,7 @@ export default function Transacoes() {
         />
       </Kpis>
 
-      {itens.length === 0 ? (
+      {carregado && itens.length === 0 ? (
         <EstadoVazio
           Icone={ListTree}
           mensagem={`Nada movimentado em ${rotuloMes(mes)}`}

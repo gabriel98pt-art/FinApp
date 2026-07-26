@@ -53,6 +53,7 @@
 }
 
 .saldoGrande {
+  font-variant-numeric: tabular-nums;
   font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: var(--track-display);

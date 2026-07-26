@@ -66,6 +66,9 @@
   flex-direction: column;
   gap: 1px;
   min-width: 0;
+  /* Cresce pra empurrar o valor pra ponta mesmo com a bolha da categoria
+     antes dela — sem isto o space-between separaria bolha e texto. */
+  flex: 1;
 }
 
 .descricao {

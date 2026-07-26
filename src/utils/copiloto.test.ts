@@ -13,6 +13,7 @@ function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
   return {
     receitas: [],
     despesas: [],
+    despesasFixas: [],
     parcelas: [],
     veiculo: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
     eventos: [],

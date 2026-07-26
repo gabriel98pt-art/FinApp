@@ -42,6 +42,7 @@ export default function Receitas() {
           valor: r.valor,
           data: r.data,
           etiqueta: r.fonte,
+          categoria: r.fonte,
         }))}
         carregado={carregado}
         tom="verde"

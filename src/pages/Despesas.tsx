@@ -109,6 +109,7 @@ export default function Despesas() {
     setSemanaIdx(idxPadrao);
   }
   const semanaAtual = semanas[Math.min(semanaIdx, semanas.length - 1)];
+  const fixasVisiveis = despesasFixas.filter((f) => fixaAtivaNoMes(f, mes));
   const doPeriodo =
     visao === "semana" && semanaAtual ? naSemana(itens, semanaAtual) : doMes(itens, mes);
 
@@ -340,6 +341,7 @@ export default function Despesas() {
               valor: d.valor,
               data: d.data,
               etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
+              categoria: d.categoria,
             }))}
             carregado={carregado}
             tom="vermelho"
@@ -349,6 +351,9 @@ export default function Despesas() {
                 ? `Total ${rotuloDaSemana(semanaAtual)}`
                 : `Total ${rotuloMes(mes)}`
             }
+            /* A lista mostra pagamento de fatura e espelho de parcela, mas o
+               rodapé soma só o que conta nos totais — igual aos KPIs acima. */
+            total={total(despesasNosTotais(doPeriodo))}
             vazio={
               visao === "semana" && semanaAtual
                 ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
@@ -372,42 +377,44 @@ export default function Despesas() {
           </div>
 
           <div className={styles.lista}>
-            {despesasFixas.length === 0 ? (
-              <p className={styles.vazio}>Nenhuma despesa fixa ainda.</p>
+            {fixasVisiveis.length === 0 ? (
+              <p className={styles.vazio}>
+                {despesasFixas.length === 0
+                  ? "Nenhuma despesa fixa ainda."
+                  : `Nenhuma despesa fixa em ${rotuloMes(mes)}.`}
+              </p>
             ) : (
-              despesasFixas
-                .filter((f) => fixaAtivaNoMes(f, mes))
-                .map((f) => {
-                  const paga = !!f.pagoPorMes[mes];
-                  return (
-                    <div key={f.id} className={styles.item}>
-                      {/* Linha inteira abre a caixa de edição (item 7); só o
+              fixasVisiveis.map((f) => {
+                const paga = !!f.pagoPorMes[mes];
+                return (
+                  <div key={f.id} className={styles.item}>
+                    {/* Linha inteira abre a caixa de edição (item 7); só o
                           selo Pago/Pendente continua com ação própria. */}
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{f.descricao}</span>
-                          <span className={styles.itemDetalhe}>
-                            {f.categoria}
-                            {f.contaCartao ? ` · ${f.contaCartao}` : ""}
-                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
-                          </span>
+                    <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
+                      <span className={styles.itemTexto}>
+                        <span className={styles.itemNome}>{f.descricao}</span>
+                        <span className={styles.itemDetalhe}>
+                          {f.categoria}
+                          {f.contaCartao ? ` · ${f.contaCartao}` : ""}
+                          {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
                         </span>
-                        <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
-                      </button>
-                      <button
-                        className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                        onClick={() =>
-                          void agir(
-                            () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
-                            paga ? "Marcado como pendente" : "✓ Pago",
-                          )
-                        }
-                      >
-                        {paga ? "Pago" : "Pendente"}
-                      </button>
-                    </div>
-                  );
-                })
+                      </span>
+                      <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
+                    </button>
+                    <button
+                      className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                      onClick={() =>
+                        void agir(
+                          () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
+                          paga ? "Marcado como pendente" : "✓ Pago",
+                        )
+                      }
+                    >
+                      {paga ? "Pago" : "Pendente"}
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         </>

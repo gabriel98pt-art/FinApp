@@ -115,7 +115,11 @@ export default function RegistroRapido() {
       setErro("Valor inválido — use por exemplo 12,50.");
       return;
     }
-    const etiquetaFinal = etiqueta || opcoes[opcoes.length - 1];
+    // Sem escolha explícita cai em "Outros" — por NOME, não por posição: as
+    // categorias criadas em Definições entram no fim da lista, então o antigo
+    // `opcoes[opcoes.length - 1]` passava a mandar o lançamento pra última
+    // categoria que o usuário tinha criado.
+    const etiquetaFinal = etiqueta || opcoes.find((o) => o === "Outros") || opcoes[0] || "Outros";
 
     setSalvando(true);
     try {

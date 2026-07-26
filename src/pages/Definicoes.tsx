@@ -84,9 +84,10 @@ function EditorLista({
   async function adicionar(e: FormEvent) {
     e.preventDefault();
     const nome = novo.trim();
-    if (!nome) return;
+    if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, lista, nome);
+      mostrarToast(`✓ "${nome}" adicionado`);
       setNovo("");
     } catch (err) {
       mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
@@ -97,6 +98,7 @@ function EditorLista({
     if (!window.confirm(`Remover "${item}"? Lançamentos que já usam esse nome não mudam.`)) return;
     try {
       await removerItemLista(uid, cfg, lista, item);
+      mostrarToast(`"${item}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");
     }
@@ -145,6 +147,7 @@ function EditorLista({
           value={novo}
           onChange={(e) => setNovo(e.target.value)}
           placeholder="Nova categoria…"
+          aria-label={`Adicionar em ${titulo}`}
         />
         <button type="submit" className={styles.botaoPequeno}>
           Adicionar
@@ -176,7 +179,7 @@ function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
     let novos: string[];
     if (atuais.includes(rotulo)) {
       // Não deixa ficar com menos de 2 — desmarcar o 3º é o que troca.
-      if (atuais.length <= 2) return;
+      if (atuais.length <= 2) return mostrarToast("São sempre 2 KPIs — escolha outro para trocar.");
       novos = atuais.filter((r) => r !== rotulo);
     } else {
       // Já tem 2: o mais antigo sai e o novo entra.

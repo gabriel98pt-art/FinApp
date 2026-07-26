@@ -184,7 +184,13 @@ export default function Importar() {
               <span>
                 {linhas.length} linha(s) · {totalImportar} marcada(s) para importar
               </span>
-              <button className={styles.linkBotao} onClick={() => setLinhas(null)}>
+              <button
+                className={styles.linkBotao}
+                onClick={() => {
+                  if (!window.confirm("Descartar as linhas analisadas e recomeçar?")) return;
+                  setLinhas(null);
+                }}
+              >
                 Novo extrato
               </button>
             </div>

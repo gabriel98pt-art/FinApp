@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import CategoriaBolha from "./CategoriaBolha";
 import Paginador from "./Paginador";
 import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
@@ -16,8 +17,10 @@ export interface ItemLista {
   descricao: string;
   valor: Cents;
   data: IsoDate;
-  /** Fonte (receita) ou categoria (despesa). */
+  /** Fonte (receita) ou categoria (despesa), já com a nota quando existe. */
   etiqueta: string;
+  /** Nome puro da categoria/fonte, só para a bolha colorida — sem a nota. */
+  categoria?: string;
 }
 
 function dataCurta(data: IsoDate): string {
@@ -37,6 +40,7 @@ export default function ListaLancamentos({
   aoAdicionar,
   aoEditar,
   rotuloTotal = "Total",
+  total,
 }: {
   titulo: string;
   itens: ItemLista[];
@@ -50,12 +54,17 @@ export default function ListaLancamentos({
   aoEditar: (id: Id) => void;
   /** Texto do rodapé de total (ex. "Total julho 2026"). */
   rotuloTotal?: string;
+  /** Total do rodapé, quando ele não é a simples soma das linhas — o caso de
+   *  Despesas, que MOSTRA pagamento de fatura e espelho de parcela na lista
+   *  mas não os conta nos totais (ver `despesasNosTotais`). Sem isto o rodapé
+   *  contradiz o KPI logo acima. */
+  total?: Cents;
 }) {
   const [pagina, setPagina] = useState(1);
 
   // O total é sempre de TODOS os itens recebidos (o mês inteiro), nunca só da
   // página visível — igual ao rodapé do app de referência.
-  const totalGeral = somar(itens);
+  const totalGeral = total ?? somar(itens);
   const paginas = Math.ceil(itens.length / ITENS_POR_PAGINA) || 1;
   const paginaAtual = Math.min(pagina, paginas);
   const visiveis = itens.slice(
@@ -82,6 +91,9 @@ export default function ListaLancamentos({
             {visiveis.map((item) => (
               <li key={item.id}>
                 <button className={styles.linha} onClick={() => aoEditar(item.id)}>
+                  {item.categoria !== undefined && (
+                    <CategoriaBolha categoria={item.categoria} tamanho={30} />
+                  )}
                   <span className={styles.principal}>
                     <span className={styles.descricao}>{item.descricao}</span>
                     <span className={styles.detalhe}>

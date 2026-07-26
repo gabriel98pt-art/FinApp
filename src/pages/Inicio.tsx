@@ -12,8 +12,9 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { mesAtual, saldoTotal } from "../utils/calculos";
+import { despesasNosTotais, mesAtual, saldoTotal } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
+import { totalParcelasGeral } from "../utils/parcelas";
 import { resumoMesCompleto } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
@@ -32,8 +33,16 @@ export default function Inicio() {
   // despesa do mês inclui fixas gerais + parcelas + veículo (Parte A) — fonte
   // única em utils/resumoMensal.ts
   const resumo = resumoMesCompleto(receitas, despesas, despesasFixas, parcelas, veiculo, mes, mes);
+  // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
+  // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
+  // pagamento de fatura contava como despesa por cima da compra original e a
+  // parcela contava pelo espelho em vez do plano — dois números diferentes
+  // para a mesma ideia, em duas telas.
   const acumulado =
-    saldoTotal(receitas, despesas) - totalFixasGeral(despesasFixas) - totalVeiculoGeral(veiculo);
+    saldoTotal(receitas, despesasNosTotais(despesas)) -
+    totalFixasGeral(despesasFixas) -
+    totalParcelasGeral(parcelas) -
+    totalVeiculoGeral(veiculo);
 
   return (
     <Pagina titulo="Início">

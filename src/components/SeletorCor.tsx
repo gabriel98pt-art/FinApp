@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import BottomSheet from "./BottomSheet";
 import { CORES_CATEGORIA } from "../constants/aparenciaCategoria";
+import { corDoIconeSobre } from "../utils/categoriaVisual";
 import styles from "./SeletorAparencia.module.css";
 
 /** Grade de cores predefinidas com marca de seleção na cor ativa (item 19).
@@ -37,7 +38,13 @@ export default function SeletorCor({
             onClick={() => aoEscolher(c)}
           >
             {c === valor && (
-              <Check size={16} strokeWidth={3} className={styles.marca} aria-hidden />
+              <Check
+                size={16}
+                strokeWidth={3}
+                className={styles.marca}
+                color={corDoIconeSobre(c)}
+                aria-hidden
+              />
             )}
           </button>
         ))}
