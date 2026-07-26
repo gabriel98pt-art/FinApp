@@ -5,7 +5,7 @@ import CategoriaBolha from "./CategoriaBolha";
 import styles from "./SeletorCategoria.module.css";
 
 /** Seletor de categoria do app, no lugar do `<select>` nativo (item 19):
- *  um gatilho com o círculo colorido + emoji + nome, e a lista completa numa
+ *  um gatilho com o círculo colorido + ícone + nome, e a lista completa numa
  *  folha, cada opção uma linha clicável.
  *
  *  Serve pra qualquer lista de nomes (categorias de despesa fixa/corrente/

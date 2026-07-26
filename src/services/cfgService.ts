@@ -70,12 +70,13 @@ export async function removerItemLista(
   await update(ref(db, caminho(uid)), { [lista]: cfg[lista].filter((x) => x !== item) });
 }
 
-/** Emoji da categoria (item 19) — `null` volta ao círculo sem emoji. */
-export async function definirEmojiCategoria(uid: string, categoria: string, emoji: string | null) {
+/** Ícone da categoria (item 19) — guarda o id do ícone do `lucide-react`
+ *  (ex. "utensils"); `null` volta ao círculo sem ícone. */
+export async function definirIconeCategoria(uid: string, categoria: string, icone: string | null) {
   snapshotHistorico();
-  const r = ref(db, caminho(uid, `/categoriaEmoji/${categoria}`));
-  if (emoji === null || emoji === "") await remove(r);
-  else await set(r, emoji);
+  const r = ref(db, caminho(uid, `/categoriaIcone/${categoria}`));
+  if (icone === null || icone === "") await remove(r);
+  else await set(r, icone);
 }
 
 /** Cor da categoria (item 19) — `null` volta à cor automática do nome. */

@@ -1,9 +1,12 @@
+import { createElement } from "react";
+import { iconePorId } from "../constants/aparenciaCategoria";
 import { useCfgStore } from "../stores/cfgStore";
-import { corDaCategoriaVisual, emojiDaCategoria } from "../utils/categoriaVisual";
+import { corDaCategoriaVisual, corDoIconeSobre, iconeDaCategoria } from "../utils/categoriaVisual";
 import styles from "./CategoriaBolha.module.css";
 
-/** Círculo colorido com o emoji da categoria (item 19). Categoria sem emoji
- *  fica só com o círculo — nunca vazio nem quebrado. */
+/** Círculo colorido com o ícone da categoria (item 19). Categoria sem ícone
+ *  fica só com o círculo — nunca vazio nem quebrado. A cor do traço vem do
+ *  contraste com o fundo escolhido, não é fixa. */
 export default function CategoriaBolha({
   categoria,
   tamanho = 30,
@@ -13,20 +16,22 @@ export default function CategoriaBolha({
 }) {
   const cfg = useCfgStore((s) => s.cfg);
   const cor = corDaCategoriaVisual(cfg, categoria);
-  const emoji = emojiDaCategoria(cfg, categoria);
+  // `iconePorId` só devolve componentes da lista fixa em constants/ — não
+  // cria nada por render, apesar do que a regra do eslint sugere.
+  const icone = iconePorId(iconeDaCategoria(cfg, categoria));
 
   return (
     <span
       className={styles.bolha}
-      style={{
-        width: tamanho,
-        height: tamanho,
-        background: cor,
-        fontSize: Math.round(tamanho * 0.52),
-      }}
+      style={{ width: tamanho, height: tamanho, background: cor }}
       aria-hidden
     >
-      {emoji}
+      {icone &&
+        createElement(icone, {
+          size: Math.round(tamanho * 0.54),
+          strokeWidth: 2,
+          color: corDoIconeSobre(cor),
+        })}
     </span>
   );
 }

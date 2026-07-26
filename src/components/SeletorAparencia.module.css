@@ -1,4 +1,4 @@
-/* Grades do seletor de emoji e de cor (item 19). Painel sólido — o visual do
+/* Grades do seletor de ícone e de cor (item 19). Painel sólido — o visual do
    app, não um componente do sistema operacional. */
 
 .grade {
@@ -7,7 +7,7 @@
   padding: 4px 0 12px;
 }
 
-.gradeEmoji {
+.gradeIcone {
   grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
 }
 
@@ -15,24 +15,25 @@
   grid-template-columns: repeat(6, 1fr);
 }
 
-.emoji {
+.icone {
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  font-size: 1.35rem;
+  color: var(--txt);
   line-height: 1;
   background: var(--s2);
   border: 1px solid transparent;
   border-radius: var(--r-sm);
 }
 
-.emoji:hover {
+.icone:hover {
   background: var(--s3);
 }
 
-.emojiAtivo {
+.iconeAtivo {
   border-color: var(--blu);
   background: var(--s3);
+  color: var(--blu);
 }
 
 .cor {

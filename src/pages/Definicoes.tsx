@@ -6,7 +6,7 @@ import {
   LogOut,
   Moon,
   Palette,
-  Smile,
+  Shapes,
   Sun,
   Upload,
   X,
@@ -15,14 +15,14 @@ import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
 import SeletorCor from "../components/SeletorCor";
-import SeletorEmoji from "../components/SeletorEmoji";
+import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
 import { sair } from "../services/authService";
 import {
   adicionarItemLista,
   atualizarConfig,
   definirCorCategoria,
-  definirEmojiCategoria,
+  definirIconeCategoria,
   definirOrcamento,
   removerItemLista,
 } from "../services/cfgService";
@@ -55,18 +55,18 @@ function EditorLista({
   uid: string;
 }) {
   const [novo, setNovo] = useState("");
-  // Categoria cujo emoji/cor está sendo escolhido agora (item 19).
-  const [emojiDe, setEmojiDe] = useState<string | null>(null);
+  // Categoria cujo ícone/cor está sendo escolhido agora (item 19).
+  const [iconeDe, setIconeDe] = useState<string | null>(null);
   const [corDe, setCorDe] = useState<string | null>(null);
 
-  async function escolherEmoji(emoji: string | null) {
-    if (!emojiDe) return;
-    const alvo = emojiDe;
-    setEmojiDe(null);
+  async function escolherIcone(icone: string | null) {
+    if (!iconeDe) return;
+    const alvo = iconeDe;
+    setIconeDe(null);
     try {
-      await definirEmojiCategoria(uid, alvo, emoji);
+      await definirIconeCategoria(uid, alvo, icone);
     } catch {
-      mostrarToast("Não foi possível salvar o emoji.");
+      mostrarToast("Não foi possível salvar o ícone.");
     }
   }
 
@@ -113,11 +113,11 @@ function EditorLista({
               <span className={styles.nomeCategoria}>{item}</span>
               <button
                 className={styles.acaoCategoria}
-                onClick={() => setEmojiDe(item)}
-                aria-label={`Emoji de ${item}`}
-                title="Emoji"
+                onClick={() => setIconeDe(item)}
+                aria-label={`Ícone de ${item}`}
+                title="Ícone"
               >
-                <Smile size={16} aria-hidden />
+                <Shapes size={16} aria-hidden />
               </button>
               <button
                 className={styles.acaoCategoria}
@@ -151,12 +151,12 @@ function EditorLista({
         </button>
       </form>
 
-      <SeletorEmoji
-        aberta={emojiDe !== null}
-        aoFechar={() => setEmojiDe(null)}
-        titulo={emojiDe ? `Emoji de ${emojiDe}` : "Emoji"}
-        valor={emojiDe ? (cfg.categoriaEmoji?.[emojiDe] ?? "") : ""}
-        aoEscolher={(e) => void escolherEmoji(e)}
+      <SeletorIcone
+        aberta={iconeDe !== null}
+        aoFechar={() => setIconeDe(null)}
+        titulo={iconeDe ? `Ícone de ${iconeDe}` : "Ícone"}
+        valor={iconeDe ? (cfg.categoriaIcone?.[iconeDe] ?? "") : ""}
+        aoEscolher={(i) => void escolherIcone(i)}
       />
       <SeletorCor
         aberta={corDe !== null}

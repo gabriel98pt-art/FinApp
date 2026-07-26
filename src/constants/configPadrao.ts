@@ -15,7 +15,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   tipoCartao: {},
   // "Carregamento" fica de fora: cargas elétricas têm tracking próprio (kWh/local)
   categoriasVeiculo: ["Manutenção", "Seguro", "Portagens", "Revisão", "Outros"],
-  categoriaEmoji: {},
+  categoriaIcone: {},
   categoriaCor: {},
   kpisMobile: {},
   metaPoupanca: 0,
