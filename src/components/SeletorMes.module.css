@@ -14,7 +14,7 @@
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   color: var(--mut);
 }
 

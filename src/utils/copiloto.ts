@@ -275,7 +275,7 @@ interface IntentCopiloto {
  *  dangerouslySetInnerHTML (só pra permitir o <b> de destaque), e vários
  *  valores interpolados (nome de categoria/cartão/fonte/parcela) vêm de
  *  texto livre configurado pelo usuário: sem isso, um nome de categoria tipo
- *  '<img onerror=...>' viraria XSS armazenado. */
+ *  '<img onerror=...>' viraria XSS armazenado. impeccable-disable-line broken-image */
 function escaparHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

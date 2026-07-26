@@ -24,9 +24,14 @@
   --ch-red: #e93650;
   --ch-pur: #9b6de8;
 
-  /* Raios */
-  --r-card: 16px;
-  --r-sm: 9px;
+  /* Raios. --r-card e --r-sm vêm do app de referência; --r-xs, --r-pill e
+     --r-sheet nomeiam valores que já eram usados de forma consistente em
+     dezenas de lugares, só que cravados no componente. */
+  --r-card: 16px; /* cartão/quadro de conteúdo */
+  --r-sm: 9px; /* container de controle, campo, item de lista */
+  --r-xs: 7px; /* controle DENTRO de um container (segmento, opção) */
+  --r-pill: 99px; /* badge, chip, barra de progresso — cápsula */
+  --r-sheet: 22px; /* folha inferior e nav flutuante */
 
   /* Sombras em camadas, com inset highlight sutil já no estado base */
   --sh-card:

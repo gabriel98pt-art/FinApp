@@ -7,3 +7,9 @@ SPEC_REESCRITA_COMPLETA.md
 *.local
 .vercel
 .env*
+
+# Ferramentas de agente instaladas localmente (impeccable) — reinstaláveis com
+# `npx impeccable install`, não fazem parte da app nem do bundle.
+.github/skills/
+.github/hooks/
+.claude/skills/

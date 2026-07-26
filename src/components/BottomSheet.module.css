@@ -37,7 +37,7 @@
   background: var(--s1);
   border: 1px solid var(--brd);
   border-bottom: none;
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   box-shadow: var(--sh-card);
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   opacity: 0;
@@ -61,7 +61,7 @@
 .pegador {
   width: 40px;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--r-pill);
   background: var(--mut);
   opacity: 0.4;
   margin: 6px auto 12px;
@@ -98,7 +98,7 @@
    (O futuro drag físico NÃO passa por aqui — ver nota em base.css.) */
 @media (prefers-reduced-motion: reduce) {
   .folha {
-    transition: opacity 0.15s ease !important;
+    transition: opacity var(--dur-fast) var(--ease-exit) !important;
     transform: translateX(-50%) !important;
   }
 }

@@ -47,8 +47,8 @@
   border-radius: var(--r-sm);
   color: var(--mut);
   transition:
-    background 0.15s ease,
-    opacity 0.15s ease;
+    background var(--dur-fast) var(--ease-exit),
+    opacity var(--dur-fast) var(--ease-exit);
 }
 
 .acao:hover {

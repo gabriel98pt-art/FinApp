@@ -41,7 +41,7 @@
   background: linear-gradient(180deg, var(--_a, var(--blu)), transparent);
   opacity: 0.11;
   pointer-events: none;
-  transition: opacity 0.18s ease;
+  transition: opacity var(--dur-exit) var(--ease-exit);
 }
 
 .card:hover::after {

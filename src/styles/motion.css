@@ -8,7 +8,10 @@
 :root {
   --ease-enter: cubic-bezier(0.32, 0.72, 0, 1); /* desacelera — abrir/entrar */
   --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* acelera — fechar/sair */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* leve overshoot — feedback de toque */
+  /* Overshoot de toque é o brief comprometido (apple-design/HIG), não easing
+     decorativo: só em press-feedback de Fab e MobileNav, nunca em entrada de
+     superfície. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* impeccable-disable-line bounce-easing */
   --dur-fast: 0.15s;
   --dur-exit: 0.18s;
   --dur-enter: 0.24s;

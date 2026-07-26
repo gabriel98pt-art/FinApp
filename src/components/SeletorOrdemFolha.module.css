@@ -11,6 +11,9 @@
   color: var(--mut);
   background: var(--s2);
   border: 1px solid var(--brd);
+  transition:
+    background var(--dur-fast) var(--ease-exit),
+    color var(--dur-fast) var(--ease-exit);
 }
 
 .botao:hover {

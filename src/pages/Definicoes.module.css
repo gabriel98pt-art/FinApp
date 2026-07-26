@@ -131,7 +131,7 @@
   align-items: center;
   gap: 6px;
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 5px 6px 5px 12px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -249,7 +249,7 @@
   color: var(--mut);
   font-size: 0.76rem;
   font-weight: 700;
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 6px 11px;
 }
 

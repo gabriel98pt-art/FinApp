@@ -21,7 +21,7 @@
 .abaBotao {
   flex: 1;
   padding: 8px 10px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--mut);
@@ -90,7 +90,7 @@
 .badgeToggle {
   font-size: 0.68rem;
   font-weight: 700;
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 4px 10px;
   white-space: nowrap;
 }
@@ -166,7 +166,7 @@
 
 .tipoBotao {
   padding: 8px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--mut);
@@ -265,7 +265,7 @@
 
 .visaoBotao {
   padding: 7px 14px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--mut);

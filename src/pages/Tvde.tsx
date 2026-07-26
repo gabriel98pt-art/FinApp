@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CarTaxiFront } from "lucide-react";
+import { CarTaxiFront, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
@@ -534,7 +534,7 @@ export default function Tvde() {
                         }}
                         aria-label={`Excluir ${d.descricao}`}
                       >
-                        ×
+                        <X size={16} aria-hidden />
                       </button>
                     </span>
                   </li>

@@ -43,7 +43,7 @@
 
 .heroChips span {
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 4px 10px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -68,7 +68,7 @@
 .abaBotao {
   flex: 1;
   padding: 8px 10px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--mut);
@@ -150,7 +150,7 @@
   font-weight: 700;
   color: var(--ylw);
   background: color-mix(in srgb, var(--ylw) 14%, transparent);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 2px 8px;
 }
 

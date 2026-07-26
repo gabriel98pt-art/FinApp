@@ -59,7 +59,7 @@
   .kpis > * {
     /* backwards, não both: fill retido de transform:none mataria o
        hover-elevate do card (animation ganha de transition) */
-    animation: kpiEntrada 0.22s ease backwards;
+    animation: kpiEntrada var(--dur-enter) var(--ease-enter) backwards;
   }
 
   .kpis > *:nth-child(2) {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Target } from "lucide-react";
+import { Target, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
@@ -223,7 +223,7 @@ export default function Metas() {
                     }}
                     aria-label="Excluir fundo"
                   >
-                    ×
+                    <X size={16} aria-hidden />
                   </button>
                 </div>
                 <div className={styles.barra}>

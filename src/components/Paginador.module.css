@@ -15,7 +15,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   color: var(--txt);
   background: var(--s2);
 }

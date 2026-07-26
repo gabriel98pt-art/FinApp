@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PieChart } from "lucide-react";
+import { ChevronRight, PieChart } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
 import BottomSheet from "./BottomSheet";
 import CategoriaBolha from "./CategoriaBolha";
@@ -76,9 +76,7 @@ export default function DonutCategoriaCard() {
       <button className={`${styles.card} ${styles.cardBotao}`} onClick={() => setAberta(true)}>
         <span className={styles.linhaTitulo}>
           <span className={styles.titulo}>Despesas por categoria</span>
-          <span className={styles.chevron} aria-hidden>
-            ›
-          </span>
+          <ChevronRight className={styles.chevron} size={18} aria-hidden />
         </span>
 
         <span className={styles.corpo}>

@@ -16,7 +16,7 @@
 .opcao {
   flex: 1;
   padding: 7px 10px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.76rem;
   font-weight: 700;
   color: var(--mut);

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
@@ -240,7 +240,7 @@ export default function Calendario() {
                     }}
                     aria-label="Excluir evento"
                   >
-                    ×
+                    <X size={16} aria-hidden />
                   </button>
                 </div>
               </div>

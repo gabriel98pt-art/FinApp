@@ -48,7 +48,7 @@
   font-weight: 700;
   color: var(--ylw);
   background: color-mix(in srgb, var(--ylw) 14%, transparent);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 3px 10px;
   white-space: nowrap;
 }
@@ -123,8 +123,6 @@
 
 .remover {
   color: var(--red);
-  font-size: 1rem;
-  line-height: 1;
   padding: 0 4px;
 }
 
@@ -187,7 +185,7 @@
   align-items: center;
   gap: 6px;
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 5px 12px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -303,13 +301,16 @@
   color: var(--txt);
   text-align: left;
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+    transform var(--dur-exit) var(--ease-exit),
+    box-shadow var(--dur-exit) var(--ease-exit);
 }
 
 .quadro:hover {
   transform: translateY(-2px);
   box-shadow: var(--sh-card-hi);
+  transition:
+    transform var(--dur-enter) var(--ease-enter),
+    box-shadow var(--dur-enter) var(--ease-enter);
 }
 
 .quadroTopo {
@@ -325,7 +326,7 @@
   font-weight: 700;
   color: var(--mut);
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 3px 8px;
 }
 
@@ -357,6 +358,11 @@
   border-bottom: 1px solid var(--brd);
   font-size: 0.88rem;
   color: var(--mut);
+}
+
+/* Sem divisória na última: a folha já fecha o bloco. */
+.linhaDetalhe:last-child {
+  border-bottom: none;
 }
 
 .linhaDetalhe strong {

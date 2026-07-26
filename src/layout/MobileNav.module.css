@@ -12,7 +12,7 @@
   display: flex;
   align-items: stretch;
   padding: 6px;
-  border-radius: 22px;
+  border-radius: var(--r-sheet);
   box-shadow: var(--sh-card);
   /* o botão central sobe acima da borda */
   overflow: visible;
@@ -168,7 +168,7 @@
 /* Reduced motion: menu abre/fecha só por opacidade curta */
 @media (prefers-reduced-motion: reduce) {
   .menuMais {
-    transition: opacity 0.15s ease !important;
+    transition: opacity var(--dur-fast) var(--ease-exit) !important;
     transform: translateX(-50%) !important;
   }
 }

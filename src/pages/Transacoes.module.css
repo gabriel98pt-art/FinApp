@@ -79,6 +79,11 @@
   color: var(--mut);
 }
 
+/* Sem divisória na última: a folha já fecha o bloco. */
+.linhaDetalhe:last-child {
+  border-bottom: none;
+}
+
 .linhaDetalhe strong {
   color: var(--txt);
   font-variant-numeric: tabular-nums;

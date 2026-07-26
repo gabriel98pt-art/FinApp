@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CreditCard } from "lucide-react";
+import { CreditCard, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
@@ -105,7 +105,7 @@ function ControlesFatura({
                   }}
                   aria-label="Remover pagamento"
                 >
-                  ×
+                  <X size={15} aria-hidden />
                 </button>
               </span>
             </li>

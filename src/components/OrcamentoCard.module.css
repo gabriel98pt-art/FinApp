@@ -59,16 +59,18 @@
 
 .barra {
   height: 7px;
-  border-radius: 4px;
+  border-radius: var(--r-pill);
   background: var(--s2);
   overflow: hidden;
 }
 
 .preenchido {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--r-pill);
   background: var(--blu);
-  transition: width 0.3s var(--ease-enter);
+  /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
+     o custo de layout de uma barra sem conteúdo é irrelevante. */
+  transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
 }
 
 .preenchidoEstourado {

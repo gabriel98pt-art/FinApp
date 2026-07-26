@@ -25,7 +25,7 @@
 .badge {
   font-size: 0.72rem;
   font-weight: 700;
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 4px 10px;
   white-space: nowrap;
 }
@@ -68,15 +68,17 @@
 
 .barra {
   height: 9px;
-  border-radius: 5px;
+  border-radius: var(--r-pill);
   background: var(--s2);
   overflow: hidden;
 }
 
 .preenchido {
   height: 100%;
-  border-radius: 5px;
-  transition: width 0.3s var(--ease-enter);
+  border-radius: var(--r-pill);
+  /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
+     o custo de layout de uma barra sem conteúdo é irrelevante. */
+  transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
 }
 
 .preenchidoOk {
@@ -183,8 +185,6 @@
 
 .remover {
   color: var(--red);
-  font-size: 1.1rem;
-  line-height: 1;
   padding: 0 4px;
 }
 
@@ -205,7 +205,7 @@
   font-size: 0.7rem;
   color: var(--mut);
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 2px 8px;
 }
 

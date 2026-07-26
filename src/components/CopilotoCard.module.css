@@ -77,7 +77,7 @@
   font-size: 0.75rem;
   color: var(--mut);
   background: var(--s2);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   padding: 5px 11px;
 }
 

@@ -16,7 +16,7 @@
 
 .tipo {
   padding: 9px;
-  border-radius: 7px;
+  border-radius: var(--r-xs);
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--mut);

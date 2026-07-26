@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
+  border-radius: var(--r-sm);
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--txt);
@@ -174,8 +174,6 @@
 
 .remover {
   color: var(--red);
-  font-size: 1.1rem;
-  line-height: 1;
   padding: 0 4px;
 }
 
