@@ -13,8 +13,12 @@ function paraLista(val: Record<string, Omit<Fundo, "id">> | null): Fundo[] {
   return Object.entries(val).map(([id, dados]) => ({ ...dados, id }));
 }
 
-export function observarFundos(uid: string, cb: (itens: Fundo[]) => void): () => void {
-  return onValue(ref(db, caminho(uid)), (snap) => cb(paraLista(snap.val())));
+export function observarFundos(
+  uid: string,
+  cb: (itens: Fundo[]) => void,
+  aoErro: (erro: Error) => void,
+): () => void {
+  return onValue(ref(db, caminho(uid)), (snap) => cb(paraLista(snap.val())), aoErro);
 }
 
 export async function criarFundo(uid: string, dados: Omit<Fundo, "id">) {

@@ -1,0 +1,89 @@
+/* Mesma silhueta do .estadoVazio (Pagina.module.css), em tom de alerta: o
+   utilizador reconhece o formato e a cor diz que este não é o vazio normal. */
+
+.caixa {
+  background: var(--s1);
+  border: 1px solid color-mix(in srgb, var(--ylw) 30%, var(--brd));
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.icone {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  color: var(--ylw);
+  margin-bottom: 6px;
+}
+
+.mensagem {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.sub {
+  color: var(--mut);
+  font-size: 0.85rem;
+}
+
+.botao {
+  margin-top: 10px;
+  background: var(--s2);
+  color: var(--txt);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  padding: 10px 16px;
+  transition: background var(--dur-fast) var(--ease-exit);
+}
+
+.botao:hover {
+  background: var(--s3);
+}
+
+/* Variante compacta: a lista ainda tem dados, então o aviso fica sobre ela
+   em vez de a substituir. */
+
+.tira {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: color-mix(in srgb, var(--ylw) 12%, var(--s1));
+  border: 1px solid color-mix(in srgb, var(--ylw) 30%, transparent);
+  border-radius: var(--r-sm);
+  color: var(--ylw);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tiraTexto {
+  flex: 1;
+  min-width: 0;
+  color: var(--txt);
+}
+
+.tiraBotao {
+  color: var(--ylw);
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 2px 4px;
+  border-radius: var(--r-xs);
+}
+
+.tiraBotao:hover {
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+}

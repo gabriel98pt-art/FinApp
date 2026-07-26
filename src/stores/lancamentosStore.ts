@@ -8,15 +8,25 @@ import type { DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../ty
 interface ListaState<T> {
   itens: T[];
   carregado: boolean;
+  /** Subscrição caiu (rede/regra). Os `itens` já carregados continuam
+   *  válidos — só deixaram de ser atualizados. */
+  erro: boolean;
 }
+
+/** `erro` NÃO é persistido (partialize): ele descreve a subscrição desta
+ *  sessão, não os dados. Como "Tentar novamente" recarrega a página, um
+ *  `erro: true` gravado faria o aviso reaparecer no arranque seguinte, antes
+ *  de a nova subscrição ter tido hipótese de responder. */
+const semErro = <T>(s: ListaState<T>) => ({ itens: s.itens, carregado: s.carregado });
 
 export const useReceitasStore = create<ListaState<Receita>>()(
   persist(
     (): ListaState<Receita> => ({
       itens: [],
       carregado: false,
+      erro: false,
     }),
-    { name: "finapp-receitas" },
+    { name: "finapp-receitas", partialize: semErro },
   ),
 );
 
@@ -25,8 +35,9 @@ export const useDespesasStore = create<ListaState<DespesaCorrente>>()(
     (): ListaState<DespesaCorrente> => ({
       itens: [],
       carregado: false,
+      erro: false,
     }),
-    { name: "finapp-despesas" },
+    { name: "finapp-despesas", partialize: semErro },
   ),
 );
 
@@ -35,8 +46,9 @@ export const useDespesasFixasStore = create<ListaState<DespesaFixa>>()(
     (): ListaState<DespesaFixa> => ({
       itens: [],
       carregado: false,
+      erro: false,
     }),
-    { name: "finapp-despesasFixas" },
+    { name: "finapp-despesasFixas", partialize: semErro },
   ),
 );
 
@@ -45,7 +57,8 @@ export const useTransferenciasStore = create<ListaState<Transferencia>>()(
     (): ListaState<Transferencia> => ({
       itens: [],
       carregado: false,
+      erro: false,
     }),
-    { name: "finapp-transferencias" },
+    { name: "finapp-transferencias", partialize: semErro },
   ),
 );

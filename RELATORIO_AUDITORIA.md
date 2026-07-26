@@ -190,7 +190,10 @@ atualizar.
 
 Coisas reais, mas grandes ou ambíguas demais para mexer sem confirmação.
 
-**4.1 · `onValue` sem callback de erro** — nenhum dos seis serviços
+**4.1 · `onValue` sem callback de erro** — ✅ **RESOLVIDO** (26/07, ver secção
+"Resolvido depois" no fim). O resto deste item fica como registo do que era.
+
+**4.1 (registo original) · `onValue` sem callback de erro** — nenhum dos seis serviços
 (`lancamentosService.ts:42`, `cfgService.ts:18`, `eventosService.ts:17`,
 `fundosService.ts:17`, `tvdeService.ts:73`, `veiculoService.ts`) trata erro de
 subscrição. Falha de regra ou de rede deixa "Carregando…" para sempre em
@@ -249,3 +252,40 @@ nunca dispara: `mesesRecentes(meses, real)` não produz mês maior que `real`.
 - **"Telas usam mês real quando deviam usar o exibido"** — conferido: as seis
   rotas com seletor leem `useMesVisivelStore`; `mesAtual()` só aparece em
   Início, Metas e Planejamento, que não têm seletor.
+
+
+---
+
+## Resolvido depois da auditoria
+
+### 4.1 · Erro de sincronização deixava a tela presa em "Carregando…"
+
+Decisão tomada: em erro, parar de esperar e mostrar um aviso **distinto** do
+vazio, com botão de tentar de novo; dados já carregados continuam visíveis.
+
+O que foi feito:
+
+- os 6 services passam agora o `cancelCallback` do Firebase (3º argumento do
+  `onValue`) — `observarVeiculo` passa nas suas 4 sub-coleções, porque
+  qualquer uma que caia deixa o `DadosVeiculo` combinado incompleto;
+- cada store ganhou `erro: boolean`. Ele fica **fora** da persistência
+  (`partialize`): `erro` descreve a subscrição desta sessão, não os dados, e
+  como "Tentar novamente" recarrega a página, um `erro: true` gravado faria o
+  aviso reaparecer no arranque seguinte antes de a nova subscrição responder;
+- no `syncService`, erro marca `erro: true` + `carregado: true` sem tocar nos
+  dados; sucesso limpa `erro`, então uma ligação que volta sozinha apaga o
+  aviso;
+- `ErroSincronizacao` em duas formas: caixa cheia (mesma silhueta do
+  `EstadoVazio`, em tom de alerta) quando não há nada para mostrar, e tira
+  fina por cima da lista quando ainda há dados;
+- `cfg` acende uma faixa global (`FaixaErroSync`, entre o header e a TabBar),
+  por ser o único domínio usado em toda a app;
+- 9 testes novos (`syncService.test.ts`) com o `firebase/database` trocado por
+  um duplo que guarda os dois callbacks de cada `onValue`.
+
+**Desvio do que foi pedido, deliberado:** o pedido dizia `erro` →
+`ErroSincronizacao` **antes** de tudo na ordem de renderização. Aplicado à
+letra, isso esconderia uma lista que ainda tem dados válidos — contradizendo a
+própria decisão do enunciado ("dados já carregados continuam visíveis"). A
+caixa cheia entra no lugar do **estado vazio**; havendo dados, entra a tira
+fina por cima da lista.

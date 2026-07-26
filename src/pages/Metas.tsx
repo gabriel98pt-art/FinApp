@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Target, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import ResumoAnual from "../components/ResumoAnual";
 import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosService";
@@ -31,6 +32,7 @@ export default function Metas() {
   const veiculo = useVeiculoStore((s) => s.dados);
   const fundos = useFundosStore((s) => s.itens);
   const carregado = useFundosStore((s) => s.carregado);
+  const erro = useFundosStore((s) => s.erro);
 
   const real = mesAtual();
   const hoje = hojeIso();
@@ -177,7 +179,11 @@ export default function Metas() {
         </button>
       </div>
 
-      {carregado && fundos.length === 0 ? (
+      {erro && fundos.length > 0 && <ErroSincronizacao compacto />}
+
+      {erro && fundos.length === 0 ? (
+        <ErroSincronizacao />
+      ) : carregado && fundos.length === 0 ? (
         <EstadoVazio
           Icone={Target}
           mensagem="Nenhum fundo criado"

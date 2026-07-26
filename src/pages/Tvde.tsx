@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { CarTaxiFront, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import {
   criarDespesaTvde,
@@ -204,6 +205,7 @@ export default function Tvde() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const dados = useTvdeStore((s) => s.dados);
   const carregado = useTvdeStore((s) => s.carregado);
+  const erro = useTvdeStore((s) => s.erro);
 
   const [editando, setEditando] = useState<number | null>(null);
   const [aba, setAba] = useState<"semanas" | "meses" | "periodos" | "extras">("semanas");
@@ -314,7 +316,10 @@ export default function Tvde() {
               </button>
             </div>
           </div>
-          {carregado && numeros.length === 0 ? (
+          {erro && numeros.length > 0 && <ErroSincronizacao compacto />}
+          {erro && numeros.length === 0 ? (
+            <ErroSincronizacao />
+          ) : carregado && numeros.length === 0 ? (
             <EstadoVazio
               Icone={CarTaxiFront}
               mensagem="Nenhuma semana registrada"

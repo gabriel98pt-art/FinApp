@@ -1,0 +1,37 @@
+/* Fica logo abaixo do header e acima da TabBar (z-index 30 e 29), grudada no
+   topo junto com eles — o aviso tem de continuar visível ao rolar. */
+
+.faixa {
+  position: sticky;
+  top: 0;
+  z-index: 28;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--ylw) 16%, var(--bg));
+  border-bottom: 1px solid color-mix(in srgb, var(--ylw) 30%, transparent);
+  color: var(--ylw);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.texto {
+  color: var(--txt);
+}
+
+.botao {
+  color: var(--ylw);
+  font-weight: 800;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 2px 4px;
+  border-radius: var(--r-xs);
+}
+
+.botao:hover {
+  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+}

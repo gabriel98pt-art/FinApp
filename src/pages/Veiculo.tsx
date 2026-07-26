@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Car } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -53,6 +54,7 @@ export default function Veiculo() {
   const cfg = useCfgStore((s) => s.cfg);
   const dados = useVeiculoStore((s) => s.dados);
   const carregado = useVeiculoStore((s) => s.carregado);
+  const erro = useVeiculoStore((s) => s.erro);
 
   const [aba, setAba] = useState<Aba>("resumo");
   const mes = useMesVisivelStore((s) => s.mes);
@@ -381,6 +383,12 @@ export default function Veiculo() {
           </button>
         ))}
       </div>
+
+      {/* As 5 abas vêm da mesma store, então o aviso é um só, acima delas. Fica
+          na versão compacta mesmo sem dados: os botões de adicionar continuam
+          a fazer sentido, e o estado vazio de cada aba deixa de enganar com a
+          tira logo acima a dizer que a sincronização caiu. */}
+      {erro && <ErroSincronizacao compacto />}
 
       {aba === "resumo" && (
         <div className={styles.lista}>

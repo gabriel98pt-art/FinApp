@@ -69,8 +69,12 @@ export function normalizarTvde(bruto: TvdeBruto | null): DadosTvde {
   };
 }
 
-export function observarTvde(uid: string, cb: (dados: DadosTvde) => void): () => void {
-  return onValue(ref(db, raiz(uid)), (snap) => cb(normalizarTvde(snap.val())));
+export function observarTvde(
+  uid: string,
+  cb: (dados: DadosTvde) => void,
+  aoErro: (erro: Error) => void,
+): () => void {
+  return onValue(ref(db, raiz(uid)), (snap) => cb(normalizarTvde(snap.val())), aoErro);
 }
 
 export async function salvarConfigTvde(uid: string, mudancas: Partial<ConfigTvde>) {

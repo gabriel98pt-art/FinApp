@@ -8,14 +8,23 @@ import { VEICULO_VAZIO } from "../services/veiculoService";
 interface VeiculoState {
   dados: DadosVeiculo;
   carregado: boolean;
+  /** Subscrição caiu (rede/regra) — ver nota abaixo. */
+  erro: boolean;
 }
+
+/** `erro` NÃO é persistido (partialize): ele descreve a subscrição desta
+ *  sessão, não os dados. Como "Tentar novamente" recarrega a página, um
+ *  `erro: true` gravado faria o aviso reaparecer no arranque seguinte, antes
+ *  de a nova subscrição ter tido hipótese de responder. */
+const semErro = (s: VeiculoState) => ({ dados: s.dados, carregado: s.carregado });
 
 export const useVeiculoStore = create<VeiculoState>()(
   persist(
     (): VeiculoState => ({
       dados: VEICULO_VAZIO,
       carregado: false,
+      erro: false,
     }),
-    { name: "finapp-veiculo" },
+    { name: "finapp-veiculo", partialize: semErro },
   ),
 );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
+import ErroSincronizacao from "./ErroSincronizacao";
 import Paginador from "./Paginador";
 import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
@@ -41,6 +42,7 @@ export default function ListaLancamentos({
   aoEditar,
   rotuloTotal = "Total",
   total,
+  erro = false,
 }: {
   titulo: string;
   itens: ItemLista[];
@@ -52,6 +54,10 @@ export default function ListaLancamentos({
   moeda: Currency;
   aoAdicionar: () => void;
   aoEditar: (id: Id) => void;
+  /** Sincronização caiu. Com itens em mão eles continuam a ser mostrados,
+   *  com o aviso por cima; sem itens, o aviso ocupa o lugar do estado vazio,
+   *  que aqui mentiria ("nenhuma despesa" quando na verdade não sabemos). */
+  erro?: boolean;
   /** Texto do rodapé de total (ex. "Total julho 2026"). */
   rotuloTotal?: string;
   /** Total do rodapé, quando ele não é a simples soma das linhas — o caso de
@@ -81,7 +87,11 @@ export default function ListaLancamentos({
         </button>
       </div>
 
-      {!carregado ? (
+      {erro && itens.length > 0 && <ErroSincronizacao compacto />}
+
+      {erro && itens.length === 0 ? (
+        <ErroSincronizacao />
+      ) : !carregado ? (
         <p className={styles.vazio}>Carregando…</p>
       ) : itens.length === 0 ? (
         <EstadoVazio Icone={vazioIcone} mensagem={vazio} sub={vazioSub} />

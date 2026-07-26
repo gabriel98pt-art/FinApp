@@ -34,14 +34,22 @@ function paraLista<T extends { id: Id }>(val: Record<string, Omit<T, "id">> | nu
   return Object.entries(val).map(([id, dados]) => ({ ...dados, id }) as T);
 }
 
+/** `aoErro` é o cancelCallback do Firebase: dispara quando a subscrição é
+ *  recusada (regra de segurança) ou cai. Sem ele, a store fica presa em
+ *  "carregando" para sempre — ver ErroSincronizacao. */
 function observar<T extends { id: Id }>(
   uid: string,
   dominio: Dominio,
   cb: (itens: T[]) => void,
+  aoErro: (erro: Error) => void,
 ): () => void {
-  return onValue(ref(db, caminho(uid, dominio)), (snap) => {
-    cb(paraLista<T>(snap.val()));
-  });
+  return onValue(
+    ref(db, caminho(uid, dominio)),
+    (snap) => {
+      cb(paraLista<T>(snap.val()));
+    },
+    aoErro,
+  );
 }
 
 async function criar<T extends { id: Id }>(
@@ -67,16 +75,22 @@ async function remover(uid: string, dominio: Dominio, id: Id) {
 }
 
 // ---- Receitas ----
-export const observarReceitas = (uid: string, cb: (itens: Receita[]) => void) =>
-  observar<Receita>(uid, "receitas", cb);
+export const observarReceitas = (
+  uid: string,
+  cb: (itens: Receita[]) => void,
+  aoErro: (erro: Error) => void,
+) => observar<Receita>(uid, "receitas", cb, aoErro);
 export const criarReceita = (uid: string, dados: Omit<Receita, "id">) =>
   criar<Receita>(uid, "receitas", dados);
 export const atualizarReceita = (uid: string, item: Receita) => atualizar(uid, "receitas", item);
 export const removerReceita = (uid: string, id: Id) => remover(uid, "receitas", id);
 
 // ---- Despesas correntes ----
-export const observarDespesas = (uid: string, cb: (itens: DespesaCorrente[]) => void) =>
-  observar<DespesaCorrente>(uid, "despesasCorrentes", cb);
+export const observarDespesas = (
+  uid: string,
+  cb: (itens: DespesaCorrente[]) => void,
+  aoErro: (erro: Error) => void,
+) => observar<DespesaCorrente>(uid, "despesasCorrentes", cb, aoErro);
 export const criarDespesa = (uid: string, dados: Omit<DespesaCorrente, "id">) =>
   criar<DespesaCorrente>(uid, "despesasCorrentes", dados);
 export const atualizarDespesa = (uid: string, item: DespesaCorrente) =>
@@ -84,8 +98,11 @@ export const atualizarDespesa = (uid: string, item: DespesaCorrente) =>
 export const removerDespesa = (uid: string, id: Id) => remover(uid, "despesasCorrentes", id);
 
 // ---- Parcelas ----
-export const observarParcelas = (uid: string, cb: (itens: Parcela[]) => void) =>
-  observar<Parcela>(uid, "parcelas", cb);
+export const observarParcelas = (
+  uid: string,
+  cb: (itens: Parcela[]) => void,
+  aoErro: (erro: Error) => void,
+) => observar<Parcela>(uid, "parcelas", cb, aoErro);
 export const criarParcela = (uid: string, dados: Omit<Parcela, "id">) =>
   criar<Parcela>(uid, "parcelas", dados);
 export const atualizarParcela = (uid: string, item: Parcela) => atualizar(uid, "parcelas", item);
@@ -93,8 +110,11 @@ export const removerParcela = (uid: string, id: Id) => remover(uid, "parcelas", 
 
 // ---- Despesas fixas gerais (aluguel, assinaturas, seguro etc. — fora do
 // veículo, que tem seu próprio domínio em veiculoService.ts) ----
-export const observarDespesasFixas = (uid: string, cb: (itens: DespesaFixa[]) => void) =>
-  observar<DespesaFixa>(uid, "despesasFixas", cb);
+export const observarDespesasFixas = (
+  uid: string,
+  cb: (itens: DespesaFixa[]) => void,
+  aoErro: (erro: Error) => void,
+) => observar<DespesaFixa>(uid, "despesasFixas", cb, aoErro);
 export const criarDespesaFixa = (uid: string, dados: Omit<DespesaFixa, "id">) =>
   criar<DespesaFixa>(uid, "despesasFixas", dados);
 export const atualizarDespesaFixa = (uid: string, item: DespesaFixa) =>
@@ -114,8 +134,11 @@ export async function alternarPagoDespesaFixa(
 }
 
 // ---- Transferências entre contas ----
-export const observarTransferencias = (uid: string, cb: (itens: Transferencia[]) => void) =>
-  observar<Transferencia>(uid, "transferencias", cb);
+export const observarTransferencias = (
+  uid: string,
+  cb: (itens: Transferencia[]) => void,
+  aoErro: (erro: Error) => void,
+) => observar<Transferencia>(uid, "transferencias", cb, aoErro);
 export const criarTransferencia = (uid: string, dados: Omit<Transferencia, "id">) =>
   criar<Transferencia>(uid, "transferencias", dados);
 export const atualizarTransferencia = (uid: string, item: Transferencia) =>

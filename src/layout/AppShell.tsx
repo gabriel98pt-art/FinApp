@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
+import FaixaErroSync from "./FaixaErroSync";
 import TabBar from "./TabBar";
 import MobileNav from "./MobileNav";
 import Fab from "./Fab";
@@ -14,6 +15,7 @@ export default function AppShell() {
   return (
     <>
       <Header />
+      <FaixaErroSync />
       <TabBar />
       <main className={styles.conteudo}>
         <Suspense fallback={null}>

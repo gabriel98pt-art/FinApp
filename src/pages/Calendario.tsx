@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { CalendarDays, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import { criarEvento, removerEvento } from "../services/eventosService";
 import { useAuthStore } from "../stores/authStore";
@@ -41,6 +42,7 @@ export default function Calendario() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const eventos = useEventosStore((s) => s.itens);
   const carregado = useEventosStore((s) => s.carregado);
+  const erro = useEventosStore((s) => s.erro);
   const cfg = useCfgStore((s) => s.cfg);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
@@ -181,12 +183,17 @@ export default function Calendario() {
         )}
       </div>
 
-      {carregado && eventos.length === 0 && (
-        <EstadoVazio
-          Icone={CalendarDays}
-          mensagem="Nenhum evento ainda"
-          sub="Toque em + Evento pra agendar o primeiro."
-        />
+      {erro ? (
+        <ErroSincronizacao sub="O calendário pode estar incompleto — compromissos e eventos podem faltar." />
+      ) : (
+        carregado &&
+        eventos.length === 0 && (
+          <EstadoVazio
+            Icone={CalendarDays}
+            mensagem="Nenhum evento ainda"
+            sub="Toque em + Evento pra agendar o primeiro."
+          />
+        )
       )}
 
       <BottomSheet

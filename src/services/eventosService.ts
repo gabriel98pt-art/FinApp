@@ -13,8 +13,12 @@ function paraLista(val: Record<string, Omit<EventoCalendario, "id">> | null): Ev
   return Object.entries(val).map(([id, dados]) => ({ ...dados, id }));
 }
 
-export function observarEventos(uid: string, cb: (itens: EventoCalendario[]) => void): () => void {
-  return onValue(ref(db, caminho(uid)), (snap) => cb(paraLista(snap.val())));
+export function observarEventos(
+  uid: string,
+  cb: (itens: EventoCalendario[]) => void,
+  aoErro: (erro: Error) => void,
+): () => void {
+  return onValue(ref(db, caminho(uid)), (snap) => cb(paraLista(snap.val())), aoErro);
 }
 
 export async function criarEvento(uid: string, dados: Omit<EventoCalendario, "id">) {

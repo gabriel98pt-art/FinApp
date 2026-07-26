@@ -14,10 +14,18 @@ export function normalizarConfig(bruto: Partial<ConfigConta> | null): ConfigCont
   return { ...CONFIG_PADRAO, ...(bruto ?? {}) };
 }
 
-export function observarConfig(uid: string, cb: (cfg: ConfigConta) => void): () => void {
-  return onValue(ref(db, caminho(uid)), (snap) => {
-    cb(normalizarConfig(snap.val()));
-  });
+export function observarConfig(
+  uid: string,
+  cb: (cfg: ConfigConta) => void,
+  aoErro: (erro: Error) => void,
+): () => void {
+  return onValue(
+    ref(db, caminho(uid)),
+    (snap) => {
+      cb(normalizarConfig(snap.val()));
+    },
+    aoErro,
+  );
 }
 
 export async function atualizarConfig(uid: string, mudancas: Partial<ConfigConta>) {

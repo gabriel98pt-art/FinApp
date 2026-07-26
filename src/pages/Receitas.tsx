@@ -13,6 +13,7 @@ export default function Receitas() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const itens = useReceitasStore((s) => s.itens);
   const carregado = useReceitasStore((s) => s.carregado);
+  const erro = useReceitasStore((s) => s.erro);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
 
   // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
@@ -45,6 +46,7 @@ export default function Receitas() {
           categoria: r.fonte,
         }))}
         carregado={carregado}
+        erro={erro}
         tom="verde"
         moeda={moeda}
         rotuloTotal={`Total ${rotuloMes(mes)}`}

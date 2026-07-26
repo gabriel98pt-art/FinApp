@@ -3,6 +3,7 @@ import { ArrowLeftRight, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
@@ -63,6 +64,9 @@ export default function Despesas() {
   const cfg = useCfgStore((s) => s.cfg);
   const itens = useDespesasStore((s) => s.itens);
   const carregado = useDespesasStore((s) => s.carregado);
+  const erroDespesas = useDespesasStore((s) => s.erro);
+  const erroFixas = useDespesasFixasStore((s) => s.erro);
+  const erroTransferencias = useTransferenciasStore((s) => s.erro);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const transferencias = useTransferenciasStore((s) => s.itens);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
@@ -344,6 +348,7 @@ export default function Despesas() {
               categoria: d.categoria,
             }))}
             carregado={carregado}
+            erro={erroDespesas}
             tom="vermelho"
             moeda={moeda}
             rotuloTotal={
@@ -377,7 +382,10 @@ export default function Despesas() {
           </div>
 
           <div className={styles.lista}>
-            {fixasVisiveis.length === 0 ? (
+            {erroFixas && fixasVisiveis.length > 0 && <ErroSincronizacao compacto />}
+            {erroFixas && fixasVisiveis.length === 0 ? (
+              <ErroSincronizacao />
+            ) : fixasVisiveis.length === 0 ? (
               <p className={styles.vazio}>
                 {despesasFixas.length === 0
                   ? "Nenhuma despesa fixa ainda."
@@ -430,7 +438,12 @@ export default function Despesas() {
           </div>
 
           <div className={styles.lista}>
-            {doMes(transferencias, mes).length === 0 ? (
+            {erroTransferencias && doMes(transferencias, mes).length > 0 && (
+              <ErroSincronizacao compacto />
+            )}
+            {erroTransferencias && doMes(transferencias, mes).length === 0 ? (
+              <ErroSincronizacao />
+            ) : doMes(transferencias, mes).length === 0 ? (
               <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
             ) : (
               ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (

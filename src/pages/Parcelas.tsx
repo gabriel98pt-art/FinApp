@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
@@ -337,6 +338,7 @@ export default function Parcelas() {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const parcelas = useParcelasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
+  const erro = useParcelasStore((s) => s.erro);
   const [folhaAberta, setFolhaAberta] = useState(false);
   const [editando, setEditando] = useState<Parcela | null>(null);
   // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 6
@@ -389,7 +391,11 @@ export default function Parcelas() {
         </div>
       </div>
 
-      {carregado && parcelas.length === 0 ? (
+      {erro && parcelas.length > 0 && <ErroSincronizacao compacto />}
+
+      {erro && parcelas.length === 0 ? (
+        <ErroSincronizacao />
+      ) : carregado && parcelas.length === 0 ? (
         <EstadoVazio
           Icone={Layers}
           mensagem="Nenhuma compra parcelada"

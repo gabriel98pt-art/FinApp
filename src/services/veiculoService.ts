@@ -35,29 +35,51 @@ export const VEICULO_VAZIO: DadosVeiculo = {
 };
 
 /** Observa as 4 sub-coleções e chama `cb` com o DadosVeiculo combinado
- *  sempre que qualquer uma mudar. */
-export function observarVeiculo(uid: string, cb: (dados: DadosVeiculo) => void): () => void {
+ *  sempre que qualquer uma mudar. `aoErro` vai nas 4: se qualquer uma cair,
+ *  o DadosVeiculo combinado fica incompleto, então a tela toda tem que
+ *  avisar em vez de mostrar um veículo pela metade como se fosse o certo. */
+export function observarVeiculo(
+  uid: string,
+  cb: (dados: DadosVeiculo) => void,
+  aoErro: (erro: Error) => void,
+): () => void {
   const atual: DadosVeiculo = { ...VEICULO_VAZIO };
 
-  const paraCargas = onValue(ref(db, caminho(uid, "cargas")), (snap) => {
-    atual.cargas = paraLista<CargaEletrica>(snap.val());
-    cb({ ...atual });
-  });
-  const paraDespesas = onValue(ref(db, caminho(uid, "despesas")), (snap) => {
-    atual.despesas = paraLista<DespesaVeiculo>(snap.val());
-    cb({ ...atual });
-  });
-  const paraFixas = onValue(ref(db, caminho(uid, "despesasFixas")), (snap) => {
-    atual.despesasFixas = paraLista<DespesaFixa>(snap.val()).map((f) => ({
-      ...f,
-      pagoPorMes: f.pagoPorMes ?? {},
-    }));
-    cb({ ...atual });
-  });
-  const paraKm = onValue(ref(db, caminho(uid, "quilometragem")), (snap) => {
-    atual.quilometragem = paraLista<RegistroKm>(snap.val());
-    cb({ ...atual });
-  });
+  const paraCargas = onValue(
+    ref(db, caminho(uid, "cargas")),
+    (snap) => {
+      atual.cargas = paraLista<CargaEletrica>(snap.val());
+      cb({ ...atual });
+    },
+    aoErro,
+  );
+  const paraDespesas = onValue(
+    ref(db, caminho(uid, "despesas")),
+    (snap) => {
+      atual.despesas = paraLista<DespesaVeiculo>(snap.val());
+      cb({ ...atual });
+    },
+    aoErro,
+  );
+  const paraFixas = onValue(
+    ref(db, caminho(uid, "despesasFixas")),
+    (snap) => {
+      atual.despesasFixas = paraLista<DespesaFixa>(snap.val()).map((f) => ({
+        ...f,
+        pagoPorMes: f.pagoPorMes ?? {},
+      }));
+      cb({ ...atual });
+    },
+    aoErro,
+  );
+  const paraKm = onValue(
+    ref(db, caminho(uid, "quilometragem")),
+    (snap) => {
+      atual.quilometragem = paraLista<RegistroKm>(snap.val());
+      cb({ ...atual });
+    },
+    aoErro,
+  );
 
   return () => {
     paraCargas();

@@ -1,5 +1,11 @@
 // Liga as subscrições do RTDB às stores por domínio. Vive junto da sessão:
 // inicia no login (useSyncConta) e limpa tudo no logout.
+//
+// Cada subscrição tem dois destinos: sucesso grava os dados e limpa `erro`
+// (se a ligação voltar sozinha, o aviso some); erro marca `erro: true` e
+// `carregado: true` — sair do "Carregando…" é o ponto, senão a tela espera
+// para sempre. O que já tinha sido carregado NÃO é apagado: continua válido,
+// só deixou de ser atualizado.
 
 import { observarConfig } from "./cfgService";
 import { observarEventos } from "./eventosService";
@@ -28,42 +34,79 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 
+/** Store mínima que este módulo precisa de tocar em caso de erro. */
+type StoreSincronizada = {
+  setState: (parcial: { carregado: boolean; erro: boolean }) => void;
+};
+
+/** Marca a queda sem tocar nos dados já carregados. */
+const marcarErro = (store: StoreSincronizada) => () =>
+  store.setState({ carregado: true, erro: true });
+
 export function iniciarSyncConta(uid: string): () => void {
   useHistoricoStore.getState().iniciar(uid);
 
-  const paraReceitas = observarReceitas(uid, (itens) =>
-    useReceitasStore.setState({ itens, carregado: true }),
+  const paraReceitas = observarReceitas(
+    uid,
+    (itens) => useReceitasStore.setState({ itens, carregado: true, erro: false }),
+    marcarErro(useReceitasStore),
   );
-  const paraDespesas = observarDespesas(uid, (itens) =>
-    useDespesasStore.setState({ itens, carregado: true }),
+  const paraDespesas = observarDespesas(
+    uid,
+    (itens) => useDespesasStore.setState({ itens, carregado: true, erro: false }),
+    marcarErro(useDespesasStore),
   );
-  const paraParcelas = observarParcelas(uid, (itens) =>
-    useParcelasStore.setState({
-      // RTDB omite mapas vazios — pagoPorMes precisa existir sempre
-      itens: itens.map((p) => ({ ...p, pagoPorMes: p.pagoPorMes ?? {} })),
-      carregado: true,
-    }),
+  const paraParcelas = observarParcelas(
+    uid,
+    (itens) =>
+      useParcelasStore.setState({
+        // RTDB omite mapas vazios — pagoPorMes precisa existir sempre
+        itens: itens.map((p) => ({ ...p, pagoPorMes: p.pagoPorMes ?? {} })),
+        carregado: true,
+        erro: false,
+      }),
+    marcarErro(useParcelasStore),
   );
-  const paraCfg = observarConfig(uid, (cfg) => useCfgStore.setState({ cfg, carregado: true }));
-  const paraTvde = observarTvde(uid, (dados) => useTvdeStore.setState({ dados, carregado: true }));
-  const paraVeiculo = observarVeiculo(uid, (dados) =>
-    useVeiculoStore.setState({ dados, carregado: true }),
+  const paraCfg = observarConfig(
+    uid,
+    (cfg) => useCfgStore.setState({ cfg, carregado: true, erro: false }),
+    marcarErro(useCfgStore),
   );
-  const paraEventos = observarEventos(uid, (itens) =>
-    useEventosStore.setState({ itens, carregado: true }),
+  const paraTvde = observarTvde(
+    uid,
+    (dados) => useTvdeStore.setState({ dados, carregado: true, erro: false }),
+    marcarErro(useTvdeStore),
   );
-  const paraFundos = observarFundos(uid, (itens) =>
-    useFundosStore.setState({ itens, carregado: true }),
+  const paraVeiculo = observarVeiculo(
+    uid,
+    (dados) => useVeiculoStore.setState({ dados, carregado: true, erro: false }),
+    marcarErro(useVeiculoStore),
   );
-  const paraDespesasFixas = observarDespesasFixas(uid, (itens) =>
-    useDespesasFixasStore.setState({
-      // RTDB omite mapas vazios — pagoPorMes precisa existir sempre
-      itens: itens.map((f) => ({ ...f, pagoPorMes: f.pagoPorMes ?? {} })),
-      carregado: true,
-    }),
+  const paraEventos = observarEventos(
+    uid,
+    (itens) => useEventosStore.setState({ itens, carregado: true, erro: false }),
+    marcarErro(useEventosStore),
   );
-  const paraTransferencias = observarTransferencias(uid, (itens) =>
-    useTransferenciasStore.setState({ itens, carregado: true }),
+  const paraFundos = observarFundos(
+    uid,
+    (itens) => useFundosStore.setState({ itens, carregado: true, erro: false }),
+    marcarErro(useFundosStore),
+  );
+  const paraDespesasFixas = observarDespesasFixas(
+    uid,
+    (itens) =>
+      useDespesasFixasStore.setState({
+        // RTDB omite mapas vazios — pagoPorMes precisa existir sempre
+        itens: itens.map((f) => ({ ...f, pagoPorMes: f.pagoPorMes ?? {} })),
+        carregado: true,
+        erro: false,
+      }),
+    marcarErro(useDespesasFixasStore),
+  );
+  const paraTransferencias = observarTransferencias(
+    uid,
+    (itens) => useTransferenciasStore.setState({ itens, carregado: true, erro: false }),
+    marcarErro(useTransferenciasStore),
   );
 
   return () => {
@@ -77,17 +120,18 @@ export function iniciarSyncConta(uid: string): () => void {
     paraFundos();
     paraDespesasFixas();
     paraTransferencias();
-    // Nunca deixar dados de uma conta visíveis para a próxima (seção 4.9)
-    useReceitasStore.setState({ itens: [], carregado: false });
-    useDespesasStore.setState({ itens: [], carregado: false });
-    useParcelasStore.setState({ itens: [], carregado: false });
-    useCfgStore.setState({ cfg: CONFIG_PADRAO, carregado: false });
-    useTvdeStore.setState({ dados: TVDE_VAZIO, carregado: false });
-    useVeiculoStore.setState({ dados: VEICULO_VAZIO, carregado: false });
-    useEventosStore.setState({ itens: [], carregado: false });
-    useFundosStore.setState({ itens: [], carregado: false });
-    useDespesasFixasStore.setState({ itens: [], carregado: false });
-    useTransferenciasStore.setState({ itens: [], carregado: false });
+    // Nunca deixar dados de uma conta visíveis para a próxima (seção 4.9).
+    // `erro` volta a false junto: é estado da subscrição que acabou de morrer.
+    useReceitasStore.setState({ itens: [], carregado: false, erro: false });
+    useDespesasStore.setState({ itens: [], carregado: false, erro: false });
+    useParcelasStore.setState({ itens: [], carregado: false, erro: false });
+    useCfgStore.setState({ cfg: CONFIG_PADRAO, carregado: false, erro: false });
+    useTvdeStore.setState({ dados: TVDE_VAZIO, carregado: false, erro: false });
+    useVeiculoStore.setState({ dados: VEICULO_VAZIO, carregado: false, erro: false });
+    useEventosStore.setState({ itens: [], carregado: false, erro: false });
+    useFundosStore.setState({ itens: [], carregado: false, erro: false });
+    useDespesasFixasStore.setState({ itens: [], carregado: false, erro: false });
+    useTransferenciasStore.setState({ itens: [], carregado: false, erro: false });
     useHistoricoStore.getState().parar();
   };
 }
