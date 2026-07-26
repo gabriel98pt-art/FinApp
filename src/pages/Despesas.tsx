@@ -29,6 +29,7 @@ import {
 } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import {
   despesasNosTotais,
@@ -41,6 +42,7 @@ import {
 } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes } from "../utils/fatura";
+import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney, parseMoney } from "../utils/money";
@@ -64,6 +66,7 @@ export default function Despesas() {
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const transferencias = useTransferenciasStore((s) => s.itens);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const [aba, setAba] = useState<Aba>("correntes");
@@ -80,10 +83,21 @@ export default function Despesas() {
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
-  // total do mês/geral inclui fixas gerais + veículo (Parte A) — fonte única em utils/
-  const totalDoMesComVeiculo = despesaRealizadaMes(itens, despesasFixas, veiculo, mes, mesReal);
+  // total do mês/geral inclui fixas gerais + parcelas + veículo (Parte A) —
+  // fonte única em utils/resumoMensal.ts
+  const totalDoMesComVeiculo = despesaRealizadaMes(
+    itens,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    mes,
+    mesReal,
+  );
   const totalGeralComVeiculo =
-    total(contadas) + totalFixasGeral(despesasFixas) + totalVeiculoGeral(veiculo);
+    total(contadas) +
+    totalFixasGeral(despesasFixas) +
+    totalParcelasGeral(parcelas) +
+    totalVeiculoGeral(veiculo);
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje
   // (ou na primeira, quando hoje está fora do mês).

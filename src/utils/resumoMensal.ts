@@ -7,11 +7,13 @@ import type {
   DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
+  Parcela,
   Receita,
   YearMonth,
 } from "../types";
 import { despesasNosTotais, totalDoMes } from "./calculos";
 import { contribuicaoFixasMes } from "./despesasFixas";
+import { contribuicaoParcelasMes } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
 
 export interface ResumoMesCompleto {
@@ -20,13 +22,17 @@ export interface ResumoMesCompleto {
   saldo: Cents;
 }
 
-/** Despesa do mês = despesas correntes reais (sem pagamento de fatura) +
- *  despesas fixas gerais (mês corrente conta só as pagas, mês fechado conta
- *  todas as ativas — mesma regra do veículo) + total do veículo (cargas +
- *  despesas + fixas — seção "Parte A"). */
+/** Despesa do mês = despesas correntes reais (sem pagamento de fatura, sem
+ *  espelho de parcela) + despesas fixas gerais + parcelas + total do veículo
+ *  (cargas + despesas + fixas — seção "Parte A").
+ *
+ *  Fixas, parcelas e veículo seguem todos a MESMA regra: mês corrente conta só
+ *  o que foi marcado pago, mês fechado conta o valor cheio de tudo que está no
+ *  prazo, pago ou não. */
 export function despesaRealizadaMes(
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
@@ -34,6 +40,7 @@ export function despesaRealizadaMes(
   return (
     totalDoMes(despesasNosTotais(despesasCorrentes), ym) +
     contribuicaoFixasMes(despesasFixas, ym, mesReal) +
+    contribuicaoParcelasMes(parcelas, ym, mesReal) +
     totalVeiculoMes(veiculo, ym, mesReal)
   );
 }
@@ -42,11 +49,12 @@ export function resumoMesCompleto(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
 ): ResumoMesCompleto {
   const r = totalDoMes(receitas, ym);
-  const d = despesaRealizadaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal);
+  const d = despesaRealizadaMes(despesasCorrentes, despesasFixas, parcelas, veiculo, ym, mesReal);
   return { receitas: r, despesas: d, saldo: r - d };
 }

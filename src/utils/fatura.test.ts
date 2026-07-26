@@ -271,9 +271,14 @@ describe("BUG 1/2 (não reproduzir): destino único de cada lançamento nos tota
     expect(contadas).toEqual([compra]);
   });
 
-  test("lançamento de parcela (origem parc) CONTA nos totais — nada invisível", () => {
+  test("espelho de parcela (origem parc) fica fora dos totais — conta pelo plano", () => {
+    // A parcela entra nos totais por contribuicaoParcelasMes (utils/parcelas.ts),
+    // que conta o plano inteiro no mês fechado. Somar também o espelho criado
+    // ao marcar "Pagar" seria contar duas vezes — o espelho segue existindo
+    // para o extrato por conta, só não entra nesta soma.
+    const compra = dc({ valor: 1500 });
     const parcelaMensal = dc({ valor: 1867, origem: "parc", categoria: "Parcelas" });
-    expect(despesasNosTotais([parcelaMensal])).toEqual([parcelaMensal]);
+    expect(despesasNosTotais([compra, parcelaMensal])).toEqual([compra]);
   });
 
   test("ajuste de reconciliação (origem recon) fica fora dos totais — não é despesa real", () => {

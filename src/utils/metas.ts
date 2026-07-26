@@ -7,6 +7,7 @@ import type {
   DespesaCorrente,
   DespesaFixa,
   Fundo,
+  Parcela,
   Receita,
   YearMonth,
 } from "../types";
@@ -37,6 +38,7 @@ export function calcularMetaMensal(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
@@ -44,7 +46,14 @@ export function calcularMetaMensal(
   metaConfigurada: Cents,
 ): MetaMensal {
   const rec = totalDoMes(receitas, ym);
-  const desp = despesaRealizadaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal);
+  const desp = despesaRealizadaMes(
+    despesasCorrentes,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    ym,
+    mesReal,
+  );
   const saldo = rec - desp;
   const meta = metaConfigurada || META_POUPANCA_PADRAO;
   const pct = meta > 0 ? Math.max(0, Math.min(100, Math.round((saldo / meta) * 100))) : 0;
@@ -75,13 +84,21 @@ export function poupancaMeses(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   meses: YearMonth[],
   mesReal: YearMonth,
 ): Cents {
   return meses.reduce((s, ym) => {
     const rec = totalDoMes(receitas, ym);
-    const desp = despesaRealizadaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal);
+    const desp = despesaRealizadaMes(
+      despesasCorrentes,
+      despesasFixas,
+      parcelas,
+      veiculo,
+      ym,
+      mesReal,
+    );
     return s + Math.max(0, rec - desp);
   }, 0);
 }

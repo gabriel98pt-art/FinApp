@@ -14,6 +14,7 @@ import {
   useReceitasStore,
 } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesesRecentes, rotuloMes } from "../utils/calculos";
 import { calcularMetaMensal, poupancaMeses, totalFundos } from "../utils/metas";
@@ -26,6 +27,7 @@ export default function Metas() {
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const fundos = useFundosStore((s) => s.itens);
   const carregado = useFundosStore((s) => s.carregado);
@@ -38,6 +40,7 @@ export default function Metas() {
     receitas,
     despesas,
     despesasFixas,
+    parcelas,
     veiculo,
     real,
     real,
@@ -49,6 +52,7 @@ export default function Metas() {
     receitas,
     despesas,
     despesasFixas,
+    parcelas,
     veiculo,
     mesesRecentes(12, real),
     real,

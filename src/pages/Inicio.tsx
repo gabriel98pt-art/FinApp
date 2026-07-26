@@ -10,6 +10,7 @@ import {
   useDespesasStore,
   useReceitasStore,
 } from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, saldoTotal } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
@@ -24,12 +25,13 @@ export default function Inicio() {
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const mes = mesAtual();
-  // despesa do mês inclui fixas gerais + veículo (Parte A) — fonte única em
-  // utils/resumoMensal.ts
-  const resumo = resumoMesCompleto(receitas, despesas, despesasFixas, veiculo, mes, mes);
+  // despesa do mês inclui fixas gerais + parcelas + veículo (Parte A) — fonte
+  // única em utils/resumoMensal.ts
+  const resumo = resumoMesCompleto(receitas, despesas, despesasFixas, parcelas, veiculo, mes, mes);
   const acumulado =
     saldoTotal(receitas, despesas) - totalFixasGeral(despesasFixas) - totalVeiculoGeral(veiculo);
 

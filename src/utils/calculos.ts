@@ -111,11 +111,16 @@ export function rotuloMes(ym: YearMonth): string {
  *  contou como despesa no mês dela — contar também o pagamento seria contar
  *  duas vezes (bug conhecido do app antigo, seção 4.1, a não reproduzir).
  *  O destino claro deles é a tela Cartões (total pago da fatura). */
-/** Exclui pagamentos de fatura ('fat') e ajustes de reconciliação bancária
- *  ('recon') dos totais — nenhum dos dois é uma despesa real (mesma regra do
- *  app de referência, `totCorrManual`: `!d._src`). */
+/** Exclui pagamentos de fatura ('fat'), ajustes de reconciliação bancária
+ *  ('recon') e o lançamento espelho de parcela ('parc') dos totais (mesma
+ *  regra do app de referência, `totCorrManual`: `!d._src`):
+ *  - 'fat' e 'recon' não são despesa real;
+ *  - 'parc' É despesa real, mas já conta pelo plano da parcela
+ *    (`contribuicaoParcelasMes`, utils/parcelas.ts) — somar o espelho também
+ *    contaria duas vezes. O espelho continua existindo para outros fins
+ *    (extrato por conta, histórico), só não entra nesta soma. */
 export function despesasNosTotais<T extends { origem?: string }>(itens: T[]): T[] {
-  return itens.filter((d) => d.origem !== "fat" && d.origem !== "recon");
+  return itens.filter((d) => d.origem !== "fat" && d.origem !== "recon" && d.origem !== "parc");
 }
 
 /** Ordena por data decrescente (mais recente primeiro), estável. */

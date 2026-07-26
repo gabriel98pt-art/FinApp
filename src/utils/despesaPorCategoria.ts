@@ -1,11 +1,19 @@
 // Despesa do mês repartida por categoria — dados do donut do Início.
 // Portado do bloco "Donut" do financas.html (renderDashboard): fixas gerais
-// ativas + correntes do mês (sem pagamento de fatura; parcelas entram com a
-// categoria própria) + o veículo inteiro como UMA fatia.
+// ativas + correntes do mês (sem pagamento de fatura) + parcelas pelo plano,
+// cada uma na sua categoria + o veículo inteiro como UMA fatia.
 
-import type { Cents, DadosVeiculo, DespesaCorrente, DespesaFixa, YearMonth } from "../types";
+import type {
+  Cents,
+  DadosVeiculo,
+  DespesaCorrente,
+  DespesaFixa,
+  Parcela,
+  YearMonth,
+} from "../types";
 import { despesasNosTotais, doMes } from "./calculos";
 import { fixaAtivaNoMes } from "./fatura";
+import { mesesDaParcela, valorDaParcela } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
 
 export interface FatiaCategoria {
@@ -22,6 +30,7 @@ export interface FatiaCategoria {
 export function despesaPorCategoriaMes(
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
@@ -37,6 +46,12 @@ export function despesaPorCategoriaMes(
   }
   for (const d of doMes(despesasNosTotais(despesasCorrentes), ym)) {
     somar(d.categoria, d.valor);
+  }
+  // Parcelas entram pelo plano (não pelo lançamento espelho, que
+  // `despesasNosTotais` já tirou), com a mesma regra mês corrente/mês fechado.
+  for (const p of parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
+    if (ym === mesReal && !p.pagoPorMes[ym]) continue;
+    somar(p.categoria ?? "Parcelas", valorDaParcela(p, ym));
   }
   somar("Veículo", totalVeiculoMes(veiculo, ym, mesReal));
 

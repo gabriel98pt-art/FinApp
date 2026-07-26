@@ -32,6 +32,38 @@ export function valorDaParcela(p: Parcela, ym: YearMonth): Cents {
   return valorBaseDaParcela(p, idx);
 }
 
+/** Contribuição das parcelas no mês. Mesma regra das despesas fixas
+ *  (contribuicaoFixasMes, utils/despesasFixas.ts):
+ *  - mês CORRENTE (ym === mesReal): só conta as marcadas pagas naquele mês;
+ *  - qualquer outro mês (passado ou futuro): conta o valor cheio de todas as
+ *    parcelas cujo plano cobre o mês, pagas ou não.
+ *  É por AQUI que a parcela entra nos totais — não pelo lançamento espelho
+ *  (origem 'parc'), que `despesasNosTotais` deixa de fora justamente pra não
+ *  contar duas vezes. */
+export function contribuicaoParcelasMes(
+  parcelas: Parcela[],
+  ym: YearMonth,
+  mesReal: YearMonth,
+): Cents {
+  const noPrazo = parcelas.filter((p) => mesesDaParcela(p).includes(ym));
+  if (ym === mesReal) {
+    return noPrazo.filter((p) => p.pagoPorMes[ym]).reduce((s, p) => s + valorDaParcela(p, ym), 0);
+  }
+  return noPrazo.reduce((s, p) => s + valorDaParcela(p, ym), 0);
+}
+
+/** Total acumulado de todos os tempos: cada parcela conta os meses marcados
+ *  pagos — mesma filosofia de totalFixasGeral/totalVeiculoGeral, e o mesmo
+ *  valor que os lançamentos espelho somavam antes de saírem dos totais. */
+export function totalParcelasGeral(parcelas: Parcela[]): Cents {
+  return parcelas.reduce(
+    (s, p) =>
+      s +
+      mesesDaParcela(p).reduce((sp, m) => (p.pagoPorMes[m] ? sp + valorDaParcela(p, m) : sp), 0),
+    0,
+  );
+}
+
 export function mesesNaoPagos(p: Parcela): YearMonth[] {
   return mesesDaParcela(p).filter((m) => !p.pagoPorMes[m]);
 }

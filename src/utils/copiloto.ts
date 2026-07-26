@@ -19,7 +19,7 @@ import type {
 import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
 import { proximosEventos } from "./calendario";
 import { calcularFatura, type DadosFatura } from "./fatura";
-import { mesesNaoPagos, valorDaParcela } from "./parcelas";
+import { contribuicaoParcelasMes, mesesDaParcela, mesesNaoPagos, valorDaParcela } from "./parcelas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
 
@@ -202,9 +202,14 @@ function hojeDoContexto(ctx: ContextoCopiloto): string {
   return `${ctx.mesReal}-${String(ctx.diaDeHoje).padStart(2, "0")}`;
 }
 
-/** Despesas do mês somando veículo (Parte A) — fonte única com o resto do app. */
+/** Despesas do mês somando parcelas e veículo (Parte A) — fonte única com o
+ *  resto do app. As parcelas contam pelo plano (mês corrente só as pagas, mês
+ *  fechado todas), já que o lançamento espelho ficou fora de ctx.despesas. */
 function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
-  const despesas = totalDoMes(ctx.despesas, ym) + totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
+  const despesas =
+    totalDoMes(ctx.despesas, ym) +
+    contribuicaoParcelasMes(ctx.parcelas, ym, ctx.mesReal) +
+    totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
   return { receitas: totalDoMes(ctx.receitas, ym), despesas };
 }
 
@@ -213,6 +218,11 @@ function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
 function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
+  for (const p of ctx.parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
+    if (ym === ctx.mesReal && !p.pagoPorMes[ym]) continue;
+    const cat = p.categoria ?? "Parcelas";
+    ct[cat] = (ct[cat] || 0) + valorDaParcela(p, ym);
+  }
   const totalVeic = totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
   if (totalVeic > 0) ct["Veículo"] = (ct["Veículo"] || 0) + totalVeic;
   return ct;

@@ -5,6 +5,7 @@ import BottomSheet from "./BottomSheet";
 import CategoriaBolha from "./CategoriaBolha";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { coresDasCategorias } from "../utils/coresCategoria";
@@ -30,6 +31,7 @@ export default function DonutCategoriaCard() {
   const cfg = useCfgStore((s) => s.cfg);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const [aberta, setAberta] = useState(false);
   const [ordem, setOrdem] = useState<OrdemFatias>("maiorValor");
@@ -37,7 +39,7 @@ export default function DonutCategoriaCard() {
   // O Início ainda não tem seletor de mês — fica no mês real (o mês global
   // compartilhado entra aqui quando esta tela for ajustada).
   const mes = mesAtual();
-  const fatias = despesaPorCategoriaMes(despesas, despesasFixas, veiculo, mes, mes);
+  const fatias = despesaPorCategoriaMes(despesas, despesasFixas, parcelas, veiculo, mes, mes);
   const cores = coresDasCategorias(fatias.map((f) => f.categoria));
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";

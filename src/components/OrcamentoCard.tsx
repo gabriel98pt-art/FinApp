@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { mesAtual } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
@@ -11,8 +12,10 @@ import styles from "./OrcamentoCard.module.css";
 export default function OrcamentoCard() {
   const cfg = useCfgStore((s) => s.cfg);
   const despesas = useDespesasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
 
-  const status = statusOrcamentoMes(despesas, cfg.orcamentos, mesAtual());
+  const mes = mesAtual();
+  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mes);
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 
