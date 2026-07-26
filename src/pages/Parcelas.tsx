@@ -4,8 +4,13 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import SeletorCategoria from "../components/SeletorCategoria";
-import SeletorOrdem from "../components/SeletorOrdem";
-import { compararPorOrdem, type Ordem } from "../utils/ordem";
+import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
+import {
+  compararParcelas,
+  ORDENS_PARCELA,
+  ROTULOS_ORDEM_PARCELA,
+  type OrdemParcela,
+} from "../utils/ordemParcelas";
 import {
   criarParcela,
   excluirParcela,
@@ -21,6 +26,7 @@ import type { Currency, Parcela } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import {
+  debitoMensalDaParcela,
   mesesNaoPagos,
   parcelaQuitada,
   progressoDaParcela,
@@ -333,8 +339,9 @@ export default function Parcelas() {
   const carregado = useParcelasStore((s) => s.carregado);
   const [folhaAberta, setFolhaAberta] = useState(false);
   const [editando, setEditando] = useState<Parcela | null>(null);
-  // Ordem da lista (item 14) — não persiste entre visitas.
-  const [ordem, setOrdem] = useState<Ordem>("recentes");
+  // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 6
+  // opções, duas delas só de parcela (ver utils/ordemParcelas.ts).
+  const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
 
   function abrirNova() {
     setEditando(null);
@@ -348,20 +355,13 @@ export default function Parcelas() {
 
   const ativas = parcelas.filter((p) => !parcelaQuitada(p));
   const quitadas = parcelas.filter(parcelaQuitada);
-  const debitoMensal = ativas.reduce((s, p) => {
-    const proximo = mesesNaoPagos(p)[0];
-    return proximo !== undefined ? s + valorDaParcela(p, proximo) : s;
-  }, 0);
+  const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p), 0);
   const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p), 0);
 
   // Ativas antes das quitadas continua valendo; a ordem escolhida manda
-  // dentro de cada grupo. "Data" aqui é o mês da primeira parcela.
-  const comparar = compararPorOrdem<{ data: string; valor: number; p: Parcela }>(ordem);
-  const ordenar = (lista: Parcela[]) =>
-    lista
-      .map((p) => ({ data: p.primeiroMes, valor: p.total, p }))
-      .sort(comparar)
-      .map((x) => x.p);
+  // dentro de cada grupo.
+  const comparar = compararParcelas(ordem);
+  const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
   const visiveis = [...ordenar(ativas), ...ordenar(quitadas)];
 
   return (
@@ -374,12 +374,20 @@ export default function Parcelas() {
 
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Compras parceladas</h3>
-        <button className={styles.adicionar} onClick={abrirNova}>
-          + Nova parcela
-        </button>
+        <div className={styles.acoesCabecalho}>
+          {parcelas.length > 1 && (
+            <SeletorOrdemFolha
+              valor={ordem}
+              opcoes={ORDENS_PARCELA}
+              rotulos={ROTULOS_ORDEM_PARCELA}
+              aoMudar={setOrdem}
+            />
+          )}
+          <button className={styles.adicionar} onClick={abrirNova}>
+            + Nova parcela
+          </button>
+        </div>
       </div>
-
-      {parcelas.length > 1 && <SeletorOrdem valor={ordem} aoMudar={setOrdem} />}
 
       {carregado && parcelas.length === 0 ? (
         <EstadoVazio

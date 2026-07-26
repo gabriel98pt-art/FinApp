@@ -68,6 +68,18 @@ export function mesesNaoPagos(p: Parcela): YearMonth[] {
   return mesesDaParcela(p).filter((m) => !p.pagoPorMes[m]);
 }
 
+/** Mês da próxima parcela em aberto, ou `undefined` se já está quitada. */
+export function proximoMesEmAberto(p: Parcela): YearMonth | undefined {
+  return mesesNaoPagos(p)[0];
+}
+
+/** Quanto esta parcela pesa no débito do próximo mês em aberto — 0 quando já
+ *  está quitada. É a contribuição de cada parcela ao KPI "Débito mensal". */
+export function debitoMensalDaParcela(p: Parcela): Cents {
+  const proximo = proximoMesEmAberto(p);
+  return proximo === undefined ? 0 : valorDaParcela(p, proximo);
+}
+
 /** Soma das parcelas em aberto — o valor de uma quitação antecipada. */
 export function valorQuitacao(p: Parcela): Cents {
   return mesesNaoPagos(p).reduce((s, m) => s + valorDaParcela(p, m), 0);

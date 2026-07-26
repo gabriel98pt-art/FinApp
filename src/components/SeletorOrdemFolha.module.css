@@ -1,0 +1,50 @@
+/* Botão redondo de ordenação (mesma família dos ícones-botão do Header e de
+   Definições) + lista de opções dentro da folha. */
+
+.botao {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--mut);
+  background: var(--s2);
+  border: 1px solid var(--brd);
+}
+
+.botao:hover {
+  color: var(--txt);
+  background: var(--s3);
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 12px;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--mut);
+  text-align: left;
+}
+
+.opcao:hover {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.ativa {
+  background: var(--s3);
+  color: var(--blu);
+}
