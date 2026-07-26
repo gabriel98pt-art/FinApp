@@ -217,6 +217,9 @@
 
 /* Mesmo estilo do "+ Evento" do Calendário (item 2) */
 .botaoAdicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--blu);
   color: var(--bg);
   font-weight: 700;

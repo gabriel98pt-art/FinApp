@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CalendarDays, X } from "lucide-react";
+import { CalendarDays, Plus, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -124,7 +124,7 @@ export default function Calendario() {
 
       <div className={styles.linhaMes}>
         <button className={styles.novoBotao} onClick={() => setNovoAberto(true)}>
-          + Evento
+          <Plus size={15} aria-hidden /> Evento
         </button>
       </div>
 
@@ -262,7 +262,7 @@ export default function Calendario() {
             setNovoAberto(true);
           }}
         >
-          + Novo evento neste dia
+          <Plus size={15} aria-hidden /> Novo evento neste dia
         </button>
       </BottomSheet>
 

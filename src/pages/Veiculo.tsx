@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Car } from "lucide-react";
+import { Car, Plus } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
@@ -443,9 +443,9 @@ export default function Veiculo() {
       {aba === "cargas" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Carregamentos</p>
+            <h3 className={styles.tituloSecao}>Carregamentos</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovaCarga}>
-              + Adicionar carregamento
+              <Plus size={15} aria-hidden /> Adicionar carregamento
             </button>
           </div>
 
@@ -506,9 +506,9 @@ export default function Veiculo() {
       {aba === "despesas" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Despesas do veículo</p>
+            <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovaDespesa}>
-              + Adicionar despesa
+              <Plus size={15} aria-hidden /> Adicionar despesa
             </button>
           </div>
 
@@ -540,9 +540,9 @@ export default function Veiculo() {
       {aba === "fixas" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Despesas fixas do veículo</p>
+            <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
-              + Adicionar despesa fixa
+              <Plus size={15} aria-hidden /> Adicionar despesa fixa
             </button>
           </div>
 
@@ -586,9 +586,9 @@ export default function Veiculo() {
       {aba === "km" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Quilometragem</p>
+            <h3 className={styles.tituloSecao}>Quilometragem</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovoKm}>
-              + Adicionar quilometragem
+              <Plus size={15} aria-hidden /> Adicionar quilometragem
             </button>
           </div>
 
@@ -633,7 +633,7 @@ export default function Veiculo() {
             />
           </label>
           <SeletorData valor={cgData} aoMudar={setCgData} />
-          <div className={styles.seletorTipo} role="radiogroup">
+          <div className={styles.seletorTipo} role="radiogroup" aria-label="Como informar o custo">
             <button
               type="button"
               className={`${styles.tipoBotao} ${modoCusto === "total" ? styles.tipoAtivo : ""}`}

@@ -7,6 +7,9 @@
 }
 
 .novoBotao {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--blu);
   color: var(--bg);
   font-weight: 700;
@@ -178,6 +181,11 @@
 }
 
 .novoNoDiaBotao {
+  /* Ocupa a largura da folha, com o ícone e o rótulo centrados juntos. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   width: 100%;
   color: var(--blu);
   font-weight: 700;

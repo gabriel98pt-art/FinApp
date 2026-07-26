@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CarTaxiFront, X } from "lucide-react";
+import { CarTaxiFront, Plus, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -297,7 +297,7 @@ export default function Tvde() {
             <h3 className={styles.subtitulo}>Semanas</h3>
             <div className={styles.cabecalhoAcoes}>
               <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
-                + Semana atual ({semanaAtualN})
+                <Plus size={15} aria-hidden /> Semana atual ({semanaAtualN})
               </button>
               <button
                 className={styles.adicionar}

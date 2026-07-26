@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Target, X } from "lucide-react";
+import { createElement, useState, type FormEvent } from "react";
+import { Check, Plus, Target, X, XCircle } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -102,10 +102,14 @@ export default function Metas() {
     }
   }
 
+  // Mês fechado é veredicto (ícone + palavra); mês em curso é situação
+  // provisória, só palavra — a distinção já existia no texto, agora fica
+  // visível no glifo, com ícone do lucide em vez de ✓/✗ tipográficos.
+  const badgeIcone = meta.fechado ? (meta.atingiu ? Check : XCircle) : null;
   const badgeTexto = meta.fechado
     ? meta.atingiu
-      ? "✓ Atingido"
-      : "✗ Não atingido"
+      ? "Atingido"
+      : "Não atingido"
     : meta.atingiu
       ? "Na meta"
       : "Fora da meta";
@@ -131,6 +135,7 @@ export default function Metas() {
         <div className={styles.cardMetaTopo}>
           <p className={styles.cardMetaTitulo}>Meta — {rotuloMes(real)}</p>
           <span className={`${styles.badge} ${meta.atingiu ? styles.badgeOk : styles.badgeAlerta}`}>
+            {badgeIcone && createElement(badgeIcone, { size: 13, "aria-hidden": true })}
             {badgeTexto}
           </span>
         </div>
@@ -175,7 +180,7 @@ export default function Metas() {
             `— ${formatMoney(fundosAtual, cfg.currency)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, cfg.currency)}` : ""}`}
         </h3>
         <button className={styles.adicionar} onClick={() => setNovoAberto(true)}>
-          + Novo fundo
+          <Plus size={15} aria-hidden /> Novo fundo
         </button>
       </div>
 

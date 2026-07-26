@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowLeftRight, TrendingDown } from "lucide-react";
+import { ArrowLeftRight, Plus, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
@@ -375,9 +375,9 @@ export default function Despesas() {
       {aba === "fixas" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Despesas fixas</p>
+            <h3 className={styles.tituloSecao}>Despesas fixas</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
-              + Adicionar despesa fixa
+              <Plus size={15} aria-hidden /> Adicionar despesa fixa
             </button>
           </div>
 
@@ -431,9 +431,9 @@ export default function Despesas() {
       {aba === "transferencias" && (
         <>
           <div className={styles.cabecalhoLista}>
-            <p className={styles.tituloSecao}>Transferências entre contas</p>
+            <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
             <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
-              + Adicionar transferência
+              <Plus size={15} aria-hidden /> Adicionar transferência
             </button>
           </div>
 
