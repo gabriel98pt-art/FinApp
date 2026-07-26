@@ -80,6 +80,15 @@ export default function Veiculo() {
       ? naSemana(dados.cargas, semanaAtual)
       : dados.cargas.filter((c) => mesDe(c.data) === mes);
 
+  // Todas as abas mostram só o mês do seletor no topo — inclusive Km: o
+  // registo de km é incremental (o KPI "Km no mês" SOMA os do mês), não uma
+  // leitura de odômetro acumulada, então é uma entrada do mês como qualquer
+  // outra. Ver o histórico completo = trocar de mês no topo.
+  const cargasDoMesLista = dados.cargas.filter((c) => mesDe(c.data) === mes);
+  const despesasVisiveis = dados.despesas.filter((d) => mesDe(d.data) === mes);
+  const kmVisiveis = dados.quilometragem.filter((k) => mesDe(k.data) === mes);
+  const fixasVisiveis = dados.despesasFixas.filter((f) => fixaAtivaNoMes(f, mes));
+
   // ---- caixa de quilometragem (criar/editar — itens 2, 5, 7) ----
   const [kmAberta, setKmAberta] = useState(false);
   const [kmEditandoId, setKmEditandoId] = useState<Id | null>(null);
@@ -375,16 +384,19 @@ export default function Veiculo() {
 
       {aba === "resumo" && (
         <div className={styles.lista}>
-          {dados.cargas.length === 0 && dados.despesas.length === 0 && carregado ? (
+          {cargasDoMesLista.length === 0 && despesasVisiveis.length === 0 && carregado ? (
             <EstadoVazio
               Icone={Car}
-              mensagem="Nenhum registo do veículo ainda"
+              mensagem={
+                dados.cargas.length === 0 && dados.despesas.length === 0
+                  ? "Nenhum registo do veículo ainda"
+                  : `Nenhum registo do veículo em ${rotuloMes(mes)}`
+              }
               sub="Use as abas acima para registar km, carregamentos e despesas."
             />
           ) : (
             <>
-              {[...dados.cargas]
-                .filter((c) => mesDe(c.data) === mes)
+              {[...cargasDoMesLista]
                 .sort((a, b) => (a.data < b.data ? 1 : -1))
                 .map((c) => (
                   <div key={c.id} className={styles.item}>
@@ -399,8 +411,7 @@ export default function Veiculo() {
                     </button>
                   </div>
                 ))}
-              {[...dados.despesas]
-                .filter((d) => mesDe(d.data) === mes)
+              {[...despesasVisiveis]
                 .sort((a, b) => (a.data < b.data ? 1 : -1))
                 .map((d) => (
                   <div key={d.id} className={styles.item}>
@@ -494,10 +505,10 @@ export default function Veiculo() {
           </div>
 
           <div className={styles.lista}>
-            {dados.despesas.length === 0 ? (
-              <p className={styles.vazio}>Nenhuma despesa do veículo ainda.</p>
+            {despesasVisiveis.length === 0 ? (
+              <p className={styles.vazio}>Nenhuma despesa do veículo em {rotuloMes(mes)}.</p>
             ) : (
-              [...dados.despesas]
+              [...despesasVisiveis]
                 .sort((a, b) => (a.data < b.data ? 1 : -1))
                 .map((d) => (
                   <div key={d.id} className={styles.item}>
@@ -528,41 +539,37 @@ export default function Veiculo() {
           </div>
 
           <div className={styles.lista}>
-            {dados.despesasFixas.length === 0 ? (
-              <p className={styles.vazio}>Nenhuma despesa fixa do veículo ainda.</p>
+            {fixasVisiveis.length === 0 ? (
+              <p className={styles.vazio}>Nenhuma despesa fixa do veículo em {rotuloMes(mes)}.</p>
             ) : (
-              dados.despesasFixas
-                .filter((f) => fixaAtivaNoMes(f, mes))
-                .map((f) => {
-                  const paga = !!f.pagoPorMes[mes];
-                  return (
-                    <div key={f.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{f.descricao}</span>
-                          <span className={styles.itemDetalhe}>
-                            {f.categoria}
-                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
-                          </span>
+              fixasVisiveis.map((f) => {
+                const paga = !!f.pagoPorMes[mes];
+                return (
+                  <div key={f.id} className={styles.item}>
+                    <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
+                      <span className={styles.itemTexto}>
+                        <span className={styles.itemNome}>{f.descricao}</span>
+                        <span className={styles.itemDetalhe}>
+                          {f.categoria}
+                          {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
                         </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(f.valor, cfg.currency)}
-                        </span>
-                      </button>
-                      <button
-                        className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                        onClick={() =>
-                          void agir(
-                            () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
-                            paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
-                          )
-                        }
-                      >
-                        {paga ? "Pago" : "Pendente"}
-                      </button>
-                    </div>
-                  );
-                })
+                      </span>
+                      <span className={styles.itemValor}>{formatMoney(f.valor, cfg.currency)}</span>
+                    </button>
+                    <button
+                      className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                      onClick={() =>
+                        void agir(
+                          () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
+                          paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
+                        )
+                      }
+                    >
+                      {paga ? "Pago" : "Pendente"}
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         </>
@@ -578,10 +585,10 @@ export default function Veiculo() {
           </div>
 
           <div className={styles.lista}>
-            {dados.quilometragem.length === 0 ? (
-              <p className={styles.vazio}>Nenhum registo de km ainda.</p>
+            {kmVisiveis.length === 0 ? (
+              <p className={styles.vazio}>Nenhum registo de km em {rotuloMes(mes)}.</p>
             ) : (
-              [...dados.quilometragem]
+              [...kmVisiveis]
                 .sort((a, b) => (a.data < b.data ? 1 : -1))
                 .map((k) => (
                   <div key={k.id} className={styles.item}>

@@ -56,6 +56,14 @@ export default function Calendario() {
   const [nota, setNota] = useState("");
   const [valorTexto, setValorTexto] = useState("");
 
+  // Trocar de mês no topo fecha o detalhe do dia — senão a folha continua
+  // aberta mostrando um dia que já não está no mês exibido.
+  const [mesDoDia, setMesDoDia] = useState(mes);
+  if (mesDoDia !== mes) {
+    setMesDoDia(mes);
+    if (diaSelecionado) setDiaSelecionado(null);
+  }
+
   const hoje = hojeIso();
   const grid = diasDoGrid(mes);
   const diasComEvento = diasComEventoNoMes(eventos, mes);
