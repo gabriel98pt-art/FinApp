@@ -11,6 +11,14 @@
   --raio-segmento: var(--r-sm);
 }
 
+/* Os campos trazem `flex: 1` para dividir espaço quando estão lado a lado numa
+   linha; aqui na coluna isso os faria esticar em altura e comer o vazio que
+   deve ficar acima das ações. Dentro de .linhaDupla o flex:1 continua valendo,
+   porque ali eles não são filhos diretos do formulário. */
+.form > * {
+  flex: none;
+}
+
 /* 3 tipos (Despesa/Receita/Veículo) numa linha — Veículo abre a sub-escolha */
 .seletorTipo {
   display: grid;
