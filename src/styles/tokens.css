@@ -44,6 +44,11 @@
   --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   --sh-div: 0 1px 6px -3px rgba(0, 0, 0, 0.5);
 
+  /* Redondos (FAB, botão central): sem inset highlight — a linha reta do
+     brilho não acompanha a curva de um círculo. */
+  --sh-round: 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.28);
+  --sh-round-active: 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 8px rgba(0, 0, 0, 0.26);
+
   /* Componentes RGB dos acentos, para sombras/brilhos com alpha */
   --blu-rgb: 0, 217, 181;
   --grn-rgb: 74, 222, 128;
@@ -80,6 +85,9 @@
   --sh: 0 4px 20px rgba(0, 0, 0, 0.07);
   --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --sh-div: 0 1px 6px -3px rgba(20, 23, 32, 0.16);
+
+  --sh-round: 0 2px 6px rgba(20, 23, 32, 0.08), 0 8px 20px rgba(20, 23, 32, 0.1);
+  --sh-round-active: 0 1px 3px rgba(20, 23, 32, 0.08), 0 3px 8px rgba(20, 23, 32, 0.09);
 
   --blu-rgb: 11, 122, 102;
   --grn-rgb: 21, 128, 61;

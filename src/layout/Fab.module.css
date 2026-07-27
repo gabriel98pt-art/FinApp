@@ -16,12 +16,15 @@
     place-items: center;
     background: var(--blu);
     color: var(--bg);
-    box-shadow: var(--sh-card);
-    transition: transform var(--dur-fast) var(--ease-spring);
+    box-shadow: var(--sh-round);
+    transition:
+      transform var(--dur-fast) var(--ease-spring),
+      box-shadow var(--dur-fast) var(--ease-spring);
   }
 
   .fab:active {
     transform: scale(0.92);
+    box-shadow: var(--sh-round-active);
     animation: none;
   }
 }
