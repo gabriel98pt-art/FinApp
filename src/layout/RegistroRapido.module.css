@@ -2,6 +2,13 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+
+  /* Arredondamento maior SÓ nesta folha: variáveis locais em vez de mexer nos
+     tokens globais, para não afetar o SeletorCategoria/SeletorData usados em
+     outras telas. O container fica em --r-card e o segmento de dentro um passo
+     abaixo, para os cantos aninharem. */
+  --raio-campo: var(--r-card);
+  --raio-segmento: var(--r-sm);
 }
 
 /* 4 tipos (Despesa/Receita/Carga/Desp. veículo) em duas linhas — item 3/6 */
@@ -10,13 +17,13 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   background: var(--s2);
-  border-radius: var(--r-sm);
+  border-radius: var(--raio-campo);
   padding: 4px;
 }
 
 .tipo {
   padding: 9px;
-  border-radius: var(--r-xs);
+  border-radius: var(--raio-segmento);
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--mut);
@@ -54,7 +61,7 @@
 .campo select {
   background: var(--s2);
   border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
+  border-radius: var(--raio-campo);
   padding: 10px 12px;
   color: var(--txt);
   font-size: 1rem;
@@ -93,7 +100,7 @@
   background: var(--blu);
   color: var(--bg);
   font-weight: 700;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-sheet); /* o mesmo raio da própria folha */
   padding: 12px;
   font-size: 1rem;
 }
@@ -122,8 +129,8 @@
   color: var(--mut);
   font-size: 0.82rem;
   font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 9px 12px;
+  border-radius: var(--r-pill);
+  padding: 9px 14px;
   white-space: nowrap;
 }
 
@@ -143,7 +150,7 @@
   color: var(--mut);
   font-size: 0.85rem;
   font-weight: 700;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   padding: 9px 14px;
 }
 
@@ -162,8 +169,10 @@
   color: var(--mut);
 }
 
+/* Fica na mesma fileira dos chips 2x/3x/6x — acompanha o raio deles. */
 .numParcelas {
   width: 74px;
   flex: none;
   text-align: center;
+  border-radius: var(--r-pill);
 }

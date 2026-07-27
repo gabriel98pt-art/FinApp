@@ -19,7 +19,9 @@
   width: 100%;
   background: var(--s2);
   border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
+  /* --raio-campo é herdado de quem embute o seletor (hoje só o Registro
+     Rápido o redefine); nas demais telas vale o raio padrão. */
+  border-radius: var(--raio-campo, var(--r-sm));
   padding: 8px 12px;
   min-height: 44px;
   color: var(--txt);
