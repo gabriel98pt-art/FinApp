@@ -108,5 +108,20 @@
    o ganho vem da margem menor no topo. */
 .folhaGrande {
   width: min(100vw, 576px);
-  max-height: calc(100dvh - 38px);
+  /* Altura FIXA, não teto: com max-height a altura vinha do conteúdo e a
+     folha encolhia/crescia a cada troca de tipo. */
+  height: calc(100dvh - 38px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* O conteúdo (o formulário) toma a altura que sobra, para poder ancorar o
+   botão de ação embaixo. `1 0 auto`: cresce até preencher, mas nunca encolhe
+   abaixo do próprio conteúdo — aí quem rola é a folha, como antes. */
+.folhaGrande > * {
+  flex: 0 0 auto;
+}
+
+.folhaGrande > :last-child {
+  flex: 1 0 auto;
 }

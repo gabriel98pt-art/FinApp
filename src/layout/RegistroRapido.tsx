@@ -376,15 +376,17 @@ export default function RegistroRapido() {
           </p>
         )}
 
-        <button type="submit" className={styles.salvar} disabled={salvando}>
-          {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Adicionar"}
-        </button>
-
-        {editando && (
-          <button type="button" className={styles.excluir} onClick={excluir} disabled={salvando}>
-            Excluir lançamento
+        <div className={styles.acoes}>
+          <button type="submit" className={styles.salvar} disabled={salvando}>
+            {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Adicionar"}
           </button>
-        )}
+
+          {editando && (
+            <button type="button" className={styles.excluir} onClick={excluir} disabled={salvando}>
+              Excluir lançamento
+            </button>
+          )}
+        </div>
       </form>
     </BottomSheet>
   );

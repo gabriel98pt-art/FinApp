@@ -79,6 +79,16 @@
   text-align: center;
 }
 
+/* A folha tem altura fixa: os campos ficam ancorados no topo e as ações
+   descem para o rodapé, para a silhueta ser a mesma em qualquer tipo. */
+.acoes {
+  margin-top: auto;
+  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .salvar {
   background: var(--blu);
   color: var(--bg);
