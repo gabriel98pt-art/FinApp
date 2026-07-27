@@ -11,10 +11,10 @@
   --raio-segmento: var(--r-sm);
 }
 
-/* 4 tipos (Despesa/Receita/Carga/Desp. veículo) em duas linhas — item 3/6 */
+/* 3 tipos (Despesa/Receita/Veículo) numa linha — Veículo abre a sub-escolha */
 .seletorTipo {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   background: var(--s2);
   border-radius: var(--raio-campo);
@@ -45,6 +45,39 @@
 .tipoAtivoVeiculo {
   background: var(--pur);
   color: var(--bg);
+}
+
+/* Sub-escolha de Veículo (Carga/Despesa): segmentado menor, mesmo desenho dos
+   atalhos do SeletorData — subordinado ao seletor de tipo, não concorrente. */
+.subTipos {
+  display: flex;
+  gap: 6px;
+  align-self: flex-start;
+  background: var(--s2);
+  border-radius: var(--raio-campo);
+  padding: 4px;
+  margin-top: -6px; /* encosta no seletor de tipo, de quem depende */
+}
+
+.subTipo {
+  padding: 7px 16px;
+  border-radius: var(--raio-segmento);
+  color: var(--mut);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.subTipo:hover {
+  color: var(--txt);
+}
+
+.subTipoAtivo {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
 }
 
 .campo {

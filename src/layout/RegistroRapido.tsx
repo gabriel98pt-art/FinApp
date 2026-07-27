@@ -22,11 +22,24 @@ import { hojeIso, mesDe } from "../utils/calculos";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./RegistroRapido.module.css";
 
-const TIPOS: { valor: TipoRegistro; rotulo: string; classeAtiva: keyof typeof styles }[] = [
+/** Três escolhas de primeiro nível. "Veículo" não é um `TipoRegistro`: é o
+ *  guarda-chuva de carga + despesa do veículo, que se resolve na sub-escolha
+ *  logo abaixo. Ao entrar em Veículo cai sempre em Carga — como o tipo já
+ *  guarda qual sub-escolha está ativa, sair e voltar reinicia sozinho, sem um
+ *  segundo estado para manter em sincronia. */
+const TIPOS: {
+  valor: TipoRegistro | "veiculo";
+  rotulo: string;
+  classeAtiva: keyof typeof styles;
+}[] = [
   { valor: "despesa", rotulo: "Despesa", classeAtiva: "tipoAtivoDespesa" },
   { valor: "receita", rotulo: "Receita", classeAtiva: "tipoAtivoReceita" },
-  { valor: "carga", rotulo: "Carga", classeAtiva: "tipoAtivoVeiculo" },
-  { valor: "despesaVeiculo", rotulo: "Desp. veículo", classeAtiva: "tipoAtivoVeiculo" },
+  { valor: "veiculo", rotulo: "Veículo", classeAtiva: "tipoAtivoVeiculo" },
+];
+
+const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
+  { valor: "carga", rotulo: "Carga" },
+  { valor: "despesaVeiculo", rotulo: "Despesa" },
 ];
 
 /** Bottom sheet de registro rápido: lança (ou edita) receita/despesa, e lança
@@ -233,20 +246,42 @@ export default function RegistroRapido() {
     >
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (
-          <div className={styles.seletorTipo} role="radiogroup" aria-label="Tipo de lançamento">
-            {TIPOS.map((t) => (
-              <button
-                key={t.valor}
-                type="button"
-                role="radio"
-                aria-checked={tipo === t.valor}
-                className={`${styles.tipo} ${tipo === t.valor ? styles[t.classeAtiva] : ""}`}
-                onClick={() => abrirRegistro(t.valor)}
-              >
-                {t.rotulo}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className={styles.seletorTipo} role="radiogroup" aria-label="Tipo de lançamento">
+              {TIPOS.map((t) => {
+                const ativo = t.valor === "veiculo" ? ehVeiculo : tipo === t.valor;
+                return (
+                  <button
+                    key={t.valor}
+                    type="button"
+                    role="radio"
+                    aria-checked={ativo}
+                    className={`${styles.tipo} ${ativo ? styles[t.classeAtiva] : ""}`}
+                    onClick={() => abrirRegistro(t.valor === "veiculo" ? "carga" : t.valor)}
+                  >
+                    {t.rotulo}
+                  </button>
+                );
+              })}
+            </div>
+
+            {ehVeiculo && (
+              <div className={styles.subTipos} role="radiogroup" aria-label="Lançamento do veículo">
+                {SUB_VEICULO.map((s) => (
+                  <button
+                    key={s.valor}
+                    type="button"
+                    role="radio"
+                    aria-checked={tipo === s.valor}
+                    className={`${styles.subTipo} ${tipo === s.valor ? styles.subTipoAtivo : ""}`}
+                    onClick={() => abrirRegistro(s.valor)}
+                  >
+                    {s.rotulo}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <label className={styles.campo}>
