@@ -56,6 +56,7 @@ export default function RegistroRapido() {
   const cfg = useCfgStore((s) => s.cfg);
 
   const [descricao, setDescricao] = useState("");
+  const [nota, setNota] = useState("");
   const [valorTexto, setValorTexto] = useState("");
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
@@ -89,12 +90,14 @@ export default function RegistroRapido() {
       setErro(null);
       if (editando) {
         setDescricao(editando.descricao);
+        setNota(editando.nota ?? "");
         setValorTexto(formatCents(editando.valor));
         setData(editando.data);
         setEtiqueta("fonte" in editando ? editando.fonte : editando.categoria);
         setConta(("fonte" in editando ? editando.conta : editando.contaCartao) ?? "");
       } else {
         setDescricao("");
+        setNota("");
         setValorTexto("");
         setData(hojeIso());
         setEtiqueta("");
@@ -108,6 +111,7 @@ export default function RegistroRapido() {
       // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
       setKwh("");
+      setNota("");
       setParcelada(false);
     }
   }
@@ -133,6 +137,7 @@ export default function RegistroRapido() {
     // `opcoes[opcoes.length - 1]` passava a mandar o lançamento pra última
     // categoria que o usuário tinha criado.
     const etiquetaFinal = etiqueta || opcoes.find((o) => o === "Outros") || opcoes[0] || "Outros";
+    const notaFinal = nota.trim() || undefined;
 
     setSalvando(true);
     try {
@@ -155,6 +160,7 @@ export default function RegistroRapido() {
           custo: valor,
           precoKwh: Math.round(valor / kwhNum),
           local,
+          nota: notaFinal,
         });
         if (!cfg.locaisCarregamento.includes(local)) {
           await adicionarItemLista(uid, cfg, "locaisCarregamento", local).catch(() => null);
@@ -164,7 +170,7 @@ export default function RegistroRapido() {
           data,
           valor,
           categoria: etiquetaFinal,
-          nota: descricao.trim() || undefined,
+          nota: notaFinal,
         });
       } else if (tipo === "despesa" && parcelada && !editando) {
         // Valor preenchido = total DA COMPRA; a divisão por mês é da Parcela.
@@ -183,9 +189,17 @@ export default function RegistroRapido() {
           cartao: conta || null,
           autoDebit: !!conta && cfg.tipoCartao[conta] === "credit",
           pagoPorMes: {},
+          nota: notaFinal,
         });
       } else if (tipo === "receita") {
-        const dados = { descricao, valor, data, fonte: etiquetaFinal, conta: conta || undefined };
+        const dados = {
+          descricao,
+          valor,
+          data,
+          fonte: etiquetaFinal,
+          conta: conta || undefined,
+          nota: notaFinal,
+        };
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
         else await criarReceita(uid, dados);
       } else {
@@ -195,6 +209,7 @@ export default function RegistroRapido() {
           data,
           categoria: etiquetaFinal,
           contaCartao: conta || undefined,
+          nota: notaFinal,
         };
         if (editando) await atualizarDespesa(uid, { ...editando, ...dados });
         else await criarDespesa(uid, dados);
@@ -284,16 +299,33 @@ export default function RegistroRapido() {
           </>
         )}
 
-        <label className={styles.campo}>
-          {tipo === "carga" ? "Local" : tipo === "despesaVeiculo" ? "Descrição" : "Descrição"}
-          <input
-            type="text"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            required={tipo !== "despesaVeiculo"}
-            maxLength={80}
-          />
-        </label>
+        {/* Nome + Nota lado a lado. A despesa do veículo não tem nome próprio
+            no modelo de dados (só categoria + nota), então ali a Nota ocupa a
+            linha inteira. */}
+        <div className={styles.linhaDupla}>
+          {tipo !== "despesaVeiculo" && (
+            <label className={styles.campo}>
+              {tipo === "carga" ? "Local" : "Nome"}
+              <input
+                type="text"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                required
+                maxLength={80}
+              />
+            </label>
+          )}
+
+          <label className={styles.campo}>
+            Nota
+            <input
+              type="text"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              maxLength={120}
+            />
+          </label>
+        </div>
 
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
