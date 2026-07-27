@@ -6,6 +6,7 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
+import SeletorLocal from "../components/SeletorLocal";
 import SeletorSemana from "../components/SeletorSemana";
 import {
   alternarPagoFixaVeiculo,
@@ -22,7 +23,7 @@ import {
   removerFixaVeiculo,
   removerKm,
 } from "../services/veiculoService";
-import { adicionarItemLista } from "../services/cfgService";
+import { adicionarItemLista, removerItemLista } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -191,7 +192,7 @@ export default function Veiculo() {
       custo = Math.round(kwh * p);
     }
     const local = cgLocal.trim();
-    if (!local) return mostrarToast("Informe o local.");
+    if (!local) return mostrarToast("Escolha o local.");
     const dados_ = {
       data: cgData,
       kwh,
@@ -209,12 +210,35 @@ export default function Veiculo() {
         await criarCarga(uid!, dados_);
         mostrarToast("✓ Carregamento registado");
       }
-      if (!cfg.locaisCarregamento.includes(local)) {
-        await adicionarItemLista(uid!, cfg, "locaisCarregamento", local).catch(() => null);
-      }
       setCgAberta(false);
     } catch {
       mostrarToast("Não foi possível salvar.");
+    }
+  }
+
+  // ---- gestão dos locais de carregamento (mesmo padrão de Cartões) ----
+  const [novoLocal, setNovoLocal] = useState("");
+
+  async function adicionarLocal(e: FormEvent) {
+    e.preventDefault();
+    const nome = novoLocal.trim();
+    if (!nome) return mostrarToast("Escreva um nome primeiro.");
+    try {
+      await adicionarItemLista(uid!, cfg, "locaisCarregamento", nome);
+      mostrarToast(`✓ "${nome}" adicionado`);
+      setNovoLocal("");
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+    }
+  }
+
+  async function removerLocal(nome: string) {
+    if (!window.confirm(`Remover "${nome}"? Carregamentos já registados não mudam.`)) return;
+    try {
+      await removerItemLista(uid!, cfg, "locaisCarregamento", nome);
+      mostrarToast(`"${nome}" removido`);
+    } catch {
+      mostrarToast("Não foi possível remover.");
     }
   }
 
@@ -500,6 +524,40 @@ export default function Veiculo() {
                 ))
             )}
           </div>
+
+          {/* Os locais são escolhidos por chip no formulário de carga — a lista
+              vive aqui, junto de quem a usa, e não em Definições. */}
+          <form className={styles.gerir} onSubmit={adicionarLocal}>
+            <p className={styles.gerirTitulo}>Locais de carregamento</p>
+            {cfg.locaisCarregamento.length > 0 && (
+              <ul className={styles.chips}>
+                {cfg.locaisCarregamento.map((l) => (
+                  <li key={l} className={styles.chip}>
+                    {l}
+                    <button
+                      type="button"
+                      className={styles.chipRemover}
+                      aria-label={`Remover ${l}`}
+                      onClick={() => void removerLocal(l)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className={styles.gerirLinha}>
+              <input
+                placeholder="Nome (ex. Galp Matosinhos)"
+                aria-label="Nome do local de carregamento"
+                value={novoLocal}
+                onChange={(e) => setNovoLocal(e.target.value)}
+              />
+              <button type="submit" className={styles.gerirBotao}>
+                Adicionar
+              </button>
+            </div>
+          </form>
         </>
       )}
 
@@ -672,26 +730,11 @@ export default function Veiculo() {
               />
             </label>
           )}
-          <div className={styles.linhaDupla}>
-            <label className={styles.campo}>
-              Local
-              <input
-                list="locais-carregamento"
-                value={cgLocal}
-                onChange={(e) => setCgLocal(e.target.value)}
-                required
-              />
-              <datalist id="locais-carregamento">
-                {cfg.locaisCarregamento.map((l) => (
-                  <option key={l} value={l} />
-                ))}
-              </datalist>
-            </label>
-            <label className={styles.campo}>
-              Sessão (opcional)
-              <input value={cgSessao} onChange={(e) => setCgSessao(e.target.value)} />
-            </label>
-          </div>
+          <SeletorLocal valor={cgLocal} opcoes={cfg.locaisCarregamento} aoMudar={setCgLocal} />
+          <label className={styles.campo}>
+            Sessão (opcional)
+            <input value={cgSessao} onChange={(e) => setCgSessao(e.target.value)} />
+          </label>
           <label className={styles.campo}>
             Descrição (opcional)
             <input value={cgNota} onChange={(e) => setCgNota(e.target.value)} />

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import BottomSheet from "../components/BottomSheet";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
+import SeletorLocal from "../components/SeletorLocal";
 import {
   atualizarDespesa,
   atualizarReceita,
@@ -12,7 +13,6 @@ import {
 } from "../services/lancamentosService";
 import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
 import { criarParcela } from "../services/parcelasService";
-import { adicionarItemLista } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -150,7 +150,7 @@ export default function RegistroRapido() {
         }
         const local = descricao.trim();
         if (!local) {
-          setErro("Informe o local do carregamento.");
+          setErro("Escolha o local do carregamento.");
           setSalvando(false);
           return;
         }
@@ -162,9 +162,6 @@ export default function RegistroRapido() {
           local,
           nota: notaFinal,
         });
-        if (!cfg.locaisCarregamento.includes(local)) {
-          await adicionarItemLista(uid, cfg, "locaisCarregamento", local).catch(() => null);
-        }
       } else if (tipo === "despesaVeiculo") {
         await criarDespesaVeiculo(uid, {
           data,
@@ -302,10 +299,14 @@ export default function RegistroRapido() {
         {/* Nome + Nota lado a lado. A despesa do veículo não tem nome próprio
             no modelo de dados (só categoria + nota), então ali a Nota ocupa a
             linha inteira. */}
+        {tipo === "carga" && (
+          <SeletorLocal valor={descricao} opcoes={cfg.locaisCarregamento} aoMudar={setDescricao} />
+        )}
+
         <div className={styles.linhaDupla}>
-          {tipo !== "despesaVeiculo" && (
+          {tipo !== "despesaVeiculo" && tipo !== "carga" && (
             <label className={styles.campo}>
-              {tipo === "carga" ? "Local" : "Nome"}
+              Nome
               <input
                 type="text"
                 value={descricao}
