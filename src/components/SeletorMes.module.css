@@ -39,20 +39,27 @@
   max-width: 100%;
 }
 
+/* No header o espaço é disputado com o logo e as 3 ações: a 375px, "setembro
+   2026" só cabe inteiro com o seletor apertado assim. Fora do header (o
+   SeletorSemana e qualquer uso futuro) nada disto se aplica. */
+.compacto {
+  gap: 0;
+}
+
 .compacto .rotulo {
   min-width: 0;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* No header o espaço é curto: sem isto o padding do gatilho fazia "agosto
-     2026" truncar em telemóvel. */
   padding-inline: 2px;
 }
 
+/* Estreita para o mês caber, mas alta: a altura não disputa espaço com o
+   rótulo e mantém o alvo de toque decente. */
 .compacto .seta {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 36px;
   flex: none;
 }
 

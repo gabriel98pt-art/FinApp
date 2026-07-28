@@ -1,29 +1,35 @@
+/* Grid de 3 colunas em vez de space-between: com flex, o mês só se centrava
+   no espaço que sobrava entre o logo e as ações, e como essas duas pontas têm
+   larguras diferentes ele ficava puxado pra esquerda. Aqui as colunas 1 e 3
+   dividem o resto em partes iguais, então o meio é o meio do header. */
 .header {
   position: sticky;
   top: 0;
   z-index: 30;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 10px 16px;
   border-left: none;
   border-right: none;
   border-top: none;
 }
 
-/* Seletor de mês fixo no header (item 1): centrado entre o logo e as ações,
-   com min-width 0 pra que num telemóvel estreito ele encolha em vez de
-   empurrar o logo pra fora. */
+/* Seletor de mês fixo no header (item 1). O min-width 0 (e o minmax na coluna)
+   é pra que num telemóvel estreito ele encolha em vez de empurrar o logo. */
 .mes {
   display: flex;
   justify-content: center;
-  flex: 1;
   min-width: 0;
-  padding: 0 8px;
+  /* Folga curta: com o grid as colunas laterais já separam o mês do logo e
+     das ações, e a 375px cada pixel aqui é rótulo que deixa de cortar. */
+  padding: 0 2px;
 }
 
+/* Colunas explícitas: o mês só é renderizado nas rotas que navegam por mês, e
+   sem isto as ações saltariam pro meio nas outras telas. */
 .logo {
-  flex: none;
+  grid-column: 1;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -34,8 +40,10 @@
 }
 
 .acoes {
+  grid-column: 3;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 2px;
 }
 
