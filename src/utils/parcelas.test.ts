@@ -6,6 +6,7 @@ import {
   mesesNaoPagos,
   parcelaQuitada,
   progressoDaParcela,
+  totalDaCompra,
   totalParcelasGeral,
   valorDaParcela,
   valorQuitacao,
@@ -114,5 +115,25 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
 
   test("nada pago → 0", () => {
     expect(totalParcelasGeral([parcela()])).toBe(0);
+  });
+});
+
+describe("totalDaCompra — os dois modos do Registro Rápido", () => {
+  test("modo total: o valor informado é o total, tal e qual", () => {
+    expect(totalDaCompra(5599, 3, "total")).toBe(5599);
+  });
+
+  test("modo parcela: multiplica, e a divisão de volta é exata (sem resto)", () => {
+    const total = totalDaCompra(1866, 3, "parcela");
+    expect(total).toBe(5598);
+    const p = parcela({ total, numParcelas: 3 });
+    const meses = mesesDaParcela(p);
+    expect(meses.map((m) => valorDaParcela(p, m))).toEqual([1866, 1866, 1866]);
+  });
+
+  test("no modo total com resto, as primeiras parcelas é que ficam com o centavo", () => {
+    const p = parcela({ total: totalDaCompra(5599, 3, "total"), numParcelas: 3 });
+    const meses = mesesDaParcela(p);
+    expect(meses.map((m) => valorDaParcela(p, m))).toEqual([1867, 1866, 1866]);
   });
 });

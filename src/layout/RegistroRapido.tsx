@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
+import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
 import SeletorLocal from "../components/SeletorLocal";
@@ -19,6 +21,7 @@ import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { hojeIso, mesDe } from "../utils/calculos";
+import { totalDaCompra } from "../utils/parcelas";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./RegistroRapido.module.css";
 
@@ -36,6 +39,9 @@ const TIPOS: {
   { valor: "receita", rotulo: "Receita", classeAtiva: "tipoAtivoReceita" },
   { valor: "veiculo", rotulo: "Veículo", classeAtiva: "tipoAtivoVeiculo" },
 ];
+
+/** Escape dos botões rápidos 3x/6x/9x/12x — cobre de 2x a 36x (3 anos). */
+const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => String(i + 2));
 
 const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
   { valor: "carga", rotulo: "Carga" },
@@ -65,6 +71,14 @@ export default function RegistroRapido() {
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
+  // Folha aninhada do parcelamento (os campos dela ficavam dentro desta folha
+  // e forçavam rolagem, já que a altura agora é fixa).
+  const [folhaParcelamento, setFolhaParcelamento] = useState(false);
+  // "Sei o valor total" (padrão) ou "Sei o valor da parcela".
+  const [modoValorParcela, setModoValorParcela] = useState<"total" | "parcela">("total");
+  // Débito automático: sugerido pelo tipo do cartão, mas o usuário decide.
+  // `null` = ainda não mexeu, então continua a seguir a sugestão.
+  const [autoDebitEscolhido, setAutoDebitEscolhido] = useState<boolean | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -105,6 +119,9 @@ export default function RegistroRapido() {
         setKwh("");
         setParcelada(false);
         setNumParcelas("3");
+        setFolhaParcelamento(false);
+        setModoValorParcela("total");
+        setAutoDebitEscolhido(null);
       }
     } else if (assinatura === "novo") {
       // Trocou de tipo num lançamento novo: a fonte/categoria não se traduz
@@ -113,8 +130,15 @@ export default function RegistroRapido() {
       setKwh("");
       setNota("");
       setParcelada(false);
+      setFolhaParcelamento(false);
     }
   }
+
+  // Sugestão de débito automático: crédito entra na fatura, débito não. Vale
+  // até o usuário tocar no interruptor.
+  const autoDebitSugerido = !!conta && cfg.tipoCartao[conta] === "credit";
+  const autoDebit = autoDebitEscolhido ?? autoDebitSugerido;
+  const ehParcelada = tipo === "despesa" && parcelada && !editando;
 
   const opcoes =
     tipo === "receita"
@@ -178,8 +202,7 @@ export default function RegistroRapido() {
           contaCartao: conta || undefined,
           nota: notaFinal,
         });
-      } else if (tipo === "despesa" && parcelada && !editando) {
-        // Valor preenchido = total DA COMPRA; a divisão por mês é da Parcela.
+      } else if (ehParcelada) {
         const n = parseInt(numParcelas, 10);
         if (!Number.isInteger(n) || n < 2) {
           setErro("Escolha em quantas parcelas — pelo menos 2.");
@@ -188,12 +211,12 @@ export default function RegistroRapido() {
         }
         await criarParcela(uid, {
           descricao,
-          total: valor,
+          total: totalDaCompra(valor, n, modoValorParcela),
           numParcelas: n,
           primeiroMes: mesDe(data),
           categoria: etiquetaFinal,
           cartao: conta || null,
-          autoDebit: !!conta && cfg.tipoCartao[conta] === "credit",
+          autoDebit,
           pagoPorMes: {},
           nota: notaFinal,
         });
@@ -337,18 +360,22 @@ export default function RegistroRapido() {
           </label>
         </div>
 
+        {/* Numa despesa parcelada o valor vive só dentro da folha de
+            Parcelamento — ter os dois seria pedir o mesmo número duas vezes. */}
         <div className={styles.linhaDupla}>
-          <label className={styles.campo}>
-            {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
-            <input
-              type="text"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={valorTexto}
-              onChange={(e) => setValorTexto(e.target.value)}
-              required
-            />
-          </label>
+          {!ehParcelada && (
+            <label className={styles.campo}>
+              {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="0,00"
+                value={valorTexto}
+                onChange={(e) => setValorTexto(e.target.value)}
+                required
+              />
+            </label>
+          )}
 
           {tipo === "carga" && (
             <label className={styles.campo}>
@@ -395,44 +422,34 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {/* item 24: um toque transforma a despesa numa compra parcelada */}
+        {/* item 24: um toque transforma a despesa numa compra parcelada. Marcar
+            abre a folha do parcelamento; desmarcar volta à despesa simples. */}
         {tipo === "despesa" && !editando && (
           <div className={styles.campo}>
             <button
               type="button"
-              aria-pressed={parcelada}
+              role="checkbox"
+              aria-checked={parcelada}
               className={`${styles.parceladaToggle} ${parcelada ? styles.parceladaAtiva : ""}`}
-              onClick={() => setParcelada(!parcelada)}
+              onClick={() => {
+                const marcando = !parcelada;
+                setParcelada(marcando);
+                setFolhaParcelamento(marcando);
+              }}
             >
+              {parcelada ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
               Parcelada
             </button>
             {parcelada && (
-              <>
-                <span className={styles.parceladaPergunta}>Quantas parcelas?</span>
-                <div className={styles.fileiraContas}>
-                  {[2, 3, 6, 10, 12, 24].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      aria-pressed={numParcelas === String(n)}
-                      className={`${styles.conta} ${numParcelas === String(n) ? styles.contaAtiva : ""}`}
-                      onClick={() => setNumParcelas(String(n))}
-                    >
-                      {n}x
-                    </button>
-                  ))}
-                  <input
-                    className={styles.numParcelas}
-                    inputMode="numeric"
-                    aria-label="Número de parcelas"
-                    value={numParcelas}
-                    onChange={(e) => setNumParcelas(e.target.value)}
-                  />
-                </div>
-                <span className={styles.parceladaNota}>
-                  O valor acima é o TOTAL da compra — a divisão por mês é feita na tela Parcelas.
-                </span>
-              </>
+              <button
+                type="button"
+                className={styles.parceladaResumo}
+                onClick={() => setFolhaParcelamento(true)}
+              >
+                {numParcelas}x ·{" "}
+                {modoValorParcela === "parcela" ? "valor da parcela" : "valor total"}
+                {autoDebit ? " · débito automático" : ""} — tocar para ajustar
+              </button>
             )}
           </div>
         )}
@@ -455,6 +472,94 @@ export default function RegistroRapido() {
           )}
         </div>
       </form>
+
+      {/* Folha do parcelamento — empilhada sobre a do Registro Rápido, como o
+          calendário do SeletorData. Não tem botão de confirmar: os campos estão
+          ligados ao mesmo estado do formulário, então fechar não perde nada. */}
+      <BottomSheet
+        aberta={folhaParcelamento}
+        aoFechar={() => setFolhaParcelamento(false)}
+        titulo="Parcelamento"
+        nivel={1}
+      >
+        <div className={styles.folhaParcelamento}>
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={autoDebit}
+            className={`${styles.marcacao} ${autoDebit ? styles.marcacaoAtiva : ""}`}
+            onClick={() => setAutoDebitEscolhido(!autoDebit)}
+          >
+            {autoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
+            Débito automático — entra na fatura do cartão
+          </button>
+
+          <div className={styles.campo}>
+            <span>Como você sabe o valor</span>
+            <div
+              className={`${styles.seletorTipo} ${styles.alternadorValor}`}
+              role="radiogroup"
+              aria-label="Como você sabe o valor"
+            >
+              {(
+                [
+                  ["total", "Sei o valor total"],
+                  ["parcela", "Sei o valor da parcela"],
+                ] as const
+              ).map(([v, rotulo]) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={modoValorParcela === v}
+                  className={`${styles.tipo} ${modoValorParcela === v ? styles.tipoAtivoDespesa : ""}`}
+                  onClick={() => setModoValorParcela(v)}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className={styles.campo}>
+            {modoValorParcela === "parcela" ? "Valor parcela (€)" : "Valor total (€)"}
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0,00"
+              value={valorTexto}
+              onChange={(e) => setValorTexto(e.target.value)}
+            />
+          </label>
+
+          <div className={styles.campo}>
+            <span>Nº de parcelas</span>
+            <div className={styles.fileiraContas}>
+              {[3, 6, 9, 12].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-pressed={numParcelas === String(n)}
+                  className={`${styles.conta} ${numParcelas === String(n) ? styles.contaAtiva : ""}`}
+                  onClick={() => setNumParcelas(String(n))}
+                >
+                  {n}x
+                </button>
+              ))}
+            </div>
+            <Seletor
+              rotulo="Outro número de parcelas"
+              nivel={2}
+              valor={numParcelas}
+              opcoes={OPCOES_PARCELAS}
+              rotuloOpcao={(n) => `${n}x`}
+              aoMudar={setNumParcelas}
+            />
+          </div>
+
+          <SeletorData valor={data} aoMudar={setData} rotulo="Data 1º pagamento" nivel={2} />
+        </div>
+      </BottomSheet>
     </BottomSheet>
   );
 }

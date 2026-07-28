@@ -184,8 +184,13 @@
   color: var(--bg);
 }
 
-/* Despesa parcelada num toque (item 24) */
-.parceladaToggle {
+/* Despesa parcelada num toque (item 24). Caixa de marcação + texto num só
+   alvo: clicar em qualquer parte marca e abre a folha do parcelamento. */
+.parceladaToggle,
+.marcacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   align-self: flex-start;
   background: var(--s2);
   color: var(--mut);
@@ -193,27 +198,41 @@
   font-weight: 700;
   border-radius: var(--r-pill);
   padding: 9px 14px;
+  text-align: left;
 }
 
-.parceladaAtiva {
+.parceladaAtiva,
+.marcacaoAtiva {
   background: var(--pur);
   color: var(--bg);
 }
 
-.parceladaPergunta {
-  font-size: 0.85rem;
+/* Resumo do que já foi escolhido, e atalho pra reabrir a folha. */
+.parceladaResumo {
+  align-self: flex-start;
   color: var(--mut);
-}
-
-.parceladaNota {
   font-size: 0.75rem;
-  color: var(--mut);
+  text-align: left;
+  padding: 2px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* Fica na mesma fileira dos chips 2x/3x/6x — acompanha o raio deles. */
-.numParcelas {
-  width: 74px;
-  flex: none;
-  text-align: center;
-  border-radius: var(--r-pill);
+.parceladaResumo:hover {
+  color: var(--txt);
+}
+
+.folhaParcelamento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 16px;
+}
+
+/* Reaproveita o seletor de tipo, mas com rótulos bem mais longos ("Sei o valor
+   da parcela") — sem isto quebram em duas linhas e desalinham os dois lados. */
+.alternadorValor button {
+  font-size: 0.8rem;
+  padding-inline: 6px;
+  white-space: nowrap;
 }

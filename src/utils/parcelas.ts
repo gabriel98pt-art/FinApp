@@ -80,6 +80,18 @@ export function debitoMensalDaParcela(p: Parcela): Cents {
   return proximo === undefined ? 0 : valorDaParcela(p, proximo);
 }
 
+/** Total da compra a guardar na Parcela, a partir do que o usuário informou.
+ *  Quem sabe o valor da PARCELA dá o total por multiplicação — exato, sem
+ *  resto, ao contrário do caminho normal, que divide o total em n e distribui
+ *  o resto pelas primeiras (ver `valorBaseDaParcela`). */
+export function totalDaCompra(
+  valorInformado: Cents,
+  numParcelas: number,
+  modo: "total" | "parcela",
+): Cents {
+  return modo === "parcela" ? valorInformado * numParcelas : valorInformado;
+}
+
 /** Soma das parcelas em aberto — o valor de uma quitação antecipada. */
 export function valorQuitacao(p: Parcela): Cents {
   return mesesNaoPagos(p).reduce((s, m) => s + valorDaParcela(p, m), 0);
