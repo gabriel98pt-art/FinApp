@@ -15,6 +15,32 @@
   font-weight: 700;
 }
 
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mut);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+.filtro:hover {
+  background: var(--s2);
+}
+.filtroAtivo {
+  background: var(--s2);
+  color: var(--blu);
+}
+.filtroContagem {
+  background: var(--s3);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+  font-size: 0.72rem;
+}
+
 .adicionar {
   color: var(--blu);
   font-size: 0.85rem;

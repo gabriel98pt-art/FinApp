@@ -8,8 +8,8 @@ import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
 import {
-  compararParcelas,
   ORDENS_PARCELA,
+  parcelasVisiveis,
   ROTULOS_ORDEM_PARCELA,
   type OrdemParcela,
 } from "../utils/ordemParcelas";
@@ -343,6 +343,9 @@ export default function Parcelas() {
   // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 6
   // opções, duas delas só de parcela (ver utils/ordemParcelas.ts).
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
+  // Esconder as já pagas até ao fim: escolha da visita, não uma preferência
+  // guardada — quem quer conferir o histórico volta a mostrar num toque.
+  const [esconderQuitadas, setEsconderQuitadas] = useState(false);
 
   function abrirNova() {
     setEditando(null);
@@ -359,11 +362,7 @@ export default function Parcelas() {
   const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p), 0);
   const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p), 0);
 
-  // Ativas antes das quitadas continua valendo; a ordem escolhida manda
-  // dentro de cada grupo.
-  const comparar = compararParcelas(ordem);
-  const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
-  const visiveis = [...ordenar(ativas), ...ordenar(quitadas)];
+  const visiveis = parcelasVisiveis(parcelas, ordem, esconderQuitadas);
 
   return (
     <Pagina titulo="Parcelas">
@@ -376,6 +375,16 @@ export default function Parcelas() {
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Compras parceladas</h3>
         <div className={styles.acoesCabecalho}>
+          {quitadas.length > 0 && (
+            <button
+              className={`${styles.filtro} ${esconderQuitadas ? styles.filtroAtivo : ""}`}
+              aria-pressed={esconderQuitadas}
+              onClick={() => setEsconderQuitadas(!esconderQuitadas)}
+            >
+              Esconder quitadas
+              <span className={styles.filtroContagem}>{quitadas.length}</span>
+            </button>
+          )}
           {parcelas.length > 1 && (
             <SeletorOrdemFolha
               valor={ordem}

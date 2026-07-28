@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { Parcela } from "../types";
-import { compararParcelas, ORDENS_PARCELA, ROTULOS_ORDEM_PARCELA } from "./ordemParcelas";
+import {
+  compararParcelas,
+  ORDENS_PARCELA,
+  parcelasVisiveis,
+  ROTULOS_ORDEM_PARCELA,
+} from "./ordemParcelas";
 
 function parcela(extra: Partial<Parcela> = {}): Parcela {
   return {
@@ -96,5 +101,68 @@ describe("valorRestante — maior primeiro", () => {
     });
     const aberta = parcela({ id: "aberta" });
     expect(ordenar([quitada, aberta], "valorRestante")).toEqual(["aberta", "quitada"]);
+  });
+});
+
+describe("parcelasVisiveis — a lista como a tela a mostra", () => {
+  // Cenário com meses em aberto espalhados: uma atrasada (janeiro por pagar),
+  // uma com buraco no meio, uma em curso, uma que só começa em setembro, e
+  // duas já quitadas.
+  const atrasada = parcela({ id: "atrasada", primeiroMes: "2026-01", numParcelas: 6 });
+  const buraco = parcela({
+    id: "buraco",
+    primeiroMes: "2026-02",
+    numParcelas: 6,
+    pagoPorMes: { "2026-02": true },
+  });
+  const emCurso = parcela({
+    id: "emCurso",
+    primeiroMes: "2026-05",
+    numParcelas: 5,
+    pagoPorMes: { "2026-05": true, "2026-06": true },
+  });
+  const futura = parcela({ id: "futura", primeiroMes: "2026-09", numParcelas: 4 });
+  const quitadaNova = parcela({
+    id: "quitadaNova",
+    primeiroMes: "2026-01",
+    numParcelas: 3,
+    pagoPorMes: { "2026-01": true, "2026-02": true, "2026-03": true },
+  });
+  const quitadaVelha = parcela({
+    id: "quitadaVelha",
+    primeiroMes: "2025-01",
+    numParcelas: 2,
+    pagoPorMes: { "2025-01": true, "2025-02": true },
+  });
+  const todas = [quitadaNova, futura, atrasada, quitadaVelha, emCurso, buraco];
+
+  test("por próximo vencimento: as não pagas primeiro, da mais atrasada à mais distante", () => {
+    expect(parcelasVisiveis(todas, "proximoVencimento").map((p) => p.id)).toEqual([
+      "atrasada", // 2026-01 por pagar
+      "buraco", // 2026-03
+      "emCurso", // 2026-07
+      "futura", // 2026-09
+      "quitadaNova",
+      "quitadaVelha",
+    ]);
+  });
+
+  test("mesmo com a ordem escolhida às avessas, nenhuma quitada passa à frente de uma em aberto", () => {
+    // "antigas" põe a quitadaVelha (2025-01) em primeiro dentro do seu grupo,
+    // mas o grupo dela continua depois de todas as que têm mês em aberto.
+    const ids = parcelasVisiveis(todas, "antigas").map((p) => p.id);
+    expect(ids.slice(0, 4).sort()).toEqual(["atrasada", "buraco", "emCurso", "futura"]);
+    expect(ids.slice(4)).toEqual(["quitadaVelha", "quitadaNova"]);
+  });
+
+  test("com o filtro ligado, as quitadas somem e a ordem das outras não muda", () => {
+    const comFiltro = parcelasVisiveis(todas, "proximoVencimento", true).map((p) => p.id);
+    expect(comFiltro).toEqual(["atrasada", "buraco", "emCurso", "futura"]);
+  });
+
+  test("não altera o array recebido", () => {
+    const copia = [...todas];
+    parcelasVisiveis(todas, "recentes");
+    expect(todas).toEqual(copia);
   });
 });

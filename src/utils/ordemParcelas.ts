@@ -9,7 +9,7 @@
 
 import type { Parcela } from "../types";
 import { compararPorOrdem, ORDENS, ROTULOS_ORDEM, type Ordem } from "./ordem";
-import { proximoMesEmAberto, valorQuitacao } from "./parcelas";
+import { parcelaQuitada, proximoMesEmAberto, valorQuitacao } from "./parcelas";
 
 export type OrdemParcela = Ordem | "proximoVencimento" | "valorRestante";
 
@@ -43,4 +43,19 @@ export function compararParcelas(ordem: OrdemParcela): (a: Parcela, b: Parcela) 
   const generico = compararPorOrdem<{ data: string; valor: number }>(ordem);
   return (a, b) =>
     generico({ data: a.primeiroMes, valor: a.total }, { data: b.primeiroMes, valor: b.total });
+}
+
+/** A lista como a tela a mostra: as que ainda têm mês em aberto SEMPRE antes
+ *  das quitadas (a ordem escolhida manda dentro de cada grupo), e as quitadas
+ *  fora quando o filtro está ligado. */
+export function parcelasVisiveis(
+  parcelas: Parcela[],
+  ordem: OrdemParcela,
+  esconderQuitadas = false,
+): Parcela[] {
+  const comparar = compararParcelas(ordem);
+  const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
+  const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p)));
+  if (esconderQuitadas) return ativas;
+  return [...ativas, ...ordenar(parcelas.filter(parcelaQuitada))];
 }
