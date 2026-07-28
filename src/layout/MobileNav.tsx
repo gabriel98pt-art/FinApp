@@ -9,6 +9,7 @@ import {
 } from "../constants/abas";
 import { useCfgStore } from "../stores/cfgStore";
 import { useUiStore } from "../stores/uiStore";
+import { estiloBotaoRegistro } from "../utils/corBotaoRegistro";
 import styles from "./MobileNav.module.css";
 
 function ItemAba({ aba, aoNavegar }: { aba: AbaDef; aoNavegar: () => void }) {
@@ -33,8 +34,9 @@ export default function MobileNav() {
   const [maisAberto, setMaisAberto] = useState(false);
   const { pathname } = useLocation();
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const cfg = useCfgStore((s) => s.cfg);
   // TVDE é opt-in por conta (seção 4.4)
-  const showTvde = useCfgStore((s) => s.cfg.showTvde);
+  const showTvde = cfg.showTvde;
 
   const abasMais = ABAS_MENU_MAIS.filter((a) => a.id !== "tvde" || showTvde);
   const maisAtivo = abasMais.some((a) => a.rota === pathname);
@@ -72,6 +74,7 @@ export default function MobileNav() {
         <div className={styles.slotCentral}>
           <button
             className={styles.central}
+            style={estiloBotaoRegistro(cfg, pathname)}
             onClick={() => {
               fecharMais();
               abrirRegistro();

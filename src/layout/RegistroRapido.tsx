@@ -21,6 +21,7 @@ import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { hojeIso, mesDe } from "../utils/calculos";
+import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
 import { totalDaCompra } from "../utils/parcelas";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./RegistroRapido.module.css";
@@ -29,15 +30,15 @@ import styles from "./RegistroRapido.module.css";
  *  guarda-chuva de carga + despesa do veículo, que se resolve na sub-escolha
  *  logo abaixo. Ao entrar em Veículo cai sempre em Carga — como o tipo já
  *  guarda qual sub-escolha está ativa, sair e voltar reinicia sozinho, sem um
- *  segundo estado para manter em sincronia. */
-const TIPOS: {
-  valor: TipoRegistro | "veiculo";
-  rotulo: string;
-  classeAtiva: keyof typeof styles;
-}[] = [
-  { valor: "despesa", rotulo: "Despesa", classeAtiva: "tipoAtivoDespesa" },
-  { valor: "receita", rotulo: "Receita", classeAtiva: "tipoAtivoReceita" },
-  { valor: "veiculo", rotulo: "Veículo", classeAtiva: "tipoAtivoVeiculo" },
+ *  segundo estado para manter em sincronia.
+ *
+ *  A cor de cada um vem do mesmo sistema de cor de categoria que pinta o
+ *  botão flutuante e o donut — antes o Veículo era roxo aqui e lima no resto
+ *  do app, duas cores para o mesmo conceito no mesmo fluxo. */
+const TIPOS: { valor: TipoRegistro | "veiculo"; rotulo: string }[] = [
+  { valor: "despesa", rotulo: "Despesa" },
+  { valor: "receita", rotulo: "Receita" },
+  { valor: "veiculo", rotulo: "Veículo" },
 ];
 
 /** Escape dos botões rápidos 3x/6x/9x/12x — cobre de 2x a 36x (3 anos). */
@@ -294,13 +295,15 @@ export default function RegistroRapido() {
             <div className={styles.seletorTipo} role="radiogroup" aria-label="Tipo de lançamento">
               {TIPOS.map((t) => {
                 const ativo = t.valor === "veiculo" ? ehVeiculo : tipo === t.valor;
+                const fundo = corDaCategoriaVisual(cfg, t.rotulo);
                 return (
                   <button
                     key={t.valor}
                     type="button"
                     role="radio"
                     aria-checked={ativo}
-                    className={`${styles.tipo} ${ativo ? styles[t.classeAtiva] : ""}`}
+                    className={`${styles.tipo} ${ativo ? styles.tipoAtivo : ""}`}
+                    style={ativo ? { background: fundo, color: corDoIconeSobre(fundo) } : undefined}
                     onClick={() => abrirRegistro(t.valor === "veiculo" ? "carga" : t.valor)}
                   >
                     {t.rotulo}
@@ -512,7 +515,7 @@ export default function RegistroRapido() {
                   type="button"
                   role="radio"
                   aria-checked={modoValorParcela === v}
-                  className={`${styles.tipo} ${modoValorParcela === v ? styles.tipoAtivoDespesa : ""}`}
+                  className={`${styles.tipo} ${modoValorParcela === v ? styles.tipoAtivo : ""}`}
                   onClick={() => setModoValorParcela(v)}
                 >
                   {rotulo}

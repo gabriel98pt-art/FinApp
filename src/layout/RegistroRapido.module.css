@@ -40,19 +40,11 @@
     color 0.15s ease;
 }
 
-.tipoAtivoDespesa {
-  background: var(--red);
-  color: var(--bg);
-}
-
-.tipoAtivoReceita {
-  background: var(--grn);
-  color: var(--bg);
-}
-
-.tipoAtivoVeiculo {
-  background: var(--pur);
-  color: var(--bg);
+/* O fundo/cor vêm inline de `corDaCategoriaVisual` (Despesa/Receita/Veículo
+   são nomes no mesmo sistema de cor do resto do app, e o usuário pode
+   trocá-los em Definições). Aqui fica só o que não depende da cor. */
+.tipoAtivo {
+  font-weight: 800;
 }
 
 /* Sub-escolha de Veículo (Carga/Despesa): segmentado menor, mesmo desenho dos

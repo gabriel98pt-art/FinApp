@@ -33,6 +33,11 @@ const COR_SEMANTICA: Record<string, string> = {
   Parcelas: "#f43f5e",
   // Veículo (fatia agregada do domínio Veículo)
   Veículo: "#84cc16",
+  // "Despesa" e "Receita" não são categorias: entram aqui pra o botão
+  // flutuante poder pegar carona no mesmo sistema de cor (semântica por
+  // nome + override em cfg.categoriaCor). São os mesmos --red e --grn.
+  Despesa: "#fb7185",
+  Receita: "#4ade80",
   Manutenção: "#65a30d",
   Portagens: "#4d7c0f",
   Revisão: "#3f6212",

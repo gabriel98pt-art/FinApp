@@ -252,3 +252,13 @@
   background: var(--blu);
   color: var(--bg);
 }
+
+/* Amostra redonda da cor, no lugar do círculo de categoria — estes 3 nomes
+   (Despesa/Receita/Veículo) não são categorias, então não têm ícone. */
+.amostraCor {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--brd);
+}

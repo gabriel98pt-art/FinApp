@@ -36,6 +36,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
 import type { Cents, ConfigConta, Currency } from "../types";
+import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { formatCents, parseMoney } from "../utils/money";
 import styles from "./Definicoes.module.css";
 
@@ -201,6 +202,64 @@ function EditorLista({
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
         aviso="Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
+      />
+    </div>
+  );
+}
+
+/** Cor do botão flutuante em Despesas, Receitas e Veículo. Não é um campo
+ *  novo em cfg: estes 3 nomes entram no mesmo `categoriaCor` das categorias,
+ *  então o picker e o serviço são exatamente os que já existiam. */
+const PAGINAS_COLORIDAS = ["Despesa", "Receita", "Veículo"] as const;
+
+function CorBotaoFlutuante({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
+  const [corDe, setCorDe] = useState<string | null>(null);
+
+  async function escolher(cor: string | null) {
+    if (!corDe) return;
+    const alvo = corDe;
+    setCorDe(null);
+    try {
+      await definirCorCategoria(uid, alvo, cor);
+    } catch {
+      mostrarToast("Não foi possível salvar a cor.");
+    }
+  }
+
+  return (
+    <div className={styles.grupo}>
+      <p className={styles.grupoTitulo}>Cor do botão flutuante</p>
+      <p className={styles.nota}>
+        O botão de registro rápido veste esta cor quando você está na página. Nas outras fica no
+        azul do app.
+      </p>
+      <ul className={styles.listaCategorias}>
+        {PAGINAS_COLORIDAS.map((nome) => (
+          <li key={nome} className={styles.linhaCategoria}>
+            <span
+              className={styles.amostraCor}
+              style={{ background: corDaCategoriaVisual(cfg, nome) }}
+              aria-hidden
+            />
+            <span className={styles.nomeCategoria}>{nome}</span>
+            <button
+              className={styles.acaoCategoria}
+              onClick={() => setCorDe(nome)}
+              aria-label={`Cor do botão em ${nome}`}
+              title="Cor"
+            >
+              <Palette size={16} aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <SeletorCor
+        aberta={corDe !== null}
+        aoFechar={() => setCorDe(null)}
+        titulo={corDe ? `Cor do botão em ${corDe}` : "Cor"}
+        valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
+        aoEscolher={(c) => void escolher(c)}
       />
     </div>
   );
@@ -447,6 +506,8 @@ export default function Definicoes() {
         cfg={cfg}
         uid={uid}
       />
+
+      <CorBotaoFlutuante cfg={cfg} uid={uid} />
 
       <EscolhaKpis cfg={cfg} uid={uid} />
 
