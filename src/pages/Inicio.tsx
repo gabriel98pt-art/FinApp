@@ -45,7 +45,7 @@ export default function Inicio() {
     totalVeiculoGeral(veiculo);
 
   return (
-    <Pagina titulo="Início">
+    <Pagina titulo="Início" mesFixo={mes}>
       <Kpis pagina="inicio">
         <KpiCard
           rotulo="Receitas"
