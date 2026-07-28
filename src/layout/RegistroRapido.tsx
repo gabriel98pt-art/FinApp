@@ -132,6 +132,13 @@ export default function RegistroRapido() {
       setErro("Valor inválido — use por exemplo 12,50.");
       return;
     }
+    // Todo lançamento sai de algum lugar: conta/cartão é obrigatório assim que
+    // existe pelo menos um cadastrado (quem ainda não cadastrou nenhum não tem
+    // o que escolher, e o seletor nem aparece).
+    if (cfg.contasCartoes.length > 0 && !conta) {
+      setErro("Escolha o cartão ou conta.");
+      return;
+    }
     // Sem escolha explícita cai em "Outros" — por NOME, não por posição: as
     // categorias criadas em Definições entram no fim da lista, então o antigo
     // `opcoes[opcoes.length - 1]` passava a mandar o lançamento pra última
@@ -370,15 +377,6 @@ export default function RegistroRapido() {
           <div className={styles.campo}>
             <span>Cartão</span>
             <div className={styles.fileiraContas} role="radiogroup" aria-label="Cartão">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={conta === ""}
-                className={`${styles.conta} ${conta === "" ? styles.contaAtiva : ""}`}
-                onClick={() => setConta("")}
-              >
-                Sem conta
-              </button>
               {cfg.contasCartoes.map((c) => (
                 <button
                   key={c}
@@ -389,7 +387,6 @@ export default function RegistroRapido() {
                   onClick={() => setConta(c)}
                 >
                   {c}
-                  {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
                 </button>
               ))}
             </div>
