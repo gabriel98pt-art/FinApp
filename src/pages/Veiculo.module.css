@@ -322,6 +322,15 @@
   font-weight: 600;
 }
 
+.chipAcao {
+  display: flex;
+  align-items: center;
+  color: var(--mut);
+  padding: 0 2px;
+}
+.chipAcao:hover {
+  color: var(--txt);
+}
 .chipRemover {
   color: var(--mut);
   font-size: 1rem;

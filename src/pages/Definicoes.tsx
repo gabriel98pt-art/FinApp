@@ -6,6 +6,7 @@ import {
   LogOut,
   Moon,
   Palette,
+  Pencil,
   Shapes,
   Sun,
   Upload,
@@ -14,6 +15,7 @@ import {
 import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
+import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
@@ -26,6 +28,8 @@ import {
   definirIconeCategoria,
   definirOrcamento,
   removerItemLista,
+  renomearCategoria,
+  renomearFonte,
 } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -59,6 +63,20 @@ function EditorLista({
   // Categoria cujo ícone/cor está sendo escolhido agora (item 19).
   const [iconeDe, setIconeDe] = useState<string | null>(null);
   const [corDe, setCorDe] = useState<string | null>(null);
+  const [renomeando, setRenomeando] = useState<string | null>(null);
+
+  async function renomear(nomeNovo: string) {
+    if (!renomeando) return;
+    const alvo = renomeando;
+    try {
+      if (lista === "fontesReceita") await renomearFonte(uid, cfg, alvo, nomeNovo);
+      else await renomearCategoria(uid, cfg, lista, alvo, nomeNovo);
+      setRenomeando(null);
+      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
+    }
+  }
 
   async function escolherIcone(icone: string | null) {
     if (!iconeDe) return;
@@ -131,6 +149,14 @@ function EditorLista({
                 <Palette size={16} aria-hidden />
               </button>
               <button
+                className={styles.acaoCategoria}
+                onClick={() => setRenomeando(item)}
+                aria-label={`Renomear ${item}`}
+                title="Renomear"
+              >
+                <Pencil size={16} aria-hidden />
+              </button>
+              <button
                 className={`${styles.acaoCategoria} ${styles.acaoRemover}`}
                 onClick={() => void remover(item)}
                 aria-label={`Remover ${item}`}
@@ -168,6 +194,13 @@ function EditorLista({
         titulo={corDe ? `Cor de ${corDe}` : "Cor"}
         valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
         aoEscolher={(c) => void escolherCor(c)}
+      />
+      <RenomearFolha
+        aberta={renomeando !== null}
+        nomeAtual={renomeando}
+        aoFechar={() => setRenomeando(null)}
+        aoConfirmar={(n) => void renomear(n)}
+        aviso="Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
       />
     </div>
   );

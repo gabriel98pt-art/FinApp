@@ -1,10 +1,16 @@
 import { useState, type FormEvent } from "react";
-import { CreditCard, X } from "lucide-react";
+import { CreditCard, Pencil, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
+import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
-import { adicionarCartao, definirFaturaManual } from "../services/cfgService";
+import {
+  adicionarCartao,
+  definirFaturaManual,
+  removerCartao,
+  renomearCartao,
+} from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -174,6 +180,7 @@ export default function Cartoes() {
   const [novoTipo, setNovoTipo] = useState<TipoCartao>("credit");
   const [valorTexto, setValorTexto] = useState("");
   const [pagarDe, setPagarDe] = useState("");
+  const [renomeando, setRenomeando] = useState<string | null>(null);
 
   const dados: DadosFatura = {
     despesasFixas,
@@ -216,6 +223,33 @@ export default function Cartoes() {
       setNovoNome("");
     } catch (err) {
       mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+    }
+  }
+
+  async function renomear(nomeNovo: string) {
+    if (!renomeando) return;
+    const alvo = renomeando;
+    try {
+      await renomearCartao(uid!, cfg, alvo, nomeNovo);
+      setRenomeando(null);
+      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
+    }
+  }
+
+  async function remover(nome: string) {
+    if (
+      !window.confirm(
+        `Remover "${nome}"? Lançamentos que já usam esta conta não mudam — para trocar o nome em todos, use Renomear.`,
+      )
+    )
+      return;
+    try {
+      await removerCartao(uid!, cfg, nome);
+      mostrarToast(`"${nome}" removido`);
+    } catch {
+      mostrarToast("Não foi possível remover.");
     }
   }
 
@@ -310,6 +344,24 @@ export default function Cartoes() {
                 <span className={styles.chipTipo}>
                   {cfg.tipoCartao[c] === "credit" ? "crédito" : "débito"}
                 </span>
+                <button
+                  type="button"
+                  className={styles.chipAcao}
+                  onClick={() => setRenomeando(c)}
+                  aria-label={`Renomear ${c}`}
+                  title="Renomear"
+                >
+                  <Pencil size={14} aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.chipAcao} ${styles.chipRemover}`}
+                  onClick={() => void remover(c)}
+                  aria-label={`Remover ${c}`}
+                  title="Remover"
+                >
+                  <X size={14} aria-hidden />
+                </button>
               </li>
             ))}
           </ul>
@@ -448,6 +500,14 @@ export default function Cartoes() {
           </form>
         )}
       </BottomSheet>
+
+      <RenomearFolha
+        aberta={renomeando !== null}
+        nomeAtual={renomeando}
+        aoFechar={() => setRenomeando(null)}
+        aoConfirmar={(n) => void renomear(n)}
+        aviso="Lançamentos, parcelas, saldo inicial e faturas seguem para o nome novo."
+      />
     </Pagina>
   );
 }

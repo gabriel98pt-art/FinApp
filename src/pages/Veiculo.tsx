@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Car, Plus } from "lucide-react";
+import { Car, Pencil, Plus } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
+import RenomearFolha from "../components/RenomearFolha";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
 import Seletor from "../components/Seletor";
@@ -24,7 +25,12 @@ import {
   removerFixaVeiculo,
   removerKm,
 } from "../services/veiculoService";
-import { adicionarItemLista, removerItemLista } from "../services/cfgService";
+import {
+  adicionarItemLista,
+  removerItemLista,
+  renomearCategoria,
+  renomearLocal,
+} from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -244,6 +250,52 @@ export default function Veiculo() {
       mostrarToast(`"${nome}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");
+    }
+  }
+
+  // ---- gestão das categorias do veículo (mesmo molde dos locais) ----
+  const [novaCategoria, setNovaCategoria] = useState("");
+
+  async function adicionarCategoria(e: FormEvent) {
+    e.preventDefault();
+    const nome = novaCategoria.trim();
+    if (!nome) return mostrarToast("Escreva um nome primeiro.");
+    try {
+      await adicionarItemLista(uid!, cfg, "categoriasVeiculo", nome);
+      mostrarToast(`✓ "${nome}" adicionada`);
+      setNovaCategoria("");
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+    }
+  }
+
+  async function removerCategoria(nome: string) {
+    if (!window.confirm(`Remover "${nome}"? Despesas já registadas não mudam.`)) return;
+    try {
+      await removerItemLista(uid!, cfg, "categoriasVeiculo", nome);
+      mostrarToast(`"${nome}" removida`);
+    } catch {
+      mostrarToast("Não foi possível remover.");
+    }
+  }
+
+  // Renomear (com cascata) tanto o local como a categoria — a folha é a mesma,
+  // o que muda é qual lista está a ser editada.
+  const [renomeando, setRenomeando] = useState<{
+    tipo: "local" | "categoria";
+    nome: string;
+  } | null>(null);
+
+  async function renomear(nomeNovo: string) {
+    if (!renomeando) return;
+    const { tipo, nome } = renomeando;
+    try {
+      if (tipo === "local") await renomearLocal(uid!, cfg, nome, nomeNovo);
+      else await renomearCategoria(uid!, cfg, "categoriasVeiculo", nome, nomeNovo);
+      setRenomeando(null);
+      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
     }
   }
 
@@ -545,6 +597,15 @@ export default function Veiculo() {
                     {l}
                     <button
                       type="button"
+                      className={styles.chipAcao}
+                      aria-label={`Renomear ${l}`}
+                      title="Renomear"
+                      onClick={() => setRenomeando({ tipo: "local", nome: l })}
+                    >
+                      <Pencil size={14} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
                       className={styles.chipRemover}
                       aria-label={`Remover ${l}`}
                       onClick={() => void removerLocal(l)}
@@ -601,6 +662,49 @@ export default function Veiculo() {
                 ))
             )}
           </div>
+
+          {/* Mesmo molde dos locais de carregamento: a lista vive junto de quem
+              a usa. Antes era fixa, vinda do configPadrao, sem edição nenhuma. */}
+          <form className={styles.gerir} onSubmit={adicionarCategoria}>
+            <p className={styles.gerirTitulo}>Categorias do veículo</p>
+            {cfg.categoriasVeiculo.length > 0 && (
+              <ul className={styles.chips}>
+                {cfg.categoriasVeiculo.map((c) => (
+                  <li key={c} className={styles.chip}>
+                    {c}
+                    <button
+                      type="button"
+                      className={styles.chipAcao}
+                      aria-label={`Renomear ${c}`}
+                      title="Renomear"
+                      onClick={() => setRenomeando({ tipo: "categoria", nome: c })}
+                    >
+                      <Pencil size={14} aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.chipRemover}
+                      aria-label={`Remover ${c}`}
+                      onClick={() => void removerCategoria(c)}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className={styles.gerirLinha}>
+              <input
+                placeholder="Nome (ex. Portagens)"
+                aria-label="Nome da categoria do veículo"
+                value={novaCategoria}
+                onChange={(e) => setNovaCategoria(e.target.value)}
+              />
+              <button type="submit" className={styles.gerirBotao}>
+                Adicionar
+              </button>
+            </div>
+          </form>
         </>
       )}
 
@@ -894,6 +998,18 @@ export default function Veiculo() {
           )}
         </form>
       </BottomSheet>
+
+      <RenomearFolha
+        aberta={renomeando !== null}
+        nomeAtual={renomeando?.nome ?? null}
+        aoFechar={() => setRenomeando(null)}
+        aoConfirmar={(n) => void renomear(n)}
+        aviso={
+          renomeando?.tipo === "local"
+            ? "Os carregamentos já registados passam a mostrar o nome novo."
+            : "As despesas do veículo e o ícone/cor seguem para o nome novo."
+        }
+      />
     </Pagina>
   );
 }

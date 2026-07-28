@@ -196,6 +196,23 @@
   font-size: 0.7rem;
 }
 
+.chipAcao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mut);
+  padding: 2px;
+  border-radius: var(--r-sm);
+}
+
+.chipAcao:hover {
+  color: var(--txt);
+}
+
+.chipRemover:hover {
+  color: var(--red);
+}
+
 .gerirLinha {
   display: flex;
   gap: 8px;

@@ -3,9 +3,26 @@
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { snapshotHistorico } from "../stores/historicoStore";
+import {
+  useDespesasFixasStore,
+  useDespesasStore,
+  useReceitasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 import type { Cents, ConfigConta, YearMonth } from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import {
+  patchRenomearCartao,
+  patchRenomearCategoria,
+  patchRenomearFonte,
+  patchRenomearLocal,
+  validarNomeNovo,
+  type DadosRenomear,
+  type ListaCategoria,
+} from "../utils/renomear";
 
 const caminho = (uid: string, sufixo = "") => `users/${uid}/fin_v5/cfg${sufixo}`;
 
@@ -47,8 +64,78 @@ export async function adicionarCartao(
   });
 }
 
+/** Raiz da conta — a renomeação com cascata escreve cfg e lançamentos de uma
+ *  vez, então o `update()` sobe um nível em relação ao `caminho()` acima. */
+const raiz = (uid: string) => `users/${uid}/fin_v5`;
+
+/** Lê das stores as coleções que a cascata precisa varrer. São as mesmas que
+ *  as telas já usam (espelho do RTDB alimentado pelo syncService). */
+function dadosDasStores(): DadosRenomear {
+  const veiculo = useVeiculoStore.getState().dados;
+  return {
+    receitas: useReceitasStore.getState().itens,
+    despesas: useDespesasStore.getState().itens,
+    despesasFixas: useDespesasFixasStore.getState().itens,
+    transferencias: useTransferenciasStore.getState().itens,
+    parcelas: useParcelasStore.getState().itens,
+    cargas: veiculo.cargas,
+    despesasVeiculo: veiculo.despesas,
+    fixasVeiculo: veiculo.despesasFixas,
+  };
+}
+
+/** Renomeia a conta/cartão em tudo: lista, tipo, saldo inicial, faturas
+ *  (manual e pagas) e todo lançamento que apontava pro nome antigo. */
+export async function renomearCartao(uid: string, cfg: ConfigConta, de: string, para: string) {
+  const nome = validarNomeNovo(cfg.contasCartoes, de, para);
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), patchRenomearCartao(cfg, dadosDasStores(), de, nome));
+}
+
+/** Renomeia a categoria na lista indicada, no visual (ícone/cor), no orçamento
+ *  e em todo lançamento categorizado com o nome antigo. */
+export async function renomearCategoria(
+  uid: string,
+  cfg: ConfigConta,
+  lista: ListaCategoria,
+  de: string,
+  para: string,
+) {
+  const nome = validarNomeNovo(cfg[lista], de, para);
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), patchRenomearCategoria(cfg, dadosDasStores(), lista, de, nome));
+}
+
+/** Renomeia a fonte de receita na lista, no visual e nas receitas. */
+export async function renomearFonte(uid: string, cfg: ConfigConta, de: string, para: string) {
+  const nome = validarNomeNovo(cfg.fontesReceita, de, para);
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), patchRenomearFonte(cfg, dadosDasStores(), de, nome));
+}
+
+/** Renomeia o local de carregamento na lista e nas cargas. */
+export async function renomearLocal(uid: string, cfg: ConfigConta, de: string, para: string) {
+  const nome = validarNomeNovo(cfg.locaisCarregamento, de, para);
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), patchRenomearLocal(cfg, dadosDasStores(), de, nome));
+}
+
+/** Remove a conta/cartão da lista e as suas chaves em cfg. Lançamentos que já
+ *  a usam continuam com o nome antigo — mesma regra de `removerItemLista`. */
+export async function removerCartao(uid: string, cfg: ConfigConta, nome: string) {
+  snapshotHistorico();
+  await update(ref(db, caminho(uid)), {
+    contasCartoes: cfg.contasCartoes.filter((c) => c !== nome),
+    [`tipoCartao/${nome}`]: null,
+  });
+}
+
 type ListaDeCategorias =
-  "categoriasFixas" | "categoriasCorrentes" | "fontesReceita" | "locaisCarregamento";
+  | "categoriasFixas"
+  | "categoriasCorrentes"
+  | "categoriasVeiculo"
+  | "fontesReceita"
+  | "locaisCarregamento";
 
 /** Adiciona um item a uma das 3 listas configuráveis (categorias de despesa
  *  fixa/corrente, fontes de receita) — usadas no Registro Rápido, Cartões e
