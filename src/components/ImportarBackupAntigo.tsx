@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
+import Seletor from "./Seletor";
 import { importarBackupAntigo, type AcaoDominio } from "../services/importarBackupAntigoService";
 import { useAuthStore } from "../stores/authStore";
 import { useEventosStore } from "../stores/eventosStore";
@@ -42,6 +43,12 @@ const CONTAGEM_ARQUIVO: Partial<
   fundos: "fnds",
   veiculoCargas: "veh_cg",
   veiculoDespesas: "veh_lp",
+};
+
+const ROTULO_ACAO: Record<AcaoDominio, string> = {
+  importar: "Importar",
+  somar: "Somar",
+  pular: "Não importar",
 };
 
 function acaoPadrao(
@@ -231,17 +238,15 @@ export default function ImportarBackupAntigo() {
                       {existentes[l.chave] > 0 && ` · já existem ${existentes[l.chave]} na conta`}
                     </p>
                   </div>
-                  <select
-                    className={styles.acaoSelect}
-                    value={acoes[l.chave] ?? "pular"}
-                    onChange={(e) =>
-                      setAcoes((a) => ({ ...a, [l.chave]: e.target.value as AcaoDominio }))
-                    }
-                  >
-                    <option value="importar">Importar</option>
-                    <option value="somar">Somar</option>
-                    <option value="pular">Não importar</option>
-                  </select>
+                  <Seletor
+                    variante="inline"
+                    rotulo={`O que fazer com ${l.rotulo}`}
+                    nivel={0}
+                    valor={acoes[l.chave] ?? "pular"}
+                    opcoes={["importar", "somar", "pular"]}
+                    rotuloOpcao={(v) => ROTULO_ACAO[v as AcaoDominio]}
+                    aoMudar={(v) => setAcoes((a) => ({ ...a, [l.chave]: v as AcaoDominio }))}
+                  />
                 </div>
               );
             })}
@@ -254,17 +259,17 @@ export default function ImportarBackupAntigo() {
                   Moeda, categorias, orçamentos, saldos iniciais, cartões e config do TVDE
                 </p>
               </div>
-              <select
-                className={styles.acaoSelect}
-                value={acoes.cfg ?? "pular"}
-                onChange={(e) => {
-                  const v = e.target.value as AcaoDominio;
-                  setAcoes((a) => ({ ...a, cfg: v, tvdeCfg: v }));
-                }}
-              >
-                <option value="importar">Importar</option>
-                <option value="pular">Não importar</option>
-              </select>
+              <Seletor
+                variante="inline"
+                rotulo="O que fazer com as configurações da conta"
+                nivel={0}
+                valor={acoes.cfg ?? "pular"}
+                opcoes={["importar", "pular"]}
+                rotuloOpcao={(v) => ROTULO_ACAO[v as AcaoDominio]}
+                aoMudar={(v) =>
+                  setAcoes((a) => ({ ...a, cfg: v as AcaoDominio, tvdeCfg: v as AcaoDominio }))
+                }
+              />
             </div>
           )}
         </div>

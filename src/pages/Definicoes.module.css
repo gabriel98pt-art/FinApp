@@ -56,15 +56,6 @@
   font-weight: 600;
 }
 
-.select {
-  background: var(--s2);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
-  padding: 8px 10px;
-  color: var(--txt);
-  font-size: 0.88rem;
-}
-
 /* Lista de categorias com aparência editável (item 19) — uma linha por
    categoria, com o círculo colorido + ícone à esquerda. */
 .listaCategorias {

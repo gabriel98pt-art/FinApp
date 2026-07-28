@@ -3,6 +3,7 @@ import { CreditCard, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
+import Seletor from "../components/Seletor";
 import { adicionarCartao, definirFaturaManual } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import { useAuthStore } from "../stores/authStore";
@@ -318,14 +319,15 @@ export default function Cartoes() {
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
           />
-          <select
-            aria-label="Tipo"
-            value={novoTipo}
-            onChange={(e) => setNovoTipo(e.target.value as TipoCartao)}
-          >
-            <option value="credit">Crédito</option>
-            <option value="debit">Débito</option>
-          </select>
+          <Seletor
+            variante="inline"
+            rotulo="Tipo"
+            nivel={0}
+            valor={novoTipo}
+            opcoes={["credit", "debit"]}
+            rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
+            aoMudar={(t) => setNovoTipo(t as TipoCartao)}
+          />
           <button type="submit" className={styles.gerirBotao}>
             Adicionar
           </button>
@@ -408,15 +410,7 @@ export default function Cartoes() {
                 required
               />
             </label>
-            <label className={styles.campo}>
-              Sai de
-              <select value={pagarDe} onChange={(e) => setPagarDe(e.target.value)} required>
-                <option value="">Escolher…</option>
-                {contasDebito.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </label>
+            <Seletor rotulo="Sai de" valor={pagarDe} opcoes={contasDebito} aoMudar={setPagarDe} />
             {contasDebito.length === 0 && (
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
             )}

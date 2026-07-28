@@ -1,0 +1,111 @@
+import { useState, type ReactNode } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import BottomSheet from "./BottomSheet";
+import styles from "./Seletor.module.css";
+
+/** Seletor do app, no lugar do `<select>` nativo: um gatilho com o valor atual
+ *  e a lista completa numa folha, cada opção uma linha clicável — nunca abre o
+ *  seletor do sistema. Serve pra qualquer lista de textos (cartões, categorias,
+ *  moedas, ações de importação…).
+ *
+ *  `SeletorCategoria` é este componente com o círculo colorido por baixo. */
+export default function Seletor({
+  rotulo,
+  valor,
+  opcoes,
+  aoMudar,
+  rotuloOpcao,
+  rotuloVazio,
+  nivel = 1,
+  renderIcone,
+  aviso,
+  desativado = false,
+  variante = "campo",
+  className,
+}: {
+  /** Título da folha e nome acessível do gatilho. */
+  rotulo: string;
+  valor: string;
+  opcoes: string[];
+  aoMudar: (valor: string) => void;
+  /** Quando o texto mostrado difere do valor guardado (ex. "credit" → "Crédito"). */
+  rotuloOpcao?: (valor: string) => string;
+  /** Quando definido, a lista ganha uma opção que limpa a escolha (valor ""). */
+  rotuloVazio?: string;
+  /** A folha do seletor quase sempre abre de dentro de outra folha. */
+  nivel?: number;
+  /** Desenho à esquerda de cada opção (o círculo da categoria, por ex.). */
+  renderIcone?: (valor: string, tamanho: number) => ReactNode;
+  /** Texto mostrado na folha quando não há nenhuma opção. */
+  aviso?: string;
+  desativado?: boolean;
+  /** "campo" = rótulo em cima, ocupa a largura toda. "inline" = compacto, sem
+   *  rótulo visível (quem embute já mostra o nome ao lado). */
+  variante?: "campo" | "inline";
+  className?: string;
+}) {
+  const [aberta, setAberta] = useState(false);
+  const texto = (v: string) => (rotuloOpcao ? rotuloOpcao(v) : v);
+
+  function escolher(v: string) {
+    aoMudar(v);
+    setAberta(false);
+  }
+
+  return (
+    <div
+      className={`${styles.campo} ${variante === "inline" ? styles.inline : ""} ${className ?? ""}`}
+    >
+      {variante === "campo" && <span className={styles.rotulo}>{rotulo}</span>}
+      <button
+        type="button"
+        className={styles.gatilho}
+        onClick={() => setAberta(true)}
+        disabled={desativado}
+        aria-label={variante === "inline" ? rotulo : undefined}
+      >
+        {valor ? (
+          <>
+            {renderIcone?.(valor, 26)}
+            <span className={styles.nome}>{texto(valor)}</span>
+          </>
+        ) : (
+          <span className={styles.vazio}>{rotuloVazio ?? "Escolher…"}</span>
+        )}
+        <ChevronDown size={16} className={styles.seta} aria-hidden />
+      </button>
+
+      <BottomSheet aberta={aberta} aoFechar={() => setAberta(false)} titulo={rotulo} nivel={nivel}>
+        <ul className={styles.lista}>
+          {rotuloVazio && (
+            <li>
+              <button
+                type="button"
+                className={`${styles.opcao} ${valor === "" ? styles.opcaoAtiva : ""}`}
+                onClick={() => escolher("")}
+              >
+                {renderIcone && <span className={styles.semIcone} aria-hidden />}
+                <span className={styles.nome}>{rotuloVazio}</span>
+                {valor === "" && <Check size={16} aria-hidden />}
+              </button>
+            </li>
+          )}
+          {opcoes.map((o) => (
+            <li key={o}>
+              <button
+                type="button"
+                className={`${styles.opcao} ${o === valor ? styles.opcaoAtiva : ""}`}
+                onClick={() => escolher(o)}
+              >
+                {renderIcone?.(o, 30)}
+                <span className={styles.nome}>{texto(o)}</span>
+                {o === valor && <Check size={16} aria-hidden />}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {opcoes.length === 0 && aviso && <p className={styles.aviso}>{aviso}</p>}
+      </BottomSheet>
+    </div>
+  );
+}

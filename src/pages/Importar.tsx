@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
 import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
+import Seletor from "../components/Seletor";
 import { construirExistentes, confirmarImportacao } from "../services/importacaoService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -250,20 +251,15 @@ export default function Importar() {
                       >
                         {ROTULO_DECISAO[l.decisao]}
                       </span>
-                      <select
-                        className={styles.categoriaSelect}
-                        value={l.categoriaEscolhida}
-                        onChange={(e) =>
-                          atualizarLinha(l.id, { categoriaEscolhida: e.target.value })
-                        }
-                        disabled={l.classificacao.tipo === "receita"}
-                      >
-                        {opcoesCategoria.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
+                      <Seletor
+                        variante="inline"
+                        rotulo={`Categoria de ${l.descricao}`}
+                        nivel={0}
+                        valor={l.categoriaEscolhida}
+                        opcoes={opcoesCategoria}
+                        aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
+                        desativado={l.classificacao.tipo === "receita"}
+                      />
                     </div>
                     {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                       <p className={styles.motivoDup}>

@@ -247,15 +247,6 @@
   background: var(--s2);
 }
 
-.categoriaSelect {
-  background: var(--s2);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
-  padding: 4px 8px;
-  color: var(--txt);
-  font-size: 0.75rem;
-}
-
 .motivoDup {
   color: var(--ylw);
   font-size: 0.72rem;

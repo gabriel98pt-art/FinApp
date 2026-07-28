@@ -5,6 +5,7 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import ListaLancamentos from "../components/ListaLancamentos";
+import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
 import SeletorOrdem from "../components/SeletorOrdem";
@@ -510,18 +511,14 @@ export default function Despesas() {
             opcoes={cfg.categoriasFixas}
             aoMudar={setDfCategoria}
           />
-          <label className={styles.campo}>
-            Conta/cartão (opcional — se for crédito, entra na fatura)
-            <select value={dfContaCartao} onChange={(e) => setDfContaCartao(e.target.value)}>
-              <option value="">Sem conta</option>
-              {cfg.contasCartoes.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                  {cfg.tipoCartao[c] === "credit" ? " · crédito" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Seletor
+            rotulo="Conta/cartão (opcional — se for crédito, entra na fatura)"
+            valor={dfContaCartao}
+            opcoes={cfg.contasCartoes}
+            aoMudar={setDfContaCartao}
+            rotuloOpcao={(c) => (cfg.tipoCartao[c] === "credit" ? `${c} · crédito` : c)}
+            rotuloVazio="Sem conta"
+          />
           <div className={styles.linhaDupla}>
             <label className={styles.campo}>
               Início (opcional)
@@ -562,28 +559,8 @@ export default function Despesas() {
           </label>
           <SeletorData valor={tfData} aoMudar={setTfData} />
           <div className={styles.linhaDupla}>
-            <label className={styles.campo}>
-              De
-              <select value={tfDe} onChange={(e) => setTfDe(e.target.value)} required>
-                <option value="">Escolher…</option>
-                {cfg.contasCartoes.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={styles.campo}>
-              Para
-              <select value={tfPara} onChange={(e) => setTfPara(e.target.value)} required>
-                <option value="">Escolher…</option>
-                {cfg.contasCartoes.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Seletor rotulo="De" valor={tfDe} opcoes={cfg.contasCartoes} aoMudar={setTfDe} />
+            <Seletor rotulo="Para" valor={tfPara} opcoes={cfg.contasCartoes} aoMudar={setTfPara} />
           </div>
           <label className={styles.campo}>
             Nome (opcional)

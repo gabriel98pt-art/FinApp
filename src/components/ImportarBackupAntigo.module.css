@@ -30,12 +30,3 @@
   font-size: 0.75rem;
 }
 
-.acaoSelect {
-  background: var(--s2);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
-  padding: 7px 10px;
-  color: var(--txt);
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}

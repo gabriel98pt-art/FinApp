@@ -14,6 +14,7 @@ import {
 import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
+import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
@@ -303,10 +304,10 @@ export default function Definicoes() {
     }
   }
 
-  async function mudarMoeda(e: React.ChangeEvent<HTMLSelectElement>) {
+  async function mudarMoeda(valor: string) {
     if (!uid) return;
     try {
-      await atualizarConfig(uid, { currency: e.target.value as Currency });
+      await atualizarConfig(uid, { currency: valor as Currency });
       mostrarToast("✓ Moeda atualizada");
     } catch {
       mostrarToast("Não foi possível alterar.");
@@ -375,20 +376,18 @@ export default function Definicoes() {
       </div>
 
       <div className={styles.grupo}>
-        <label className={styles.linhaSelect}>
+        <div className={styles.linhaSelect}>
           <span>Moeda da conta</span>
-          <select
-            className={styles.select}
-            value={cfg.currency}
-            onChange={(e) => void mudarMoeda(e)}
-          >
-            {MOEDAS.map((m) => (
-              <option key={m.valor} value={m.valor}>
-                {m.rotulo}
-              </option>
-            ))}
-          </select>
-        </label>
+          <Seletor
+            variante="inline"
+            rotulo="Moeda da conta"
+            nivel={0}
+            valor={cfg.currency}
+            opcoes={MOEDAS.map((m) => m.valor)}
+            rotuloOpcao={(v) => MOEDAS.find((m) => m.valor === v)?.rotulo ?? v}
+            aoMudar={(v) => void mudarMoeda(v)}
+          />
+        </div>
         <p className={styles.nota}>
           Só o símbolo muda — a formatação de milhar/decimal é a mesma para todas.
         </p>

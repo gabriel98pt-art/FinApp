@@ -35,6 +35,31 @@
   border-color: transparent;
 }
 
+.gatilho:disabled {
+  opacity: 0.5;
+}
+
+/* Variante compacta: entra no meio de uma linha já rotulada, ao lado de outros
+   controles pequenos (linha de importação, moeda em Definições…). */
+.inline {
+  flex: none;
+  width: auto;
+  min-width: 0;
+}
+
+.inline .gatilho {
+  width: auto;
+  min-height: 36px;
+  padding: 7px 10px;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.inline .nome {
+  flex: none;
+}
+
 .nome {
   flex: 1;
   min-width: 0;
@@ -85,7 +110,7 @@
   color: var(--blu);
 }
 
-.semBolha {
+.semIcone {
   flex: none;
   width: 30px;
   height: 30px;

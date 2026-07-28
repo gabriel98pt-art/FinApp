@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
 import {
@@ -297,15 +298,13 @@ function FormParcela({
           aoMudar={setCategoria}
           rotuloVazio="Parcelas"
         />
-        <label className={styles.campo}>
-          Cartão (opcional)
-          <select value={cartao} onChange={(e) => setCartao(e.target.value)}>
-            <option value="">Sem cartão</option>
-            {cfg.contasCartoes.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
+        <Seletor
+          rotulo="Cartão (opcional)"
+          valor={cartao}
+          opcoes={cfg.contasCartoes}
+          aoMudar={setCartao}
+          rotuloVazio="Sem cartão"
+        />
         {cartaoCredito && (
           <label className={styles.checkbox}>
             <input
