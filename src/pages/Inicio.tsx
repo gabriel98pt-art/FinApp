@@ -5,6 +5,7 @@ import CopilotoCard from "../components/CopilotoCard";
 import DonutCategoriaCard from "../components/DonutCategoriaCard";
 import ResumoAnual from "../components/ResumoAnual";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
@@ -29,10 +30,22 @@ export default function Inicio() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
-  const mes = mesAtual();
+  // Mês exibido vem do seletor do header; `mesReal` é o de hoje e NÃO segue a
+  // navegação — é ele que decide se uma fixa/parcela do mês corrente só conta
+  // depois de marcada como paga (ver resumoMensal.ts).
+  const mes = useMesVisivelStore((s) => s.mes);
+  const mesReal = mesAtual();
   // despesa do mês inclui fixas gerais + parcelas + veículo (Parte A) — fonte
   // única em utils/resumoMensal.ts
-  const resumo = resumoMesCompleto(receitas, despesas, despesasFixas, parcelas, veiculo, mes, mes);
+  const resumo = resumoMesCompleto(
+    receitas,
+    despesas,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    mes,
+    mesReal,
+  );
   // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
   // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
   // pagamento de fatura contava como despesa por cima da compra original e a
@@ -45,7 +58,7 @@ export default function Inicio() {
     totalVeiculoGeral(veiculo);
 
   return (
-    <Pagina titulo="Início" mesFixo={mes}>
+    <Pagina titulo="Início">
       <Kpis pagina="inicio">
         <KpiCard
           rotulo="Receitas"

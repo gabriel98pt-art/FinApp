@@ -4,26 +4,10 @@
   gap: 16px;
 }
 
-.cabecalho {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-}
-
 .titulo {
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-/* Rótulo do mês nas páginas sem seletor. Discreto de propósito: informa, mas
-   não convida ao toque — aqui não há mês a trocar. */
-.mesFixo {
-  color: var(--mut);
-  font-size: 0.88rem;
-  font-weight: 700;
-  text-transform: capitalize;
 }
 
 .kpis {

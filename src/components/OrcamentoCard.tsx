@@ -1,21 +1,25 @@
 import { Link } from "react-router-dom";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mesAtual } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
 import styles from "./OrcamentoCard.module.css";
 
-/** Orçamento por categoria (seção 4.8): gasto real vs. teto do mês corrente,
+/** Orçamento por categoria (seção 4.8): gasto real vs. teto do mês exibido,
  *  com indicação visual quando estoura. Configurável em Definições. */
 export default function OrcamentoCard() {
   const cfg = useCfgStore((s) => s.cfg);
   const despesas = useDespesasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
 
-  const mes = mesAtual();
-  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mes);
+  // Segue o seletor do header (Planejamento navega por mês). `mesReal` fica
+  // no mês de hoje: é ele que decide se a parcela do mês corrente só conta
+  // depois de marcada como paga (ver orcamento.ts).
+  const mes = useMesVisivelStore((s) => s.mes);
+  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mesAtual());
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 

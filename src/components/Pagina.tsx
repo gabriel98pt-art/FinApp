@@ -2,33 +2,16 @@ import { Children, type ReactElement, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useCfgStore } from "../stores/cfgStore";
-import type { YearMonth } from "../types";
-import { rotuloMes } from "../utils/calculos";
 import styles from "./Pagina.module.css";
 
 const MOBILE = "(max-width: 767px)";
 const NO_MOBILE = 2;
 
 /** Esqueleto comum das páginas: título + conteúdo. */
-export default function Pagina({
-  titulo,
-  mesFixo,
-  children,
-}: {
-  titulo: string;
-  /** Para as páginas que mostram sempre o mês corrente e não navegam por mês
-   *  (Início, Planejamento): o seletor do header não aparece nelas, e sem
-   *  isto não haveria indicação nenhuma de que mês se está a ver. É só o
-   *  rótulo — não há mês a trocar aqui. */
-  mesFixo?: YearMonth;
-  children?: ReactNode;
-}) {
+export default function Pagina({ titulo, children }: { titulo: string; children?: ReactNode }) {
   return (
     <section className={styles.pagina}>
-      <div className={styles.cabecalho}>
-        <h2 className={styles.titulo}>{titulo}</h2>
-        {mesFixo && <span className={styles.mesFixo}>{rotuloMes(mesFixo)}</span>}
-      </div>
+      <h2 className={styles.titulo}>{titulo}</h2>
       {children}
     </section>
   );

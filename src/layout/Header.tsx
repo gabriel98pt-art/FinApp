@@ -11,12 +11,14 @@ import styles from "./Header.module.css";
  *  Header é renderizado uma vez em AppShell, fora do <Outlet>, então o mês
  *  fica sempre visível em vez de rolar junto com a página. */
 const ROTAS_COM_MES = [
+  "/",
   "/receitas",
   "/despesas",
   "/cartoes",
   "/veiculo",
   "/calendario",
   "/transacoes",
+  "/planejamento",
 ];
 
 export default function Header() {

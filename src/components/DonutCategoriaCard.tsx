@@ -5,6 +5,7 @@ import BottomSheet from "./BottomSheet";
 import CategoriaBolha from "./CategoriaBolha";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, rotuloMes } from "../utils/calculos";
@@ -36,10 +37,19 @@ export default function DonutCategoriaCard() {
   const [aberta, setAberta] = useState(false);
   const [ordem, setOrdem] = useState<OrdemFatias>("maiorValor");
 
-  // O Início ainda não tem seletor de mês — fica no mês real (o mês global
-  // compartilhado entra aqui quando esta tela for ajustada).
-  const mes = mesAtual();
-  const fatias = despesaPorCategoriaMes(despesas, despesasFixas, parcelas, veiculo, mes, mes);
+  // Segue o seletor do header, como os KPIs ao lado — senão o donut ficaria
+  // preso no mês de hoje enquanto o resto do Início mostra outro mês.
+  // `mesReal` continua no mês de hoje: é ele que decide se uma fixa/parcela
+  // do mês corrente só conta depois de marcada como paga.
+  const mes = useMesVisivelStore((s) => s.mes);
+  const fatias = despesaPorCategoriaMes(
+    despesas,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    mes,
+    mesAtual(),
+  );
   const cores = coresDasCategorias(fatias.map((f) => f.categoria));
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
