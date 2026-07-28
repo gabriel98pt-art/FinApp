@@ -45,13 +45,17 @@
   align-items: center;
   justify-content: flex-end;
   gap: 2px;
+  /* O ícone tem folga dentro do seu quadrado; puxar o grupo aproxima-o
+     opticamente da borda sem mexer no padding do header (que mantém o logo
+     alinhado com o conteúdo das páginas). */
+  margin-right: -5px;
 }
 
 .acao {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 35px;
+  height: 35px;
   border-radius: var(--r-sm);
   color: var(--mut);
   transition:
