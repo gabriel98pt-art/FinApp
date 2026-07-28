@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio } from "../components/Pagina";
 import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
 import Seletor from "../components/Seletor";
 import { construirExistentes, confirmarImportacao } from "../services/importacaoService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -38,6 +39,7 @@ type Aba = "extrato" | "backupAntigo";
 
 export default function Importar() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const pedirConfirmacao = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
@@ -188,8 +190,11 @@ export default function Importar() {
               <button
                 className={styles.linkBotao}
                 onClick={() => {
-                  if (!window.confirm("Descartar as linhas analisadas e recomeçar?")) return;
-                  setLinhas(null);
+                  void (async () => {
+                    if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?")))
+                      return;
+                    setLinhas(null);
+                  })();
                 }}
               >
                 Novo extrato

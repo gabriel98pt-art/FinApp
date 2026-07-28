@@ -6,6 +6,7 @@ import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import ResumoAnual from "../components/ResumoAnual";
 import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useFundosStore } from "../stores/fundosStore";
@@ -24,6 +25,7 @@ import styles from "./Metas.module.css";
 
 export default function Metas() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
@@ -227,10 +229,12 @@ export default function Metas() {
                   <button
                     className={styles.remover}
                     onClick={() => {
-                      if (!window.confirm(`Excluir o fundo "${f.nome}"?`)) return;
-                      void removerFundo(uid!, f.id)
-                        .then(() => mostrarToast("Fundo excluído"))
-                        .catch(() => mostrarToast("Não foi possível excluir."));
+                      void (async () => {
+                        if (!(await confirmar(`Excluir o fundo "${f.nome}"?`))) return;
+                        await removerFundo(uid!, f.id)
+                          .then(() => mostrarToast("Fundo excluído"))
+                          .catch(() => mostrarToast("Não foi possível excluir."));
+                      })();
                     }}
                     aria-label="Excluir fundo"
                   >

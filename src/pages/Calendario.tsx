@@ -5,6 +5,7 @@ import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import { criarEvento, removerEvento } from "../services/eventosService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
@@ -39,6 +40,7 @@ import styles from "./Calendario.module.css";
 
 export default function Calendario() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const eventos = useEventosStore((s) => s.itens);
   const carregado = useEventosStore((s) => s.carregado);
@@ -242,10 +244,12 @@ export default function Calendario() {
                   <button
                     className={styles.remover}
                     onClick={() => {
-                      if (!window.confirm(`Excluir "${e.titulo}"?`)) return;
-                      void removerEvento(uid!, e.id)
-                        .then(() => mostrarToast("Evento excluído"))
-                        .catch(() => mostrarToast("Não foi possível excluir."));
+                      void (async () => {
+                        if (!(await confirmar(`Excluir "${e.titulo}"?`))) return;
+                        await removerEvento(uid!, e.id)
+                          .then(() => mostrarToast("Evento excluído"))
+                          .catch(() => mostrarToast("Não foi possível excluir."));
+                      })();
                     }}
                     aria-label="Excluir evento"
                   >

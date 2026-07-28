@@ -3,6 +3,7 @@ import { Upload } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
 import Seletor from "./Seletor";
 import { importarBackupAntigo, type AcaoDominio } from "../services/importarBackupAntigoService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useEventosStore } from "../stores/eventosStore";
 import { useFundosStore } from "../stores/fundosStore";
@@ -63,6 +64,7 @@ function acaoPadrao(
 
 export default function ImportarBackupAntigo() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const pedirConfirmacao = useConfirmar();
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
@@ -153,9 +155,9 @@ export default function ImportarBackupAntigo() {
     if (comRisco.length > 0) {
       const lista = comRisco.map(([chave, a]) => `${chave} (${a})`).join(", ");
       if (
-        !window.confirm(
+        !(await pedirConfirmacao(
           `Estes domínios já têm dados na conta e vão ser afetados: ${lista}. Continuar?`,
-        )
+        ))
       )
         return;
     }

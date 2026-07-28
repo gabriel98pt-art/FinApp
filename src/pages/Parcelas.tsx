@@ -20,6 +20,7 @@ import {
   quitarParcela,
 } from "../services/parcelasService";
 import { atualizarParcela } from "../services/lancamentosService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useParcelasStore } from "../stores/parcelasStore";
@@ -47,6 +48,7 @@ function LinhaParcela({
   aoEditar: (p: Parcela) => void;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const quitada = parcelaQuitada(p);
   const { pagas, total } = progressoDaParcela(p);
   const abertos = mesesNaoPagos(p);
@@ -113,17 +115,19 @@ function LinhaParcela({
           <button
             className={styles.acao}
             onClick={() => {
-              const totalQuit = valorQuitacao(p);
-              if (
-                !window.confirm(
-                  `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)}\n\nUma única despesa de quitação será criada hoje.`,
+              void (async () => {
+                const totalQuit = valorQuitacao(p);
+                if (
+                  !(await confirmar(
+                    `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)}\n\nUma única despesa de quitação será criada hoje.`,
+                  ))
                 )
-              )
-                return;
-              void agir(
-                () => quitarParcela(uid!, p),
-                `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
-              );
+                  return;
+                await agir(
+                  () => quitarParcela(uid!, p),
+                  `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
+                );
+              })();
             }}
           >
             Quitar
@@ -145,6 +149,7 @@ function FormParcela({
   editando: Parcela | null;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const [descricao, setDescricao] = useState("");
   const [nota, setNota] = useState("");
@@ -216,9 +221,9 @@ function FormParcela({
   async function excluir() {
     if (!editando) return;
     if (
-      !window.confirm(
+      !(await confirmar(
         `Excluir a parcela "${editando.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
-      )
+      ))
     )
       return;
     try {

@@ -15,6 +15,7 @@ import {
 } from "../services/lancamentosService";
 import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
 import { criarParcela } from "../services/parcelasService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -58,6 +59,7 @@ export default function RegistroRapido() {
   const editandoId = useUiStore((s) => s.editandoId);
   const { abrirRegistro, fecharRegistro } = useUiStore();
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
@@ -267,7 +269,7 @@ export default function RegistroRapido() {
 
   async function excluir() {
     if (!uid || !editando) return;
-    if (!window.confirm(`Excluir "${editando.descricao}"?`)) return;
+    if (!(await confirmar(`Excluir "${editando.descricao}"?`))) return;
     setSalvando(true);
     try {
       if (tipo === "receita") await removerReceita(uid, editando.id);

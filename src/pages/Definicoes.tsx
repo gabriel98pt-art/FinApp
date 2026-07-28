@@ -31,6 +31,7 @@ import {
   renomearCategoria,
   renomearFonte,
 } from "../services/cfgService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
@@ -61,6 +62,7 @@ function EditorLista({
   uid: string;
 }) {
   const [novo, setNovo] = useState("");
+  const confirmar = useConfirmar();
   // Categoria cujo ícone/cor está sendo escolhido agora (item 19).
   const [iconeDe, setIconeDe] = useState<string | null>(null);
   const [corDe, setCorDe] = useState<string | null>(null);
@@ -115,7 +117,8 @@ function EditorLista({
   }
 
   async function remover(item: string) {
-    if (!window.confirm(`Remover "${item}"? Lançamentos que já usam esse nome não mudam.`)) return;
+    if (!(await confirmar(`Remover "${item}"? Lançamentos que já usam esse nome não mudam.`)))
+      return;
     try {
       await removerItemLista(uid, cfg, lista, item);
       mostrarToast(`"${item}" removido`);
@@ -376,6 +379,7 @@ export default function Definicoes() {
   const [importando, setImportando] = useState(false);
 
   const uid = sessao?.uid;
+  const confirmar = useConfirmar();
 
   async function alternarTvde() {
     if (!uid) return;
@@ -423,14 +427,14 @@ export default function Definicoes() {
     }
   }
 
-  function aoEscolherArquivo(e: React.ChangeEvent<HTMLInputElement>) {
+  async function aoEscolherArquivo(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
     e.target.value = "";
     if (!arquivo || !uid) return;
     if (
-      !window.confirm(
+      !(await confirmar(
         "Importar backup? Isto SOBRESCREVE todos os dados atuais desta conta — a ação não pode ser desfeita.",
-      )
+      ))
     )
       return;
     const leitor = new FileReader();
@@ -542,7 +546,7 @@ export default function Definicoes() {
             type="file"
             accept=".json"
             className={styles.arquivoOculto}
-            onChange={aoEscolherArquivo}
+            onChange={(e) => void aoEscolherArquivo(e)}
           />
         </div>
       </div>

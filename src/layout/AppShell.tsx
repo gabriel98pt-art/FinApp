@@ -8,6 +8,7 @@ import Fab from "./Fab";
 import PaginaTransicao from "./PaginaTransicao";
 import RegistroRapido from "./RegistroRapido";
 import Toast from "../components/Toast";
+import ConfirmarAcao from "../components/ConfirmarAcao";
 import { useSyncConta } from "../hooks/useSyncConta";
 import styles from "./AppShell.module.css";
 
@@ -29,6 +30,7 @@ export default function AppShell() {
       <Fab />
       <RegistroRapido />
       <Toast />
+      <ConfirmarAcao />
     </>
   );
 }

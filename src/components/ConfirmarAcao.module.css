@@ -1,0 +1,102 @@
+/* Mesmo véu do BottomSheet, um degrau acima no z-index: o diálogo pode ser
+   pedido de dentro de uma folha aberta (excluir um lançamento, por ex.). */
+.veu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-exit) var(--ease-exit);
+}
+
+.veuVisivel {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity var(--dur-enter) var(--ease-enter);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* Base = saída (acelera, mais curta); .aberto = entrada (desacelera). */
+.cartao {
+  position: fixed;
+  z-index: 61;
+  left: 50%;
+  top: 50%;
+  width: min(340px, calc(100vw - 48px));
+  transform: translate(-50%, -46%) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-round);
+  padding: 22px 20px 16px;
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
+}
+
+.aberto {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    transform var(--dur-enter) var(--ease-enter);
+}
+
+.mensagem {
+  color: var(--txt);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  /* As mensagens trazem \n quando têm um aviso na segunda linha. */
+  white-space: pre-line;
+}
+
+.acoes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cancelar,
+.confirmar {
+  border-radius: var(--r-sm);
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cancelar {
+  color: var(--mut);
+}
+
+.cancelar:hover {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.confirmar {
+  background: var(--red);
+  color: var(--bg);
+}
+
+.cancelar:focus-visible,
+.confirmar:focus-visible {
+  outline: 2px solid var(--blu);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao {
+    transform: translate(-50%, -50%);
+  }
+  .aberto {
+    transform: translate(-50%, -50%);
+  }
+}

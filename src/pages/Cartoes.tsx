@@ -12,6 +12,7 @@ import {
   renomearCartao,
 } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -48,6 +49,7 @@ function ControlesFatura({
   aoAjustar: () => void;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const paga = fatura.devido > 0 && fatura.restante === 0;
 
@@ -99,16 +101,18 @@ function ControlesFatura({
                 <button
                   className={styles.remover}
                   onClick={() => {
-                    if (!window.confirm("Remover este pagamento?")) return;
-                    void removerPagamentoFatura(
-                      uid!,
-                      fatura.cartao,
-                      fatura.mes,
-                      p,
-                      calcularPagamentos(fatura),
-                    )
-                      .then(() => mostrarToast("↩ Pagamento removido"))
-                      .catch(() => mostrarToast("Não foi possível remover."));
+                    void (async () => {
+                      if (!(await confirmar("Remover este pagamento?"))) return;
+                      await removerPagamentoFatura(
+                        uid!,
+                        fatura.cartao,
+                        fatura.mes,
+                        p,
+                        calcularPagamentos(fatura),
+                      )
+                        .then(() => mostrarToast("↩ Pagamento removido"))
+                        .catch(() => mostrarToast("Não foi possível remover."));
+                    })();
                   }}
                   aria-label="Remover pagamento"
                 >
@@ -133,16 +137,18 @@ function ControlesFatura({
           <button
             className={styles.acao}
             onClick={() => {
-              const n = calcularPagamentos(fatura).length;
-              if (
-                !window.confirm(
-                  `Reabrir a fatura de ${rotuloMes(fatura.mes)}? Remove ${n} pagamento(s).`,
+              void (async () => {
+                const n = calcularPagamentos(fatura).length;
+                if (
+                  !(await confirmar(
+                    `Reabrir a fatura de ${rotuloMes(fatura.mes)}? Remove ${n} pagamento(s).`,
+                  ))
                 )
-              )
-                return;
-              void reabrirFatura(uid!, fatura.cartao, fatura.mes, calcularPagamentos(fatura))
-                .then(() => mostrarToast("↩ Fatura reaberta"))
-                .catch(() => mostrarToast("Não foi possível reabrir."));
+                  return;
+                await reabrirFatura(uid!, fatura.cartao, fatura.mes, calcularPagamentos(fatura))
+                  .then(() => mostrarToast("↩ Fatura reaberta"))
+                  .catch(() => mostrarToast("Não foi possível reabrir."));
+              })();
             }}
           >
             Reabrir
@@ -162,6 +168,7 @@ function calcularPagamentos(fatura: FaturaCalculada) {
 
 export default function Cartoes() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const cfgCarregada = useCfgStore((s) => s.carregado);
   const despesas = useDespesasStore((s) => s.itens);
@@ -240,9 +247,9 @@ export default function Cartoes() {
 
   async function remover(nome: string) {
     if (
-      !window.confirm(
+      !(await confirmar(
         `Remover "${nome}"? Lançamentos que já usam esta conta não mudam — para trocar o nome em todos, use Renomear.`,
-      )
+      ))
     )
       return;
     try {

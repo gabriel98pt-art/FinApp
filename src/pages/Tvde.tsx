@@ -13,6 +13,7 @@ import {
   removerSemana,
   salvarSemana,
 } from "../services/tvdeService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -62,6 +63,7 @@ function FormSemana({
   aoFechar: () => void;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const dados = useTvdeStore((s) => s.dados);
   const cargas = useVeiculoStore((s) => s.dados.cargas);
   const existente = n !== null ? dados.semanas[String(n)] : undefined;
@@ -180,17 +182,19 @@ function FormSemana({
             type="button"
             className={styles.excluirSemana}
             onClick={() => {
-              if (n === null) return;
-              if (dados.lancamentos[String(n)]) {
-                mostrarToast("Desfaça o lançamento antes de excluir a semana.");
-                return;
-              }
-              if (!window.confirm(`Excluir a semana ${n}?`)) return;
-              aoFechar();
-              setChave(null);
-              void removerSemana(uid!, n)
-                .then(() => mostrarToast("Semana excluída"))
-                .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
+              void (async () => {
+                if (n === null) return;
+                if (dados.lancamentos[String(n)]) {
+                  mostrarToast("Desfaça o lançamento antes de excluir a semana.");
+                  return;
+                }
+                if (!(await confirmar(`Excluir a semana ${n}?`))) return;
+                aoFechar();
+                setChave(null);
+                await removerSemana(uid!, n)
+                  .then(() => mostrarToast("Semana excluída"))
+                  .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
+              })();
             }}
           >
             Excluir semana
@@ -203,6 +207,7 @@ function FormSemana({
 
 export default function Tvde() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const dados = useTvdeStore((s) => s.dados);
   const carregado = useTvdeStore((s) => s.carregado);
   const erro = useTvdeStore((s) => s.erro);
@@ -360,16 +365,18 @@ export default function Tvde() {
                         <button
                           className={styles.acaoMini}
                           onClick={() => {
-                            if (
-                              !window.confirm(
-                                `Lançar ${eur(Math.round(c.lucro))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                            void (async () => {
+                              if (
+                                !(await confirmar(
+                                  `Lançar ${eur(Math.round(c.lucro))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                                ))
                               )
-                            )
-                              return;
-                            void agir(
-                              () => lancarReceitaSemana(uid!, nSem, dados),
-                              "✓ Receita lançada nas finanças",
-                            );
+                                return;
+                              await agir(
+                                () => lancarReceitaSemana(uid!, nSem, dados),
+                                "✓ Receita lançada nas finanças",
+                              );
+                            })();
                           }}
                         >
                           Lançar receita
@@ -534,8 +541,10 @@ export default function Tvde() {
                         className={styles.remover}
                         onClick={(e) => {
                           e.preventDefault();
-                          if (!window.confirm(`Excluir "${d.descricao}"?`)) return;
-                          void agir(() => removerDespesaTvde(uid!, d.id), "Despesa excluída");
+                          void (async () => {
+                            if (!(await confirmar(`Excluir "${d.descricao}"?`))) return;
+                            await agir(() => removerDespesaTvde(uid!, d.id), "Despesa excluída");
+                          })();
                         }}
                         aria-label={`Excluir ${d.descricao}`}
                       >

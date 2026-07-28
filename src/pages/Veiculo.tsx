@@ -31,6 +31,7 @@ import {
   renomearCategoria,
   renomearLocal,
 } from "../services/cfgService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -59,6 +60,7 @@ function paraTexto(centavos: number): string {
 
 export default function Veiculo() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const dados = useVeiculoStore((s) => s.dados);
   const carregado = useVeiculoStore((s) => s.carregado);
@@ -137,7 +139,7 @@ export default function Veiculo() {
 
   async function excluirKm() {
     if (!kmEditandoId) return;
-    if (!window.confirm("Excluir este registo de km?")) return;
+    if (!(await confirmar("Excluir este registo de km?"))) return;
     const id = kmEditandoId;
     setKmAberta(false);
     await agir(() => removerKm(uid!, id), "Registo excluído");
@@ -244,7 +246,7 @@ export default function Veiculo() {
   }
 
   async function removerLocal(nome: string) {
-    if (!window.confirm(`Remover "${nome}"? Carregamentos já registados não mudam.`)) return;
+    if (!(await confirmar(`Remover "${nome}"? Carregamentos já registados não mudam.`))) return;
     try {
       await removerItemLista(uid!, cfg, "locaisCarregamento", nome);
       mostrarToast(`"${nome}" removido`);
@@ -270,7 +272,7 @@ export default function Veiculo() {
   }
 
   async function removerCategoria(nome: string) {
-    if (!window.confirm(`Remover "${nome}"? Despesas já registadas não mudam.`)) return;
+    if (!(await confirmar(`Remover "${nome}"? Despesas já registadas não mudam.`))) return;
     try {
       await removerItemLista(uid!, cfg, "categoriasVeiculo", nome);
       mostrarToast(`"${nome}" removida`);
@@ -301,7 +303,7 @@ export default function Veiculo() {
 
   async function excluirCarga() {
     if (!cgEditandoId) return;
-    if (!window.confirm("Excluir este carregamento?")) return;
+    if (!(await confirmar("Excluir este carregamento?"))) return;
     const id = cgEditandoId;
     setCgAberta(false);
     await agir(() => removerCarga(uid!, id), "Carregamento excluído");
@@ -360,7 +362,7 @@ export default function Veiculo() {
 
   async function excluirDespesa() {
     if (!dvEditandoId) return;
-    if (!window.confirm("Excluir esta despesa do veículo?")) return;
+    if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
     const id = dvEditandoId;
     setDvAberta(false);
     await agir(() => removerDespesaVeiculo(uid!, id), "Despesa excluída");
@@ -429,7 +431,7 @@ export default function Veiculo() {
   async function excluirFixa() {
     const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!window.confirm(`Excluir "${atual.descricao}"?`)) return;
+    if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
     await agir(() => removerFixaVeiculo(uid!, atual.id), "Despesa fixa excluída");
   }

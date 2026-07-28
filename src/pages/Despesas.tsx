@@ -21,6 +21,7 @@ import {
   removerDespesaFixa,
   removerTransferencia,
 } from "../services/lancamentosService";
+import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -61,6 +62,7 @@ function agir(acao: () => Promise<unknown>, ok: string) {
 
 export default function Despesas() {
   const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const cfg = useCfgStore((s) => s.cfg);
   const itens = useDespesasStore((s) => s.itens);
@@ -206,7 +208,7 @@ export default function Despesas() {
   async function excluirFixa() {
     const atual = despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!window.confirm(`Excluir "${atual.descricao}"?`)) return;
+    if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
     await agir(() => removerDespesaFixa(uid!, atual.id), "Despesa fixa excluída");
   }
@@ -270,7 +272,7 @@ export default function Despesas() {
 
   async function excluirTransferencia() {
     if (!tfEditandoId) return;
-    if (!window.confirm("Excluir esta transferência?")) return;
+    if (!(await confirmar("Excluir esta transferência?"))) return;
     const id = tfEditandoId;
     setTfAberta(false);
     await agir(() => removerTransferencia(uid!, id), "Transferência excluída");
