@@ -45,6 +45,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* No header o espaço é curto: sem isto o padding do gatilho fazia "agosto
+     2026" truncar em telemóvel. */
+  padding-inline: 2px;
 }
 
 .compacto .seta {

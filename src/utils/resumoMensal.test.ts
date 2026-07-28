@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
-import { despesaRealizadaMes, resumoMesCompleto } from "./resumoMensal";
+import { despesaRealizadaMes, janelaResumoAnual, resumoMesCompleto } from "./resumoMensal";
 
 function veiculo(extra: Partial<DadosVeiculo> = {}): DadosVeiculo {
   return { cargas: [], despesas: [], despesasFixas: [], quilometragem: [], ...extra };
@@ -135,4 +135,65 @@ test("resumoMesCompleto: saldo = receitas − (despesas correntes + fixas gerais
   });
   const r = resumoMesCompleto(receitas, despesas, fixas, [], v, "2026-07", "2026-07");
   expect(r).toEqual({ receitas: 200000, despesas: 20999, saldo: 179001 });
+});
+
+describe("janelaResumoAnual — onde a janela termina vs. o que é futuro", () => {
+  const HOJE = "2026-07";
+
+  test("sem ancoragem própria, são os n meses até hoje e nada é futuro", () => {
+    const j = janelaResumoAnual(6, HOJE, HOJE);
+    expect(j.map((c) => c.ym)).toEqual([
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+    ]);
+    expect(j.some((c) => c.futuro)).toBe(false);
+  });
+
+  test("ancorada num mês passado, desloca a janela inteira e continua sem futuro", () => {
+    const j = janelaResumoAnual(6, "2026-04", HOJE);
+    expect(j.map((c) => c.ym)).toEqual([
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+    ]);
+    // olhar para trás não inventa futuro: todos estes meses já aconteceram
+    expect(j.some((c) => c.futuro)).toBe(false);
+  });
+
+  test("ancorada num mês adiante, marca como futuro só o que passa de hoje", () => {
+    const j = janelaResumoAnual(6, "2026-09", HOJE);
+    expect(j.map((c) => c.ym)).toEqual([
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+    ]);
+    expect(j.filter((c) => c.futuro).map((c) => c.ym)).toEqual(["2026-08", "2026-09"]);
+    // o próprio mês de hoje nunca é futuro
+    expect(j.find((c) => c.ym === HOJE)?.futuro).toBe(false);
+  });
+
+  test("o que é futuro não depende de onde a janela termina", () => {
+    for (const ate of ["2026-04", "2026-07", "2026-09"]) {
+      for (const c of janelaResumoAnual(12, ate, HOJE)) {
+        expect(c.futuro).toBe(c.ym > HOJE);
+      }
+    }
+  });
+
+  test("a janela vira o ano sem repetir mês", () => {
+    const j = janelaResumoAnual(12, "2026-02", HOJE);
+    expect(j[0].ym).toBe("2025-03");
+    expect(j.at(-1)?.ym).toBe("2026-02");
+    expect(new Set(j.map((c) => c.ym)).size).toBe(12);
+  });
 });

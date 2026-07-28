@@ -6,8 +6,9 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { mesAtual, mesesRecentes, totalDoMes } from "../utils/calculos";
-import { despesaRealizadaMes } from "../utils/resumoMensal";
+import type { YearMonth } from "../types";
+import { mesAtual, totalDoMes } from "../utils/calculos";
+import { despesaRealizadaMes, janelaResumoAnual } from "../utils/resumoMensal";
 import { formatCents, formatMoney } from "../utils/money";
 import styles from "./ResumoAnual.module.css";
 
@@ -32,10 +33,15 @@ const MESES_ABREV = [
 export default function ResumoAnual({
   meses,
   titulo,
+  ate,
 }: {
   /** Quantos meses recentes mostrar (6 no Início, 12 em Metas). */
   meses: number;
   titulo?: string;
+  /** Onde a janela termina. O Início ancora-a no mês do seletor do header;
+   *  sem o prop (Metas) fica em hoje, como sempre foi. Não confundir com o
+   *  "hoje" que marca as células futuras — esse é sempre o real. */
+  ate?: YearMonth;
 }) {
   const moeda = useCfgStore((s) => s.cfg.currency);
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
@@ -46,10 +52,8 @@ export default function ResumoAnual({
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const real = mesAtual();
-  const lista = mesesRecentes(meses, real);
 
-  const celulas = lista.map((ym) => {
-    const futuro = ym > real;
+  const celulas = janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
     const r = totalDoMes(receitas, ym);
     const d = futuro
       ? 0

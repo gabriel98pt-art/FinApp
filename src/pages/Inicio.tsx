@@ -85,7 +85,7 @@ export default function Inicio() {
         />
       </Kpis>
       <DonutCategoriaCard />
-      <ResumoAnual meses={6} titulo="Resumo Anual" />
+      <ResumoAnual meses={6} titulo="Resumo Anual" ate={mes} />
       <CopilotoCard />
     </Pagina>
   );
