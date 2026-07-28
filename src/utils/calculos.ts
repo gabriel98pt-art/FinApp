@@ -100,10 +100,23 @@ const MESES_PT = [
   "dezembro",
 ];
 
+/** 'jan', 'fev', … — para grades onde o nome inteiro não cabe. */
+export const MESES_CURTOS_PT = MESES_PT.map((m) => m.slice(0, 3));
+
 /** '2026-07' → 'julho 2026'. */
 export function rotuloMes(ym: YearMonth): string {
   const [y, m] = ym.split("-").map(Number);
   return `${MESES_PT[(m ?? 1) - 1]} ${y}`;
+}
+
+/** '2026-07' → 2026. */
+export function anoDe(ym: YearMonth): number {
+  return Number(ym.slice(0, 4));
+}
+
+/** (2026, 7) → '2026-07'. */
+export function mesDoAno(ano: number, mes1a12: number): YearMonth {
+  return `${ano}-${String(mes1a12).padStart(2, "0")}`;
 }
 
 /** Filtra os lançamentos que CONTAM como despesa nos KPIs/resumos.

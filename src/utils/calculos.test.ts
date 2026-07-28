@@ -1,9 +1,13 @@
 import { describe, expect, test } from "vitest";
 import {
+  anoDe,
   doMes,
+  MESES_CURTOS_PT,
   mesDe,
+  mesDoAno,
   ordenarPorDataDesc,
   resumoMes,
+  rotuloMes,
   saldoTotal,
   total,
   totalDoMes,
@@ -70,4 +74,32 @@ test("ordenarPorDataDesc não muta a lista original", () => {
   const ordenada = ordenarPorDataDesc(despesas);
   expect(ordenada.map((d) => d.data)).toEqual(["2026-07-10", "2026-07-05", "2026-06-20"]);
   expect(despesas[0].data).toBe("2026-07-05");
+});
+
+describe("ano e mês para a grade de escolha de mês", () => {
+  test("anoDe lê o ano sem passar por Date", () => {
+    expect(anoDe("2026-07")).toBe(2026);
+    expect(anoDe("1999-12")).toBe(1999);
+  });
+
+  test("mesDoAno monta o YearMonth com o zero à esquerda", () => {
+    expect(mesDoAno(2026, 1)).toBe("2026-01");
+    expect(mesDoAno(2026, 12)).toBe("2026-12");
+  });
+
+  test("os dois são o inverso um do outro em todos os meses do ano", () => {
+    for (let m = 1; m <= 12; m++) {
+      const ym = mesDoAno(2026, m);
+      expect(anoDe(ym)).toBe(2026);
+      expect(rotuloMes(ym).endsWith("2026")).toBe(true);
+    }
+  });
+
+  test("os 12 rótulos curtos são distintos e batem com o nome inteiro", () => {
+    expect(MESES_CURTOS_PT).toHaveLength(12);
+    expect(new Set(MESES_CURTOS_PT).size).toBe(12);
+    for (let m = 1; m <= 12; m++) {
+      expect(rotuloMes(mesDoAno(2026, m)).startsWith(MESES_CURTOS_PT[m - 1])).toBe(true);
+    }
+  });
 });
