@@ -11,6 +11,8 @@ export interface CargaEletrica {
   custo: Cents;
   local: string;
   sessao?: string;
+  /** Conta/cartão que pagou — se for crédito, entra na fatura do ciclo. */
+  contaCartao?: string;
   /** Descrição livre, separada do nome curto em `local`. */
   nota?: string;
 }
@@ -31,6 +33,8 @@ export interface DespesaVeiculo {
   data: IsoDate;
   valor: Cents;
   categoria: string;
+  /** Conta/cartão que pagou — se for crédito, entra na fatura do ciclo. */
+  contaCartao?: string;
   nota?: string;
 }
 

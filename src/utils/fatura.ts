@@ -10,9 +10,11 @@
 //     restante > 0 (reabre de forma visível), em vez de manter valor velho.
 
 import type {
+  CargaEletrica,
   Cents,
   DespesaCorrente,
   DespesaFixa,
+  DespesaVeiculo,
   FaturaCalculada,
   PagamentoFatura,
   Parcela,
@@ -44,6 +46,9 @@ export interface DadosFatura {
   despesasCorrentes: DespesaCorrente[];
   parcelas: Parcela[];
   transferencias: Transferencia[];
+  /** Carregamentos e despesas variáveis do veículo pagos no cartão. */
+  cargas?: CargaEletrica[];
+  despesasVeiculo?: DespesaVeiculo[];
 }
 
 /** Débito automático das parcelas vinculadas ao cartão num mês do ciclo.
@@ -63,7 +68,8 @@ function debitoAutomaticoParcelas(cartao: string, ciclo: YearMonth, parcelas: Pa
 /** Valor devido automático da fatura (seção 4.1): fixas + fixas do veículo +
  *  correntes do cartão no ciclo (EXCLUINDO origem 'fat' — o pagamento da
  *  própria fatura nunca conta) + parcelas em débito automático +
- *  transferências de saída contra o cartão. */
+ *  transferências de saída contra o cartão + cargas e despesas do veículo
+ *  pagas nesse cartão no ciclo. */
 export function calcularFaturaAutomatica(
   cartao: string,
   mesFatura: YearMonth,
@@ -83,7 +89,13 @@ export function calcularFaturaAutomatica(
   const transferencias = dados.transferencias
     .filter((t) => t.de === cartao && mesDe(t.data) === ciclo)
     .reduce((s, t) => s + t.valor, 0);
-  return fixas + fixasVeiculo + correntes + parcelas + transferencias;
+  const cargas = (dados.cargas ?? [])
+    .filter((c) => c.contaCartao === cartao && mesDe(c.data) === ciclo)
+    .reduce((s, c) => s + c.custo, 0);
+  const veiculo = (dados.despesasVeiculo ?? [])
+    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ciclo)
+    .reduce((s, d) => s + d.valor, 0);
+  return fixas + fixasVeiculo + correntes + parcelas + transferencias + cargas + veiculo;
 }
 
 /** Formato legado do app antigo: pagamento único {paid, val, date, from, dcId}

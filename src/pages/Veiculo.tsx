@@ -6,6 +6,7 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
+import Seletor from "../components/Seletor";
 import SeletorLocal from "../components/SeletorLocal";
 import SeletorSemana from "../components/SeletorSemana";
 import {
@@ -144,6 +145,7 @@ export default function Veiculo() {
   const [cgCustoTotal, setCgCustoTotal] = useState("");
   const [cgPrecoKwh, setCgPrecoKwh] = useState("");
   const [cgLocal, setCgLocal] = useState("");
+  const [cgConta, setCgConta] = useState("");
   const [cgSessao, setCgSessao] = useState("");
   const [cgNota, setCgNota] = useState("");
   const [cgData, setCgData] = useState(hojeIso());
@@ -155,6 +157,7 @@ export default function Veiculo() {
     setCgCustoTotal("");
     setCgPrecoKwh("");
     setCgLocal("");
+    setCgConta("");
     setCgSessao("");
     setCgNota("");
     setCgData(hojeIso());
@@ -168,6 +171,7 @@ export default function Veiculo() {
     setCgCustoTotal(paraTexto(c.custo));
     setCgPrecoKwh(paraTexto(c.precoKwh));
     setCgLocal(c.local);
+    setCgConta(c.contaCartao ?? "");
     setCgSessao(c.sessao ?? "");
     setCgNota(c.nota ?? "");
     setCgData(c.data);
@@ -199,6 +203,7 @@ export default function Veiculo() {
       precoKwh,
       custo,
       local,
+      contaCartao: cgConta || undefined,
       sessao: cgSessao.trim() || undefined,
       nota: cgNota.trim() || undefined,
     };
@@ -255,6 +260,7 @@ export default function Veiculo() {
   const [dvEditandoId, setDvEditandoId] = useState<Id | null>(null);
   const [dvValor, setDvValor] = useState("");
   const [dvCategoria, setDvCategoria] = useState("");
+  const [dvConta, setDvConta] = useState("");
   const [dvData, setDvData] = useState(hojeIso());
   const [dvNota, setDvNota] = useState("");
 
@@ -262,6 +268,7 @@ export default function Veiculo() {
     setDvEditandoId(null);
     setDvValor("");
     setDvCategoria(cfg.categoriasVeiculo[0] ?? "");
+    setDvConta("");
     setDvData(hojeIso());
     setDvNota("");
     setDvAberta(true);
@@ -271,6 +278,7 @@ export default function Veiculo() {
     setDvEditandoId(d.id);
     setDvValor(paraTexto(d.valor));
     setDvCategoria(d.categoria);
+    setDvConta(d.contaCartao ?? "");
     setDvData(d.data);
     setDvNota(d.nota ?? "");
     setDvAberta(true);
@@ -284,6 +292,7 @@ export default function Veiculo() {
       data: dvData,
       valor,
       categoria: dvCategoria || cfg.categoriasVeiculo[0] || "Outros",
+      contaCartao: dvConta || undefined,
       nota: dvNota.trim() || undefined,
     };
     if (dvEditandoId) {
@@ -731,6 +740,13 @@ export default function Veiculo() {
             </label>
           )}
           <SeletorLocal valor={cgLocal} opcoes={cfg.locaisCarregamento} aoMudar={setCgLocal} />
+          <Seletor
+            rotulo="Conta/cartão"
+            valor={cgConta}
+            opcoes={cfg.contasCartoes}
+            aoMudar={setCgConta}
+            rotuloVazio="Sem conta"
+          />
           <label className={styles.campo}>
             Sessão (opcional)
             <input value={cgSessao} onChange={(e) => setCgSessao(e.target.value)} />
@@ -772,6 +788,13 @@ export default function Veiculo() {
             valor={dvCategoria}
             opcoes={cfg.categoriasVeiculo}
             aoMudar={setDvCategoria}
+          />
+          <Seletor
+            rotulo="Conta/cartão"
+            valor={dvConta}
+            opcoes={cfg.contasCartoes}
+            aoMudar={setDvConta}
+            rotuloVazio="Sem conta"
           />
           <label className={styles.campo}>
             Descrição (opcional)

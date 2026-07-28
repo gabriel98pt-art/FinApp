@@ -181,6 +181,8 @@ export default function Cartoes() {
     despesasCorrentes: despesas,
     parcelas,
     transferencias,
+    cargas: veiculo.cargas,
+    despesasVeiculo: veiculo.despesas,
   };
 
   const dadosContas: DadosContas = {

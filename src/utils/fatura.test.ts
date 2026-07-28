@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
-import type { DespesaCorrente, DespesaFixa, Parcela, Transferencia } from "../types";
+import type {
+  CargaEletrica,
+  DespesaCorrente,
+  DespesaFixa,
+  DespesaVeiculo,
+  Parcela,
+  Transferencia,
+} from "../types";
 import { despesasNosTotais } from "./calculos";
 import {
   calcularFatura,
@@ -18,6 +25,30 @@ function dc(extra: Partial<DespesaCorrente>): DespesaCorrente {
     valor: 1000,
     data: "2026-06-10",
     categoria: "Compras",
+    contaCartao: CARTAO,
+    ...extra,
+  };
+}
+
+function carga(extra: Partial<CargaEletrica>): CargaEletrica {
+  return {
+    id: Math.random().toString(36).slice(2),
+    data: "2026-06-12",
+    kwh: 30,
+    precoKwh: 25,
+    custo: 750,
+    local: "Casa",
+    contaCartao: CARTAO,
+    ...extra,
+  };
+}
+
+function dv(extra: Partial<DespesaVeiculo>): DespesaVeiculo {
+  return {
+    id: Math.random().toString(36).slice(2),
+    data: "2026-06-18",
+    valor: 5000,
+    categoria: "Manutenção",
     contaCartao: CARTAO,
     ...extra,
   };
@@ -159,6 +190,47 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
       ],
     };
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500);
+  });
+
+  test("carga elétrica paga no cartão entra no devido do ciclo", () => {
+    const dados: DadosFatura = { ...vazio, cargas: [carga({ custo: 2500 })] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(2500);
+  });
+
+  test("despesa do veículo paga no cartão entra no devido do ciclo", () => {
+    const dados: DadosFatura = { ...vazio, despesasVeiculo: [dv({ valor: 8900 })] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(8900);
+  });
+
+  test("carga/despesa do veículo de outro cartão, sem cartão ou de outro ciclo ficam de fora", () => {
+    const dados: DadosFatura = {
+      ...vazio,
+      cargas: [
+        carga({ custo: 2500 }), // junho, este cartão → entra
+        carga({ custo: 1111, contaCartao: "Outro Cartão" }),
+        carga({ custo: 2222, contaCartao: undefined }),
+        carga({ custo: 3333, data: "2026-07-05" }), // ciclo de agosto
+      ],
+      despesasVeiculo: [
+        dv({ valor: 8900 }), // junho, este cartão → entra
+        dv({ valor: 4444, contaCartao: "Outro Cartão" }),
+        dv({ valor: 5555, contaCartao: undefined }),
+        dv({ valor: 6666, data: "2026-07-05" }), // ciclo de agosto
+      ],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(2500 + 8900);
+    expect(calcularFaturaAutomatica(CARTAO, "2026-08", dados)).toBe(3333 + 6666);
+    expect(calcularFaturaAutomatica("Outro Cartão", "2026-07", dados)).toBe(1111 + 4444);
+  });
+
+  test("cargas/despesas do veículo somam junto com as demais fontes", () => {
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [dc({ valor: 1500 })],
+      cargas: [carga({ custo: 2500 })],
+      despesasVeiculo: [dv({ valor: 8900 })],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500 + 2500 + 8900);
   });
 });
 

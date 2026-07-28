@@ -81,6 +81,8 @@ export default function Calendario() {
     despesasCorrentes: despesas,
     parcelas,
     transferencias,
+    cargas: veiculo.cargas,
+    despesasVeiculo: veiculo.despesas,
   };
   const devidoPorCartao = cfg.contasCartoes
     .filter((c) => cfg.tipoCartao[c] === "credit")

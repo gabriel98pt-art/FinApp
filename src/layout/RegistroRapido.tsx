@@ -167,6 +167,7 @@ export default function RegistroRapido() {
           custo: valor,
           precoKwh: Math.round(valor / kwhNum),
           local,
+          contaCartao: conta || undefined,
           nota: notaFinal,
         });
       } else if (tipo === "despesaVeiculo") {
@@ -174,6 +175,7 @@ export default function RegistroRapido() {
           data,
           valor,
           categoria: etiquetaFinal,
+          contaCartao: conta || undefined,
           nota: notaFinal,
         });
       } else if (tipo === "despesa" && parcelada && !editando) {
@@ -373,7 +375,7 @@ export default function RegistroRapido() {
           />
         )}
 
-        {!ehVeiculo && cfg.contasCartoes.length > 0 && (
+        {cfg.contasCartoes.length > 0 && (
           <div className={styles.campo}>
             <span>Cartão</span>
             <div className={styles.fileiraContas} role="radiogroup" aria-label="Cartão">
