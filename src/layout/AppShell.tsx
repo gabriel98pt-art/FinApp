@@ -5,6 +5,7 @@ import FaixaErroSync from "./FaixaErroSync";
 import TabBar from "./TabBar";
 import MobileNav from "./MobileNav";
 import Fab from "./Fab";
+import PaginaTransicao from "./PaginaTransicao";
 import RegistroRapido from "./RegistroRapido";
 import Toast from "../components/Toast";
 import { useSyncConta } from "../hooks/useSyncConta";
@@ -19,7 +20,9 @@ export default function AppShell() {
       <TabBar />
       <main className={styles.conteudo}>
         <Suspense fallback={null}>
-          <Outlet />
+          <PaginaTransicao>
+            <Outlet />
+          </PaginaTransicao>
         </Suspense>
       </main>
       <MobileNav />
