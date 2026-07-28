@@ -4,7 +4,7 @@
 
 .barra {
   position: fixed;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  bottom: calc(5px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: min(100vw - 20px, 430px);
@@ -137,7 +137,7 @@
 /* Superfície sólida (não vidro) — o material translúcido fica só na barra */
 .menuMais {
   position: fixed;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(79px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: min(100vw - 20px, 430px);
