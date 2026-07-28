@@ -38,6 +38,14 @@ npm test             # testes (Vitest)
 npm run build        # tsc + vite build
 ```
 
+### Ver as telas sem conta Firebase
+
+Com o `npm run dev` a correr, abra **`/dev-preview.html`**: é uma entrada só de
+desenvolvimento (`src/dev-preview.tsx`) que semeia as stores com dados de
+exemplo e salta o login, sem tocar na rede. Serve pra conferir layout e
+interações; qualquer ação que grave vai falhar, porque não há sessão real.
+Não entra no build de produção — o Vite só usa o `index.html`.
+
 ## Repositório
 
 https://github.com/gabriel98pt-art/FinApp
