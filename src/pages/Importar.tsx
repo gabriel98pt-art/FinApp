@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
+import AbaTransicao from "../components/AbaTransicao";
 import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
 import Seletor from "../components/Seletor";
 import { construirExistentes, confirmarImportacao } from "../services/importacaoService";
@@ -142,150 +143,154 @@ export default function Importar() {
         ))}
       </div>
 
-      {aba === "backupAntigo" && <ImportarBackupAntigo />}
+      <AbaTransicao aba={aba}>
+        {aba === "backupAntigo" && <ImportarBackupAntigo />}
 
-      {aba === "extrato" &&
-        (linhas === null ? (
-          <div className={styles.entrada}>
-            <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
-            <p className={styles.entradaSub}>
-              CSV ou texto delimitado (tab/;/,) com colunas de data, descrição e valor — exportado
-              do banco ou colado direto de uma folha de cálculo.
-            </p>
-            <textarea
-              className={styles.textarea}
-              placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              rows={8}
-            />
-            <div className={styles.entradaAcoes}>
-              <button
-                className={styles.botaoPrimario}
-                onClick={() => analisar(texto)}
-                disabled={!texto.trim()}
-              >
-                Analisar
-              </button>
-              <button className={styles.botao} onClick={() => arquivoRef.current?.click()}>
-                <Upload size={15} aria-hidden /> Carregar arquivo
-              </button>
-              <input
-                ref={arquivoRef}
-                type="file"
-                accept=".csv,.txt"
-                className={styles.arquivoOculto}
-                onChange={aoCarregarArquivo}
+        {aba === "extrato" &&
+          (linhas === null ? (
+            <div className={styles.entrada}>
+              <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
+              <p className={styles.entradaSub}>
+                CSV ou texto delimitado (tab/;/,) com colunas de data, descrição e valor — exportado
+                do banco ou colado direto de uma folha de cálculo.
+              </p>
+              <textarea
+                className={styles.textarea}
+                placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                rows={8}
               />
-            </div>
-          </div>
-        ) : linhas.length === 0 ? (
-          <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
-        ) : (
-          <>
-            <div className={styles.resumo}>
-              <span>
-                {linhas.length} linha(s) · {totalImportar} marcada(s) para importar
-              </span>
-              <button
-                className={styles.linkBotao}
-                onClick={() => {
-                  void (async () => {
-                    if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?")))
-                      return;
-                    setLinhas(null);
-                  })();
-                }}
-              >
-                Novo extrato
-              </button>
-            </div>
-
-            <div className={styles.acoesLote}>
-              <button className={styles.botao} onClick={aceitarAutoClassificadas}>
-                ✓ Aceitar auto-classificadas
-              </button>
-              <button className={styles.botao} onClick={() => marcarTodas("import")}>
-                Marcar tudo p/ importar
-              </button>
-              <button className={styles.botao} onClick={() => marcarTodas("skip")}>
-                Marcar tudo p/ pular
-              </button>
-            </div>
-
-            <div className={styles.filtros} role="tablist">
-              {FILTROS.map((f) => (
+              <div className={styles.entradaAcoes}>
                 <button
-                  key={f.id}
-                  role="tab"
-                  aria-selected={filtro === f.id}
-                  className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
-                  onClick={() => setFiltro(f.id)}
+                  className={styles.botaoPrimario}
+                  onClick={() => analisar(texto)}
+                  disabled={!texto.trim()}
                 >
-                  {f.rotulo}
-                  {f.id !== "todas" && ` (${linhas.filter((l) => l.decisao === f.id).length})`}
+                  Analisar
                 </button>
-              ))}
+                <button className={styles.botao} onClick={() => arquivoRef.current?.click()}>
+                  <Upload size={15} aria-hidden /> Carregar arquivo
+                </button>
+                <input
+                  ref={arquivoRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  className={styles.arquivoOculto}
+                  onChange={aoCarregarArquivo}
+                />
+              </div>
             </div>
+          ) : linhas.length === 0 ? (
+            <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
+          ) : (
+            <>
+              <div className={styles.resumo}>
+                <span>
+                  {linhas.length} linha(s) · {totalImportar} marcada(s) para importar
+                </span>
+                <button
+                  className={styles.linkBotao}
+                  onClick={() => {
+                    void (async () => {
+                      if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?")))
+                        return;
+                      setLinhas(null);
+                    })();
+                  }}
+                >
+                  Novo extrato
+                </button>
+              </div>
 
-            <div className={styles.lista}>
-              {visiveis.map((l) => (
-                <div key={l.id} className={styles.linha}>
-                  <label className={styles.linhaAcao}>
-                    <input
-                      type="checkbox"
-                      checked={l.acao === "import"}
-                      onChange={(e) =>
-                        atualizarLinha(l.id, { acao: e.target.checked ? "import" : "skip" })
-                      }
-                    />
-                  </label>
-                  <div className={styles.linhaCorpo}>
-                    <div className={styles.linhaTopo}>
-                      <span className={styles.linhaDesc}>{l.descricao}</span>
-                      <span className={l.valor >= 0 ? styles.valorPositivo : styles.valorNegativo}>
-                        {formatMoney(l.valor, cfg.currency)}
-                      </span>
-                    </div>
-                    <div className={styles.linhaMeta}>
-                      <span>
-                        {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
-                      </span>
-                      <span
-                        className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}
-                      >
-                        {ROTULO_DECISAO[l.decisao]}
-                      </span>
-                      <Seletor
-                        variante="inline"
-                        rotulo={`Categoria de ${l.descricao}`}
-                        nivel={0}
-                        valor={l.categoriaEscolhida}
-                        opcoes={opcoesCategoria}
-                        aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
-                        desativado={l.classificacao.tipo === "receita"}
+              <div className={styles.acoesLote}>
+                <button className={styles.botao} onClick={aceitarAutoClassificadas}>
+                  ✓ Aceitar auto-classificadas
+                </button>
+                <button className={styles.botao} onClick={() => marcarTodas("import")}>
+                  Marcar tudo p/ importar
+                </button>
+                <button className={styles.botao} onClick={() => marcarTodas("skip")}>
+                  Marcar tudo p/ pular
+                </button>
+              </div>
+
+              <div className={styles.filtros} role="tablist">
+                {FILTROS.map((f) => (
+                  <button
+                    key={f.id}
+                    role="tab"
+                    aria-selected={filtro === f.id}
+                    className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
+                    onClick={() => setFiltro(f.id)}
+                  >
+                    {f.rotulo}
+                    {f.id !== "todas" && ` (${linhas.filter((l) => l.decisao === f.id).length})`}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.lista}>
+                {visiveis.map((l) => (
+                  <div key={l.id} className={styles.linha}>
+                    <label className={styles.linhaAcao}>
+                      <input
+                        type="checkbox"
+                        checked={l.acao === "import"}
+                        onChange={(e) =>
+                          atualizarLinha(l.id, { acao: e.target.checked ? "import" : "skip" })
+                        }
                       />
+                    </label>
+                    <div className={styles.linhaCorpo}>
+                      <div className={styles.linhaTopo}>
+                        <span className={styles.linhaDesc}>{l.descricao}</span>
+                        <span
+                          className={l.valor >= 0 ? styles.valorPositivo : styles.valorNegativo}
+                        >
+                          {formatMoney(l.valor, cfg.currency)}
+                        </span>
+                      </div>
+                      <div className={styles.linhaMeta}>
+                        <span>
+                          {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
+                        </span>
+                        <span
+                          className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}
+                        >
+                          {ROTULO_DECISAO[l.decisao]}
+                        </span>
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Categoria de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.categoriaEscolhida}
+                          opcoes={opcoesCategoria}
+                          aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
+                          desativado={l.classificacao.tipo === "receita"}
+                        />
+                      </div>
+                      {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
+                        <p className={styles.motivoDup}>
+                          Parece com "{l.duplicata.correspondencia.descricao}" —{" "}
+                          {l.duplicata.motivos.join(", ")}
+                        </p>
+                      )}
                     </div>
-                    {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
-                      <p className={styles.motivoDup}>
-                        Parece com "{l.duplicata.correspondencia.descricao}" —{" "}
-                        {l.duplicata.motivos.join(", ")}
-                      </p>
-                    )}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <button
-              className={styles.confirmar}
-              onClick={confirmar}
-              disabled={enviando || totalImportar === 0}
-            >
-              {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
-            </button>
-          </>
-        ))}
+              <button
+                className={styles.confirmar}
+                onClick={confirmar}
+                disabled={enviando || totalImportar === 0}
+              >
+                {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
+              </button>
+            </>
+          ))}
+      </AbaTransicao>
     </Pagina>
   );
 }

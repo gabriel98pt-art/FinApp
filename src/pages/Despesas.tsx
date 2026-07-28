@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { ArrowLeftRight, Plus, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
+import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -300,179 +301,184 @@ export default function Despesas() {
         ))}
       </div>
 
-      {aba === "correntes" && (
-        <>
-          <Kpis pagina="despesas">
-            <KpiCard
-              rotulo="Total do mês"
-              valor={formatMoney(totalDoMesComVeiculo, moeda)}
-              tom="vermelho"
-            />
-            <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-            <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
-          </Kpis>
+      <AbaTransicao aba={aba}>
+        {aba === "correntes" && (
+          <>
+            <Kpis pagina="despesas">
+              <KpiCard
+                rotulo="Total do mês"
+                valor={formatMoney(totalDoMesComVeiculo, moeda)}
+                tom="vermelho"
+              />
+              <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+              <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
+            </Kpis>
 
-          <div className={styles.linhaVisao}>
-            <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
-              {(
-                [
-                  ["mes", "Mês"],
-                  ["semana", "Semana"],
-                ] as const
-              ).map(([id, nome]) => (
-                <button
-                  key={id}
-                  role="radio"
-                  aria-checked={visao === id}
-                  className={`${styles.visaoBotao} ${visao === id ? styles.visaoAtiva : ""}`}
-                  onClick={() => setVisao(id)}
-                >
-                  {nome}
-                </button>
-              ))}
+            <div className={styles.linhaVisao}>
+              <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
+                {(
+                  [
+                    ["mes", "Mês"],
+                    ["semana", "Semana"],
+                  ] as const
+                ).map(([id, nome]) => (
+                  <button
+                    key={id}
+                    role="radio"
+                    aria-checked={visao === id}
+                    className={`${styles.visaoBotao} ${visao === id ? styles.visaoAtiva : ""}`}
+                    onClick={() => setVisao(id)}
+                  >
+                    {nome}
+                  </button>
+                ))}
+              </div>
+              {visao === "semana" && (
+                <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+              )}
             </div>
-            {visao === "semana" && (
-              <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-            )}
-          </div>
 
-          <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+            <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
 
-          <ListaLancamentos
-            /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
-            key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
-            titulo="Despesas correntes"
-            itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => ({
-              id: d.id,
-              descricao: d.descricao,
-              valor: d.valor,
-              data: d.data,
-              etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
-              categoria: d.categoria,
-            }))}
-            carregado={carregado}
-            erro={erroDespesas}
-            tom="vermelho"
-            moeda={moeda}
-            rotuloTotal={
-              visao === "semana" && semanaAtual
-                ? `Total ${rotuloDaSemana(semanaAtual)}`
-                : `Total ${rotuloMes(mes)}`
-            }
-            /* A lista mostra pagamento de fatura e espelho de parcela, mas o
-               rodapé soma só o que conta nos totais — igual aos KPIs acima. */
-            total={total(despesasNosTotais(doPeriodo))}
-            vazio={
-              visao === "semana" && semanaAtual
-                ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
-                : `Nenhuma despesa em ${rotuloMes(mes)}`
-            }
-            vazioSub="Toque em Adicionar para lançar a primeira."
-            vazioIcone={TrendingDown}
-            aoAdicionar={() => abrirRegistro("despesa")}
-            aoEditar={editar}
-          />
-        </>
-      )}
+            <ListaLancamentos
+              /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
+              key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
+              titulo="Despesas correntes"
+              itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => ({
+                id: d.id,
+                descricao: d.descricao,
+                valor: d.valor,
+                data: d.data,
+                etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
+                categoria: d.categoria,
+              }))}
+              carregado={carregado}
+              erro={erroDespesas}
+              tom="vermelho"
+              moeda={moeda}
+              rotuloTotal={
+                visao === "semana" && semanaAtual
+                  ? `Total ${rotuloDaSemana(semanaAtual)}`
+                  : `Total ${rotuloMes(mes)}`
+              }
+              /* A lista mostra pagamento de fatura e espelho de parcela, mas o
+                 rodapé soma só o que conta nos totais — igual aos KPIs acima. */
+              total={total(despesasNosTotais(doPeriodo))}
+              vazio={
+                visao === "semana" && semanaAtual
+                  ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
+                  : `Nenhuma despesa em ${rotuloMes(mes)}`
+              }
+              vazioSub="Toque em Adicionar para lançar a primeira."
+              vazioIcone={TrendingDown}
+              aoAdicionar={() => abrirRegistro("despesa")}
+              aoEditar={editar}
+            />
+          </>
+        )}
 
-      {aba === "fixas" && (
-        <>
-          <div className={styles.cabecalhoLista}>
-            <h3 className={styles.tituloSecao}>Despesas fixas</h3>
-            <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
-              <Plus size={15} aria-hidden /> Adicionar despesa fixa
-            </button>
-          </div>
+        {aba === "fixas" && (
+          <>
+            <div className={styles.cabecalhoLista}>
+              <h3 className={styles.tituloSecao}>Despesas fixas</h3>
+              <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
+                <Plus size={15} aria-hidden /> Adicionar despesa fixa
+              </button>
+            </div>
 
-          <div className={styles.lista}>
-            {erroFixas && fixasVisiveis.length > 0 && <ErroSincronizacao compacto />}
-            {erroFixas && fixasVisiveis.length === 0 ? (
-              <ErroSincronizacao />
-            ) : fixasVisiveis.length === 0 ? (
-              <p className={styles.vazio}>
-                {despesasFixas.length === 0
-                  ? "Nenhuma despesa fixa ainda."
-                  : `Nenhuma despesa fixa em ${rotuloMes(mes)}.`}
-              </p>
-            ) : (
-              fixasVisiveis.map((f) => {
-                const paga = !!f.pagoPorMes[mes];
-                return (
-                  <div key={f.id} className={styles.item}>
-                    {/* Linha inteira abre a caixa de edição (item 7); só o
-                          selo Pago/Pendente continua com ação própria. */}
-                    <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
+            <div className={styles.lista}>
+              {erroFixas && fixasVisiveis.length > 0 && <ErroSincronizacao compacto />}
+              {erroFixas && fixasVisiveis.length === 0 ? (
+                <ErroSincronizacao />
+              ) : fixasVisiveis.length === 0 ? (
+                <p className={styles.vazio}>
+                  {despesasFixas.length === 0
+                    ? "Nenhuma despesa fixa ainda."
+                    : `Nenhuma despesa fixa em ${rotuloMes(mes)}.`}
+                </p>
+              ) : (
+                fixasVisiveis.map((f) => {
+                  const paga = !!f.pagoPorMes[mes];
+                  return (
+                    <div key={f.id} className={styles.item}>
+                      {/* Linha inteira abre a caixa de edição (item 7); só o
+                            selo Pago/Pendente continua com ação própria. */}
+                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
+                        <span className={styles.itemTexto}>
+                          <span className={styles.itemNome}>{f.descricao}</span>
+                          <span className={styles.itemDetalhe}>
+                            {f.categoria}
+                            {f.contaCartao ? ` · ${f.contaCartao}` : ""}
+                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                          </span>
+                        </span>
+                        <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
+                      </button>
+                      <button
+                        className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                        onClick={() =>
+                          void agir(
+                            () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
+                            paga ? "Marcado como pendente" : "✓ Pago",
+                          )
+                        }
+                      >
+                        {paga ? "Pago" : "Pendente"}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </>
+        )}
+
+        {aba === "transferencias" && (
+          <>
+            <div className={styles.cabecalhoLista}>
+              <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
+              <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
+                <Plus size={15} aria-hidden /> Adicionar transferência
+              </button>
+            </div>
+
+            <div className={styles.lista}>
+              {erroTransferencias && doMes(transferencias, mes).length > 0 && (
+                <ErroSincronizacao compacto />
+              )}
+              {erroTransferencias && doMes(transferencias, mes).length === 0 ? (
+                <ErroSincronizacao />
+              ) : doMes(transferencias, mes).length === 0 ? (
+                <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
+              ) : (
+                ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (
+                  <div key={t.id} className={styles.item}>
+                    <button
+                      className={styles.itemCorpo}
+                      onClick={() => abrirEdicaoTransferencia(t)}
+                    >
                       <span className={styles.itemTexto}>
-                        <span className={styles.itemNome}>{f.descricao}</span>
+                        <span className={styles.itemNome}>
+                          {t.de}{" "}
+                          <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
+                          {t.para}
+                        </span>
                         <span className={styles.itemDetalhe}>
-                          {f.categoria}
-                          {f.contaCartao ? ` · ${f.contaCartao}` : ""}
-                          {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                          {t.descricao ? `${t.descricao} · ` : ""}
+                          {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
                         </span>
                       </span>
-                      <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
-                    </button>
-                    <button
-                      className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                      onClick={() =>
-                        void agir(
-                          () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
-                          paga ? "Marcado como pendente" : "✓ Pago",
-                        )
-                      }
-                    >
-                      {paga ? "Pago" : "Pendente"}
+                      <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
                     </button>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </>
-      )}
+                ))
+              )}
+            </div>
+          </>
+        )}
 
-      {aba === "transferencias" && (
-        <>
-          <div className={styles.cabecalhoLista}>
-            <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
-            <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
-              <Plus size={15} aria-hidden /> Adicionar transferência
-            </button>
-          </div>
-
-          <div className={styles.lista}>
-            {erroTransferencias && doMes(transferencias, mes).length > 0 && (
-              <ErroSincronizacao compacto />
-            )}
-            {erroTransferencias && doMes(transferencias, mes).length === 0 ? (
-              <ErroSincronizacao />
-            ) : doMes(transferencias, mes).length === 0 ? (
-              <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
-            ) : (
-              ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (
-                <div key={t.id} className={styles.item}>
-                  <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
-                    <span className={styles.itemTexto}>
-                      <span className={styles.itemNome}>
-                        {t.de}{" "}
-                        <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
-                        {t.para}
-                      </span>
-                      <span className={styles.itemDetalhe}>
-                        {t.descricao ? `${t.descricao} · ` : ""}
-                        {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                      </span>
-                    </span>
-                    <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Caixa única de despesa fixa: cria e edita (itens 2, 7, 11, 16, 17, 19) */}
+        {/* Caixa única de despesa fixa: cria e edita (itens 2, 7, 11, 16, 17, 19) */}
+      </AbaTransicao>
       <BottomSheet
         aberta={dfAberta}
         aoFechar={() => setDfAberta(false)}

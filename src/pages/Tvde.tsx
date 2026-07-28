@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { CarTaxiFront, Plus, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
+import AbaTransicao from "../components/AbaTransicao";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
@@ -296,270 +297,272 @@ export default function Tvde() {
         ))}
       </div>
 
-      {aba === "semanas" && (
-        <>
-          <div className={styles.cabecalho}>
-            <h3 className={styles.subtitulo}>Semanas</h3>
-            <div className={styles.cabecalhoAcoes}>
-              <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
-                <Plus size={15} aria-hidden /> Semana atual ({semanaAtualN})
-              </button>
-              <button
-                className={styles.adicionar}
-                onClick={() => {
-                  const resposta = window.prompt("Número da semana (1 = semana de referência):");
-                  if (!resposta) return;
-                  const nSem = parseInt(resposta, 10);
-                  if (!Number.isFinite(nSem) || nSem < 1 || nSem > 500) {
-                    mostrarToast("Número de semana inválido.");
-                    return;
-                  }
-                  setEditando(nSem);
-                }}
-              >
-                + Outra…
-              </button>
+      <AbaTransicao aba={aba}>
+        {aba === "semanas" && (
+          <>
+            <div className={styles.cabecalho}>
+              <h3 className={styles.subtitulo}>Semanas</h3>
+              <div className={styles.cabecalhoAcoes}>
+                <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
+                  <Plus size={15} aria-hidden /> Semana atual ({semanaAtualN})
+                </button>
+                <button
+                  className={styles.adicionar}
+                  onClick={() => {
+                    const resposta = window.prompt("Número da semana (1 = semana de referência):");
+                    if (!resposta) return;
+                    const nSem = parseInt(resposta, 10);
+                    if (!Number.isFinite(nSem) || nSem < 1 || nSem > 500) {
+                      mostrarToast("Número de semana inválido.");
+                      return;
+                    }
+                    setEditando(nSem);
+                  }}
+                >
+                  + Outra…
+                </button>
+              </div>
             </div>
-          </div>
-          {erro && numeros.length > 0 && <ErroSincronizacao compacto />}
-          {erro && numeros.length === 0 ? (
-            <ErroSincronizacao />
-          ) : carregado && numeros.length === 0 ? (
-            <EstadoVazio
-              Icone={CarTaxiFront}
-              mensagem="Nenhuma semana registrada"
-              sub={`A semana atual é a ${semanaAtualN} (${rotuloDaSemana(cfg.inicioSemana1, semanaAtualN)}).`}
-            />
-          ) : (
-            <div className={styles.lista}>
-              {[...numeros].reverse().map((nSem) => {
-                const w = semanas[String(nSem)];
-                const c = calcularSemana(w, cfg.pctFrota);
-                const lancada = lancamentos[String(nSem)];
-                return (
-                  <div key={nSem} className={styles.semana}>
-                    <button className={styles.semanaInfo} onClick={() => setEditando(nSem)}>
-                      <span className={styles.semanaNome}>
-                        Semana {nSem} · {rotuloDaSemana(cfg.inicioSemana1, nSem)}
-                        {w.teste ? <em className={styles.badgeTeste}>teste</em> : null}
-                      </span>
-                      <span className={styles.semanaDetalhe}>
-                        Fat. {eur(w.fat)} · Receita {eur(c.receita)} · Custos {eur(c.custos)}
-                      </span>
-                    </button>
-                    <div className={styles.semanaLado}>
-                      <span className={styles.semanaLucro}>{eur(c.lucro)}</span>
-                      {lancada ? (
-                        <button
-                          className={styles.acaoMini}
-                          onClick={() =>
-                            agir(
-                              () => desfazerLancamentoSemana(uid!, nSem, lancada),
-                              "↩ Lançamento desfeito",
-                            )
-                          }
-                        >
-                          Desfazer lançamento
-                        </button>
-                      ) : (
-                        <button
-                          className={styles.acaoMini}
-                          onClick={() => {
-                            void (async () => {
-                              if (
-                                !(await confirmar(
-                                  `Lançar ${eur(Math.round(c.lucro))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
-                                ))
+            {erro && numeros.length > 0 && <ErroSincronizacao compacto />}
+            {erro && numeros.length === 0 ? (
+              <ErroSincronizacao />
+            ) : carregado && numeros.length === 0 ? (
+              <EstadoVazio
+                Icone={CarTaxiFront}
+                mensagem="Nenhuma semana registrada"
+                sub={`A semana atual é a ${semanaAtualN} (${rotuloDaSemana(cfg.inicioSemana1, semanaAtualN)}).`}
+              />
+            ) : (
+              <div className={styles.lista}>
+                {[...numeros].reverse().map((nSem) => {
+                  const w = semanas[String(nSem)];
+                  const c = calcularSemana(w, cfg.pctFrota);
+                  const lancada = lancamentos[String(nSem)];
+                  return (
+                    <div key={nSem} className={styles.semana}>
+                      <button className={styles.semanaInfo} onClick={() => setEditando(nSem)}>
+                        <span className={styles.semanaNome}>
+                          Semana {nSem} · {rotuloDaSemana(cfg.inicioSemana1, nSem)}
+                          {w.teste ? <em className={styles.badgeTeste}>teste</em> : null}
+                        </span>
+                        <span className={styles.semanaDetalhe}>
+                          Fat. {eur(w.fat)} · Receita {eur(c.receita)} · Custos {eur(c.custos)}
+                        </span>
+                      </button>
+                      <div className={styles.semanaLado}>
+                        <span className={styles.semanaLucro}>{eur(c.lucro)}</span>
+                        {lancada ? (
+                          <button
+                            className={styles.acaoMini}
+                            onClick={() =>
+                              agir(
+                                () => desfazerLancamentoSemana(uid!, nSem, lancada),
+                                "↩ Lançamento desfeito",
                               )
-                                return;
-                              await agir(
-                                () => lancarReceitaSemana(uid!, nSem, dados),
-                                "✓ Receita lançada nas finanças",
-                              );
+                            }
+                          >
+                            Desfazer lançamento
+                          </button>
+                        ) : (
+                          <button
+                            className={styles.acaoMini}
+                            onClick={() => {
+                              void (async () => {
+                                if (
+                                  !(await confirmar(
+                                    `Lançar ${eur(Math.round(c.lucro))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                                  ))
+                                )
+                                  return;
+                                await agir(
+                                  () => lancarReceitaSemana(uid!, nSem, dados),
+                                  "✓ Receita lançada nas finanças",
+                                );
+                              })();
+                            }}
+                          >
+                            Lançar receita
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className={styles.notaEur}>
+              Valores sempre em EUR — este módulo não segue a moeda da conta.
+            </p>
+          </>
+        )}
+
+        {aba === "meses" && (
+          <div className={styles.tabela}>
+            <div className={`${styles.linhaTab} ${styles.linhaCab}`}>
+              <span>Mês</span>
+              <span>Lucro</span>
+              <span>Seg. Social</span>
+              <span>Líquido</span>
+            </div>
+            {meses.length === 0 ? (
+              <p className={styles.vazioTab}>Sem meses ainda.</p>
+            ) : (
+              meses.map((m) => (
+                <div key={m.mes} className={styles.linhaTab}>
+                  <span className={styles.mesNome}>{rotuloMes(m.mes)}</span>
+                  <span>{eur(m.lucro)}</span>
+                  <span>{m.seg ? `− ${eur(m.seg)}` : "—"}</span>
+                  <span className={styles.liquido}>{eur(m.liquido)}</span>
+                </div>
+              ))
+            )}
+            <p className={styles.notaEur}>
+              Semanas de teste contam aqui (dinheiro real); só ficam fora das médias.
+            </p>
+          </div>
+        )}
+
+        {aba === "periodos" && (
+          <div className={styles.tabela}>
+            <div className={`${styles.linhaTab} ${styles.linhaCab}`}>
+              <span>Período</span>
+              <span>Faturamento</span>
+              <span>Receita</span>
+              <span>Lucro</span>
+            </div>
+            {periodos.length === 0 ? (
+              <p className={styles.vazioTab}>Sem períodos ainda.</p>
+            ) : (
+              periodos.map((p) => (
+                <div key={p.periodo} className={styles.linhaTab}>
+                  <span className={styles.mesNome}>
+                    P{p.periodo} · {rotuloDoPeriodo(cfg.inicioSemana1, p.periodo)}
+                  </span>
+                  <span>{eur(p.fat)}</span>
+                  <span>{eur(p.receita)}</span>
+                  <span className={styles.liquido}>{eur(p.lucro)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {aba === "extras" && (
+          <div className={styles.extras}>
+            <form
+              className={styles.blocoExtra}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = parseMoney(segValor);
+                if (v === null || v < 0) return mostrarToast("Valor inválido.");
+                void agir(
+                  () => definirSegMes(uid!, segMes, v === 0 ? null : v),
+                  v === 0 ? "Seg. Social removida" : "✓ Seg. Social registrada",
+                );
+                setSegValor("");
+              }}
+            >
+              <p className={styles.blocoTitulo}>Segurança Social (por mês de pagamento)</p>
+              <p className={styles.blocoNota}>
+                Lançar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
+              </p>
+              <div className={styles.linhaDupla}>
+                <input type="month" value={segMes} onChange={(e) => setSegMes(e.target.value)} />
+                <input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={segValor}
+                  onChange={(e) => setSegValor(e.target.value)}
+                  required
+                />
+                <button type="submit" className={styles.botaoMini}>
+                  Salvar
+                </button>
+              </div>
+              {Object.entries(segPorMes).length > 0 && (
+                <ul className={styles.listaSimples}>
+                  {Object.entries(segPorMes)
+                    .sort(([a], [b]) => (a < b ? 1 : -1))
+                    .map(([m, v]) => (
+                      <li key={m}>
+                        <span>{rotuloMes(m)}</span>
+                        <span>{eur(v)}</span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </form>
+
+            <form
+              className={styles.blocoExtra}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = parseMoney(despValor);
+                if (v === null || v <= 0) return mostrarToast("Valor inválido.");
+                void agir(
+                  () =>
+                    criarDespesaTvde(uid!, { data: hojeIso(), descricao: despDescricao, valor: v }),
+                  "✓ Despesa TVDE adicionada",
+                );
+                setDespDescricao("");
+                setDespValor("");
+              }}
+            >
+              <p className={styles.blocoTitulo}>Despesas do TVDE</p>
+              <p className={styles.blocoNota}>
+                Separadas das Despesas gerais — específicas do trabalho de motorista.
+              </p>
+              <div className={styles.linhaDupla}>
+                <input
+                  placeholder="Descrição"
+                  value={despDescricao}
+                  onChange={(e) => setDespDescricao(e.target.value)}
+                  required
+                />
+                <input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={despValor}
+                  onChange={(e) => setDespValor(e.target.value)}
+                  required
+                />
+                <button type="submit" className={styles.botaoMini}>
+                  Adicionar
+                </button>
+              </div>
+              {despesas.length > 0 && (
+                <ul className={styles.listaSimples}>
+                  {despesas.map((d) => (
+                    <li key={d.id}>
+                      <span>
+                        {d.descricao} · {d.data.slice(8, 10)}/{d.data.slice(5, 7)}
+                      </span>
+                      <span>
+                        {eur(d.valor)}{" "}
+                        <button
+                          className={styles.remover}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void (async () => {
+                              if (!(await confirmar(`Excluir "${d.descricao}"?`))) return;
+                              await agir(() => removerDespesaTvde(uid!, d.id), "Despesa excluída");
                             })();
                           }}
+                          aria-label={`Excluir ${d.descricao}`}
                         >
-                          Lançar receita
+                          <X size={16} aria-hidden />
                         </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          <p className={styles.notaEur}>
-            Valores sempre em EUR — este módulo não segue a moeda da conta.
-          </p>
-        </>
-      )}
-
-      {aba === "meses" && (
-        <div className={styles.tabela}>
-          <div className={`${styles.linhaTab} ${styles.linhaCab}`}>
-            <span>Mês</span>
-            <span>Lucro</span>
-            <span>Seg. Social</span>
-            <span>Líquido</span>
-          </div>
-          {meses.length === 0 ? (
-            <p className={styles.vazioTab}>Sem meses ainda.</p>
-          ) : (
-            meses.map((m) => (
-              <div key={m.mes} className={styles.linhaTab}>
-                <span className={styles.mesNome}>{rotuloMes(m.mes)}</span>
-                <span>{eur(m.lucro)}</span>
-                <span>{m.seg ? `− ${eur(m.seg)}` : "—"}</span>
-                <span className={styles.liquido}>{eur(m.liquido)}</span>
-              </div>
-            ))
-          )}
-          <p className={styles.notaEur}>
-            Semanas de teste contam aqui (dinheiro real); só ficam fora das médias.
-          </p>
-        </div>
-      )}
-
-      {aba === "periodos" && (
-        <div className={styles.tabela}>
-          <div className={`${styles.linhaTab} ${styles.linhaCab}`}>
-            <span>Período</span>
-            <span>Faturamento</span>
-            <span>Receita</span>
-            <span>Lucro</span>
-          </div>
-          {periodos.length === 0 ? (
-            <p className={styles.vazioTab}>Sem períodos ainda.</p>
-          ) : (
-            periodos.map((p) => (
-              <div key={p.periodo} className={styles.linhaTab}>
-                <span className={styles.mesNome}>
-                  P{p.periodo} · {rotuloDoPeriodo(cfg.inicioSemana1, p.periodo)}
-                </span>
-                <span>{eur(p.fat)}</span>
-                <span>{eur(p.receita)}</span>
-                <span className={styles.liquido}>{eur(p.lucro)}</span>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {aba === "extras" && (
-        <div className={styles.extras}>
-          <form
-            className={styles.blocoExtra}
-            onSubmit={(e) => {
-              e.preventDefault();
-              const v = parseMoney(segValor);
-              if (v === null || v < 0) return mostrarToast("Valor inválido.");
-              void agir(
-                () => definirSegMes(uid!, segMes, v === 0 ? null : v),
-                v === 0 ? "Seg. Social removida" : "✓ Seg. Social registrada",
-              );
-              setSegValor("");
-            }}
-          >
-            <p className={styles.blocoTitulo}>Segurança Social (por mês de pagamento)</p>
-            <p className={styles.blocoNota}>
-              Lançar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
-            </p>
-            <div className={styles.linhaDupla}>
-              <input type="month" value={segMes} onChange={(e) => setSegMes(e.target.value)} />
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={segValor}
-                onChange={(e) => setSegValor(e.target.value)}
-                required
-              />
-              <button type="submit" className={styles.botaoMini}>
-                Salvar
-              </button>
-            </div>
-            {Object.entries(segPorMes).length > 0 && (
-              <ul className={styles.listaSimples}>
-                {Object.entries(segPorMes)
-                  .sort(([a], [b]) => (a < b ? 1 : -1))
-                  .map(([m, v]) => (
-                    <li key={m}>
-                      <span>{rotuloMes(m)}</span>
-                      <span>{eur(v)}</span>
+                      </span>
                     </li>
                   ))}
-              </ul>
-            )}
-          </form>
+                </ul>
+              )}
+            </form>
+          </div>
+        )}
 
-          <form
-            className={styles.blocoExtra}
-            onSubmit={(e) => {
-              e.preventDefault();
-              const v = parseMoney(despValor);
-              if (v === null || v <= 0) return mostrarToast("Valor inválido.");
-              void agir(
-                () =>
-                  criarDespesaTvde(uid!, { data: hojeIso(), descricao: despDescricao, valor: v }),
-                "✓ Despesa TVDE adicionada",
-              );
-              setDespDescricao("");
-              setDespValor("");
-            }}
-          >
-            <p className={styles.blocoTitulo}>Despesas do TVDE</p>
-            <p className={styles.blocoNota}>
-              Separadas das Despesas gerais — específicas do trabalho de motorista.
-            </p>
-            <div className={styles.linhaDupla}>
-              <input
-                placeholder="Descrição"
-                value={despDescricao}
-                onChange={(e) => setDespDescricao(e.target.value)}
-                required
-              />
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={despValor}
-                onChange={(e) => setDespValor(e.target.value)}
-                required
-              />
-              <button type="submit" className={styles.botaoMini}>
-                Adicionar
-              </button>
-            </div>
-            {despesas.length > 0 && (
-              <ul className={styles.listaSimples}>
-                {despesas.map((d) => (
-                  <li key={d.id}>
-                    <span>
-                      {d.descricao} · {d.data.slice(8, 10)}/{d.data.slice(5, 7)}
-                    </span>
-                    <span>
-                      {eur(d.valor)}{" "}
-                      <button
-                        className={styles.remover}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          void (async () => {
-                            if (!(await confirmar(`Excluir "${d.descricao}"?`))) return;
-                            await agir(() => removerDespesaTvde(uid!, d.id), "Despesa excluída");
-                          })();
-                        }}
-                        aria-label={`Excluir ${d.descricao}`}
-                      >
-                        <X size={16} aria-hidden />
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </form>
-        </div>
-      )}
-
-      <FormSemana n={editando} aoFechar={() => setEditando(null)} />
+        <FormSemana n={editando} aoFechar={() => setEditando(null)} />
+      </AbaTransicao>
     </Pagina>
   );
 }
