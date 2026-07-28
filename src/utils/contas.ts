@@ -8,14 +8,18 @@
 //   - "saldo atual" é por CAIXA: só sai da conta o que de facto foi pago, ou
 //     seja, fixa só entra nos meses marcados em `pagoPorMes`.
 //
-// Cargas e despesas do veículo não têm conta/cartão no schema, então não
-// entram em nenhuma das duas — não há a quem atribuí-las.
+// Cargas e despesas do veículo entram nas duas quando têm conta/cartão, pela
+// mesma regra das despesas correntes: é o mesmo dinheiro saindo da mesma
+// conta. São opcionais em `DadosContas` porque o campo `contaCartao` delas é
+// recente — quem não os passar continua com o comportamento antigo.
 
 import type {
+  CargaEletrica,
   Cents,
   ConfigConta,
   DespesaCorrente,
   DespesaFixa,
+  DespesaVeiculo,
   Receita,
   TipoCartao,
   Transferencia,
@@ -30,6 +34,9 @@ export interface DadosContas {
   despesasFixas: DespesaFixa[];
   despesasFixasVeiculo: DespesaFixa[];
   transferencias: Transferencia[];
+  /** Carregamentos e despesas variáveis do veículo pagos pela conta. */
+  cargas?: CargaEletrica[];
+  despesasVeiculo?: DespesaVeiculo[];
 }
 
 export interface ResumoConta {
@@ -72,15 +79,28 @@ export function resumoDaConta(
   const fixasVeiculo = fixasDoMes(dados.despesasFixasVeiculo, conta, mes);
   const saidasMes = dados.transferencias.filter((t) => t.de === conta && mesDe(t.data) === mes);
   const entradasMes = dados.transferencias.filter((t) => t.para === conta && mesDe(t.data) === mes);
+  const cargasMes = (dados.cargas ?? []).filter(
+    (c) => c.contaCartao === conta && mesDe(c.data) === mes,
+  );
+  const veiculoMes = (dados.despesasVeiculo ?? []).filter(
+    (d) => d.contaCartao === conta && mesDe(d.data) === mes,
+  );
 
   const gastoMes =
     correntesMes.reduce((s, d) => s + d.valor, 0) +
     fixasGerais.total +
     fixasVeiculo.total +
-    saidasMes.reduce((s, t) => s + t.valor, 0);
+    saidasMes.reduce((s, t) => s + t.valor, 0) +
+    cargasMes.reduce((s, c) => s + c.custo, 0) +
+    veiculoMes.reduce((s, d) => s + d.valor, 0);
 
   const despesasMes =
-    correntesMes.length + fixasGerais.quantidade + fixasVeiculo.quantidade + saidasMes.length;
+    correntesMes.length +
+    fixasGerais.quantidade +
+    fixasVeiculo.quantidade +
+    saidasMes.length +
+    cargasMes.length +
+    veiculoMes.length;
   const receitasMes = receitasMesLista.length + entradasMes.length;
 
   const saldoAtual =
@@ -92,7 +112,11 @@ export function resumoDaConta(
       .reduce((s, d) => s + d.valor, 0) -
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
     fixasPagas(dados.despesasFixas, conta) -
-    fixasPagas(dados.despesasFixasVeiculo, conta);
+    fixasPagas(dados.despesasFixasVeiculo, conta) -
+    (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
+    (dados.despesasVeiculo ?? [])
+      .filter((d) => d.contaCartao === conta)
+      .reduce((s, d) => s + d.valor, 0);
 
   return {
     conta,

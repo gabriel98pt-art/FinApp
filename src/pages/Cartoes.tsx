@@ -205,6 +205,8 @@ export default function Cartoes() {
     despesasFixas,
     despesasFixasVeiculo: veiculo.despesasFixas,
     transferencias,
+    cargas: veiculo.cargas,
+    despesasVeiculo: veiculo.despesas,
   };
 
   const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");

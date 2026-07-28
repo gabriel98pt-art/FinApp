@@ -101,3 +101,82 @@ describe("resumosDasContas", () => {
     expect(resumosDasContas(dados, cfg, "2026-07").map((r) => r.conta)).toEqual(["Conta", "Gold"]);
   });
 });
+
+describe("carga e despesa do veículo no resumo da conta", () => {
+  // Mesmo cenário do `dados` acima, com o veículo a pagar pelo cartão Gold.
+  const comVeiculo: DadosContas = {
+    ...dados,
+    cargas: [
+      {
+        id: "c1",
+        data: "2026-07-06",
+        kwh: 30,
+        precoKwh: 25,
+        custo: 750,
+        local: "Casa",
+        contaCartao: "Gold",
+      },
+      // junho: fica fora do mês, mas pesa no saldo acumulado
+      {
+        id: "c2",
+        data: "2026-06-06",
+        kwh: 20,
+        precoKwh: 25,
+        custo: 500,
+        local: "Casa",
+        contaCartao: "Gold",
+      },
+      // sem conta e de outra conta: não entram no Gold
+      { id: "c3", data: "2026-07-07", kwh: 10, precoKwh: 25, custo: 250, local: "Casa" },
+      {
+        id: "c4",
+        data: "2026-07-08",
+        kwh: 10,
+        precoKwh: 25,
+        custo: 999,
+        local: "Casa",
+        contaCartao: "Conta",
+      },
+    ],
+    despesasVeiculo: [
+      { id: "dv1", data: "2026-07-09", valor: 8900, categoria: "Manutenção", contaCartao: "Gold" },
+      { id: "dv2", data: "2026-06-09", valor: 1500, categoria: "Portagens", contaCartao: "Gold" },
+      { id: "dv3", data: "2026-07-09", valor: 4444, categoria: "Revisão" },
+    ],
+  };
+
+  const gold = resumoDaConta("Gold", comVeiculo, cfg, "2026-07");
+  const semVeiculo = resumoDaConta("Gold", dados, cfg, "2026-07");
+
+  it("soma a carga e a despesa do veículo do mês no gasto do cartão", () => {
+    // 3000 (corrente) + 750 (carga de julho) + 8900 (despesa de julho)
+    expect(gold.gastoMes).toBe(12650);
+    expect(gold.gastoMes - semVeiculo.gastoMes).toBe(9650);
+  });
+
+  it("conta-as como movimentações do mês", () => {
+    expect(gold.despesasMes).toBe(semVeiculo.despesasMes + 2);
+    expect(gold.transacoesMes).toBe(semVeiculo.transacoesMes + 2);
+  });
+
+  it("desconta TODAS as do cartão no saldo, não só as do mês exibido", () => {
+    // saldo sem veículo: 7000. Menos 750 + 500 (cargas) + 8900 + 1500 (despesas).
+    expect(gold.saldoAtual).toBe(7000 - 750 - 500 - 8900 - 1500);
+  });
+
+  it("ignora as de outra conta e as sem conta nenhuma", () => {
+    // A conta de débito só recebe a carga c4 (999), nada de despesa do veículo.
+    const conta = resumoDaConta("Conta", comVeiculo, cfg, "2026-07");
+    const contaSem = resumoDaConta("Conta", dados, cfg, "2026-07");
+    expect(conta.gastoMes - contaSem.gastoMes).toBe(999);
+    expect(conta.saldoAtual - contaSem.saldoAtual).toBe(-999);
+    // c3 e dv3 (sem conta) não caem em lugar nenhum
+    const total = resumosDasContas(comVeiculo, cfg, "2026-07").reduce((s, r) => s + r.gastoMes, 0);
+    const totalSem = resumosDasContas(dados, cfg, "2026-07").reduce((s, r) => s + r.gastoMes, 0);
+    expect(total - totalSem).toBe(999 + 750 + 8900);
+  });
+
+  it("sem os campos novos, o resumo é o mesmo de antes", () => {
+    expect(resumoDaConta("Gold", dados, cfg, "2026-07")).toEqual(semVeiculo);
+  });
+});
