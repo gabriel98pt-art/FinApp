@@ -1,10 +1,12 @@
-/* Fica logo abaixo do header e acima da TabBar (z-index 30 e 29), grudada no
-   topo junto com eles — o aviso tem de continuar visível ao rolar. */
+/* Fica logo abaixo do header e atrás da barra lateral (z-index 30 e 29),
+   grudada no topo junto com eles — o aviso tem de continuar visível ao
+   rolar. */
 
 .faixa {
   position: sticky;
   top: 0;
   z-index: 28;
+  margin-left: var(--sidebar-w);
   display: flex;
   align-items: center;
   justify-content: center;

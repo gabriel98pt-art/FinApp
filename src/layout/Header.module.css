@@ -6,6 +6,10 @@
   position: sticky;
   top: 0;
   z-index: 30;
+  /* Abre espaço para a barra lateral. O token é 0px no mobile, então isto
+     vale em qualquer largura sem media query. Desloca só na horizontal — o
+     sticky vertical continua igual. */
+  margin-left: var(--sidebar-w);
   display: grid;
   grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import FaixaErroSync from "./FaixaErroSync";
-import TabBar from "./TabBar";
+import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import Fab from "./Fab";
 import PaginaTransicao from "./PaginaTransicao";
@@ -22,7 +22,7 @@ export default function AppShell() {
     <>
       <Header />
       <FaixaErroSync />
-      <TabBar />
+      <Sidebar />
       <IndicadorPull estado={estado} limite={limite} />
       {/* O gesto vive só na tela principal: folhas e modais estão fora deste
           <main>, então puxar dentro delas não dispara nada. */}
