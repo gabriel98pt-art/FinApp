@@ -23,12 +23,16 @@ const TOM_COR: Record<TomKpi, string> = {
 export default function KpiCard({
   rotulo,
   valor,
+  sub,
   tom = "neutro",
   discreto = false,
   aoClicar,
 }: {
   rotulo: string;
   valor: string;
+  /** Linha pequena por baixo do valor — para quando o valor principal é um
+   *  nome e o número é o detalhe (ex. "Alimentação" / "€ 42,30"). */
+  sub?: string;
   tom?: TomKpi;
   /** Modo discreto (seção 4.6): só o valor borra, o rótulo continua legível
    *  — permite navegar em público sem esconder a interface inteira. */
@@ -42,6 +46,7 @@ export default function KpiCard({
     <>
       <p className={styles.rotulo}>{rotulo}</p>
       <p className={`${styles.valor} ${TOM_CLASSE[tom]} ${discreto ? "discreto" : ""}`}>{valor}</p>
+      {sub && <p className={`${styles.sub} ${discreto ? "discreto" : ""}`}>{sub}</p>}
     </>
   );
 

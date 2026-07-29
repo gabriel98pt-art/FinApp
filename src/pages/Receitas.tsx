@@ -6,7 +6,8 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
 import { useUiStore } from "../stores/uiStore";
-import { doMes, ordenarPorDataDesc, rotuloMes, total, totalDoMes } from "../utils/calculos";
+import { doMes, ordenarPorDataDesc, rotuloMes, totalDoMes } from "../utils/calculos";
+import { maiorFonteMes } from "../utils/receitaPorCategoria";
 import { formatMoney } from "../utils/money";
 
 export default function Receitas() {
@@ -20,6 +21,7 @@ export default function Receitas() {
   const mes = useMesVisivelStore((s) => s.mes);
 
   const doMesExibido = doMes(itens, mes);
+  const maiorFonte = maiorFonteMes(itens, mes);
 
   return (
     <Pagina titulo="Receitas">
@@ -30,7 +32,11 @@ export default function Receitas() {
           tom="verde"
         />
         <KpiCard rotulo="Lançamentos (mês)" valor={String(doMesExibido.length)} />
-        <KpiCard rotulo="Total geral" valor={formatMoney(total(itens), moeda)} />
+        <KpiCard
+          rotulo="Maior fonte"
+          valor={maiorFonte ? maiorFonte.fonte : "—"}
+          sub={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : undefined}
+        />
       </Kpis>
 
       <ListaLancamentos

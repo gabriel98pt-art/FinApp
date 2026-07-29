@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Parcela } from "../types";
-import { despesaPorCategoriaMes, paradasDonut, totalDasFatias } from "./despesaPorCategoria";
+import {
+  despesaPorCategoriaMes,
+  maiorCategoriaRelevante,
+  paradasDonut,
+  totalDasFatias,
+} from "./despesaPorCategoria";
 
 function corrente(extra: Partial<DespesaCorrente> = {}): DespesaCorrente {
   return {
@@ -154,5 +159,37 @@ describe("paradasDonut", () => {
 
   test("sem fatias não gera gradiente", () => {
     expect(paradasDonut([], [])).toEqual([]);
+  });
+});
+
+describe("maiorCategoriaRelevante — o que o card de Despesas mostra", () => {
+  const fatia = (categoria: string, valor: number) => ({ categoria, valor, pct: 0 });
+
+  test("ignora o veículo e a família aluguel, mesmo sendo as maiores", () => {
+    const fatias = [
+      fatia("Veículo", 90000),
+      fatia("Casa", 80000),
+      fatia("Alimentação", 42000),
+      fatia("Lazer", 18000),
+    ];
+    expect(maiorCategoriaRelevante(fatias)?.categoria).toBe("Alimentação");
+  });
+
+  test("os sinónimos de aluguel saem todos, com ou sem acento", () => {
+    for (const nome of ["Casa", "Habitação", "habitacao", "Renda", "Aluguer", "ALUGUER"]) {
+      expect(maiorCategoriaRelevante([fatia(nome, 90000), fatia("Lazer", 100)])?.categoria).toBe(
+        "Lazer",
+      );
+    }
+  });
+
+  test("devolve null quando só sobram as excluídas", () => {
+    expect(maiorCategoriaRelevante([fatia("Veículo", 500), fatia("Renda", 900)])).toBeNull();
+    expect(maiorCategoriaRelevante([])).toBeNull();
+  });
+
+  test("mantém a ordem que já vinha (maior primeiro)", () => {
+    const fatias = [fatia("Compras", 30000), fatia("Saúde", 20000)];
+    expect(maiorCategoriaRelevante(fatias)?.valor).toBe(30000);
   });
 });

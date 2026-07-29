@@ -44,11 +44,9 @@ import {
   rotuloMes,
   total,
 } from "../utils/calculos";
-import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes } from "../utils/fatura";
-import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
-import { totalVeiculoGeral } from "../utils/veiculo";
+import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney, parseMoney } from "../utils/money";
 import type { DespesaFixa, Id, Transferencia } from "../types";
 import styles from "./Despesas.module.css";
@@ -101,11 +99,11 @@ export default function Despesas() {
     mes,
     mesReal,
   );
-  const totalGeralComVeiculo =
-    total(contadas) +
-    totalFixasGeral(despesasFixas) +
-    totalParcelasGeral(parcelas) +
-    totalVeiculoGeral(veiculo);
+  // Card "Maior categoria": a maior fatia do mês fora veículo e aluguel — as
+  // duas lideram quase sempre e não dizem nada de novo (ver o util).
+  const maiorCategoria = maiorCategoriaRelevante(
+    despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal),
+  );
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje
   // (ou na primeira, quando hoje está fora do mês).
@@ -311,7 +309,11 @@ export default function Despesas() {
                 tom="vermelho"
               />
               <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-              <KpiCard rotulo="Total geral" valor={formatMoney(totalGeralComVeiculo, moeda)} />
+              <KpiCard
+                rotulo="Maior categoria"
+                valor={maiorCategoria ? maiorCategoria.categoria : "—"}
+                sub={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : undefined}
+              />
             </Kpis>
 
             <div className={styles.linhaVisao}>

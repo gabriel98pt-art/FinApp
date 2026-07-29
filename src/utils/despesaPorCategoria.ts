@@ -82,3 +82,23 @@ export function paradasDonut(fatias: FatiaCategoria[], cores: string[]): string[
     return `${cores[i]} ${inicio.toFixed(3)}% ${fim.toFixed(3)}%`;
   });
 }
+
+/** Nomes que valem como "aluguel" — os mesmos sinónimos que
+ *  `coresCategoria.ts` já trata como a mesma coisa. */
+const FAMILIA_ALUGUEL = ["casa", "habitacao", "renda", "aluguer"];
+
+/** Sem acento e em minúsculas, para comparar nomes escritos de várias formas. */
+function normalizar(nome: string): string {
+  return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/** A maior fatia do mês IGNORANDO o veículo e a família "aluguel": são as duas
+ *  maiores por natureza quase todo mês, e saber isso não diz nada de novo. O
+ *  card quer a maior entre as que variam. `null` quando não sobra nenhuma. */
+export function maiorCategoriaRelevante(fatias: FatiaCategoria[]): FatiaCategoria | null {
+  const elegiveis = fatias.filter(
+    (f) => f.categoria !== "Veículo" && !FAMILIA_ALUGUEL.includes(normalizar(f.categoria)),
+  );
+  // já vêm ordenadas da maior pra menor
+  return elegiveis[0] ?? null;
+}
