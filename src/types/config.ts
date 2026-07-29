@@ -3,6 +3,12 @@ import type { PagamentosFatura } from "./fatura";
 
 export type TipoCartao = "credit" | "debit";
 
+/** Os 5 tokens de cor que se repetem no app inteiro e podem ser trocados em
+ *  Definições. Fora daqui, cada categoria tem a sua própria cor. */
+export type TokenCorApp = "blu" | "grn" | "red" | "ylw" | "pur";
+
+export type CoresApp = Partial<Record<"dark" | "light", Partial<Record<TokenCorApp, string>>>>;
+
 /** Configuração por conta (antigo `S.cfg`). */
 export interface ConfigConta {
   theme: Theme;
@@ -56,4 +62,9 @@ export interface ConfigConta {
 
   /** Locais de carregamento elétrico salvos (antigo `locais`). */
   locaisCarregamento: string[];
+
+  /** Cores centrais escolhidas pelo usuário, POR TEMA — os tons de cada token
+   *  já são diferentes entre claro e escuro, então um valor só não serviria
+   *  aos dois. Sem entrada, vale o valor de `tokens.css`. */
+  coresApp?: CoresApp;
 }

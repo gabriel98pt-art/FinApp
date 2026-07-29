@@ -6,6 +6,7 @@ import { useAuthStore } from "./stores/authStore";
 import { useCfgStore } from "./stores/cfgStore";
 import { useAplicarTema } from "./hooks/useAplicarTema";
 import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
+import { useAplicarCoresPersonalizadas } from "./hooks/useAplicarCoresPersonalizadas";
 import { usePwaUpdate } from "./hooks/usePwaUpdate";
 
 // Lazy loading por página (seção 8 — performance)
@@ -36,6 +37,7 @@ function RotaTvde() {
 export default function App() {
   useAplicarTema();
   useAplicarModoDiscreto();
+  useAplicarCoresPersonalizadas();
   // Fora do gate de sessão de propósito: procurar versão nova não depende de
   // estar logado, e a tela de login também precisa de se atualizar.
   usePwaUpdate();

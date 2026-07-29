@@ -32,7 +32,7 @@ export function iconeDaCategoria(cfg: CfgVisual | undefined, categoria: string):
 }
 
 /** '#rgb' ou '#rrggbb' → [r, g, b] em 0-255. Hex inválido devolve `null`. */
-function hexParaRgb(hex: string): [number, number, number] | null {
+export function hexParaRgb(hex: string): [number, number, number] | null {
   const h = hex.trim().replace(/^#/, "");
   const completo = h.length === 3 ? h.replace(/./g, (c) => c + c) : h;
   if (!/^[0-9a-fA-F]{6}$/.test(completo)) return null;

@@ -1,0 +1,112 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 16px;
+}
+
+/* Amostra ilustrativa das cinco cores lado a lado — é onde se vê se duas
+   ficaram parecidas demais, que é o problema que este painel resolve. */
+.amostra {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 12px;
+  border-radius: var(--r-card);
+  background: var(--s2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pilula {
+  background: var(--blu);
+  color: var(--bg);
+  border-radius: var(--r-pill);
+  padding: 5px 12px;
+}
+
+.positivo {
+  color: var(--grn);
+}
+
+.negativo {
+  color: var(--red);
+}
+
+.alerta {
+  color: var(--ylw);
+  border: 1px solid color-mix(in srgb, var(--ylw) 40%, transparent);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+
+.roxo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pur);
+}
+
+.nota {
+  color: var(--mut);
+  font-size: 0.8rem;
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: var(--r-sm);
+}
+
+.linha:hover {
+  background: var(--s2);
+}
+
+.bola {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--brd);
+}
+
+.nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.marca {
+  color: var(--mut);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.acao {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  color: var(--mut);
+}
+
+.acao:hover {
+  background: var(--s3);
+  color: var(--txt);
+}

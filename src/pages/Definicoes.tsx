@@ -15,6 +15,7 @@ import {
 import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
+import PainelCoresApp from "../components/PainelCoresApp";
 import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
@@ -377,6 +378,7 @@ export default function Definicoes() {
   const cfg = useCfgStore((s) => s.cfg);
   const arquivoRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
+  const [coresAbertas, setCoresAbertas] = useState(false);
 
   const uid = sessao?.uid;
   const confirmar = useConfirmar();
@@ -469,6 +471,10 @@ export default function Definicoes() {
           <EyeOff size={18} aria-hidden />
           Modo discreto: {cfg.modoDiscreto ? "ligado" : "desligado"} (tocar para alternar)
         </button>
+        <button className={styles.linha} onClick={() => setCoresAbertas(true)}>
+          <Palette size={18} aria-hidden />
+          Editar cores (destaque, positivo, negativo, alerta, roxo)
+        </button>
       </div>
 
       <div className={styles.grupo}>
@@ -558,6 +564,12 @@ export default function Definicoes() {
           Sair da conta
         </button>
       </div>
+      <PainelCoresApp
+        aberta={coresAbertas}
+        aoFechar={() => setCoresAbertas(false)}
+        cfg={cfg}
+        uid={uid}
+      />
     </Pagina>
   );
 }

@@ -11,7 +11,7 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { Cents, ConfigConta, YearMonth } from "../types";
+import type { Cents, ConfigConta, TokenCorApp, YearMonth } from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
@@ -178,6 +178,22 @@ export async function definirIconeCategoria(uid: string, categoria: string, icon
 export async function definirCorCategoria(uid: string, categoria: string, cor: string | null) {
   snapshotHistorico();
   const r = ref(db, caminho(uid, `/categoriaCor/${categoria}`));
+  if (cor === null || cor === "") await remove(r);
+  else await set(r, cor);
+}
+
+/** Cor central do app (destaque/positivo/negativo/alerta/roxo), por tema —
+ *  `null` volta ao valor de `tokens.css`. Mesmo padrão de
+ *  `definirCorCategoria`, mas num namespace à parte: estas cinco valem para o
+ *  app inteiro, não para uma categoria. */
+export async function definirCorApp(
+  uid: string,
+  tema: "dark" | "light",
+  token: TokenCorApp,
+  cor: string | null,
+) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, `/coresApp/${tema}/${token}`));
   if (cor === null || cor === "") await remove(r);
   else await set(r, cor);
 }
