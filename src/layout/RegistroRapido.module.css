@@ -119,8 +119,10 @@
   text-align: center;
 }
 
-/* A folha tem altura fixa: os campos ficam ancorados no topo e as ações
-   descem para o rodapé, para a silhueta ser a mesma em qualquer tipo. */
+/* No telemóvel a folha tem altura fixa: os campos ficam ancorados no topo e as
+   ações descem para o rodapé, para a silhueta ser a mesma em qualquer tipo.
+   A partir de 768px a folha acompanha o conteúdo e não sobra espaço para
+   empurrar — o `auto` resolve-se em zero e as ações seguem o último campo. */
 .acoes {
   margin-top: auto;
   padding-top: 4px;

@@ -125,3 +125,44 @@
 .folhaGrande > :last-child {
   flex: 1 0 auto;
 }
+
+/* A partir do tablet a folha deixa de ser folha: vira diálogo centrado.
+   `height` fixa amarrada ao viewport só faz sentido quando a folha ocupa a
+   tela toda — num monitor ela virava 950px de caixa para um formulário de
+   ~680px, com um vão morto entre o último campo e o botão. Aqui a altura
+   volta a vir do conteúdo, com um teto que cobre o tipo mais alto (Despesa /
+   Veículo·Despesa, ~680px) mais uma linha de erro, sem rolagem em uso normal.
+   O `min()` cuida da janela baixa: 32px de respiro em cima e embaixo. */
+@media (min-width: 768px) {
+  .folhaGrande {
+    top: 50%;
+    bottom: auto;
+    height: auto;
+    max-height: min(720px, 100dvh - 64px);
+    /* Já não encosta em baixo: ganha a borda e os cantos que faltavam. */
+    border-bottom: 1px solid var(--brd);
+    border-radius: var(--r-sheet);
+    /* Sem o pegador, o título precisa do respiro que ele dava. */
+    padding-top: 24px;
+    transform: translate(-50%, calc(-50% + 24px));
+  }
+
+  .folhaGrande.aberta {
+    transform: translate(-50%, -50%);
+  }
+
+  /* Arrastar para fechar é gesto de dedo: o Registro Rápido tira o
+     `arrastavel` nesta largura, e o pegador ficaria a anunciar um gesto que
+     não existe. Fecha-se pelo véu, como nas outras folhas não-arrastáveis. */
+  .folhaGrande .pegador {
+    display: none;
+  }
+}
+
+/* A regra de reduced-motion acima zera o transform para `translateX(-50%)`,
+   o que aqui deixaria o diálogo pendurado abaixo do centro. */
+@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
+  .folhaGrande {
+    transform: translate(-50%, -50%) !important;
+  }
+}

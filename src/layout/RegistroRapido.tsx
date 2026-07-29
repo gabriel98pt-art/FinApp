@@ -16,6 +16,7 @@ import {
 import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
 import { criarParcela } from "../services/parcelasService";
 import { useConfirmar } from "../hooks/useConfirmar";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -50,6 +51,11 @@ const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
   { valor: "despesaVeiculo", rotulo: "Despesa" },
 ];
 
+/** Mesmo corte do resto do layout (ver `Pagina.tsx`). Acima dele a folha vira
+ *  diálogo centrado (BottomSheet.module.css) e o arrasto sai de cena: puxar
+ *  para fechar é gesto de dedo, não de rato. */
+const MOBILE = "(max-width: 767px)";
+
 /** Bottom sheet de registro rápido: lança (ou edita) receita/despesa, e lança
  *  carga elétrica / despesa do veículo (item 3/6 — estes dois só criam; a
  *  edição deles fica na tela Veículo). */
@@ -60,6 +66,7 @@ export default function RegistroRapido() {
   const { abrirRegistro, fecharRegistro } = useUiStore();
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
+  const mobile = useMediaQuery(MOBILE);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
@@ -288,7 +295,7 @@ export default function RegistroRapido() {
       aberta={aberta}
       aoFechar={fecharRegistro}
       titulo={editando ? "Editar lançamento" : "Registro rápido"}
-      arrastavel
+      arrastavel={mobile}
       tamanho="grande"
     >
       <form className={styles.form} onSubmit={salvar}>
