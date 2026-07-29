@@ -160,6 +160,29 @@
   background: color-mix(in srgb, var(--ylw) 14%, transparent);
 }
 
+/* O selo alterna Pago/Pendente num clique, mas nada dizia isso — parecia
+   etiqueta, não botão. O hover acende o fundo (14% → 28%) e levanta o selo de
+   leve. `hover: hover and pointer: fine` porque o que importa é haver cursor,
+   não a largura da tela: no telemóvel/tablet um :hover fica preso depois do
+   toque, e ali o dedo descobre a ação sozinho. */
+@media (hover: hover) and (pointer: fine) {
+  .badgeToggle {
+    transition:
+      background var(--dur-fast) var(--ease-exit),
+      box-shadow var(--dur-fast) var(--ease-exit);
+  }
+
+  .badgePago:hover {
+    background: color-mix(in srgb, var(--grn) 28%, transparent);
+    box-shadow: 0 1px 6px -1px color-mix(in srgb, var(--grn) 40%, transparent);
+  }
+
+  .badgePendente:hover {
+    background: color-mix(in srgb, var(--ylw) 28%, transparent);
+    box-shadow: 0 1px 6px -1px color-mix(in srgb, var(--ylw) 40%, transparent);
+  }
+}
+
 /* Formulários */
 .form {
   background: var(--s1);
