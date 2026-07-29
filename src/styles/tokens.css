@@ -98,3 +98,24 @@
   --material-bg: rgba(255, 255, 255, 0.72);
   --material-brd: rgba(10, 37, 64, 0.08);
 }
+
+/* Largura da barra lateral — fonte única, lida tanto pela própria barra como
+   pelo deslocamento do header/faixa/conteúdo à direita dela. Como é 0 no
+   mobile, quem a consome não precisa de repetir os breakpoints.
+   Segue o padrão de sidebar do iPadOS/macOS: rail só de ícones em largura
+   compacta, expandida com rótulos em largura regular. */
+:root {
+  --sidebar-w: 0px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --sidebar-w: 68px; /* rail: só ícone (tablet) */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-w: 224px; /* expandida: ícone + rótulo (desktop) */
+  }
+}
