@@ -1,0 +1,40 @@
+/* Fica logo abaixo do header (que é sticky, z-index 30) e por baixo do
+   conteúdo, que desliza por cima ao ser puxado. */
+.indicador {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  box-shadow: var(--sh-card);
+  color: var(--mut);
+  pointer-events: none;
+}
+
+/* Passou do limite: soltar agora recarrega, e a cor diz isso. */
+.armado {
+  color: var(--blu);
+  border-color: var(--blu);
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.girando {
+  animation: girar 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .girando {
+    animation: none;
+  }
+}
