@@ -11,3 +11,15 @@
     padding-bottom: 96px;
   }
 }
+
+/* Com a esquerda ocupada pela barra, sobra respiro para uma coluna mais larga
+   em monitores grandes — os grids das páginas já se adaptam sozinhos. */
+@media (min-width: 1024px) {
+  .conteudo {
+    max-width: 1280px;
+    /* Centra no espaço À DIREITA da barra. Só com `margin-left: var(--sidebar-w)`
+       o conteúdo encostava nela e deixava todo o vazio de um lado só (416px a
+       1920px). Abaixo de ~1500px o max() dá 0 e nada muda. */
+    margin-left: calc(var(--sidebar-w) + max(0px, (100% - var(--sidebar-w) - 1280px) / 2));
+  }
+}
