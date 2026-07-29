@@ -50,6 +50,51 @@ function interpretarData(s: string): string | null {
   return null;
 }
 
+const RE_DATA_SOLTA = /\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/;
+/* DESVIO DELIBERADO do original (`_impTXT`), que usava
+   `\d{1,3}(?:[.,]\d{3})*[.,]\d{2}`: a parte inteira ficava limitada a 3 dígitos
+   quando não havia separador de milhar, então "1850,00" batia só em "850,00" e
+   entrava como 850 € — dinheiro truncado em silêncio, e o "1" ainda ia para a
+   descrição. O ramo `\d+` cobre o caso sem separador; o ramo agrupado continua
+   a ler "1.234,56". Nada que batia antes deixa de bater. */
+const RE_VALOR_SOLTO = /([+-]?(?:\d{1,3}(?:[.,]\d{3})+|\d+)[.,]\d{2})\b/;
+
+/** Texto sem cabeçalho, uma transação por linha: acha a data e o valor onde
+ *  estiverem e o que sobra é a descrição. Portado do ramo de varredura por
+ *  linha de `_impTXT`, e é o que come o texto reconstruído de um PDF genérico
+ *  (ver `extrairExtratoPdf`) — ali não há cabeçalho de coluna para casar. */
+export function parseExtratoTextoLivre(texto: string): LinhaExtrato[] {
+  const linhasExtrato: LinhaExtrato[] = [];
+  const vistas = new Set<string>();
+  for (const bruta of texto.split(/\r?\n/)) {
+    const linha = bruta.trim();
+    if (linha.length < 8) continue;
+    const mData = RE_DATA_SOLTA.exec(linha);
+    if (!mData) continue;
+    // SEGUNDO DESVIO, mesma razão: o original procurava o valor na linha
+    // inteira, e numa data com pontos ("10.07.2026") o próprio "10.07" batia
+    // como valor antes de se chegar ao valor verdadeiro. Tira-se a data do
+    // caminho primeiro.
+    const semData = linha.replace(mData[0], " ");
+    const mValor = RE_VALOR_SOLTO.exec(semData);
+    if (!mValor) continue;
+    const data = interpretarData(mData[0]);
+    const valor = parseMoney(mValor[1]);
+    if (!data || valor === null || valor === 0) continue;
+    const descricao = semData
+      .replace(mValor[1], "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/^[-–|:\s]+|[-–|:\s]+$/g, "")
+      .trim();
+    const chave = `${data}|${valor}|${descricao}`;
+    if (vistas.has(chave)) continue;
+    vistas.add(chave);
+    linhasExtrato.push({ data, descricao, valor });
+  }
+  return linhasExtrato;
+}
+
 /** Parser genérico de CSV/texto delimitado (_impCSV). Detecta ; , ou tab;
  *  acha colunas de data/descrição/valor (ou débito+crédito separados) pelo
  *  nome do cabeçalho, em qualquer ordem. */

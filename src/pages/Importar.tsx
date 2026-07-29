@@ -13,8 +13,9 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { analisarLinha } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
+import { extrairExtratoPdf } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
-import type { Confianca, DecisaoLinha, LinhaAnalisada } from "../types";
+import type { Confianca, DecisaoLinha, LinhaAnalisada, LinhaExtrato } from "../types";
 import styles from "./Importar.module.css";
 
 const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
@@ -51,6 +52,7 @@ export default function Importar() {
   const [linhas, setLinhas] = useState<LinhaAnalisada[] | null>(null);
   const [filtro, setFiltro] = useState<DecisaoLinha | "todas">("todas");
   const [enviando, setEnviando] = useState(false);
+  const [lendoPdf, setLendoPdf] = useState(false);
   const arquivoRef = useRef<HTMLInputElement>(null);
 
   const categoriasConfiguradas = [...cfg.categoriasFixas, ...cfg.categoriasCorrentes];
@@ -58,8 +60,7 @@ export default function Importar() {
     ...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"]),
   ];
 
-  function analisar(conteudo: string) {
-    const brutas = parseExtratoCsv(conteudo);
+  function analisar(brutas: LinhaExtrato[]) {
     if (brutas.length === 0) {
       mostrarToast("Nenhuma linha reconhecida — confira o formato do extrato.");
       return;
@@ -75,11 +76,30 @@ export default function Importar() {
 
   function aoCarregarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
-    if (!arquivo) return;
-    const leitor = new FileReader();
-    leitor.onload = () => analisar(String(leitor.result ?? ""));
-    leitor.readAsText(arquivo);
     e.target.value = "";
+    if (!arquivo) return;
+
+    // PDF vai por outro caminho: lê-se em binário e a extração é assíncrona
+    // (carrega o PDF.js sob demanda e percorre as páginas), daí o aviso de
+    // espera — um extrato de vários meses leva um instante.
+    if (/\.pdf$/i.test(arquivo.name) || arquivo.type === "application/pdf") {
+      setLendoPdf(true);
+      mostrarToast("Lendo o PDF…");
+      void (async () => {
+        try {
+          analisar(await extrairExtratoPdf(await arquivo.arrayBuffer()));
+        } catch {
+          mostrarToast("Não foi possível ler este PDF.");
+        } finally {
+          setLendoPdf(false);
+        }
+      })();
+      return;
+    }
+
+    const leitor = new FileReader();
+    leitor.onload = () => analisar(parseExtratoCsv(String(leitor.result ?? "")));
+    leitor.readAsText(arquivo);
   }
 
   function atualizarLinha(id: number, mudancas: Partial<LinhaAnalisada>) {
@@ -151,8 +171,9 @@ export default function Importar() {
             <div className={styles.entrada}>
               <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
               <p className={styles.entradaSub}>
-                CSV ou texto delimitado (tab/;/,) com colunas de data, descrição e valor — exportado
-                do banco ou colado direto de uma folha de cálculo.
+                PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de
+                data, descrição e valor — exportado do banco ou colado direto de uma folha de
+                cálculo.
               </p>
               <textarea
                 className={styles.textarea}
@@ -164,18 +185,22 @@ export default function Importar() {
               <div className={styles.entradaAcoes}>
                 <button
                   className={styles.botaoPrimario}
-                  onClick={() => analisar(texto)}
-                  disabled={!texto.trim()}
+                  onClick={() => analisar(parseExtratoCsv(texto))}
+                  disabled={!texto.trim() || lendoPdf}
                 >
                   Analisar
                 </button>
-                <button className={styles.botao} onClick={() => arquivoRef.current?.click()}>
-                  <Upload size={15} aria-hidden /> Carregar arquivo
+                <button
+                  className={styles.botao}
+                  onClick={() => arquivoRef.current?.click()}
+                  disabled={lendoPdf}
+                >
+                  <Upload size={15} aria-hidden /> {lendoPdf ? "Lendo…" : "Carregar arquivo"}
                 </button>
                 <input
                   ref={arquivoRef}
                   type="file"
-                  accept=".csv,.txt"
+                  accept=".csv,.txt,.pdf"
                   className={styles.arquivoOculto}
                   onChange={aoCarregarArquivo}
                 />

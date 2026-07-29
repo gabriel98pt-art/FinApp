@@ -16,7 +16,23 @@ export default defineConfig({
         // Precache do app shell: todo HTML/JS/CSS gerado no build — abre
         // offline mostrando a interface mesmo sem nunca ter sincronizado.
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // O PDF.js são ~430 kB e só servem para importar extrato em PDF: ficam
+        // fora do precache, senão toda instalação carregava meio megabyte que a
+        // maioria nunca usa (era 811 kB de shell, passaria a 1,2 MB). Entram
+        // pela regra de runtime abaixo, na primeira vez que alguém importa um
+        // PDF, e a partir daí ficam em cache — inclusive offline.
+        globIgnores: ["**/pdf-*.js", "**/pdf.worker*"],
         runtimeCaching: [
+          {
+            // Os chunks do PDF.js: imutáveis (nome com hash), logo cache-first.
+            urlPattern: /\/assets\/(pdf-|pdf\.worker)[^/]*$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "pdfjs",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 8 },
+            },
+          },
           {
             // Leituras do Firebase RTDB: network-first — tenta a rede, mas
             // cai no cache se offline, então o último sync continua visível
