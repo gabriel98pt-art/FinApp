@@ -283,6 +283,43 @@ export interface ContextoClassificacao {
   categoriasConfiguradas: string[];
 }
 
+function escaparRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/* Fronteira de palavra escrita à mão em vez de `\b`: o texto cru guarda
+   acentos e, para o `\b` do JS, "á" não é letra — `\bágua` nunca bateria em
+   "água" no início de uma descrição. O início consome o caractere anterior
+   (só interessa o sim/não do teste, nunca a posição). */
+const LETRA = "\\p{L}\\p{N}";
+const INICIO = `(?:^|[^${LETRA}])`;
+const FIM = `(?![${LETRA}])`;
+
+const padroes = new Map<string, RegExp>();
+
+/** Uma palavra-chave tem de bater em fronteira de palavra, não em qualquer
+ *  pedaço de texto: era assim que "nos " (a operadora) se apanhava dentro de
+ *  "diagnost" e mandava uma despesa de Saúde para Telemóvel. Mesma família do
+ *  bug do "mbway" anotado abaixo — o espaço no fim de "nos " era para servir de
+ *  fronteira, mas `normalizarDescricao` apara-o antes da comparação.
+ *
+ *  Duas convenções da lista de palavras a respeitar, daí o `fechaPalavra`:
+ *  - espaço no fim = "aqui acaba a palavra" ("bp ", "gas ", "meo ", "nos ");
+ *  - sem espaço = prefixo DE PROPÓSITO — "pizz" tem de continuar a pegar
+ *    "pizzaria", "laborat" a pegar "laboratório", "cuf diagnost" a pegar
+ *    "cuf diagnostico".
+ *  A fronteira do início vale sempre; a do fim só quando a palavra a pedia. */
+function bateComoPalavra(texto: string, alvo: string, fechaPalavra: boolean): boolean {
+  if (!alvo) return false;
+  const chave = `${fechaPalavra ? "1" : "0"}${alvo}`;
+  let re = padroes.get(chave);
+  if (!re) {
+    re = new RegExp(`${INICIO}${escaparRegex(alvo)}${fechaPalavra ? FIM : ""}`, "u");
+    padroes.set(chave, re);
+  }
+  return re.test(texto);
+}
+
 /** Classificação em cascata (_impClassify): parcela → despesa fixa (não
  *  aplicável — sem domínio próprio ainda) → categoria configurada → palavras-
  *  chave → fallback. Para na primeira que bater. */
@@ -357,7 +394,13 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
       // QUALQUER lançamento. Ignorar candidatos normalizados vazios; o
       // literal cru (origL.includes(kw)) abaixo já detecta "mbway" de verdade.
       const kwNormalizada = normalizarDescricao(kw);
-      if ((kwNormalizada && normL.includes(kwNormalizada)) || origL.includes(kw)) {
+      // O espaço no fim de "nos "/"bp " é a fronteira que a lista quis dizer, e
+      // a normalização apara-o — daí guardar o sinal antes de comparar.
+      const fechaPalavra = /\s$/.test(kw);
+      if (
+        bateComoPalavra(normL, kwNormalizada, fechaPalavra) ||
+        bateComoPalavra(origL, kw.trimEnd(), fechaPalavra)
+      ) {
         // Sinal inconsistente com o tipo: marcar como incerto
         const incerto =
           (regra.tipo === "transferencia" && isCredit) || (regra.tipo === "receita" && !isCredit);

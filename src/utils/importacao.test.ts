@@ -112,6 +112,37 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
       confianca: "low",
     });
   });
+
+  // Achado num extrato real: pagamento a um instituto de diagnóstico ia para
+  // Telemóvel, porque a palavra-chave da operadora "nos " batia dentro de
+  // "diagnost". O espaço no fim era a fronteira, mas normalizarDescricao apara-o
+  // antes de comparar — mesma família do bug do "mbway".
+  test("palavra-chave da operadora não pega pedaço de outra palavra ('nos' em 'diagnost')", () => {
+    const cls = classificarLancamento(
+      linha({ descricao: "PAGAMENTO INSTITUTO DIAGNOSTICO PORTO", valor: -4500 }),
+      { parcelas: [], categoriasConfiguradas: ["Saúde", "Telemóvel"] },
+    );
+    expect(cls.categoria).not.toBe("Telemóvel");
+    expect(cls.motivo).not.toContain('"nos "');
+  });
+
+  test("a operadora de verdade continua a bater como palavra inteira", () => {
+    const cls = classificarLancamento(linha({ descricao: "NOS COMUNICACOES SA", valor: -3990 }), {
+      parcelas: [],
+      categoriasConfiguradas: ["Telemóvel"],
+    });
+    expect(cls).toMatchObject({ tipo: "despesa", categoria: "Telemóvel", confianca: "high" });
+  });
+
+  test("palavra-chave sem espaço no fim continua a valer como prefixo", () => {
+    for (const descricao of ["PIZZARIA BELLA", "LABORATORIO CENTRAL", "CUF DIAGNOSTICO LX"]) {
+      const cls = classificarLancamento(linha({ descricao, valor: -2000 }), {
+        parcelas: [],
+        categoriasConfiguradas: ["Restaurante", "Saúde"],
+      });
+      expect(cls.motivo, descricao).not.toBe("sem correspondência");
+    }
+  });
 });
 
 describe("verificarDuplicata — score-based (seção da spec)", () => {
