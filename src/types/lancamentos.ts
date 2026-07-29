@@ -37,6 +37,13 @@ export interface DespesaFixa {
   pagoPorMes: Record<YearMonth, boolean>;
   /** Dia do mês do vencimento (1-31), usado pra marcar no Calendário. */
   diaVencimento?: number;
+  /** Anotação do usuário: "isto sai do cartão sozinho". SÓ INFORMATIVO —
+   *  ao contrário do `autoDebit` da Parcela, este NÃO entra em `utils/fatura.ts`
+   *  nem em cálculo nenhum. Uma fixa já entra na fatura sempre que `contaCartao`
+   *  é um cartão de crédito; se este campo passasse a filtrar isso, quem já tem
+   *  fixa em cartão hoje (portanto `undefined`) veria o valor sair da fatura sem
+   *  ter mexido em nada. Vale como uma nota visível, nada mais. */
+  autoDebit?: boolean;
   /** Descrição livre, separada do nome curto em `descricao`. */
   nota?: string;
 }

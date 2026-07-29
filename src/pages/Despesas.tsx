@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowLeftRight, Plus, TrendingDown } from "lucide-react";
+import { ArrowLeftRight, Plus, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
@@ -143,6 +143,7 @@ export default function Despesas() {
   const [dfDia, setDfDia] = useState("");
   const [dfInicio, setDfInicio] = useState("");
   const [dfFim, setDfFim] = useState("");
+  const [dfAutoDebit, setDfAutoDebit] = useState(false);
 
   function abrirNovaFixa() {
     setDfEditandoId(null);
@@ -154,6 +155,7 @@ export default function Despesas() {
     setDfDia("");
     setDfInicio("");
     setDfFim("");
+    setDfAutoDebit(false);
     setDfAberta(true);
   }
 
@@ -167,6 +169,7 @@ export default function Despesas() {
     setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
     setDfInicio(f.inicio ?? "");
     setDfFim(f.fim ?? "");
+    setDfAutoDebit(!!f.autoDebit);
     setDfAberta(true);
   }
 
@@ -187,6 +190,10 @@ export default function Despesas() {
       diaVencimento: dia,
       inicio: dfInicio || undefined,
       fim: dfFim || undefined,
+      // Só anotação: nenhum total olha para isto (ver o tipo `DespesaFixa`).
+      // `undefined` quando desligado porque `atualizar` grava com `set` — a
+      // chave sai do registo em vez de ficar um `false` pendurado.
+      autoDebit: dfAutoDebit || undefined,
     };
     if (dfEditandoId) {
       const atual = despesasFixas.find((f) => f.id === dfEditandoId);
@@ -412,6 +419,12 @@ export default function Despesas() {
                             {f.categoria}
                             {f.contaCartao ? ` · ${f.contaCartao}` : ""}
                             {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                            {f.autoDebit && (
+                              <>
+                                {" · "}
+                                <span className={styles.marcaAutoDebit}>débito automático</span>
+                              </>
+                            )}
                           </span>
                         </span>
                         <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
@@ -539,6 +552,19 @@ export default function Despesas() {
               <input type="month" value={dfFim} onChange={(e) => setDfFim(e.target.value)} />
             </label>
           </div>
+          {/* Mesmo botão-marcação do parcelamento no Registro Rápido. Aqui é só
+              uma anotação: a fixa já entra na fatura por ser de cartão de
+              crédito, ligar ou desligar isto não move nenhum total. */}
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={dfAutoDebit}
+            className={`${styles.marcacao} ${dfAutoDebit ? styles.marcacaoAtiva : ""}`}
+            onClick={() => setDfAutoDebit(!dfAutoDebit)}
+          >
+            {dfAutoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
+            Débito automático
+          </button>
           <button type="submit" className={styles.salvar}>
             {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
           </button>

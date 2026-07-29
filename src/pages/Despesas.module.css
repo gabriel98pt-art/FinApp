@@ -183,6 +183,35 @@
   }
 }
 
+/* Marca o "débito automático" na linha de detalhe. O roxo é o mesmo que o
+   parcelamento usa para o campo homónimo — é o mesmo conceito para o usuário. */
+.marcaAutoDebit {
+  color: var(--pur);
+  font-weight: 700;
+}
+
+/* Botão-marcação: mesmo desenho do `.marcacao` do Registro Rápido
+   (RegistroRapido.module.css), para o "Débito automático" não parecer outro
+   controlo só por estar noutra tela. */
+.marcacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: var(--s2);
+  color: var(--mut);
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 9px 14px;
+  text-align: left;
+}
+
+.marcacaoAtiva {
+  background: var(--pur);
+  color: var(--bg);
+}
+
 /* Formulários */
 .form {
   background: var(--s1);
