@@ -14,6 +14,7 @@ import {
   mapearCfg,
   mapearCfgTvde,
   mapearDespesasCorrentes,
+  caminhosDiaVencimento,
   mapearDespesasFixas,
   mapearDespesasVeiculo,
   mapearCargasVeiculo,
@@ -442,5 +443,67 @@ describe("mapearCfg", () => {
     expect(r.faturasPagas!["AB Gold"]["2026-07"]).toEqual({
       pagamentos: [{ id: "1226", data: "2026-07-15", valor: 22000, de: "ActivoBank" }],
     });
+  });
+});
+
+describe("dia de vencimento vindo do app antigo (não vinha antes, ver Calendário)", () => {
+  test("fixa: o campo `day` vira diaVencimento", () => {
+    const df: DespesaFixaAntiga[] = [
+      { id: 1, name: "Renda", val: 500, cat: "Casa", day: 8 },
+      { id: 2, name: "Sem dia", val: 20, cat: "Casa" },
+      // day 0 no arquivo é "não definido", não dia zero
+      { id: 3, name: "Dia zero", val: 30, cat: "Casa", day: 0 },
+    ];
+    const r = mapearDespesasFixas(df, "2026-07");
+    expect(r["1"].diaVencimento).toBe(8);
+    expect(r["2"].diaVencimento).toBeUndefined();
+    expect(r["3"].diaVencimento).toBeUndefined();
+  });
+
+  test("parcela: o dia sai da data da primeira prestação", () => {
+    const par: ParcelaAntiga[] = [
+      { id: 10, name: "TV", vp: 100, num: 3, fd: "2026-03-17" },
+      { id: 11, name: "Sofá", vp: 50, num: 2, fd: "2026-12-01" },
+    ];
+    const r = mapearParcelas(par);
+    expect(r["10"].diaVencimento).toBe(17);
+    expect(r["10"].primeiroMes).toBe("2026-03");
+    expect(r["11"].diaVencimento).toBe(1);
+  });
+
+  test("a chave do mapa é o mesmo id do registro já existente na conta", () => {
+    // é o que permite a ação "só atualizar dia de vencimento" acertar o caminho
+    const r = mapearDespesasFixas([{ id: 42, name: "X", val: 1, cat: "Casa", day: 5 }], "2026-07");
+    expect(Object.keys(r)).toEqual(["42"]);
+  });
+});
+
+describe("caminhosDiaVencimento — ação que só acerta o dia", () => {
+  const doArquivo = {
+    "1": { diaVencimento: 8 },
+    "2": { diaVencimento: undefined }, // sem dia no arquivo
+    "3": { diaVencimento: 20 },
+    "9": { diaVencimento: 5 }, // já não existe na conta
+  };
+
+  test("grava só o campo do dia, um caminho por item", () => {
+    const patch = caminhosDiaVencimento(doArquivo, ["1", "2", "3"]);
+    expect(patch).toEqual({ "1/diaVencimento": 8, "3/diaVencimento": 20 });
+    // nada além de diaVencimento entra no patch
+    for (const k of Object.keys(patch)) expect(k.endsWith("/diaVencimento")).toBe(true);
+  });
+
+  test("ignora item que já não existe na conta — não pode recriá-lo", () => {
+    const patch = caminhosDiaVencimento(doArquivo, ["1", "2", "3"]);
+    expect(patch["9/diaVencimento"]).toBeUndefined();
+  });
+
+  test("item sem dia no arquivo não apaga o que a conta já tem", () => {
+    const patch = caminhosDiaVencimento(doArquivo, ["1", "2", "3"]);
+    expect("2/diaVencimento" in patch).toBe(false);
+  });
+
+  test("conta vazia gera patch vazio", () => {
+    expect(caminhosDiaVencimento(doArquivo, [])).toEqual({});
   });
 });

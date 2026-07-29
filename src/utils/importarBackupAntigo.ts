@@ -58,7 +58,7 @@ import type {
   CfgTvdeAntigo,
   YearMonth,
 } from "../types";
-import { mesDe } from "./calculos";
+import { diaDe, mesDe } from "./calculos";
 import { pagamentosDaFatura } from "./fatura";
 import { toCents } from "./money";
 
@@ -116,6 +116,10 @@ export function mapearDespesasFixas(
       categoria: f.cat,
       contaCartao: semVazio(f.card),
       inicio: semVazio(f.activeFrom) as YearMonth | undefined,
+      // Sem isto, tudo o que veio do app antigo ficava sem dia e não aparecia
+      // no Calendário. Vale para as fixas gerais e as do veículo, que
+      // reaproveitam esta mesma função.
+      diaVencimento: f.day || undefined,
       pagoPorMes,
     };
   }
@@ -159,6 +163,9 @@ export function mapearParcelas(par: ParcelaAntiga[]): Record<string, Omit<Parcel
       total,
       numParcelas: p.num,
       primeiroMes: mesDe(p.fd),
+      // A parcela antiga não tem campo de dia: o dia vem da data da primeira
+      // prestação, como o próprio app antigo derivava.
+      diaVencimento: diaDe(p.fd),
       categoria: semVazio(p.cat),
       cartao: semVazio(p.card),
       autoDebit: p.autoDebit ?? false,
@@ -481,6 +488,30 @@ export function mapearBackupCompleto(bruto: BackupFinV4, mesFallback: YearMonth)
     tvdeCfg: mapearCfgTvde(bruto.tvde?.cfg),
     cfg: mapearCfg(bruto.cfg),
   };
+}
+
+/** Domínios em que faz sentido só acertar o dia de vencimento. */
+export type DominioComDia = "despesasFixas" | "veiculoDespesasFixas" | "parcelas";
+
+/** Caminhos a gravar para a ação "só atualizar dia de vencimento": um por
+ *  item, apontando exatamente ao campo do dia.
+ *
+ *  Só entram itens que (a) têm dia no arquivo e (b) AINDA EXISTEM na conta.
+ *  A segunda condição é o que impede o `update()` de recriar registos que o
+ *  usuário já apagou — no RTDB, escrever `42/diaVencimento` num nó
+ *  inexistente cria o nó com só esse campo. */
+export function caminhosDiaVencimento(
+  itens: Record<string, { diaVencimento?: number }>,
+  idsNaConta: Iterable<string>,
+): Record<string, number> {
+  const existentes = new Set(idsNaConta);
+  const patch: Record<string, number> = {};
+  for (const [id, item] of Object.entries(itens)) {
+    if (item.diaVencimento === undefined) continue;
+    if (!existentes.has(id)) continue;
+    patch[`${id}/diaVencimento`] = item.diaVencimento;
+  }
+  return patch;
 }
 
 export interface LinhaResumoImportacao {

@@ -6,9 +6,36 @@
 import { ref, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { snapshotHistorico } from "../stores/historicoStore";
-import type { DominiosMapeados } from "../utils/importarBackupAntigo";
+import { useDespesasFixasStore } from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
+import {
+  caminhosDiaVencimento,
+  type DominioComDia,
+  type DominiosMapeados,
+} from "../utils/importarBackupAntigo";
 
-export type AcaoDominio = "importar" | "somar" | "pular";
+/** "soDia" existe porque reimportar com "somar" para recuperar o dia de
+ *  vencimento reescreveria o registo inteiro com o que está no arquivo —
+ *  incluindo pagoPorMes e qualquer edição feita desde a importação. Esta
+ *  ação grava só o campo do dia, e só em itens que ainda existem na conta. */
+export type AcaoDominio = "importar" | "somar" | "soDia" | "pular";
+
+/** Domínios em que a ação "soDia" é oferecida. */
+export const DOMINIOS_COM_DIA: DominioComDia[] = [
+  "despesasFixas",
+  "veiculoDespesasFixas",
+  "parcelas",
+];
+
+/** Ids que a conta tem HOJE em cada um desses domínios — o filtro que impede
+ *  o update de recriar o que já foi apagado. */
+function idsNaConta(dominio: DominioComDia): string[] {
+  if (dominio === "parcelas") return useParcelasStore.getState().itens.map((p) => p.id);
+  if (dominio === "veiculoDespesasFixas")
+    return useVeiculoStore.getState().dados.despesasFixas.map((f) => f.id);
+  return useDespesasFixasStore.getState().itens.map((f) => f.id);
+}
 
 interface EspecDominio {
   caminho: (uid: string) => string;
@@ -99,9 +126,19 @@ export async function importarBackupAntigo(
     const payload = limparUndefinedProfundo(dados);
     try {
       const r = ref(db, spec.caminho(uid));
-      if (acao === "somar" && spec.suportaSomar)
+      if (acao === "soDia") {
+        const patch = caminhosDiaVencimento(
+          dados as Record<string, { diaVencimento?: number }>,
+          idsNaConta(chave as DominioComDia),
+        );
+        // Nenhum item do arquivo com dia continua na conta: não há o que fazer.
+        if (Object.keys(patch).length === 0) continue;
+        await update(r, patch);
+      } else if (acao === "somar" && spec.suportaSomar) {
         await update(r, payload as Record<string, unknown>);
-      else await set(r, payload);
+      } else {
+        await set(r, payload);
+      }
       sucesso.push(chave);
     } catch (err) {
       falha.push({

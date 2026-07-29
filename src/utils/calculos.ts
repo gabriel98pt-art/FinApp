@@ -103,6 +103,11 @@ const MESES_PT = [
 /** 'jan', 'fev', … — para grades onde o nome inteiro não cabe. */
 export const MESES_CURTOS_PT = MESES_PT.map((m) => m.slice(0, 3));
 
+/** '2026-07-15' → 15. Irmão de `mesDe`: corta a string, sem passar por Date. */
+export function diaDe(data: IsoDate): number {
+  return Number(data.slice(8, 10));
+}
+
 /** '2026-07' → 'julho 2026'. */
 export function rotuloMes(ym: YearMonth): string {
   const [y, m] = ym.split("-").map(Number);

@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Upload } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
 import Seletor from "./Seletor";
-import { importarBackupAntigo, type AcaoDominio } from "../services/importarBackupAntigoService";
+import {
+  DOMINIOS_COM_DIA,
+  importarBackupAntigo,
+  type AcaoDominio,
+} from "../services/importarBackupAntigoService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useEventosStore } from "../stores/eventosStore";
@@ -49,8 +53,16 @@ const CONTAGEM_ARQUIVO: Partial<
 const ROTULO_ACAO: Record<AcaoDominio, string> = {
   importar: "Importar",
   somar: "Somar",
+  soDia: "Só atualizar dia de vencimento",
   pular: "Não importar",
 };
+
+/** "Somar" reescreve o registo inteiro; esta só toca no campo do dia, e só em
+ *  itens que ainda existem na conta. Faz sentido apenas onde há dia. */
+function opcoesDe(chave: keyof DominiosMapeados): string[] {
+  const comDia = (DOMINIOS_COM_DIA as string[]).includes(chave);
+  return comDia ? ["importar", "somar", "soDia", "pular"] : ["importar", "somar", "pular"];
+}
 
 function acaoPadrao(
   chave: keyof DominiosMapeados,
@@ -151,7 +163,9 @@ export default function ImportarBackupAntigo() {
       mostrarToast("Nenhum domínio selecionado para importar.");
       return;
     }
-    const comRisco = dominiosAtivos.filter(([chave]) => existentes[chave] > 0);
+    // "soDia" fica de fora do aviso: já ter dados na conta é justamente o caso
+    // para que ela existe, e ela só toca no campo do dia.
+    const comRisco = dominiosAtivos.filter(([chave, a]) => a !== "soDia" && existentes[chave] > 0);
     if (comRisco.length > 0) {
       const lista = comRisco.map(([chave, a]) => `${chave} (${a})`).join(", ");
       if (
@@ -245,7 +259,7 @@ export default function ImportarBackupAntigo() {
                     rotulo={`O que fazer com ${l.rotulo}`}
                     nivel={0}
                     valor={acoes[l.chave] ?? "pular"}
-                    opcoes={["importar", "somar", "pular"]}
+                    opcoes={opcoesDe(l.chave)}
                     rotuloOpcao={(v) => ROTULO_ACAO[v as AcaoDominio]}
                     aoMudar={(v) => setAcoes((a) => ({ ...a, [l.chave]: v as AcaoDominio }))}
                   />

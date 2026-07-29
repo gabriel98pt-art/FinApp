@@ -32,6 +32,8 @@ export interface DespesaFixaAntiga {
   card?: string;
   activeFrom?: string;
   notes?: string;
+  /** Dia do mês do vencimento (coluna "Dia Venc." do app antigo). */
+  day?: number;
   paid?: boolean;
   /** Só existe nalgumas entradas — quando presente, já é {AAAA-MM: bool}
    *  igual ao pagoPorMes novo (achado inspecionando o export real). */
