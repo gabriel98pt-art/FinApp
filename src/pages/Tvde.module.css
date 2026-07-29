@@ -1,3 +1,7 @@
+/* A aba TVDE tem identidade própria: laranja em vez do acento do resto do app.
+   `--lrj` para texto/ícone/contorno, `--lrj-grad` (dois tons próximos) nos
+   fundos de pílula e botão — o toque "metalizado". Só aqui: a barra lateral e
+   o header continuam no azul padrão mesmo com o TVDE aberto. */
 .hero {
   background: var(--s1);
   border: 1px solid var(--brd);
@@ -16,7 +20,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: var(--blu);
+  background: var(--lrj);
 }
 
 .heroRotulo {
@@ -30,7 +34,7 @@
   font-weight: 800;
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
-  color: var(--blu);
+  color: var(--lrj);
 }
 
 .heroChips {
@@ -76,7 +80,7 @@
 }
 
 .abaAtiva {
-  background: var(--blu);
+  background: var(--lrj-grad);
   color: var(--bg);
 }
 
@@ -100,7 +104,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--blu);
+  color: var(--lrj);
   font-size: 0.85rem;
   font-weight: 700;
   padding: 6px 10px;
@@ -178,7 +182,7 @@
 .acaoMini {
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--blu);
+  color: var(--lrj);
   background: var(--s2);
   border-radius: var(--r-sm);
   padding: 6px 9px;
@@ -294,7 +298,7 @@
 }
 
 .botaoMini {
-  background: var(--blu);
+  background: var(--lrj-grad);
   color: var(--bg);
   font-weight: 700;
   font-size: 0.85rem;
@@ -357,7 +361,7 @@
 
 .campoLinha input:focus,
 .campo input:focus {
-  outline: 2px solid var(--blu);
+  outline: 2px solid var(--lrj);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -396,7 +400,7 @@
 }
 
 .salvar {
-  background: var(--blu);
+  background: var(--lrj-grad);
   color: var(--bg);
   font-weight: 700;
   border-radius: var(--r-sm);

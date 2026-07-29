@@ -17,6 +17,12 @@
   --ylw: #fbbf24;
   --pur: #b08dfc;
 
+  /* Laranja da aba TVDE — identidade própria, não usada em mais nada do app.
+     O `-grad` é o toque "metalizado": dois tons próximos em vez de cor
+     chapada, só em fundo de botão/pílula. Texto e contorno usam o sólido. */
+  --lrj: #fb923c;
+  --lrj-grad: linear-gradient(135deg, #fdba74, #ea580c);
+
   /* Série de cores dos gráficos */
   --ch-blu: #0a836f;
   --ch-grn: #31aa5d;
@@ -55,6 +61,7 @@
   --red-rgb: 251, 113, 133;
   --ylw-rgb: 251, 191, 36;
   --pur-rgb: 176, 141, 252;
+  --lrj-rgb: 251, 146, 60;
 
   /* Material translúcido (header/tabs/nav) */
   --material-bg: rgba(16, 30, 48, 0.72);
@@ -76,6 +83,11 @@
   --ylw: #b45309;
   --pur: #7c4fd8;
 
+  /* Mais escuro no tema claro, como os outros acentos, para contrastar com o
+     fundo branco. */
+  --lrj: #c2410c;
+  --lrj-grad: linear-gradient(135deg, #fb923c, #9a3412);
+
   --sh-card:
     0 1px 2px rgba(20, 23, 32, 0.06), 0 4px 14px rgba(20, 23, 32, 0.07),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -94,6 +106,7 @@
   --red-rgb: 190, 18, 60;
   --ylw-rgb: 180, 83, 9;
   --pur-rgb: 124, 79, 216;
+  --lrj-rgb: 194, 65, 12;
 
   --material-bg: rgba(255, 255, 255, 0.72);
   --material-brd: rgba(10, 37, 64, 0.08);

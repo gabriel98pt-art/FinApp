@@ -97,6 +97,11 @@
   color: var(--ylw);
 }
 
+/* Só a aba TVDE usa este tom. */
+.laranja {
+  color: var(--lrj);
+}
+
 /* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual do card
    — inclusive o hover-elevate herdado de .card. */
 .clicavel {

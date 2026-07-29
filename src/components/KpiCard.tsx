@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import styles from "./KpiCard.module.css";
 
-export type TomKpi = "neutro" | "acento" | "verde" | "vermelho" | "amarelo";
+export type TomKpi = "neutro" | "acento" | "verde" | "vermelho" | "amarelo" | "laranja";
 
 const TOM_CLASSE: Record<TomKpi, string> = {
   neutro: "",
@@ -9,6 +9,7 @@ const TOM_CLASSE: Record<TomKpi, string> = {
   verde: styles.verde,
   vermelho: styles.vermelho,
   amarelo: styles.amarelo,
+  laranja: styles.laranja,
 };
 
 /* Cor da "aura" do card (hairline no topo + wash de gradiente), via --_a */
@@ -18,6 +19,7 @@ const TOM_COR: Record<TomKpi, string> = {
   verde: "var(--grn)",
   vermelho: "var(--red)",
   amarelo: "var(--ylw)",
+  laranja: "var(--lrj)",
 };
 
 export default function KpiCard({

@@ -89,7 +89,10 @@ const FAMILIA_ALUGUEL = ["casa", "habitacao", "renda", "aluguer"];
 
 /** Sem acento e em minúsculas, para comparar nomes escritos de várias formas. */
 function normalizar(nome: string): string {
-  return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return nome
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 /** A maior fatia do mês IGNORANDO o veículo e a família "aluguel": são as duas
