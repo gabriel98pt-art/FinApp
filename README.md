@@ -24,9 +24,9 @@ Regras de ouro: UI nunca acessa Firebase/localStorage direto (só via `services/
 ## Marcos
 
 1. ✅ **Fundação** (23/07/2026): scaffold, tokens dark/light, tipos do modelo de dados, aritmética monetária com testes, login/cadastro real, casca visual com as 11 abas + FAB
-2. ⏳ Registro rápido (bottom sheet com física de mola), stores de dados + sync RTDB, telas com dados reais
-3. ⏳ Fatura/parcelas/TVDE/importação/copiloto
-4. ⏳ Polimento, PWA offline, undo/redo
+2. ✅ Registro rápido (bottom sheet com física de mola), stores de dados + sync RTDB, telas com dados reais
+3. ✅ Fatura/parcelas/TVDE/importação/copiloto
+4. ✅ Polimento, PWA offline, undo/redo
 
 ## Rodando
 
