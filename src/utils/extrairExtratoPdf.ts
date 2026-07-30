@@ -74,21 +74,36 @@ const RE_DATA_LANC = /^(\d{1,2})\.(\d{2})$/;
 const RE_IGNORAR_LINHA =
   /^(SALDO\s+INICIAL|A\s+TRANSPORTAR|TRANSPORTE\b|SALDO\s+FINAL|SALDO\s+DISPON|DATA\s+LANC|DATA\s+VALOR|DEBITO|CREDITO|SALDO\b|EXT\.|LANC\.|VALOR\s+DESCR|ULTRAPASSAGEM|TAXA\s+ANUAL)/i;
 
-/** Agrupa itens por linha (coordenada Y arredondada) e ordena de cima para
- *  baixo. `passo` maior tolera mais desalinhamento vertical dentro da linha. */
-function agruparPorLinha<T extends ItemTexto>(itens: T[], passo: number): T[][] {
-  const linhas = new Map<number, T[]>();
-  for (const item of itens) {
-    const y = Math.round(item.transform[5] / passo) * passo;
-    const atual = linhas.get(y);
-    if (atual) atual.push(item);
-    else linhas.set(y, [item]);
+/** Agrupa itens na mesma linha visual, de cima para baixo. `tolerancia` é a
+ *  distância vertical máxima ao topo da linha para um item ainda pertencer a
+ *  ela.
+ *
+ *  Junta por PROXIMIDADE e não por arredondamento (`Math.round(y / passo)`,
+ *  como era antes): no ActivoBank o texto da descrição assenta ~0,8 pontos
+ *  acima dos números da mesma linha, e o arredondamento mandava os dois para
+ *  baldes diferentes sempre que o par calhava em cima de uma fronteira —
+ *  386,6 caía em 384 e 387,4 em 390. A linha ficava sem descrição e era
+ *  descartada; num extrato real eram 13 dos 87 movimentos. */
+function agruparPorLinha<T extends ItemTexto>(itens: T[], tolerancia: number): T[][] {
+  const ordenados = [...itens].sort((a, b) => b.transform[5] - a.transform[5]);
+  const linhas: T[][] = [];
+  let atual: T[] = [];
+  let topo = 0;
+  for (const item of ordenados) {
+    if (atual.length === 0) topo = item.transform[5];
+    else if (topo - item.transform[5] > tolerancia) {
+      linhas.push(atual);
+      atual = [];
+      topo = item.transform[5];
+    }
+    atual.push(item);
   }
-  return [...linhas.keys()].sort((a, b) => b - a).map((y) => linhas.get(y)!);
+  if (atual.length) linhas.push(atual);
+  return linhas;
 }
 
 /** Extração coluna-a-coluna do ActivoBank (_impActivoBankFromItems). */
-function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
+export function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
   // Ano: vem do número do extrato no cabeçalho ("2026/003").
   let ano = new Date().getFullYear();
   const tudo = paginas.map((itens) => itens.map((i) => i.str).join(" ")).join(" ");
@@ -116,7 +131,9 @@ function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
   for (const itens of paginas) {
     const uteis = itens.filter((i) => i.str.trim() && i.transform[4] >= X_IGNORAR);
 
-    for (const linha of agruparPorLinha(uteis, 6)) {
+    // 3 pontos: bem acima do desalinhamento real dentro da linha (0,8) e bem
+    // abaixo do espaçamento entre linhas (~9,4).
+    for (const linha of agruparPorLinha(uteis, 3)) {
       const texto = linha.map((i) => i.str.trim()).join(" ");
       if (RE_IGNORAR_LINHA.test(texto.trim())) continue;
 
