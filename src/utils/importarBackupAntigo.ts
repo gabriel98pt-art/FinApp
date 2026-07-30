@@ -471,6 +471,14 @@ export function mapearBackupCompleto(bruto: BackupFinV4, mesFallback: YearMonth)
   const mesReferencia = bruto._exportedAt ? mesDe(bruto._exportedAt.slice(0, 10)) : mesFallback;
   const receitas = mapearReceitas(bruto.rec ?? []);
   const idsReceitasValidas = new Set(Object.keys(receitas));
+
+  // `showTvde` é conceito do FinApp: o backup antigo nunca o traz, e sem isto
+  // os dados de TVDE entravam mas a aba continuava escondida até alguém a
+  // ligar em Definições. O que decide não é o que o arquivo "diz" — é ter
+  // semana de TVDE lá dentro para mostrar.
+  const cfg = mapearCfg(bruto.cfg);
+  if (Object.keys(bruto.tvde?.weeks ?? {}).length > 0) cfg.showTvde = true;
+
   return {
     receitas,
     despesasFixas: mapearDespesasFixas(bruto.df ?? [], mesReferencia),
@@ -488,7 +496,7 @@ export function mapearBackupCompleto(bruto: BackupFinV4, mesFallback: YearMonth)
     tvdeLancamentos: mapearLancamentosTvde(bruto.tvde?.lanc ?? {}, idsReceitasValidas),
     tvdeDespesas: mapearDespesasTvde(bruto.tvde?.desp ?? []),
     tvdeCfg: mapearCfgTvde(bruto.tvde?.cfg),
-    cfg: mapearCfg(bruto.cfg),
+    cfg,
   };
 }
 

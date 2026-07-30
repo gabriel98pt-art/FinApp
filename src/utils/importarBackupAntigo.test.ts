@@ -11,6 +11,7 @@ import type {
   TransferenciaAntiga,
 } from "../types";
 import {
+  mapearBackupCompleto,
   mapearCfg,
   mapearCfgTvde,
   mapearDespesasCorrentes,
@@ -525,5 +526,32 @@ describe("caminhosDiaVencimento — ação que só acerta o dia", () => {
 
   test("conta vazia gera patch vazio", () => {
     expect(caminhosDiaVencimento(doArquivo, [])).toEqual({});
+  });
+});
+
+describe("mapearBackupCompleto — TVDE liga sozinho quando há dado", () => {
+  const base = { _schema: "fin_v4", _exportedAt: "2026-07-15T10:00:00.000Z" };
+
+  test("backup com semana de TVDE acende showTvde, mesmo o arquivo não dizendo nada", () => {
+    const r = mapearBackupCompleto(
+      { ...base, tvde: { weeks: { "28": { fat: 420.5, port: 30 } } } },
+      "2026-07",
+    );
+    expect(r.cfg.showTvde).toBe(true);
+  });
+
+  test("backup sem TVDE não acende nada", () => {
+    expect(mapearBackupCompleto({ ...base }, "2026-07").cfg.showTvde).toBeUndefined();
+    expect(
+      mapearBackupCompleto({ ...base, tvde: { weeks: {} } }, "2026-07").cfg.showTvde,
+    ).toBeUndefined();
+  });
+
+  test("ter dado de TVDE prevalece sobre um showTvde:false vindo do arquivo", () => {
+    const r = mapearBackupCompleto(
+      { ...base, cfg: { showTvde: false }, tvde: { weeks: { "28": { fat: 100 } } } },
+      "2026-07",
+    );
+    expect(r.cfg.showTvde).toBe(true);
   });
 });
