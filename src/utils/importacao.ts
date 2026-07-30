@@ -370,10 +370,14 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
   // como comentário-âncora pra quando esse domínio existir (a ordem da
   // cascata importa: fixas vêm ANTES das categorias configuradas genéricas).
 
-  // 3. Categorias já configuradas pelo usuário
+  // 3. Categorias já configuradas pelo usuário.
+  // Sempre com fronteira dos dois lados: o nome de uma categoria escrita pelo
+  // usuário ("Casa", "Metro") é para bater na palavra inteira. A convenção de
+  // prefixo-sem-espaço é da lista de regras abaixo, não daqui — sem isso,
+  // "Metro" apanharia "metropolitana" e "Casa" apanharia "casamento".
   for (const cat of ctx.categoriasConfiguradas) {
     const cn = normalizarDescricao(cat);
-    if ((cn && normL.includes(cn)) || origL.includes(cat.toLowerCase())) {
+    if (bateComoPalavra(normL, cn, true) || bateComoPalavra(origL, cat.toLowerCase(), true)) {
       return {
         tipo: "despesa",
         categoria: cat,

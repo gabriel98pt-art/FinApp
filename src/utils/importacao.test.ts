@@ -64,6 +64,25 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     });
   });
 
+  // Mesmo furo do "nos"/"diagnost", um degrau acima na cascata: a categoria
+  // configurada também comparava por substring solto.
+  test("2b) categoria configurada não pega pedaço de outra palavra", () => {
+    const cls = classificarLancamento(
+      linha({ descricao: "PRENDA DE CASAMENTO JOANA", valor: -5000 }),
+      { parcelas: [], categoriasConfiguradas: ["Casa", "Presentes"] },
+    );
+    expect(cls.categoria).not.toBe("Casa");
+    expect(cls.motivo).not.toContain("categoria: Casa");
+  });
+
+  test("2c) a categoria continua a bater quando é a palavra inteira", () => {
+    const cls = classificarLancamento(linha({ descricao: "SEGURO DA CASA CONTINUADO" }), {
+      parcelas: [],
+      categoriasConfiguradas: ["Casa"],
+    });
+    expect(cls).toMatchObject({ categoria: "Casa", confianca: "high" });
+  });
+
   test("3) regra de palavra-chave (Continente → Mercado, categoria configurada na conta)", () => {
     const cls = classificarLancamento(linha({ descricao: "COMPRA CONTINENTE LX" }), {
       parcelas: [],
