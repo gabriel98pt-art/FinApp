@@ -8,9 +8,9 @@
 //   - pagamento de fatura (origem 'fat') FICA: é dinheiro saindo da conta de
 //     facto, e num extrato isso tem que aparecer, mesmo já tendo contado a
 //     compra original no mês dela;
-//   - ajuste de reconciliação bancária (origem 'recon') fica de fora: não é
-//     uma transação real, é uma correção de saldo (mesma regra de
-//     `despesasNosTotais`, `utils/calculos.ts`).
+//   - ajuste de reconciliação bancária (origem 'recon') fica de fora, dos
+//     DOIS lados: não é uma transação real, é uma correção de saldo (mesma
+//     regra de `despesasNosTotais`/`receitasNosTotais`, `utils/calculos.ts`).
 //
 // Fixa e parcela não têm data exata: caem no `diaVencimento` quando existe,
 // senão no dia 1 do mês — só pra terem um lugar na ordenação.
@@ -68,7 +68,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
   const itens: Transacao[] = [];
 
   for (const r of dados.receitas) {
-    if (mesDe(r.data) !== ym) continue;
+    if (mesDe(r.data) !== ym || r.origem === "recon") continue;
     itens.push({
       chave: `receita-${r.id}`,
       refId: r.id,

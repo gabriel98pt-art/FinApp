@@ -92,6 +92,8 @@ export function mapearReceitas(rec: ReceitaAntiga[]): Record<string, Omit<Receit
       data: r.date,
       fonte: r.src,
       conta: semVazio(r.card),
+      // Ajuste de reconciliação: entra como lançamento, fica fora dos totais.
+      origem: r._src === "recon" ? "recon" : undefined,
     };
   }
   return resultado;

@@ -11,7 +11,7 @@ import type {
   Receita,
   YearMonth,
 } from "../types";
-import { totalDoMes } from "./calculos";
+import { receitasNosTotais, totalDoMes } from "./calculos";
 import { despesaRealizadaMes } from "./resumoMensal";
 
 /** Fallback do app de referência: `S.cfg.sgoal || 500` — meta padrão de
@@ -45,7 +45,7 @@ export function calcularMetaMensal(
   diaDeHoje: number,
   metaConfigurada: Cents,
 ): MetaMensal {
-  const rec = totalDoMes(receitas, ym);
+  const rec = totalDoMes(receitasNosTotais(receitas), ym);
   const desp = despesaRealizadaMes(
     despesasCorrentes,
     despesasFixas,
@@ -90,7 +90,7 @@ export function poupancaMeses(
   mesReal: YearMonth,
 ): Cents {
   return meses.reduce((s, ym) => {
-    const rec = totalDoMes(receitas, ym);
+    const rec = totalDoMes(receitasNosTotais(receitas), ym);
     const desp = despesaRealizadaMes(
       despesasCorrentes,
       despesasFixas,

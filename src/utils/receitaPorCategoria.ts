@@ -2,7 +2,7 @@
 // receita não tem fixa, parcela nem veículo — é só somar por `fonte`.
 
 import type { Cents, Receita, YearMonth } from "../types";
-import { doMes } from "./calculos";
+import { doMes, receitasNosTotais } from "./calculos";
 
 export interface FatiaFonte {
   fonte: string;
@@ -10,10 +10,11 @@ export interface FatiaFonte {
 }
 
 /** Fontes do mês ordenadas da maior pra menor. Fonte vazia entra como
- *  "Outros", e total zero fica de fora (mesma regra das fatias de despesa). */
+ *  "Outros", e total zero fica de fora (mesma regra das fatias de despesa).
+ *  O ajuste de reconciliação fica de fora: não é uma fonte de receita. */
 export function receitaPorFonteMes(receitas: Receita[], ym: YearMonth): FatiaFonte[] {
   const porFonte = new Map<string, Cents>();
-  for (const r of doMes(receitas, ym)) {
+  for (const r of doMes(receitasNosTotais(receitas), ym)) {
     const fonte = r.fonte || "Outros";
     porFonte.set(fonte, (porFonte.get(fonte) ?? 0) + r.valor);
   }

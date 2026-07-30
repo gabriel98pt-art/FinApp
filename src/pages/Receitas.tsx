@@ -6,7 +6,14 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
 import { useUiStore } from "../stores/uiStore";
-import { doMes, ordenarPorDataDesc, rotuloMes, totalDoMes } from "../utils/calculos";
+import {
+  doMes,
+  ordenarPorDataDesc,
+  receitasNosTotais,
+  rotuloMes,
+  total,
+  totalDoMes,
+} from "../utils/calculos";
 import { maiorFonteMes } from "../utils/receitaPorCategoria";
 import { formatMoney } from "../utils/money";
 
@@ -20,6 +27,9 @@ export default function Receitas() {
   // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
   const mes = useMesVisivelStore((s) => s.mes);
 
+  // KPIs e rodapé excluem o ajuste de reconciliação; a LISTA mostra tudo,
+  // igual ao que Despesas faz com pagamento de fatura e espelho de parcela.
+  const contadas = receitasNosTotais(itens);
   const doMesExibido = doMes(itens, mes);
   const maiorFonte = maiorFonteMes(itens, mes);
 
@@ -28,10 +38,10 @@ export default function Receitas() {
       <Kpis pagina="receitas">
         <KpiCard
           rotulo="Total do mês"
-          valor={formatMoney(totalDoMes(itens, mes), moeda)}
+          valor={formatMoney(totalDoMes(contadas, mes), moeda)}
           tom="verde"
         />
-        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMesExibido.length)} />
+        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
         <KpiCard
           rotulo="Maior fonte"
           valor={maiorFonte ? maiorFonte.fonte : "—"}
@@ -56,6 +66,7 @@ export default function Receitas() {
         tom="verde"
         moeda={moeda}
         rotuloTotal={`Total ${rotuloMes(mes)}`}
+        total={total(receitasNosTotais(doMesExibido))}
         vazio={`Nenhuma receita em ${rotuloMes(mes)}`}
         vazioSub="Toque em Adicionar para lançar a primeira."
         vazioIcone={TrendingUp}

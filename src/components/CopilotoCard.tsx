@@ -10,7 +10,7 @@ import { useEventosStore } from "../stores/eventosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { useCfgStore } from "../stores/cfgStore";
-import { despesasNosTotais, hojeIso, mesAtual } from "../utils/calculos";
+import { despesasNosTotais, hojeIso, mesAtual, receitasNosTotais } from "../utils/calculos";
 import { responderPergunta } from "../utils/copiloto";
 import styles from "./CopilotoCard.module.css";
 
@@ -19,7 +19,7 @@ const SUGESTOES = ["resumo do mês", "estou dentro do orçamento?", "qual meu sa
 /** Copiloto (seção 3.9): pergunta em linguagem natural, resposta 100% local
  *  e determinística — zero chamada a IA externa. */
 export default function CopilotoCard() {
-  const receitas = useReceitasStore((s) => s.itens);
+  const receitas = receitasNosTotais(useReceitasStore((s) => s.itens));
   const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);

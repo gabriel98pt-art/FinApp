@@ -6,6 +6,7 @@ import {
   mesDe,
   mesDoAno,
   ordenarPorDataDesc,
+  receitasNosTotais,
   resumoMes,
   rotuloMes,
   saldoTotal,
@@ -38,6 +39,24 @@ test("doMes/totalDoMes filtram só o mês pedido", () => {
   expect(doMes(receitas, "2026-07")).toHaveLength(2);
   expect(totalDoMes(receitas, "2026-07")).toBe(320000);
   expect(totalDoMes(receitas, "2026-05")).toBe(0);
+});
+
+describe("receitasNosTotais — espelho de despesasNosTotais", () => {
+  const salario = { valor: 200000, data: "2026-07-01", origem: undefined };
+  const ajuste = { valor: 1250, data: "2026-07-31", origem: "recon" };
+
+  test("ajuste de reconciliação fica fora — não é dinheiro recebido", () => {
+    expect(receitasNosTotais([salario, ajuste])).toEqual([salario]);
+    expect(totalDoMes(receitasNosTotais([salario, ajuste]), "2026-07")).toBe(200000);
+  });
+
+  test("só 'recon' é excluído: 'fat' e 'parc' são casos da despesa, não da receita", () => {
+    const comOutraOrigem = [
+      { valor: 100, data: "2026-07-02", origem: "fat" },
+      { valor: 200, data: "2026-07-03", origem: "parc" },
+    ];
+    expect(receitasNosTotais(comOutraOrigem)).toEqual(comOutraOrigem);
+  });
 });
 
 describe("resumoMes (regressão do app antigo: mês errado não pode vazar)", () => {

@@ -141,6 +141,18 @@ export function despesasNosTotais<T extends { origem?: string }>(itens: T[]): T[
   return itens.filter((d) => d.origem !== "fat" && d.origem !== "recon" && d.origem !== "parc");
 }
 
+/** O espelho de `despesasNosTotais` do lado da receita: exclui o ajuste de
+ *  reconciliação bancária para cima, que existe só para o saldo da conta bater
+ *  com o banco e não é dinheiro que alguém recebeu. Mesma regra do app de
+ *  referência (`r._src !== 'recon'`, em todos os totais de receita dele).
+ *
+ *  Só 'recon' se aplica aqui — 'fat' e 'parc' são casos exclusivos da despesa.
+ *  O ajuste continua a aparecer na lista de lançamentos e continua a contar no
+ *  saldo da conta (utils/contas.ts), que é justamente o que ele veio corrigir. */
+export function receitasNosTotais<T extends { origem?: string }>(itens: T[]): T[] {
+  return itens.filter((r) => r.origem !== "recon");
+}
+
 /** Ordena por data decrescente (mais recente primeiro), estável. */
 export function ordenarPorDataDesc<T extends ItemComValor>(itens: T[]): T[] {
   return [...itens].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));

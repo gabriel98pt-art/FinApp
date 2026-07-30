@@ -256,6 +256,26 @@ describe("mapearReceitas / mapearTransferencias", () => {
     expect(r["2"].fonte).toBe("Transferência");
   });
 
+  // O app antigo grava o ajuste de reconciliação para cima em `rec` com
+  // `_src:'recon'` e tira-o de todo total de receita. Sem este mapeamento ele
+  // chegava ao FinApp como receita comum e inflava o total.
+  test("_src 'recon' vira origem 'recon'; receita comum fica sem origem", () => {
+    const rec: ReceitaAntiga[] = [
+      { id: 1, date: "2026-05-04", val: 440.88, src: "Vencimento" },
+      {
+        id: 2,
+        date: "2026-05-31",
+        val: 12.5,
+        src: "Ajuste",
+        notes: "Reconciliação",
+        _src: "recon",
+      },
+    ];
+    const r = mapearReceitas(rec);
+    expect(r["1"].origem).toBeUndefined();
+    expect(r["2"].origem).toBe("recon");
+  });
+
   test("transferências mapeiam de/para/valor/descricao direto", () => {
     const trf: TransferenciaAntiga[] = [
       { id: 760, date: "2026-05-23", from: "ActivoBank", to: "Revolut", val: 275.85, notes: "" },

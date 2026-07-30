@@ -13,7 +13,7 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { despesasNosTotais, mesAtual, saldoTotal } from "../utils/calculos";
+import { despesasNosTotais, mesAtual, receitasNosTotais, saldoTotal } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { totalParcelasGeral } from "../utils/parcelas";
 import { resumoMesCompleto } from "../utils/resumoMensal";
@@ -52,7 +52,7 @@ export default function Inicio() {
   // parcela contava pelo espelho em vez do plano — dois números diferentes
   // para a mesma ideia, em duas telas.
   const acumulado =
-    saldoTotal(receitas, despesasNosTotais(despesas)) -
+    saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
     totalFixasGeral(despesasFixas) -
     totalParcelasGeral(parcelas) -
     totalVeiculoGeral(veiculo);

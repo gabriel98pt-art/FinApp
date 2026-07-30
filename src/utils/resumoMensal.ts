@@ -11,7 +11,7 @@ import type {
   Receita,
   YearMonth,
 } from "../types";
-import { despesasNosTotais, mesesRecentes, totalDoMes } from "./calculos";
+import { despesasNosTotais, mesesRecentes, receitasNosTotais, totalDoMes } from "./calculos";
 import { contribuicaoFixasMes } from "./despesasFixas";
 import { contribuicaoParcelasMes } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
@@ -54,7 +54,7 @@ export function resumoMesCompleto(
   ym: YearMonth,
   mesReal: YearMonth,
 ): ResumoMesCompleto {
-  const r = totalDoMes(receitas, ym);
+  const r = totalDoMes(receitasNosTotais(receitas), ym);
   const d = despesaRealizadaMes(despesasCorrentes, despesasFixas, parcelas, veiculo, ym, mesReal);
   return { receitas: r, despesas: d, saldo: r - d };
 }

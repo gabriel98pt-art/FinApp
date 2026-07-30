@@ -180,6 +180,7 @@ export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth):
 }
 
 export interface ContextoCopiloto {
+  /** Já sem ajustes de reconciliação (origem 'recon') — ver receitasNosTotais. */
   receitas: Receita[];
   /** Já sem pagamentos de fatura (origem 'fat') — ver despesasNosTotais. */
   despesas: DespesaCorrente[];

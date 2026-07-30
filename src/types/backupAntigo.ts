@@ -22,6 +22,10 @@ export interface ReceitaAntiga {
   src: string;
   card?: string;
   notes?: string;
+  /** Só assume 'recon': um ajuste de reconciliação bancária positivo. O app
+   *  antigo grava-o em `rec` e exclui-o de todo total de receita — mesmo papel
+   *  do `_src` em `DespesaCorrenteAntiga`, do lado da despesa. */
+  _src?: string | null;
 }
 
 export interface DespesaFixaAntiga {

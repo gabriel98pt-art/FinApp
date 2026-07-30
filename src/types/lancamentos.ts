@@ -19,6 +19,11 @@ export interface Receita extends LancamentoBase {
   fonte: string;
   conta?: string;
   recorrente?: boolean;
+  /** Na prática só 'recon' aparece aqui — um ajuste de reconciliação bancária
+   *  para cima. Fica fora dos totais de receita (`receitasNosTotais`) mas
+   *  continua na lista, tal como o lado da despesa. O tipo é partilhado com
+   *  `DespesaCorrente` em vez de duplicado. */
+  origem?: OrigemLancamento;
   /** Descrição livre, separada do nome curto em `descricao`. */
   nota?: string;
 }

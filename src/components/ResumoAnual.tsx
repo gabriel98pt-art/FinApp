@@ -7,7 +7,7 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import type { YearMonth } from "../types";
-import { mesAtual, totalDoMes } from "../utils/calculos";
+import { mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
 import { despesaRealizadaMes, janelaResumoAnual } from "../utils/resumoMensal";
 import { formatCents, formatMoney } from "../utils/money";
 import styles from "./ResumoAnual.module.css";
@@ -54,7 +54,7 @@ export default function ResumoAnual({
   const real = mesAtual();
 
   const celulas = janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
-    const r = totalDoMes(receitas, ym);
+    const r = totalDoMes(receitasNosTotais(receitas), ym);
     const d = futuro
       ? 0
       : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real);
