@@ -3,20 +3,23 @@
 // Devolve `LinhaExtrato[]`, a mesma coisa que `parseExtratoCsv` — daí em
 // diante o fluxo de importação (classificação, dedup, revisão) é o mesmo.
 //
-// Dois caminhos, como no original:
+// Três caminhos — os dois do original, mais a Wise:
 //  1. ActivoBank, reconhecido pelo cabeçalho: extração ciente das colunas,
 //     usando a posição X de cada item do PDF. O valor de cada linha vem da
 //     DIFERENÇA entre o saldo dela e o da linha anterior — mais confiável do
 //     que ler a coluna de débito/crédito, que vem com espaçamento errático.
-//  2. Qualquer outro banco: reconstrói as linhas de texto agrupando os itens
+//  2. Wise: duas linhas de texto por transação (descrição+valores em cima,
+//     data por extenso em baixo) — ver `extrairWise`.
+//  3. Qualquer outro banco: reconstrói as linhas de texto agrupando os itens
 //     por coordenada Y (ordenados por X dentro da linha) e entrega esse texto
 //     ao parser de texto livre que já existe.
 
 import type { LinhaExtrato } from "../types";
 import { parseExtratoTextoLivre } from "./importacaoParser";
+import { parseMoney } from "./money";
 
 /** Um item de texto do PDF.js reduzido ao que interessa aqui. */
-interface ItemTexto {
+export interface ItemTexto {
   str: string;
   /** Matriz de transformação; [4] é o X e [5] o Y do item na página. */
   transform: number[];
@@ -169,6 +172,96 @@ function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
   return linhasExtrato;
 }
 
+const RE_WISE = /Wise Payments|Extrato em EUR/i;
+
+const MESES_PT: Record<string, number> = {
+  janeiro: 1,
+  fevereiro: 2,
+  março: 3,
+  marco: 3,
+  abril: 4,
+  maio: 5,
+  junho: 6,
+  julho: 7,
+  agosto: 8,
+  setembro: 9,
+  outubro: 10,
+  novembro: 11,
+  dezembro: 12,
+};
+
+/** "25 de abril de 2026" — a Wise não usa data numérica em lado nenhum. */
+const RE_DATA_EXTENSO = /^(\d{1,2})\s+de\s+([a-zà-ú]+)\s+de\s+(\d{4})$/i;
+
+/* Colunas da tabela da Wise (cabeçalho "Descrição / Entrada / Saída / Valor",
+   que só aparece na primeira página — daí as fronteiras serem fixas). Os
+   números são alinhados à direita, mas as três colunas ficam bem separadas:
+   Entrada em x≈386-397, Saída em x≈456-467, Valor em x≈522-537. */
+const X_WISE_DESCRICAO = 360;
+const X_WISE_SAIDA = 430;
+const X_WISE_SALDO = 500;
+
+/** Distância vertical da linha da data até a linha da transação logo acima:
+   os valores ficam a +11 e a descrição a +13, constantes no documento todo. */
+const BANDA_WISE = 20;
+
+/** Wise: cada transação ocupa DUAS linhas de texto — em cima a descrição com
+ *  os valores à direita, e logo abaixo a data por extenso com o id da
+ *  transação. Ancora-se na data (inconfundível) e lê-se a linha de cima.
+ *
+ *  A coluna "Valor" é DELIBERADAMENTE ignorada: não é o valor do movimento, é
+ *  um saldo que zera a cada envio e reaparece na conversão seguinte. O valor
+ *  do movimento está em "Entrada" (positivo) ou em "Saída" (que já vem com
+ *  sinal negativo) — nunca nas duas ao mesmo tempo. */
+export function extrairWise(paginas: ItemTexto[][]): LinhaExtrato[] {
+  const linhasExtrato: LinhaExtrato[] = [];
+
+  for (const itens of paginas) {
+    const datas = itens
+      .filter((i) => RE_DATA_EXTENSO.test(i.str.trim()))
+      .sort((a, b) => b.transform[5] - a.transform[5]);
+
+    for (const item of datas) {
+      const m = RE_DATA_EXTENSO.exec(item.str.trim())!;
+      const mes = MESES_PT[m[2].toLowerCase()];
+      if (!mes) continue;
+
+      const y = item.transform[5];
+      const acima = itens.filter(
+        (i) => i.str.trim() && i.transform[5] > y && i.transform[5] <= y + BANDA_WISE,
+      );
+
+      const descricao = acima
+        .filter((i) => i.transform[4] < X_WISE_DESCRICAO)
+        .sort((a, b) => a.transform[4] - b.transform[4])
+        .map((i) => i.str.trim())
+        .join(" ")
+        .trim();
+      if (!descricao) continue;
+
+      const naEntrada = acima.find(
+        (i) => i.transform[4] >= X_WISE_DESCRICAO && i.transform[4] < X_WISE_SAIDA,
+      );
+      const naSaida = acima.find(
+        (i) => i.transform[4] >= X_WISE_SAIDA && i.transform[4] < X_WISE_SALDO,
+      );
+      const bruto = naEntrada ?? naSaida;
+      if (!bruto) continue;
+
+      const valor = parseMoney(bruto.str);
+      if (valor === null || valor === 0) continue;
+
+      linhasExtrato.push({
+        data: `${m[3]}-${pad2(mes)}-${pad2(+m[1])}`,
+        descricao,
+        valor,
+      });
+    }
+  }
+
+  return linhasExtrato;
+}
+
 /** Reconstrói o texto de páginas quaisquer: uma linha por coordenada Y, itens
  *  ordenados por X dentro da linha. */
 function reconstruirTexto(paginas: ItemTexto[][]): string {
@@ -218,7 +311,14 @@ export async function extrairExtratoPdf(buffer: ArrayBuffer): Promise<LinhaExtra
     )
     .join(" ");
 
-  return RE_ACTIVOBANK.test(amostra)
-    ? extrairActivoBank(paginas)
-    : parseExtratoTextoLivre(reconstruirTexto(paginas));
+  if (RE_ACTIVOBANK.test(amostra)) return extrairActivoBank(paginas);
+
+  if (RE_WISE.test(amostra)) {
+    // Se o cabeçalho é da Wise mas a tabela não é a esperada, o genérico ainda
+    // fica com a sua hipótese em vez de devolver nada.
+    const wise = extrairWise(paginas);
+    if (wise.length) return wise;
+  }
+
+  return parseExtratoTextoLivre(reconstruirTexto(paginas));
 }
