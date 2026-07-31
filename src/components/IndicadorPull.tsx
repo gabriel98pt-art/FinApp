@@ -12,13 +12,16 @@ export default function IndicadorPull({ estado, limite }: { estado: EstadoPull; 
   // Uma volta completa ao chegar ao limite — o giro é o progresso, não uma
   // animação em curso.
   const progresso = Math.min(1, y / limite);
+  // Enquanto recarrega o conteúdo já voltou ao lugar (y = 0): o indicador fica
+  // sozinho, parado na altura do limite.
+  const alturaVisivel = recarregando ? limite : y;
 
   return (
     <div
       className={`${styles.indicador} ${armado ? styles.armado : ""}`}
       style={{
-        transform: `translateX(-50%) translateY(${Math.round(y * 0.6)}px)`,
-        opacity: Math.min(1, progresso * 1.4),
+        transform: `translateX(-50%) translateY(${Math.round(alturaVisivel * 0.6)}px)`,
+        opacity: recarregando ? 1 : Math.min(1, progresso * 1.4),
       }}
       aria-hidden
     >

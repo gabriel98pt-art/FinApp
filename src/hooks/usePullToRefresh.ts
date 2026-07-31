@@ -1,12 +1,15 @@
 import { useCallback, useRef, useState } from "react";
 import { molaAssentou, passoMola, rubberBand } from "../utils/spring";
+import { checarVersaoNova } from "../stores/pwaStore";
 
 // Puxar do topo para recarregar — reforço manual do usePwaUpdate, para quando
 // se quer forçar em vez de esperar. Mesmo espírito do useDragToClose: Pointer
 // Events e a física de `utils/spring.ts`, sem biblioteca nova.
 //
-// Um reload de verdade basta: o navegador reavalia o service worker nesse
-// caminho, então não há lógica de atualização duplicada aqui.
+// Recarregar a página NÃO obriga o navegador a procurar versão nova — foi
+// exatamente essa suposição que deixou o app preso na versão velha e deu origem
+// ao usePwaUpdate. Aqui pede-se a checagem à mão pelo mesmo caminho já provado
+// (`checarVersaoNova`); só se recarrega quando já se estava na última versão.
 
 /** Quanto é preciso puxar para o gesto valer. */
 const LIMITE = 76;
@@ -101,16 +104,27 @@ export function usePullToRefresh() {
     [aplicar],
   );
 
+  /** Havendo versão nova, quem aplica e recarrega é o usePwaUpdate — não há um
+   *  segundo caminho de atualização aqui. O reload é só o desfecho de "já
+   *  estavas na última", para o gesto não parecer que não fez nada. */
+  const atualizar = useCallback(async () => {
+    if (await checarVersaoNova()) return;
+    window.location.reload();
+  }, []);
+
   const soltar = useCallback(() => {
     if (!puxando.current) return;
     puxando.current = false;
     if (yRef.current >= LIMITE) {
       setEstado((e) => ({ ...e, recarregando: true }));
-      window.location.reload();
+      // A checagem demora — o conteúdo volta ao lugar e fica só o indicador a
+      // girar, em vez de a tela ficar presa a meio do puxão.
+      voltar();
+      void atualizar();
       return;
     }
     voltar();
-  }, [voltar]);
+  }, [voltar, atualizar]);
 
   /** `pointercancel` é o sistema a tomar conta do gesto (virou scroll, o dedo
    *  saiu do ecrã…), não uma confirmação — recarregar aqui seria recarregar
