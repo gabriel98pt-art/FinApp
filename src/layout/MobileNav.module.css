@@ -4,12 +4,13 @@
 
 .barra {
   position: fixed;
-  /* A folga somada é MESMO só 2px: o `env(safe-area-inset-bottom)` já reserva
-     a faixa do indicador de gestos do iPhone (~34px nos aparelhos sem botão),
-     e tudo o que se somar por cima disso aparece como distância a mais no
-     aparelho real. O emulador do navegador devolve 0 para esse env, por isso
-     medir só nele faz este número parecer menor do que é. */
-  bottom: calc(2px + env(safe-area-inset-bottom));
+  /* Zero folga escolhida por nós: a barra encosta exatamente onde a área
+     segura do sistema começa — o padrão da maioria dos apps de iOS.
+     Toda a distância que sobra no aparelho é o `env(safe-area-inset-bottom)`,
+     a faixa do indicador de gestos (~34px nos iPhones sem botão), reservada
+     pelo próprio iOS. O emulador do navegador devolve 0 para esse env, então
+     medir só nele mostra a barra colada — no iPhone ela fica ~34px acima. */
+  bottom: env(safe-area-inset-bottom);
   left: 50%;
   transform: translateX(-50%);
   width: min(100vw - 20px, 430px);
@@ -142,9 +143,9 @@
 /* Superfície sólida (não vidro) — o material translúcido fica só na barra */
 .menuMais {
   position: fixed;
-  /* Desce os mesmos 3px que a barra desceu, para continuar a abrir colado
+  /* Desce os mesmos 2px que a barra desceu, para continuar a abrir colado
      acima dela — a distância entre os dois não muda. */
-  bottom: calc(76px + env(safe-area-inset-bottom));
+  bottom: calc(74px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: min(100vw - 20px, 430px);
