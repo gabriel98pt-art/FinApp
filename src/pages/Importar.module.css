@@ -260,7 +260,7 @@
   padding: 12px;
   font-size: 1rem;
   position: sticky;
-  bottom: calc(110px + env(safe-area-inset-bottom));
+  bottom: calc(var(--alt-barra-nav) + 47px);
 }
 
 .confirmar:disabled {

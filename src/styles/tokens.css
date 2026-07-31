@@ -132,3 +132,21 @@
     --sidebar-w: 224px; /* expandida: ícone + rótulo (desktop) */
   }
 }
+
+/* Barra de navegação móvel — fonte única para tudo o que se apoia nela.
+
+   --folga-indicador: a barra encosta na base do ecrã, e reserva por dentro só
+   a faixa onde o iOS desenha o indicador de gestos (~13px de altura) — assim
+   o fundo da barra chega à borda mas os nomes das abas ficam acima do
+   indicador, sem serem cortados por ele. Onde não existe essa faixa (Android,
+   iPhone com botão, navegador de secretária) fica o mesmo respiro de 6px dos
+   outros lados, e nada muda.
+
+   --alt-barra-nav: do fundo do ecrã ao topo da barra — 6px de respiro em cima
+   + 51px do conteúdo das abas + a folga de baixo. Quem flutua acima da barra
+   parte daqui em vez de repetir contas que deixam de bater assim que a barra
+   se mexe (foi o que aconteceu nas últimas rondas). */
+:root {
+  --folga-indicador: max(6px, min(14px, env(safe-area-inset-bottom)));
+  --alt-barra-nav: calc(57px + var(--folga-indicador));
+}

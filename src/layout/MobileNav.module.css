@@ -4,20 +4,20 @@
 
 .barra {
   position: fixed;
-  /* Zero folga escolhida por nós: a barra encosta exatamente onde a área
-     segura do sistema começa — o padrão da maioria dos apps de iOS.
-     Toda a distância que sobra no aparelho é o `env(safe-area-inset-bottom)`,
-     a faixa do indicador de gestos (~34px nos iPhones sem botão), reservada
-     pelo próprio iOS. O emulador do navegador devolve 0 para esse env, então
-     medir só nele mostra a barra colada — no iPhone ela fica ~34px acima. */
-  bottom: env(safe-area-inset-bottom);
+  /* Encostada mesmo na base do ecrã. Ficar ACIMA da área segura do sistema
+     empurrava a barra ~34px para cima no iPhone — a distância que se via.
+     Agora o fundo da barra vai até à borda e é o `padding-bottom` que mantém
+     os nomes das abas fora da faixa do indicador de gestos. */
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: min(100vw - 20px, 430px);
   z-index: 40;
   display: flex;
   align-items: stretch;
-  padding: 6px;
+  /* Em baixo, o respiro dos 6px passa a incluir a faixa do indicador de
+     gestos do iPhone (ver --folga-indicador). */
+  padding: 6px 6px var(--folga-indicador);
   border-radius: var(--r-sheet);
   box-shadow: var(--sh-card);
   /* o botão central sobe acima da borda */
@@ -143,9 +143,8 @@
 /* Superfície sólida (não vidro) — o material translúcido fica só na barra */
 .menuMais {
   position: fixed;
-  /* Desce os mesmos 2px que a barra desceu, para continuar a abrir colado
-     acima dela — a distância entre os dois não muda. */
-  bottom: calc(74px + env(safe-area-inset-bottom));
+  /* Sempre 11px acima do topo da barra, seja qual for a altura dela. */
+  bottom: calc(var(--alt-barra-nav) + 11px);
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   width: min(100vw - 20px, 430px);

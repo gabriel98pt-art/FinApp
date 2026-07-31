@@ -3,7 +3,9 @@
   /* `margin: 0 auto` centrava no viewport inteiro; com a barra lateral, o
      centro é o espaço à direita dela. */
   margin: 0 auto 0 var(--sidebar-w);
-  padding: 16px 16px calc(140px + env(safe-area-inset-bottom));
+  /* Espaço no fim da lista para o último item não ficar debaixo da barra nem
+     do botão central, que sobe acima dela. */
+  padding: 16px 16px calc(var(--alt-barra-nav) + 77px);
 }
 
 @media (min-width: 768px) {
