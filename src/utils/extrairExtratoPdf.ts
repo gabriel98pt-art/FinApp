@@ -471,67 +471,92 @@ function reconstruirTexto(paginas: ItemTexto[][]): string {
 }
 
 /** Lê um extrato em PDF e devolve as linhas cruas, prontas para `analisarLinha`.
- *  `buffer` é o ArrayBuffer do ficheiro. */
+ *  `buffer` é o ArrayBuffer do ficheiro.
+ *
+ *  Tudo aqui é avaro com memória, e não por gosto: o processo da aba no iPhone
+ *  tem um teto muito mais baixo que o do Mac, e um extrato de 13 páginas com
+ *  fontes embutidas chegava para o WebKit matar a página ("A problem
+ *  repeatedly occurred"). Daí a página ser limpa assim que se lê o texto dela,
+ *  o documento ser destruído no fim aconteça o que acontecer, e as fontes nem
+ *  chegarem a ser construídas. */
 export async function extrairExtratoPdf(buffer: ArrayBuffer): Promise<LinhaExtrato[]> {
   const pdfjs = await carregarPdfJs();
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise;
+  // `disableFontFace`: por omissão o pdf.js converte cada fonte embutida em
+  // OpenType e prende-a ao documento, para conseguir DESENHAR o PDF. Aqui
+  // nunca se desenha nada — só se lê texto e coordenadas —, portanto isso era
+  // memória gasta em algo que ninguém ia ver. Não mexe no texto extraído: o
+  // mapa de caracteres para letras é lido no worker, à parte disto.
+  const tarefa = pdfjs.getDocument({ data: new Uint8Array(buffer), disableFontFace: true });
 
-  const paginas: ItemTexto[][] = [];
-  for (let n = 1; n <= pdf.numPages; n++) {
-    const pagina = await pdf.getPage(n);
+  try {
+    const pdf = await tarefa.promise;
+    const paginas: ItemTexto[][] = [];
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const pagina = await pdf.getPage(n);
 
-    // O texto vem pelo stream, lido com um reader — e NÃO por
-    // `pagina.getTextContent()`, que faria o mesmo numa linha. Por dentro,
-    // esse atalho percorre este stream com `for await (… of stream)`, ou
-    // seja iteração assíncrona sobre um ReadableStream, que o WebKit não
-    // implementa: no Safari rebentava aqui com "undefined is not a function",
-    // dentro do pdf.js, antes de ler fosse o que fosse. E como no iOS todo o
-    // navegador corre sobre WebKit (o "Chrome" do iPhone incluído), a
-    // importação de PDF estava partida no telemóvel para todos os bancos.
-    // Ler o stream à mão é o que o próprio pdf.js faz por baixo.
-    const leitor = pagina.streamTextContent().getReader();
-    const itens: ItemTexto[] = [];
-    for (;;) {
-      const { done, value } = await leitor.read();
-      if (done) break;
-      // O fluxo traz também marcadores de conteúdo, que não têm texto nem
-      // posição. Copiado para a forma local em vez de importar o tipo interno
-      // do PDF.js, que muda de caminho entre versões.
-      for (const item of value.items) {
-        if ("str" in item) itens.push({ str: item.str, transform: item.transform });
+      // O texto vem pelo stream, lido com um reader — e NÃO por
+      // `pagina.getTextContent()`, que faria o mesmo numa linha. Por dentro,
+      // esse atalho percorre este stream com `for await (… of stream)`, ou
+      // seja iteração assíncrona sobre um ReadableStream, que o WebKit não
+      // implementa: no Safari rebentava aqui com "undefined is not a function",
+      // dentro do pdf.js, antes de ler fosse o que fosse. E como no iOS todo o
+      // navegador corre sobre WebKit (o "Chrome" do iPhone incluído), a
+      // importação de PDF estava partida no telemóvel para todos os bancos.
+      // Ler o stream à mão é o que o próprio pdf.js faz por baixo.
+      const leitor = pagina.streamTextContent().getReader();
+      const itens: ItemTexto[] = [];
+      for (;;) {
+        const { done, value } = await leitor.read();
+        if (done) break;
+        // O fluxo traz também marcadores de conteúdo, que não têm texto nem
+        // posição. Copiado para a forma local em vez de importar o tipo interno
+        // do PDF.js, que muda de caminho entre versões.
+        for (const item of value.items) {
+          if ("str" in item) itens.push({ str: item.str, transform: item.transform });
+        }
       }
+      paginas.push(itens);
+
+      // Página lida: larga já o que ela tinha em cache (fontes, glifos), em vez
+      // de o guardar até ao fim do documento. `itens` são só texto e
+      // coordenadas, já copiados — não dependem de nada disto.
+      pagina.cleanup();
     }
-    paginas.push(itens);
+
+    // Amostra do início para reconhecer o formato, como no original.
+    const amostra = paginas
+      .slice(0, 3)
+      .map((itens) =>
+        itens
+          .slice(0, 60)
+          .map((i) => i.str)
+          .join(" "),
+      )
+      .join(" ");
+
+    if (RE_ACTIVOBANK.test(amostra)) return extrairActivoBank(paginas);
+
+    // Antes da Wise, e exigindo as duas marcas: "Revolut" sozinho podia
+    // aparecer na descrição de um movimento noutro banco.
+    //
+    // Sem recurso ao genérico de propósito: esta tabela tem quatro números
+    // depois do valor (saldo e três de imposto/comissão) e o genérico, que
+    // espera um só, cola-os todos à descrição. Uma lista vazia mostra "nenhuma
+    // linha reconhecida"; sujar o histórico do usuário em silêncio é pior.
+    if (RE_REVOLUT.test(amostra) && RE_REVOLUT_TITULO.test(amostra)) return extrairRevolut(paginas);
+
+    if (RE_WISE.test(amostra)) {
+      // Se o cabeçalho é da Wise mas a tabela não é a esperada, o genérico
+      // ainda fica com a sua hipótese em vez de devolver nada.
+      const wise = extrairWise(paginas);
+      if (wise.length) return wise;
+    }
+
+    return parseExtratoTextoLivre(reconstruirTexto(paginas));
+  } finally {
+    // Fecha o documento e o worker — com o `finally`, também quando uma página
+    // rebenta a meio ou o formato não é reconhecido. Nesta versão quem destrói
+    // é a tarefa de carregamento: `PDFDocumentProxy` já não tem `destroy()`.
+    await tarefa.destroy();
   }
-
-  // Amostra do início para reconhecer o formato, como no original.
-  const amostra = paginas
-    .slice(0, 3)
-    .map((itens) =>
-      itens
-        .slice(0, 60)
-        .map((i) => i.str)
-        .join(" "),
-    )
-    .join(" ");
-
-  if (RE_ACTIVOBANK.test(amostra)) return extrairActivoBank(paginas);
-
-  // Antes da Wise, e exigindo as duas marcas: "Revolut" sozinho podia aparecer
-  // na descrição de um movimento noutro banco.
-  //
-  // Sem recurso ao genérico de propósito: esta tabela tem quatro números
-  // depois do valor (saldo e três de imposto/comissão) e o genérico, que
-  // espera um só, cola-os todos à descrição. Uma lista vazia mostra "nenhuma
-  // linha reconhecida"; sujar o histórico do usuário em silêncio é pior.
-  if (RE_REVOLUT.test(amostra) && RE_REVOLUT_TITULO.test(amostra)) return extrairRevolut(paginas);
-
-  if (RE_WISE.test(amostra)) {
-    // Se o cabeçalho é da Wise mas a tabela não é a esperada, o genérico ainda
-    // fica com a sua hipótese em vez de devolver nada.
-    const wise = extrairWise(paginas);
-    if (wise.length) return wise;
-  }
-
-  return parseExtratoTextoLivre(reconstruirTexto(paginas));
 }
