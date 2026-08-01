@@ -5,7 +5,14 @@
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
-import type { DespesaCorrente, ExistenteParaDedup, LinhaAnalisada, Receita } from "../types";
+import type {
+  CargaEletrica,
+  DespesaCorrente,
+  DespesaVeiculo,
+  ExistenteParaDedup,
+  LinhaAnalisada,
+  Receita,
+} from "../types";
 
 /** Lançamentos existentes pra deduplicação: todo o dinheiro já registado que
  *  pode voltar a aparecer numa linha do extrato.
@@ -17,10 +24,14 @@ import type { DespesaCorrente, ExistenteParaDedup, LinhaAnalisada, Receita } fro
  *  aquele MESMO dinheiro já está registado. A prestação e a fatura do cartão
  *  saem da conta e aparecem no extrato do banco como qualquer outra compra;
  *  fora da lista, eram importadas segunda vez sem um aviso.
- */
+ *
+ *  Cargas e despesas do veículo entram pela mesma razão. Ficaram de fora só
+ *  porque o veículo ainda não era um domínio próprio quando isto foi escrito. */
 export function construirExistentes(
   receitas: Receita[],
   despesas: DespesaCorrente[],
+  cargas: CargaEletrica[],
+  despesasVeiculo: DespesaVeiculo[],
 ): ExistenteParaDedup[] {
   const deReceitas: ExistenteParaDedup[] = receitas.map((r) => ({
     id: r.id,
@@ -34,7 +45,27 @@ export function construirExistentes(
     valor: -d.valor,
     descricao: `${d.descricao} ${d.categoria}`,
   }));
-  return [...deReceitas, ...deDespesas];
+  // A carga não tem campo de descrição: `local` é o nome curto do posto
+  // ("Ionity A1", "Powerdot"), justamente o que costuma vir escrito na linha
+  // do banco. `nota` fica de fora de propósito — é texto livre, e a
+  // similaridade aqui é por palavras em comum: acrescentar palavras que o
+  // extrato nunca tem só afasta as duas descrições.
+  const deCargas: ExistenteParaDedup[] = cargas.map((c) => ({
+    id: c.id,
+    data: c.data,
+    valor: -c.custo,
+    descricao: c.local,
+  }));
+  // Na despesa do veículo é a `nota` que costuma guardar o nome de quem
+  // recebeu (a oficina, o seguro), com a categoria a fazer de contexto — o
+  // mesmo par de `descricao` + `categoria` das despesas correntes.
+  const deVeiculo: ExistenteParaDedup[] = despesasVeiculo.map((d) => ({
+    id: d.id,
+    data: d.data,
+    valor: -d.valor,
+    descricao: `${d.nota ?? ""} ${d.categoria}`.trim(),
+  }));
+  return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo];
 }
 
 export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[]) {
