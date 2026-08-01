@@ -252,6 +252,35 @@
   font-size: 0.72rem;
 }
 
+/* Falta um dado que só o usuário tem (kWh, local) — trava a confirmação, por
+   isso vermelho e não o amarelo do aviso de duplicata. */
+.faltaCarga {
+  color: var(--red);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.campoKwh {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Campo dos kWh: cabe na mesma linha dos seletores, largura só para "132,5". */
+.kwh {
+  width: 4.5em;
+  padding: 4px 8px;
+  border: 1px solid var(--brd);
+  border-radius: var(--r-xs);
+  background: var(--s2);
+  color: var(--txt);
+  font-size: 0.75rem;
+}
+
+.kwh::placeholder {
+  color: var(--mut);
+}
+
 .confirmar {
   background: var(--blu);
   color: var(--bg);

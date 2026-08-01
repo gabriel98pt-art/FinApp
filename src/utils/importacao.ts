@@ -547,8 +547,90 @@ export function verificarDuplicata(
   return { status, confianca, correspondencia: melhor, score: melhorScore, motivos: melhorMotivos };
 }
 
+/* Palavras que dizem "isto foi um carregamento ELÉTRICO". Saem da regra de
+   "Veículo" das REGRAS_IMPORTACAO, mas só a parte de eletricidade: galp,
+   repsol, shell e companhia também são veículo e não são carga — pedir os kWh
+   de um depósito de gasóleo era pior do que não sugerir nada. Sem os genéricos
+   "carregamento"/"recarga": em português também são carregar saldo do telemóvel
+   ou da conta, e apanhariam despesas que nada têm a ver com o carro.
+
+   "powerdot" numa palavra só é o nome como aparece nos extratos reais; a lista
+   das regras só tinha "power dot" com espaço. */
+const PALAVRAS_CARGA = [
+  "mobi.e",
+  "mobie",
+  "voltacharge",
+  "carga elétrica",
+  "carga electrica",
+  "chargepoint",
+  "ionity",
+  "fastned",
+  "power dot",
+  "powerdot",
+  "supercharger",
+  "evio",
+  "kwh",
+];
+
+/** Quanto de parecença chega para dar por reconhecido um local já cadastrado.
+ *  Metade das palavras em comum: "IONITY GMBH" contra "Ionity A1" dá 0,5. */
+const SIM_LOCAL_CARGA = 0.5;
+
+export interface CargaReconhecida {
+  /** A linha parece um carregamento elétrico. */
+  ehCarga: boolean;
+  /** Local já cadastrado que bate com a descrição — "" se nenhum bateu. */
+  local: string;
+}
+
+/** Olha uma linha do extrato e diz se é candidata a recarga elétrica, e em que
+ *  posto. Dois caminhos, do mais forte para o mais fraco:
+ *
+ *  1. bate com um local que o usuário já tem cadastrado (`cfg.locaisCarregamento`)
+ *     — aí sabe-se também QUAL o posto;
+ *  2. não bate com nenhum, mas o texto traz nome de rede de carregamento — dá
+ *     para sugerir o destino, mas o local fica por escolher.
+ *
+ *  Só entradas negativas: uma carga é dinheiro a sair. */
+export function reconhecerCarga(tx: LinhaExtrato, locais: string[]): CargaReconhecida {
+  if (tx.valor >= 0) return { ehCarga: false, local: "" };
+
+  const origL = (tx.descricao || "").toLowerCase();
+  const normL = normalizarDescricao(tx.descricao);
+
+  let melhorLocal = "";
+  let melhorSim = 0;
+  for (const local of locais) {
+    const normLocal = normalizarDescricao(local);
+    if (!normLocal) continue;
+    // Peso das palavras em comum, e não "o nome do posto aparece na
+    // descrição": um local de nome genérico como "Casa" está escrito dentro de
+    // "CASA DAS RAÇÕES ANIMAIS", e isso não é carregamento nenhum. Assim,
+    // quanto mais a descrição fala de outra coisa, menos ela vale.
+    const sim = similaridadeDescricoes(normL, normLocal);
+    if (sim >= SIM_LOCAL_CARGA && sim > melhorSim) {
+      melhorSim = sim;
+      melhorLocal = local;
+    }
+  }
+  if (melhorLocal) return { ehCarga: true, local: melhorLocal };
+
+  for (const kw of PALAVRAS_CARGA) {
+    const fechaPalavra = /\s$/.test(kw);
+    if (
+      bateComoPalavra(normL, normalizarDescricao(kw), fechaPalavra) ||
+      bateComoPalavra(origL, kw.trimEnd(), fechaPalavra)
+    ) {
+      return { ehCarga: true, local: "" };
+    }
+  }
+  return { ehCarga: false, local: "" };
+}
+
 export interface ContextoAnalise extends ContextoClassificacao {
   existentes: ExistenteParaDedup[];
+  /** Postos de carregamento cadastrados, para reconhecer recargas. */
+  locaisCarregamento: string[];
 }
 
 /** Decisão final por linha (_impAnalyze): combina classificação + dedup. */
@@ -567,6 +649,11 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
 
   const acao: "import" | "skip" = duplicata.status === "new" ? "import" : "skip";
 
+  // Recarga elétrica já vem sugerida como destino quando a linha tem cara
+  // disso: falta sempre o kWh, que só o usuário sabe, e é a revisão que serve
+  // para isso. Um toque no destino devolve a linha ao caminho normal.
+  const carga = reconhecerCarga(tx, ctx.locaisCarregamento);
+
   return {
     id,
     data: tx.data,
@@ -577,5 +664,8 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     decisao,
     acao,
     categoriaEscolhida: classificacao.categoria ?? "Outros",
+    destino: carga.ehCarga ? "carga" : "lancamento",
+    localCarga: carga.local,
+    kwhCarga: "",
   };
 }

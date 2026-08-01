@@ -1,7 +1,30 @@
-import { describe, expect, test } from "vitest";
-import { construirExistentes } from "./importacaoService";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+// O que interessa aqui é PARA ONDE cada linha vai, não o Firebase: a gravação
+// fica trocada por espiões.
+vi.mock("./firebase", () => ({ db: {} }));
+vi.mock("firebase/database", () => ({
+  ref: () => ({}),
+  push: () => ({ key: `id-${Math.random().toString(36).slice(2, 8)}` }),
+  update: vi.fn(async () => undefined),
+}));
+// Mock parcial: o resto do módulo (VEICULO_VAZIO e companhia) continua a ser
+// preciso por quem o importa mais acima na cadeia.
+vi.mock("./veiculoService", async (original) => ({
+  ...(await original<typeof import("./veiculoService")>()),
+  criarCarga: vi.fn(async () => "id-carga"),
+}));
+import { confirmarImportacao, construirExistentes, dadosDaCarga } from "./importacaoService";
+import { update } from "firebase/database";
+import { criarCarga } from "./veiculoService";
 import { analisarLinha, verificarDuplicata } from "../utils/importacao";
-import type { CargaEletrica, DespesaCorrente, DespesaVeiculo, Receita } from "../types";
+import type {
+  CargaEletrica,
+  DespesaCorrente,
+  DespesaVeiculo,
+  LinhaAnalisada,
+  Receita,
+} from "../types";
 
 // Uma parcela paga e um pagamento de fatura chegam a `despesasCorrentes` com
 // `origem` preenchida — era exatamente o que a lista de dedup deixava de fora.
@@ -89,7 +112,7 @@ describe("construirExistentes", () => {
 });
 
 describe("dedup com os lançamentos que faltavam", () => {
-  const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [] };
+  const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
 
   test("pagamento da prestação no extrato deixa de passar como novo", () => {
     const existentes = construirExistentes([], [PARCELA_PAGA], ...SEM_VEICULO);
@@ -155,5 +178,132 @@ describe("dedup com os lançamentos que faltavam", () => {
     const existentes = construirExistentes([], [PARCELA_PAGA], ...SEM_VEICULO);
     const linha = { data: "2026-08-10", descricao: "PAG.PRESTACAO N. 010", valor: -9990 };
     expect(verificarDuplicata(linha, existentes).status).toBe("new");
+  });
+});
+
+describe("dadosDaCarga", () => {
+  const linhaCarga = (mudancas: Partial<LinhaAnalisada> = {}): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-08",
+    descricao: "POWERDOT PORTUGAL",
+    valor: -1050,
+    classificacao: {
+      tipo: "despesa",
+      categoria: "Veículo",
+      incerto: false,
+      confianca: "high",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "auto_classificada",
+    acao: "import",
+    categoriaEscolhida: "Veículo",
+    destino: "carga",
+    localCarga: "Powerdot",
+    kwhCarga: "10",
+    ...mudancas,
+  });
+
+  test("monta a carga com o custo da linha e o preço por kWh calculado", () => {
+    expect(dadosDaCarga(linhaCarga())).toEqual({
+      data: "2026-07-08",
+      kwh: 10,
+      custo: 1050,
+      // 10,50 € por 10 kWh = 105 cêntimos/kWh, a mesma conta do registo rápido.
+      precoKwh: 105,
+      local: "Powerdot",
+    });
+  });
+
+  test("aceita kWh escrito com vírgula, como se digita", () => {
+    expect(dadosDaCarga(linhaCarga({ kwhCarga: "32,5", valor: -1300 })!)?.kwh).toBe(32.5);
+  });
+
+  test("sem kWh, sem kWh válido ou sem local não dá carga nenhuma", () => {
+    expect(dadosDaCarga(linhaCarga({ kwhCarga: "" }))).toBeNull();
+    expect(dadosDaCarga(linhaCarga({ kwhCarga: "0" }))).toBeNull();
+    expect(dadosDaCarga(linhaCarga({ kwhCarga: "abc" }))).toBeNull();
+    expect(dadosDaCarga(linhaCarga({ localCarga: "  " }))).toBeNull();
+  });
+});
+
+describe("confirmarImportacao com recarga", () => {
+  const linha = (mudancas: Partial<LinhaAnalisada>): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-08",
+    descricao: "POWERDOT PORTUGAL",
+    valor: -1050,
+    classificacao: {
+      tipo: "despesa",
+      categoria: "Veículo",
+      incerto: false,
+      confianca: "high",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "auto_classificada",
+    acao: "import",
+    categoriaEscolhida: "Veículo",
+    destino: "lancamento",
+    localCarga: "",
+    kwhCarga: "",
+    ...mudancas,
+  });
+
+  beforeEach(() => {
+    vi.mocked(update).mockClear();
+    vi.mocked(criarCarga).mockClear();
+  });
+
+  test("recarga vai para o veículo e não para despesas correntes", async () => {
+    const n = await confirmarImportacao("u1", [
+      linha({ destino: "carga", localCarga: "Powerdot", kwhCarga: "10" }),
+    ]);
+
+    expect(criarCarga).toHaveBeenCalledWith("u1", {
+      data: "2026-07-08",
+      kwh: 10,
+      custo: 1050,
+      precoKwh: 105,
+      local: "Powerdot",
+    });
+    // Nenhuma escrita no lote das despesas/receitas.
+    expect(update).not.toHaveBeenCalled();
+    expect(n).toBe(1);
+  });
+
+  test("cada destino vai para o seu lado, na mesma importação", async () => {
+    const n = await confirmarImportacao("u1", [
+      linha({ id: 1, destino: "carga", localCarga: "Powerdot", kwhCarga: "10" }),
+      linha({ id: 2, descricao: "Mercadona", valor: -3200, categoriaEscolhida: "Alimentação" }),
+    ]);
+
+    expect(criarCarga).toHaveBeenCalledTimes(1);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, { descricao: string }>;
+    const caminhos = Object.keys(gravado);
+    expect(caminhos).toHaveLength(1);
+    expect(caminhos[0].startsWith("despesasCorrentes/")).toBe(true);
+    expect(Object.values(gravado)[0].descricao).toBe("Mercadona");
+    expect(n).toBe(2);
+  });
+
+  test("recarga incompleta faz falhar antes de gravar seja o que for", async () => {
+    await expect(
+      confirmarImportacao("u1", [
+        linha({ id: 1, descricao: "Mercadona", valor: -3200 }),
+        linha({ id: 2, destino: "carga", localCarga: "Powerdot", kwhCarga: "" }),
+      ]),
+    ).rejects.toThrow(/kWh/);
+    expect(update).not.toHaveBeenCalled();
+    expect(criarCarga).not.toHaveBeenCalled();
+  });
+
+  test("linha marcada para pular não grava em lado nenhum", async () => {
+    const n = await confirmarImportacao("u1", [
+      linha({ acao: "skip", destino: "carga", localCarga: "Powerdot", kwhCarga: "10" }),
+    ]);
+    expect(criarCarga).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(n).toBe(0);
   });
 });

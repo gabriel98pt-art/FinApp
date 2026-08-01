@@ -47,6 +47,13 @@ export interface ResultadoDuplicata {
 /** Decisão sugerida pra cada linha, usada para agrupar a UI. */
 export type DecisaoLinha = "auto_classificada" | "nova" | "duplicata_provavel" | "revisao";
 
+/** Onde a linha vai parar ao confirmar. `lancamento` é o caminho de sempre —
+ *  receita ou despesa corrente, conforme `classificacao.tipo`. `carga` grava
+ *  uma recarga elétrica no veículo, que não é despesa corrente nenhuma e por
+ *  isso não cabia em `TipoClassificado`: é escolha do usuário na revisão, não
+ *  resultado da classificação. */
+export type DestinoLinha = "lancamento" | "carga";
+
 export interface LinhaAnalisada {
   id: number;
   data: IsoDate;
@@ -59,4 +66,11 @@ export interface LinhaAnalisada {
   acao: "import" | "skip";
   /** Categoria editável (começa na sugestão da classificação). */
   categoriaEscolhida: string;
+  /** Destino editável (começa em "carga" se a linha foi reconhecida como uma). */
+  destino: DestinoLinha;
+  /** Só com `destino === "carga"`: posto escolhido, dos cadastrados. */
+  localCarga: string;
+  /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O
+   *  extrato não traz esta informação e o app não tem como a adivinhar. */
+  kwhCarga: string;
 }

@@ -4,6 +4,7 @@ import {
   analisarLinha,
   classificarLancamento,
   normalizarDescricao,
+  reconhecerCarga,
   similaridadeDescricoes,
   verificarDuplicata,
 } from "./importacao";
@@ -233,6 +234,7 @@ describe("analisarLinha — decisão combinada", () => {
       parcelas: [],
       categoriasConfiguradas: [],
       existentes: [existente],
+      locaisCarregamento: [],
     });
     expect(r.decisao).toBe("duplicata_provavel");
     expect(r.acao).toBe("skip");
@@ -243,6 +245,7 @@ describe("analisarLinha — decisão combinada", () => {
       parcelas: [],
       categoriasConfiguradas: ["Saúde"],
       existentes: [],
+      locaisCarregamento: [],
     });
     expect(r.decisao).toBe("auto_classificada");
     expect(r.acao).toBe("import");
@@ -254,8 +257,87 @@ describe("analisarLinha — decisão combinada", () => {
       parcelas: [],
       categoriasConfiguradas: [],
       existentes: [],
+      locaisCarregamento: [],
     });
     expect(r.decisao).toBe("nova");
     expect(r.acao).toBe("import");
+  });
+});
+
+describe("reconhecerCarga", () => {
+  const carga = (descricao: string, valor = -1500) => ({
+    data: "2026-07-08",
+    descricao,
+    valor,
+  });
+
+  test("bate com um local já cadastrado e diz qual é", () => {
+    const r = reconhecerCarga(carga("POWERDOT PORTUGAL"), ["Casa", "Powerdot", "Ionity A1"]);
+    expect(r).toEqual({ ehCarga: true, local: "Powerdot" });
+  });
+
+  test("nome do posto com sufixo no extrato ainda bate no cadastrado", () => {
+    // "IONITY GMBH" contra "Ionity A1": metade das palavras em comum.
+    const r = reconhecerCarga(carga("IONITY GMBH 12/07"), ["Casa", "Ionity A1"]);
+    expect(r).toEqual({ ehCarga: true, local: "Ionity A1" });
+  });
+
+  test("rede conhecida sem local cadastrado: sugere, mas sem escolher o local", () => {
+    const r = reconhecerCarga(carga("FASTNED B.V."), ["Casa"]);
+    expect(r).toEqual({ ehCarga: true, local: "" });
+  });
+
+  test("compra comum não é carga", () => {
+    expect(reconhecerCarga(carga("CONTINENTE MATOSINHOS"), ["Casa", "Ionity A1"])).toEqual({
+      ehCarga: false,
+      local: "",
+    });
+  });
+
+  test("abastecer combustível não é recarga elétrica", () => {
+    // "Galp" é despesa de Veículo nas regras, mas pedir kWh de um depósito de
+    // gasóleo seria pior do que não sugerir nada.
+    expect(reconhecerCarga(carga("GALP MATOSINHOS"), [])).toEqual({ ehCarga: false, local: "" });
+  });
+
+  test("entrada de dinheiro nunca é carga, mesmo com nome de posto", () => {
+    expect(reconhecerCarga(carga("IONITY ESTORNO", 1500), ["Ionity A1"])).toEqual({
+      ehCarga: false,
+      local: "",
+    });
+  });
+
+  test("local com nome genérico não apanha qualquer despesa parecida", () => {
+    // "Casa" cadastrado como local não pode transformar "CASA DAS RACOES
+    // ANIMAIS" numa recarga: uma palavra em três não chega.
+    expect(reconhecerCarga(carga("CASA DAS RACOES ANIMAIS"), ["Casa"])).toEqual({
+      ehCarga: false,
+      local: "",
+    });
+  });
+});
+
+describe("analisarLinha com recarga", () => {
+  const base = { parcelas: [], categoriasConfiguradas: [], existentes: [] };
+
+  test("linha de posto reconhecido já chega com destino e local preenchidos", () => {
+    const r = analisarLinha(
+      { data: "2026-07-08", descricao: "POWERDOT PORTUGAL", valor: -1050 },
+      0,
+      { ...base, locaisCarregamento: ["Powerdot"] },
+    );
+    expect(r.destino).toBe("carga");
+    expect(r.localCarga).toBe("Powerdot");
+    // O kWh é o único campo que fica por preencher.
+    expect(r.kwhCarga).toBe("");
+  });
+
+  test("linha comum continua exatamente como antes", () => {
+    const r = analisarLinha({ data: "2026-07-08", descricao: "Mercadona", valor: -3200 }, 0, {
+      ...base,
+      locaisCarregamento: ["Powerdot"],
+    });
+    expect(r.destino).toBe("lancamento");
+    expect(r.localCarga).toBe("");
   });
 });

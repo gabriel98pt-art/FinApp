@@ -5,6 +5,7 @@
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
+import { criarCarga } from "./veiculoService";
 import type {
   CargaEletrica,
   DespesaCorrente,
@@ -68,12 +69,39 @@ export function construirExistentes(
   return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo];
 }
 
+/** Uma linha marcada como recarga elétrica, no formato que o veículo guarda.
+ *  Devolve `null` se falta o que só o usuário pode dar — a tela de revisão não
+ *  deixa confirmar nesse estado, e aqui é a segunda tranca: mais vale falhar
+ *  do que gravar uma carga sem kWh.
+ *
+ *  `precoKwh` sai de custo ÷ kWh, a mesma conta do formulário de registo
+ *  rápido (RegistroRapido.tsx) — o preço nunca é digitado em lado nenhum. */
+export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> | null {
+  const kwh = parseFloat(linha.kwhCarga.replace(",", "."));
+  const local = linha.localCarga.trim();
+  if (!Number.isFinite(kwh) || kwh <= 0 || !local) return null;
+  const custo = Math.abs(linha.valor);
+  return { data: linha.data, kwh, custo, precoKwh: Math.round(custo / kwh), local };
+}
+
 export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[]) {
   const raiz = `users/${uid}/fin_v5`;
   const atualizacoes: Record<string, unknown> = {};
 
+  // As recargas saem daqui para o domínio do veículo, por `criarCarga` — não
+  // são despesa corrente. Preparadas todas ANTES de escrever seja o que for:
+  // se uma estiver incompleta, nada é gravado, em vez de metade do extrato
+  // entrar e a outra metade rebentar a meio.
+  const cargas: Omit<CargaEletrica, "id">[] = [];
   for (const linha of linhas) {
-    if (linha.acao !== "import") continue;
+    if (linha.acao !== "import" || linha.destino !== "carga") continue;
+    const dados = dadosDaCarga(linha);
+    if (!dados) throw new Error(`Recarga sem kWh ou sem local: ${linha.descricao}`);
+    cargas.push(dados);
+  }
+
+  for (const linha of linhas) {
+    if (linha.acao !== "import" || linha.destino === "carga") continue;
     const { classificacao } = linha;
 
     if (classificacao.tipo === "receita") {
@@ -100,7 +128,7 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
     }
   }
 
-  if (Object.keys(atualizacoes).length === 0) return 0;
-  await update(ref(db, raiz), atualizacoes);
-  return Object.keys(atualizacoes).length;
+  if (Object.keys(atualizacoes).length > 0) await update(ref(db, raiz), atualizacoes);
+  for (const dados of cargas) await criarCarga(uid, dados);
+  return Object.keys(atualizacoes).length + cargas.length;
 }

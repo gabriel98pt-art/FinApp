@@ -4,7 +4,11 @@ import Pagina, { EstadoVazio } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
 import Seletor from "../components/Seletor";
-import { construirExistentes, confirmarImportacao } from "../services/importacaoService";
+import {
+  construirExistentes,
+  confirmarImportacao,
+  dadosDaCarga,
+} from "../services/importacaoService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -16,7 +20,7 @@ import { analisarLinha } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
-import type { Confianca, DecisaoLinha, LinhaAnalisada, LinhaExtrato } from "../types";
+import type { Confianca, DecisaoLinha, DestinoLinha, LinhaAnalisada, LinhaExtrato } from "../types";
 import styles from "./Importar.module.css";
 
 const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
@@ -24,6 +28,14 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
   nova: "Nova",
   duplicata_provavel: "Provável duplicata",
   revisao: "Revisão",
+};
+
+/** Destino de cada linha na revisão. "Lançamento normal" é o que sempre houve
+ *  (receita ou despesa); "Recarga elétrica" grava no veículo. */
+const DESTINOS: DestinoLinha[] = ["lancamento", "carga"];
+const ROTULO_DESTINO: Record<DestinoLinha, string> = {
+  lancamento: "Lançamento normal",
+  carga: "Recarga elétrica",
 };
 
 const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
@@ -71,7 +83,12 @@ export default function Importar() {
     }
     const existentes = construirExistentes(receitas, despesas, veiculo.cargas, veiculo.despesas);
     const analisadas = brutas.map((tx, i) =>
-      analisarLinha(tx, i, { parcelas, categoriasConfiguradas, existentes }),
+      analisarLinha(tx, i, {
+        parcelas,
+        categoriasConfiguradas,
+        existentes,
+        locaisCarregamento: cfg.locaisCarregamento,
+      }),
     );
     setLinhas(analisadas);
     setFiltro("todas");
@@ -138,6 +155,10 @@ export default function Importar() {
       mostrarToast("Nenhuma linha marcada para importar.");
       return;
     }
+    if (incompletas.length > 0) {
+      mostrarToast(`${incompletas.length} recarga(s) sem kWh ou sem local.`);
+      return;
+    }
     setEnviando(true);
     try {
       const n = await confirmarImportacao(uid, aImportar);
@@ -153,6 +174,12 @@ export default function Importar() {
 
   const visiveis = linhas?.filter((l) => filtro === "todas" || l.decisao === filtro) ?? [];
   const totalImportar = linhas?.filter((l) => l.acao === "import").length ?? 0;
+  // Recarga marcada para importar a que ainda falta o que só o usuário sabe:
+  // trava a confirmação e fica assinalada na própria linha.
+  const incompletas =
+    linhas?.filter(
+      (l) => l.acao === "import" && l.destino === "carga" && dadosDaCarga(l) === null,
+    ) ?? [];
 
   return (
     <Pagina titulo="Importar">
@@ -297,16 +324,68 @@ export default function Importar() {
                         >
                           {ROTULO_DECISAO[l.decisao]}
                         </span>
-                        <Seletor
-                          variante="inline"
-                          rotulo={`Categoria de ${l.descricao}`}
-                          nivel={0}
-                          valor={l.categoriaEscolhida}
-                          opcoes={opcoesCategoria}
-                          aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
-                          desativado={l.classificacao.tipo === "receita"}
-                        />
+                        {/* Só uma saída pode ser recarga; numa entrada o
+                            destino nem se pergunta. */}
+                        {l.valor < 0 && (
+                          <Seletor
+                            variante="inline"
+                            rotulo={`Destino de ${l.descricao}`}
+                            nivel={0}
+                            valor={l.destino}
+                            opcoes={DESTINOS}
+                            rotuloOpcao={(d) => ROTULO_DESTINO[d as DestinoLinha]}
+                            aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
+                          />
+                        )}
+                        {l.destino === "carga" ? (
+                          <>
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Local de ${l.descricao}`}
+                              nivel={0}
+                              valor={l.localCarga}
+                              opcoes={cfg.locaisCarregamento}
+                              rotuloVazio="Escolher local…"
+                              aviso="Nenhum local de carregamento guardado — os locais vêm da aba Veículo."
+                              aoMudar={(v) => atualizarLinha(l.id, { localCarga: v })}
+                            />
+                            {/* O extrato não traz os kWh e o app não os pode
+                                deduzir: é o único campo digitado aqui. A
+                                unidade fica ao lado — o placeholder desaparece
+                                assim que se escreve, e um número solto no meio
+                                dos seletores não diz o que é. */}
+                            <span className={styles.campoKwh}>
+                              <input
+                                className={styles.kwh}
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="0,0"
+                                aria-label={`kWh de ${l.descricao}`}
+                                value={l.kwhCarga}
+                                onChange={(e) => atualizarLinha(l.id, { kwhCarga: e.target.value })}
+                              />
+                              kWh
+                            </span>
+                          </>
+                        ) : (
+                          <Seletor
+                            variante="inline"
+                            rotulo={`Categoria de ${l.descricao}`}
+                            nivel={0}
+                            valor={l.categoriaEscolhida}
+                            opcoes={opcoesCategoria}
+                            aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
+                            desativado={l.classificacao.tipo === "receita"}
+                          />
+                        )}
                       </div>
+                      {l.acao === "import" && l.destino === "carga" && dadosDaCarga(l) === null && (
+                        <p className={styles.faltaCarga}>
+                          {!l.localCarga.trim()
+                            ? "Escolha o local desta recarga."
+                            : "Escreva os kWh desta recarga."}
+                        </p>
+                      )}
                       {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                         <p className={styles.motivoDup}>
                           Parece com "{l.duplicata.correspondencia.descricao}" —{" "}
@@ -321,7 +400,7 @@ export default function Importar() {
               <button
                 className={styles.confirmar}
                 onClick={confirmar}
-                disabled={enviando || totalImportar === 0}
+                disabled={enviando || totalImportar === 0 || incompletas.length > 0}
               >
                 {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
               </button>
