@@ -7,9 +7,17 @@ import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
 import type { DespesaCorrente, ExistenteParaDedup, LinhaAnalisada, Receita } from "../types";
 
-/** Lançamentos existentes pra deduplicação — espelha _impExisting do app de
- *  referência: exclui despesas com origem automática (parc/fat), que não são
- *  entradas bancárias organicamente digitadas/importadas. */
+/** Lançamentos existentes pra deduplicação: todo o dinheiro já registado que
+ *  pode voltar a aparecer numa linha do extrato.
+ *
+ *  Despesas de QUALQUER origem entram, incluindo a parcela paga (`parc`) e o
+ *  pagamento de fatura (`fat`). O app de referência excluía-as (_impExisting)
+ *  por não terem sido "digitadas ou importadas organicamente" — mas isso não
+ *  interessa aqui: a dedup não pergunta como o lançamento nasceu, pergunta se
+ *  aquele MESMO dinheiro já está registado. A prestação e a fatura do cartão
+ *  saem da conta e aparecem no extrato do banco como qualquer outra compra;
+ *  fora da lista, eram importadas segunda vez sem um aviso.
+ */
 export function construirExistentes(
   receitas: Receita[],
   despesas: DespesaCorrente[],
@@ -20,14 +28,12 @@ export function construirExistentes(
     valor: r.valor,
     descricao: `${r.fonte} ${r.descricao}`,
   }));
-  const deDespesas: ExistenteParaDedup[] = despesas
-    .filter((d) => !d.origem)
-    .map((d) => ({
-      id: d.id,
-      data: d.data,
-      valor: -d.valor,
-      descricao: `${d.descricao} ${d.categoria}`,
-    }));
+  const deDespesas: ExistenteParaDedup[] = despesas.map((d) => ({
+    id: d.id,
+    data: d.data,
+    valor: -d.valor,
+    descricao: `${d.descricao} ${d.categoria}`,
+  }));
   return [...deReceitas, ...deDespesas];
 }
 
