@@ -3,14 +3,16 @@
 // Devolve `LinhaExtrato[]`, a mesma coisa que `parseExtratoCsv` — daí em
 // diante o fluxo de importação (classificação, dedup, revisão) é o mesmo.
 //
-// Três caminhos — os dois do original, mais a Wise:
+// Quatro caminhos — os dois do original, mais a Wise e o Revolut:
 //  1. ActivoBank, reconhecido pelo cabeçalho: extração ciente das colunas,
 //     usando a posição X de cada item do PDF. O valor de cada linha vem da
 //     DIFERENÇA entre o saldo dela e o da linha anterior — mais confiável do
 //     que ler a coluna de débito/crédito, que vem com espaçamento errático.
 //  2. Wise: duas linhas de texto por transação (descrição+valores em cima,
 //     data por extenso em baixo) — ver `extrairWise`.
-//  3. Qualquer outro banco: reconstrói as linhas de texto agrupando os itens
+//  3. Revolut: tabela de oito colunas, com as fronteiras lidas do próprio
+//     cabeçalho — ver `extrairRevolut`.
+//  4. Qualquer outro banco: reconstrói as linhas de texto agrupando os itens
 //     por coordenada Y (ordenados por X dentro da linha) e entrega esse texto
 //     ao parser de texto livre que já existe.
 
@@ -279,6 +281,156 @@ export function extrairWise(paginas: ItemTexto[][]): LinhaExtrato[] {
   return linhasExtrato;
 }
 
+/* Revolut ("Extrato personalizado", Revolut Bank UAB). O documento tem uma
+   parte de resumos por conta (EUR, USD, Cripto…) sem tabela de lançamentos, e
+   só depois "Contas-correntes Extratos de operações", com uma tabela POR
+   CONTA — cada uma com o seu cabeçalho, repetido no topo de cada página:
+
+     Data | Descrição | Categoria | Dinheiro a entrar/sair | Saldo |
+     Imposto retido | Outros impostos | Comissões
+
+   O valor do movimento é só a coluna "Dinheiro a entrar/sair" (já vem com
+   sinal). Saldo/impostos/comissões ficam de fora — foi por não os separar que
+   o caminho genérico devolvia a descrição suja com quatro números colados. */
+const RE_REVOLUT = /Revolut/i;
+const RE_REVOLUT_TITULO = /Extrato\s+personalizado/i;
+
+/** dd/mm/aaaa, o formato da coluna Data. */
+const RE_DATA_REVOLUT = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+/** Início de uma tabela nova: daqui para baixo é outra conta. */
+const RE_TABELA_REVOLUT = /Extrato\s+de\s+opera/i;
+
+/** Folga à esquerda da fronteira de cada coluna. Os valores desta tabela são
+ *  alinhados à esquerda, exatamente no X do rótulo do cabeçalho; esta margem
+ *  só cobre um número que comece um pouco antes. */
+const TOL_COLUNA_REVOLUT = 2;
+
+/** X onde cada coluna que interessa começa, lido do cabeçalho da tabela. */
+interface ColunasRevolut {
+  data: number;
+  descricao: number;
+  categoria: number;
+  valor: number;
+  saldo: number;
+}
+
+/** Fronteiras das colunas a partir do PRÓPRIO cabeçalho, em vez de X cravados
+ *  como no ActivoBank: o mesmo extrato muda de largura conforme a moeda e o
+ *  tamanho dos rótulos, e cada conta traz o seu cabeçalho.
+ *
+ *  `linhas[i]` é a linha candidata a cabeçalho. "Dinheiro a entrar/sair" e
+ *  "Imposto retido" quebram em duas linhas de texto, por isso o "Dinheiro a"
+ *  aparece na linha de cima (ou na de baixo, se o PDF as ordenar ao contrário)
+ *  — daí procurar-se também nas vizinhas. */
+function colunasRevolut(linhas: ItemTexto[][], i: number): ColunasRevolut | null {
+  const cabecalho = linhas[i];
+  const xDe = (re: RegExp, onde: ItemTexto[]) =>
+    onde.find((it) => re.test(it.str.trim()))?.transform[4];
+
+  const data = xDe(/^Data$/i, cabecalho);
+  const descricao = xDe(/^Descri[çc][ãa]o$/i, cabecalho);
+  const categoria = xDe(/^Categoria$/i, cabecalho);
+  const saldo = xDe(/^Saldo$/i, cabecalho);
+  const vizinhas = [...(linhas[i - 1] ?? []), ...cabecalho, ...(linhas[i + 1] ?? [])];
+  const valor = xDe(/^Dinheiro\b/i, vizinhas);
+
+  if ([data, descricao, categoria, valor, saldo].some((x) => x === undefined)) return null;
+  // Pela ordem esperada — senão não é este cabeçalho, é texto que calhou.
+  if (!(data! < descricao! && descricao! < categoria! && categoria! < valor! && valor! < saldo!))
+    return null;
+  return {
+    data: data!,
+    descricao: descricao!,
+    categoria: categoria!,
+    valor: valor!,
+    saldo: saldo!,
+  };
+}
+
+/** Revolut: uma linha de texto por movimento, mais linhas de continuação só
+ *  com o resto da descrição (nome comprido de quem recebe a transferência,
+ *  p.ex.) — essas não têm data nem números e juntam-se à linha anterior.
+ *
+ *  Linhas "Total" e resumos não têm data na primeira coluna e são ignoradas. */
+export function extrairRevolut(paginas: ItemTexto[][]): LinhaExtrato[] {
+  const linhasExtrato: LinhaExtrato[] = [];
+  /** Último movimento lido, para lhe colar a continuação da descrição. */
+  let ultimo: LinhaExtrato | null = null;
+
+  for (const itens of paginas) {
+    const linhas = agruparPorLinha(
+      itens.filter((i) => i.str.trim()),
+      3,
+    );
+    const iCabecalho = linhas.findIndex((_, i) => colunasRevolut(linhas, i) !== null);
+    if (iCabecalho < 0) continue; // página de resumo, de informação legal, etc.
+    const col = colunasRevolut(linhas, iCabecalho)!;
+
+    // Tabela nova nesta página: a descrição de uma conta não continua noutra.
+    const antesDoCabecalho = linhas
+      .slice(0, iCabecalho)
+      .map((l) => l.map((i) => i.str).join(" "))
+      .join(" ");
+    if (RE_TABELA_REVOLUT.test(antesDoCabecalho)) ultimo = null;
+
+    for (const linha of linhas.slice(iCabecalho + 1)) {
+      const naColuna = (de: number, ate: number) =>
+        linha
+          .filter(
+            (i) =>
+              i.transform[4] >= de - TOL_COLUNA_REVOLUT &&
+              i.transform[4] < ate - TOL_COLUNA_REVOLUT,
+          )
+          .sort((a, b) => a.transform[4] - b.transform[4])
+          .map((i) => i.str.trim())
+          .filter(Boolean);
+
+      const naData = naColuna(col.data, col.descricao);
+      const descricao = naColuna(col.descricao, col.categoria).join(" ").trim();
+      const naValor = naColuna(col.valor, col.saldo);
+      const mData = RE_DATA_REVOLUT.exec(naData[0] ?? "");
+
+      if (!mData) {
+        // Continuação: só texto na coluna da descrição, nada mais na linha.
+        if (ultimo && descricao && !naData.length && !naValor.length) {
+          ultimo.descricao = `${ultimo.descricao} ${descricao}`.trim();
+        }
+        continue;
+      }
+
+      // Daqui para baixo é uma linha de movimento: mesmo que seja descartada
+      // (moeda diferente, valor zero…), a continuação dela não pode ir colar-se
+      // à descrição do movimento anterior, que é outro.
+      ultimo = null;
+
+      const dia = +mData[1];
+      const mes = +mData[2];
+      if (mes < 1 || mes > 12 || dia < 1 || dia > 31) continue;
+      if (!descricao) continue;
+
+      const bruto = naValor[0];
+      if (!bruto) continue;
+      // O extrato traz uma tabela por conta, e as contas podem ser noutra
+      // moeda (USD, …). O app lança tudo em euros: importar $ como € seria
+      // errar o valor em silêncio, por isso essas linhas ficam de fora.
+      if (/[$£]/.test(bruto)) continue;
+      const valor = parseMoney(bruto);
+      if (valor === null || valor === 0) continue;
+
+      const movimento: LinhaExtrato = {
+        data: `${mData[3]}-${pad2(mes)}-${pad2(dia)}`,
+        descricao,
+        valor,
+      };
+      linhasExtrato.push(movimento);
+      ultimo = movimento;
+    }
+  }
+
+  return linhasExtrato;
+}
+
 /** Reconstrói o texto de páginas quaisquer: uma linha por coordenada Y, itens
  *  ordenados por X dentro da linha. */
 function reconstruirTexto(paginas: ItemTexto[][]): string {
@@ -329,6 +481,15 @@ export async function extrairExtratoPdf(buffer: ArrayBuffer): Promise<LinhaExtra
     .join(" ");
 
   if (RE_ACTIVOBANK.test(amostra)) return extrairActivoBank(paginas);
+
+  // Antes da Wise, e exigindo as duas marcas: "Revolut" sozinho podia aparecer
+  // na descrição de um movimento noutro banco.
+  //
+  // Sem recurso ao genérico de propósito: esta tabela tem quatro números
+  // depois do valor (saldo e três de imposto/comissão) e o genérico, que
+  // espera um só, cola-os todos à descrição. Uma lista vazia mostra "nenhuma
+  // linha reconhecida"; sujar o histórico do usuário em silêncio é pior.
+  if (RE_REVOLUT.test(amostra) && RE_REVOLUT_TITULO.test(amostra)) return extrairRevolut(paginas);
 
   if (RE_WISE.test(amostra)) {
     // Se o cabeçalho é da Wise mas a tabela não é a esperada, o genérico ainda

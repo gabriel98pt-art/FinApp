@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { extrairActivoBank, extrairWise, type ItemTexto } from "./extrairExtratoPdf";
+import {
+  extrairActivoBank,
+  extrairRevolut,
+  extrairWise,
+  type ItemTexto,
+} from "./extrairExtratoPdf";
 
 // Coordenadas iguais às do extrato real: a data fica 11-13 pontos ABAIXO da
 // linha da transação, a descrição em x=42, Entrada em x≈393, Saída em x≈458 e
@@ -222,5 +227,271 @@ describe("extrairWise", () => {
       { data: "2026-04-25", descricao: "Primeira", valor: -1000 },
       { data: "2026-04-24", descricao: "Segunda", valor: 3000 },
     ]);
+  });
+});
+
+// ---------------------------------------------------------------- Revolut
+
+/* Coordenadas iguais às do extrato real: as colunas começam em Data 39.7,
+   Descrição 124.5, Categoria 257.2, Dinheiro a entrar/sair 342, Saldo 384.4,
+   Imposto retido 426.9, Outros impostos 469.3, Comissões 513 (com os valores
+   a 534). O cabeçalho ocupa três linhas de texto separadas por 6,2 pontos,
+   porque os rótulos compridos quebram; as transações ficam a 18,7 e a linha
+   de continuação da descrição a 12,4 da sua. */
+const COL = {
+  data: 39.7,
+  descricao: 124.5,
+  categoria: 257.2,
+  valor: 342,
+  saldo: 384.4,
+  imposto: 426.9,
+  outros: 469.3,
+  comissoes: 534,
+};
+
+function cabecalhoRevolut(y: number, col: typeof COL = COL): ItemTexto[] {
+  return [
+    item("Dinheiro a", col.valor, y + 6.2),
+    item("Imposto", col.imposto, y + 6.2),
+    item("Outros", col.outros, y + 6.2),
+    item("Data", col.data, y),
+    item("Descrição", col.descricao, y),
+    item("Categoria", col.categoria, y),
+    item("Saldo", col.saldo, y),
+    item("Comissões", col.comissoes - 21, y),
+    item("entrar/sair", col.valor, y - 6.2),
+    item("retido", col.imposto, y - 6.2),
+    item("impostos", col.outros, y - 6.2),
+  ];
+}
+
+function movimentoRevolut(opcoes: {
+  y: number;
+  data: string;
+  descricao: string;
+  categoria?: string;
+  valor: string;
+  saldo: string;
+  col?: typeof COL;
+}): ItemTexto[] {
+  const { y, data, descricao, categoria = "Comerciante", valor, saldo, col = COL } = opcoes;
+  return [
+    item(data, col.data, y),
+    item(descricao, col.descricao, y),
+    item(categoria, col.categoria, y),
+    item(valor, col.valor, y),
+    item(saldo, col.saldo, y),
+    item("0,00€", col.imposto, y),
+    item("0,00€", col.outros, y),
+    item("0,00€", col.comissoes, y),
+  ];
+}
+
+describe("extrairRevolut", () => {
+  // O caminho genérico devolvia "Continente Comerciante 175,06€ 0,00€ 0,00€
+  // 0,00€" como descrição: espera um só número no fim da linha e aqui há
+  // quatro (saldo + dois impostos + comissões).
+  test("descrição fica só com a coluna Descrição, sem saldo/impostos/comissões", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Continente",
+          valor: "-12,40€",
+          saldo: "175,06€",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([{ data: "2026-07-01", descricao: "Continente", valor: -1240 }]);
+  });
+
+  test("descrição partida em duas linhas junta-se à transação de cima", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Transferência para LUIS",
+          categoria: "Outros",
+          valor: "-20,00€",
+          saldo: "127,79€",
+        }),
+        // Continuação: só texto na coluna da descrição, sem data nem valor.
+        item("HENRIQUE PIRES DE OLIVEIRA", COL.descricao, 649.7),
+        ...movimentoRevolut({
+          y: 631,
+          data: "02/07/2026",
+          descricao: "Auchan",
+          valor: "-0,29€",
+          saldo: "127,50€",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([
+      {
+        data: "2026-07-01",
+        descricao: "Transferência para LUIS HENRIQUE PIRES DE OLIVEIRA",
+        valor: -2000,
+      },
+      { data: "2026-07-02", descricao: "Auchan", valor: -29 },
+    ]);
+  });
+
+  test('linha "Total" no fim da tabela não é movimento', () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Continente",
+          valor: "-12,40€",
+          saldo: "175,06€",
+        }),
+        item("Total", COL.data, 643.4),
+        item("0,84€", COL.valor, 643.4),
+        item("15,99€", COL.comissoes, 643.4),
+      ],
+    ]);
+    expect(linhas).toEqual([{ data: "2026-07-01", descricao: "Continente", valor: -1240 }]);
+  });
+
+  test("uma tabela por conta: a segunda conta também é lida", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Primeira conta",
+          valor: "10,00€",
+          saldo: "10,00€",
+        }),
+      ],
+      [
+        item("Conta Poupança (EUR)", 39.7, 720),
+        item("Extrato de operações", 39.7, 710),
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "02/07/2026",
+          descricao: "Segunda conta",
+          valor: "-5,00€",
+          saldo: "5,00€",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([
+      { data: "2026-07-01", descricao: "Primeira conta", valor: 1000 },
+      { data: "2026-07-02", descricao: "Segunda conta", valor: -500 },
+    ]);
+  });
+
+  test("descrição não continua de uma conta para a seguinte", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Última da conta",
+          valor: "10,00€",
+          saldo: "10,00€",
+        }),
+      ],
+      [
+        item("Conta Poupança (EUR)", 39.7, 720),
+        item("Extrato de operações", 39.7, 710),
+        ...cabecalhoRevolut(693.4),
+        // Texto solto no topo da tabela nova: não pertence à conta anterior.
+        item("SOBRA DE OUTRA CONTA", COL.descricao, 662.1),
+      ],
+    ]);
+    expect(linhas).toEqual([{ data: "2026-07-01", descricao: "Última da conta", valor: 1000 }]);
+  });
+
+  test("conta noutra moeda fica de fora — o app lança tudo em euros", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "03/07/2026",
+          descricao: "Compra em dólares",
+          valor: "-12,00$",
+          saldo: "0,00$",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([]);
+  });
+
+  test("colunas noutro sítio: as fronteiras vêm do cabeçalho, não de X fixos", () => {
+    const deslocado = {
+      data: 50,
+      descricao: 150,
+      categoria: 280,
+      valor: 360,
+      saldo: 400,
+      imposto: 440,
+      outros: 480,
+      comissoes: 545,
+    };
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4, deslocado),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "04/07/2026",
+          descricao: "Mercadona",
+          valor: "-3,20€",
+          saldo: "70,32€",
+          col: deslocado,
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([{ data: "2026-07-04", descricao: "Mercadona", valor: -320 }]);
+  });
+
+  test("página de resumo, sem tabela de operações, não devolve nada", () => {
+    const linhas = extrairRevolut([
+      [
+        item("Contas-correntes Resumos", 39.7, 700),
+        item("Saldo disponível inicial", 301.4, 660),
+        item("187,46€", 535.5, 660),
+        item("Saldo disponível final", 301.4, 645),
+        item("188,30€", 535.5, 645),
+      ],
+    ]);
+    expect(linhas).toEqual([]);
+  });
+
+  test("continuação de um movimento descartado não cola no movimento anterior", () => {
+    const linhas = extrairRevolut([
+      [
+        ...cabecalhoRevolut(693.4),
+        ...movimentoRevolut({
+          y: 662.1,
+          data: "01/07/2026",
+          descricao: "Continente",
+          valor: "-12,40€",
+          saldo: "175,06€",
+        }),
+        // Movimento noutra moeda: sai fora, e a continuação dele também.
+        ...movimentoRevolut({
+          y: 643.4,
+          data: "02/07/2026",
+          descricao: "Transferência para JOÃO",
+          categoria: "Outros",
+          valor: "-12,00$",
+          saldo: "0,00$",
+        }),
+        item("PEDRO DA SILVA", COL.descricao, 631),
+      ],
+    ]);
+    expect(linhas).toEqual([{ data: "2026-07-01", descricao: "Continente", valor: -1240 }]);
   });
 });
