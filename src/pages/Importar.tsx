@@ -13,7 +13,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { analisarLinha } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
-import { extrairExtratoPdf } from "../utils/extrairExtratoPdf";
+import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
 import type { Confianca, DecisaoLinha, LinhaAnalisada, LinhaExtrato } from "../types";
 import styles from "./Importar.module.css";
@@ -88,8 +88,16 @@ export default function Importar() {
       void (async () => {
         try {
           analisar(await extrairExtratoPdf(await arquivo.arrayBuffer()));
-        } catch {
-          mostrarToast("Não foi possível ler este PDF.");
+        } catch (erro) {
+          // O toast não pode despejar o erro em cima do usuário, mas sem ele
+          // ficar registado em lado nenhum um relato de "não abriu" não dá
+          // para investigar — foi o que aconteceu da última vez.
+          console.error("Falha ao ler extrato em PDF:", erro);
+          mostrarToast(
+            erro instanceof LeitorPdfIndisponivel
+              ? "O leitor de PDF não carregou. Verifique a ligação e tente de novo."
+              : "Não foi possível processar este PDF.",
+          );
         } finally {
           setLendoPdf(false);
         }

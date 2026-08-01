@@ -27,17 +27,34 @@ export interface ItemTexto {
   transform: number[];
 }
 
+/** O leitor não chegou a carregar — o `import()` do PDF.js falhou. É outra
+ *  coisa do que o ficheiro estar mal, e para o usuário a saída é outra
+ *  (tentar de novo com melhor ligação), por isso vai distinguido. */
+export class LeitorPdfIndisponivel extends Error {
+  constructor(causa: unknown) {
+    super("Não foi possível carregar o leitor de PDF", { cause: causa });
+    this.name = "LeitorPdfIndisponivel";
+  }
+}
+
 /** PDF.js é pesado e só serve para importar extrato em PDF: entra por
  *  `import()` dinâmico, que o Vite fatia num chunk à parte — quem nunca
  *  importa um PDF nunca o descarrega. O worker vem do próprio pacote (`?url`),
- *  não de um CDN como no app antigo. */
+ *  não de um CDN como no app antigo.
+ *
+ *  São ~430 kB pedidos à rede no momento em que se escolhe o ficheiro: numa
+ *  ligação fraca este pedido falha sozinho, sem o PDF ter nada de errado. */
 async function carregarPdfJs() {
-  const [pdfjs, worker] = await Promise.all([
-    import("pdfjs-dist"),
-    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-  ]);
-  pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-  return pdfjs;
+  try {
+    const [pdfjs, worker] = await Promise.all([
+      import("pdfjs-dist"),
+      import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+    ]);
+    pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    return pdfjs;
+  } catch (erro) {
+    throw new LeitorPdfIndisponivel(erro);
+  }
 }
 
 function pad2(n: number): string {
