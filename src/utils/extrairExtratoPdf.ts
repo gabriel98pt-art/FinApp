@@ -43,7 +43,11 @@ export class LeitorPdfIndisponivel extends Error {
  *  não de um CDN como no app antigo.
  *
  *  São ~430 kB pedidos à rede no momento em que se escolhe o ficheiro: numa
- *  ligação fraca este pedido falha sozinho, sem o PDF ter nada de errado. */
+ *  ligação fraca este pedido falha sozinho, sem o PDF ter nada de errado.
+ *
+ *  Build normal e não o `legacy/`: o que partia no Safari era uma API que
+ *  falta ao WebKit, não sintaxe moderna, e o legacy traz exatamente o mesmo
+ *  código nesse ponto — só pesaria mais 55 kB. Ver `extrairExtratoPdf`. */
 async function carregarPdfJs() {
   try {
     const [pdfjs, worker] = await Promise.all([
@@ -475,13 +479,27 @@ export async function extrairExtratoPdf(buffer: ArrayBuffer): Promise<LinhaExtra
   const paginas: ItemTexto[][] = [];
   for (let n = 1; n <= pdf.numPages; n++) {
     const pagina = await pdf.getPage(n);
-    const conteudo = await pagina.getTextContent();
-    // O fluxo traz também marcadores de conteúdo, que não têm texto nem posição.
-    // Copiado para a forma local em vez de importar o tipo interno do PDF.js,
-    // que muda de caminho entre versões.
+
+    // O texto vem pelo stream, lido com um reader — e NÃO por
+    // `pagina.getTextContent()`, que faria o mesmo numa linha. Por dentro,
+    // esse atalho percorre este stream com `for await (… of stream)`, ou
+    // seja iteração assíncrona sobre um ReadableStream, que o WebKit não
+    // implementa: no Safari rebentava aqui com "undefined is not a function",
+    // dentro do pdf.js, antes de ler fosse o que fosse. E como no iOS todo o
+    // navegador corre sobre WebKit (o "Chrome" do iPhone incluído), a
+    // importação de PDF estava partida no telemóvel para todos os bancos.
+    // Ler o stream à mão é o que o próprio pdf.js faz por baixo.
+    const leitor = pagina.streamTextContent().getReader();
     const itens: ItemTexto[] = [];
-    for (const item of conteudo.items) {
-      if ("str" in item) itens.push({ str: item.str, transform: item.transform });
+    for (;;) {
+      const { done, value } = await leitor.read();
+      if (done) break;
+      // O fluxo traz também marcadores de conteúdo, que não têm texto nem
+      // posição. Copiado para a forma local em vez de importar o tipo interno
+      // do PDF.js, que muda de caminho entre versões.
+      for (const item of value.items) {
+        if ("str" in item) itens.push({ str: item.str, transform: item.transform });
+      }
     }
     paginas.push(itens);
   }
