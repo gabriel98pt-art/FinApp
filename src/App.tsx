@@ -8,6 +8,7 @@ import { useAplicarTema } from "./hooks/useAplicarTema";
 import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
 import { useAplicarCoresPersonalizadas } from "./hooks/useAplicarCoresPersonalizadas";
 import { usePwaUpdate } from "./hooks/usePwaUpdate";
+import { useIgnorarArquivoSolto } from "./hooks/useIgnorarArquivoSolto";
 
 // Lazy loading por página (seção 8 — performance)
 const Inicio = lazy(() => import("./pages/Inicio"));
@@ -41,6 +42,9 @@ export default function App() {
   // Fora do gate de sessão de propósito: procurar versão nova não depende de
   // estar logado, e a tela de login também precisa de se atualizar.
   usePwaUpdate();
+  // Também fora do gate de sessão: largar um ficheiro ao lado da zona certa
+  // não pode deitar o app fora, seja em que tela for.
+  useIgnorarArquivoSolto();
   const status = useAuthStore((s) => s.status);
 
   // Nada de piscar tela: espera o Firebase restaurar a sessão persistida
