@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useDragToClose } from "../hooks/useDragToClose";
 import styles from "./BottomSheet.module.css";
@@ -38,6 +38,19 @@ export default function BottomSheet({
   const veuRef = useRef<HTMLDivElement>(null);
   const arrasto = useDragToClose({ folhaRef, veuRef, aoFechar });
 
+  // O conteúdo só é construído quando a folha abre pela primeira vez — e daí
+  // em diante fica, para fechar e reabrir não custar nada e a transição de
+  // saída ter o que animar. O véu e a folha continuam sempre montados: são
+  // duas divs, e é delas que depende a animação.
+  //
+  // Não é micro-otimização: cada `Seletor` traz uma folha destas com a lista
+  // de opções inteira lá dentro, e a revisão de um extrato cria dois seletores
+  // POR LINHA. Num extrato de 110 linhas eram 200 e tal listas completas
+  // montadas de uma vez, no instante em que a análise acaba, quase todas para
+  // folhas que ninguém chega a abrir. No telemóvel isso mata a página.
+  const [jaAbriu, setJaAbriu] = useState(aberta);
+  if (aberta && !jaAbriu) setJaAbriu(true);
+
   return createPortal(
     <>
       <div
@@ -75,7 +88,7 @@ export default function BottomSheet({
             <h2 className={styles.titulo}>{titulo}</h2>
           </>
         )}
-        {children}
+        {jaAbriu && children}
       </div>
     </>,
     document.body,
