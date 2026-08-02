@@ -76,6 +76,7 @@ export default function Importar() {
   const [filtro, setFiltro] = useState<DecisaoLinha | "todas">("todas");
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
+  const [arrastando, setArrastando] = useState(false);
   const arquivoRef = useRef<HTMLInputElement>(null);
 
   const categoriasConfiguradas = [...cfg.categoriasFixas, ...cfg.categoriasCorrentes];
@@ -105,11 +106,9 @@ export default function Importar() {
     mostrarToast(`${analisadas.length} linha(s) analisada(s)`);
   }
 
-  function aoCarregarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
-    e.target.value = "";
-    if (!arquivo) return;
-
+  /** O ficheiro pode chegar de três sítios — o botão de sempre, arrastado para
+   *  a caixa, ou colado — e daqui para a frente o caminho é o mesmo. */
+  function processarArquivo(arquivo: File) {
     // PDF vai por outro caminho: lê-se em binário e a extração é assíncrona
     // (carrega o PDF.js sob demanda e percorre as páginas), daí o aviso de
     // espera — um extrato de vários meses leva um instante.
@@ -139,6 +138,52 @@ export default function Importar() {
     const leitor = new FileReader();
     leitor.onload = () => analisar(parseExtratoCsv(String(leitor.result ?? "")));
     leitor.readAsText(arquivo);
+  }
+
+  function aoCarregarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0];
+    // Limpar antes de processar: sem isto, escolher o mesmo ficheiro outra vez
+    // não dispara `change` nenhum.
+    e.target.value = "";
+    if (arquivo) processarArquivo(arquivo);
+  }
+
+  /** Só se acende para ficheiros: arrastar texto ou uma seleção dentro da
+   *  página não é o gesto que nos interessa. */
+  function temFicheiro(dt: DataTransfer | null) {
+    return !!dt && Array.from(dt.types).includes("Files");
+  }
+
+  function aoArrastarPorCima(e: React.DragEvent) {
+    if (!temFicheiro(e.dataTransfer)) return;
+    // Sem este preventDefault o navegador abre o ficheiro na aba ao soltar,
+    // deitando o app fora.
+    e.preventDefault();
+    setArrastando(true);
+  }
+
+  function aoSairDoArrasto(e: React.DragEvent) {
+    // `dragleave` dispara também ao passar de um filho para o outro dentro da
+    // caixa: só conta quando o ponteiro sai mesmo dela.
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setArrastando(false);
+  }
+
+  function aoSoltar(e: React.DragEvent) {
+    if (!temFicheiro(e.dataTransfer)) return;
+    e.preventDefault();
+    setArrastando(false);
+    const arquivo = e.dataTransfer.files[0];
+    if (arquivo) processarArquivo(arquivo);
+  }
+
+  function aoColar(e: React.ClipboardEvent) {
+    const arquivo = e.clipboardData?.files?.[0];
+    // Sem ficheiro é texto a ser colado: sair do caminho e deixar o textarea
+    // fazer o que sempre fez (colar um CSV de uma folha de cálculo).
+    if (!arquivo) return;
+    e.preventDefault();
+    processarArquivo(arquivo);
   }
 
   function atualizarLinha(id: number, mudancas: Partial<LinhaAnalisada>) {
@@ -220,12 +265,18 @@ export default function Importar() {
 
         {aba === "extrato" &&
           (linhas === null ? (
-            <div className={styles.entrada}>
+            <div
+              className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""}`}
+              onDragOver={aoArrastarPorCima}
+              onDragLeave={aoSairDoArrasto}
+              onDrop={aoSoltar}
+              onPaste={aoColar}
+            >
               <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
               <p className={styles.entradaSub}>
                 PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de
                 data, descrição e valor — exportado do banco ou colado direto de uma folha de
-                cálculo.
+                cálculo. O ficheiro também pode ser arrastado para aqui, ou colado com ⌘V.
               </p>
               <textarea
                 className={styles.textarea}

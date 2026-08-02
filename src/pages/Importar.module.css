@@ -39,6 +39,16 @@
   gap: 10px;
 }
 
+/* Ficheiro a pairar por cima da caixa: a borda acende na cor de acento e o
+   fundo ganha um toque dela, para se ver que é AQUI que se solta. Só cor e
+   sombra mudam — nada de tamanho, senão a caixa saltava por baixo do ponteiro
+   e o alvo fugia no meio do gesto. */
+.entradaArrastando {
+  border-color: var(--blu);
+  background: color-mix(in srgb, var(--blu) 8%, var(--s1));
+  box-shadow: 0 0 0 3px rgba(var(--blu-rgb), 0.25);
+}
+
 .entradaTitulo {
   font-weight: 700;
   font-size: 0.95rem;
