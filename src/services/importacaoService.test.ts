@@ -212,7 +212,7 @@ describe("dadosDaCarga", () => {
     destino: "carga",
     localCarga: "Powerdot",
     kwhCarga: "10",
-    cartaoOrigem: "",
+    contaOrigem: "",
     contaDestino: "",
     ...mudancas,
   });
@@ -260,7 +260,7 @@ describe("confirmarImportacao com recarga", () => {
     destino: "lancamento",
     localCarga: "",
     kwhCarga: "",
-    cartaoOrigem: "",
+    contaOrigem: "",
     contaDestino: "",
     ...mudancas,
   });
@@ -343,7 +343,7 @@ describe("transferência vinda de cartão de crédito", () => {
     destino: "transferencia_cartao",
     localCarga: "",
     kwhCarga: "",
-    cartaoOrigem: "AB Gold (C)",
+    contaOrigem: "AB Gold (C)",
     contaDestino: "Conta Principal",
     ...mudancas,
   });
@@ -365,7 +365,7 @@ describe("transferência vinda de cartão de crédito", () => {
   });
 
   test("sem cartão, sem conta, ou com as duas iguais, não dá transferência", () => {
-    expect(dadosDaTransferencia(linha({ cartaoOrigem: "" }))).toBeNull();
+    expect(dadosDaTransferencia(linha({ contaOrigem: "" }))).toBeNull();
     expect(dadosDaTransferencia(linha({ contaDestino: " " }))).toBeNull();
     expect(dadosDaTransferencia(linha({ contaDestino: "AB Gold (C)" }))).toBeNull();
   });
@@ -421,7 +421,7 @@ describe("transferência vinda de cartão de crédito", () => {
   });
 
   test("transferência incompleta faz falhar antes de gravar seja o que for", async () => {
-    await expect(confirmarImportacao("u1", [linha({ cartaoOrigem: "" })])).rejects.toThrow(
+    await expect(confirmarImportacao("u1", [linha({ contaOrigem: "" })])).rejects.toThrow(
       /Transferência/,
     );
     expect(update).not.toHaveBeenCalled();
@@ -453,7 +453,7 @@ describe("a transferência importada chega à fatura do cartão", () => {
       destino: "transferencia_cartao",
       localCarga: "",
       kwhCarga: "",
-      cartaoOrigem: "AB Gold (C)",
+      contaOrigem: "AB Gold (C)",
       contaDestino: "Conta Principal",
     };
     const transferencia = { ...dadosDaTransferencia(linha)!, id: "t1" };
@@ -471,5 +471,85 @@ describe("a transferência importada chega à fatura do cartão", () => {
     // Noutro cartão, ou noutra fatura, não aparece.
     expect(calcularFaturaAutomatica("Outro cartão", "2026-07", dados)).toBe(0);
     expect(calcularFaturaAutomatica("AB Gold (C)", "2026-08", dados)).toBe(0);
+  });
+});
+
+describe("fonte da receita e origem da transferência", () => {
+  const receita = (categoriaEscolhida: string): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-16",
+    descricao: "Entrada pequena",
+    valor: 1611,
+    classificacao: {
+      tipo: "receita",
+      categoria: null,
+      incerto: false,
+      confianca: "low",
+      motivo: "sem regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "nova",
+    acao: "import",
+    categoriaEscolhida,
+    destino: "lancamento",
+    localCarga: "",
+    kwhCarga: "",
+    contaOrigem: "",
+    contaDestino: "",
+  });
+
+  beforeEach(() => {
+    vi.mocked(update).mockClear();
+    vi.mocked(criarTransferencia).mockClear();
+  });
+
+  test("a fonte escolhida na revisão é a que fica gravada na receita", async () => {
+    await confirmarImportacao("u1", [receita("TVDE")]);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, { fonte: string }>;
+    const [caminho, valor] = Object.entries(gravado)[0];
+    expect(caminho.startsWith("receitas/")).toBe(true);
+    expect(valor.fonte).toBe("TVDE");
+  });
+
+  test("sem fonte escolhida a receita cai em Outros, como antes", async () => {
+    await confirmarImportacao("u1", [receita("")]);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, { fonte: string }>;
+    expect(Object.values(gravado)[0].fonte).toBe("Outros");
+  });
+
+  test("origem numa conta comum não entra em fatura nenhuma", () => {
+    // Mesma linha do teste da fatura, mas vinda de uma conta em vez de cartão.
+    const linha: LinhaAnalisada = {
+      ...receita("Transferência"),
+      data: "2026-06-16",
+      valor: 1611,
+      destino: "transferencia_cartao",
+      contaOrigem: "Conta Poupança",
+      contaDestino: "Conta Principal",
+    };
+    const transferencia = { ...dadosDaTransferencia(linha)!, id: "t2" };
+    const dados = {
+      despesasFixas: [],
+      despesasFixasVeiculo: [],
+      despesasCorrentes: [],
+      parcelas: [],
+      transferencias: [transferencia],
+    };
+    // A transferência existe e está bem formada...
+    expect(transferencia.de).toBe("Conta Poupança");
+    expect(transferencia.valor).toBe(1611);
+    // ...e não aparece na fatura do cartão de crédito, porque não saiu dele.
+    // (A tela Cartões só pede fatura para contas marcadas como "credit", por
+    // isso "a fatura da Conta Poupança" não é pergunta que alguém faça.)
+    expect(calcularFaturaAutomatica("AB Gold (C)", "2026-07", dados)).toBe(0);
+
+    // Contraprova: a mesma linha vinda do cartão entra na fatura dele.
+    const doCartao = {
+      ...dadosDaTransferencia({ ...linha, contaOrigem: "AB Gold (C)" })!,
+      id: "t3",
+    };
+    expect(
+      calcularFaturaAutomatica("AB Gold (C)", "2026-07", { ...dados, transferencias: [doCartao] }),
+    ).toBe(1611);
   });
 });

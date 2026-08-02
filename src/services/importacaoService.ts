@@ -93,7 +93,7 @@ export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> |
  *  que `calcularFaturaAutomatica` o soma à fatura do cartão de origem, sem
  *  inverter sinal. Origem e destino diferentes, também como lá. */
 export function dadosDaTransferencia(linha: LinhaAnalisada): Omit<Transferencia, "id"> | null {
-  const de = linha.cartaoOrigem.trim();
+  const de = linha.contaOrigem.trim();
   const para = linha.contaDestino.trim();
   if (!de || !para || de === para) return null;
   return { data: linha.data, de, para, valor: Math.abs(linha.valor), descricao: linha.descricao };

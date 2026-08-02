@@ -42,7 +42,7 @@ const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
 const ROTULO_DESTINO: Record<DestinoLinha, string> = {
   lancamento: "Lançamento normal",
   carga: "Recarga elétrica",
-  transferencia_cartao: "Veio do cartão de crédito",
+  transferencia_cartao: "Veio de outra conta minha",
 };
 
 const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
@@ -83,9 +83,10 @@ export default function Importar() {
   const opcoesCategoria = [
     ...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"]),
   ];
-  // Só os de crédito podem ser origem de "veio do cartão": são os que têm
-  // fatura para onde este dinheiro volta.
-  const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
+  // Receita não tem categoria, tem FONTE — outro conceito e outro campo. A
+  // lista de despesas ("Alimentação", "Saúde") não dizia nada a quem estava a
+  // classificar um salário.
+  const opcoesFonte = [...new Set([...cfg.fontesReceita, "Transferência", "Outros"])];
 
   function analisar(brutas: LinhaExtrato[]) {
     if (brutas.length === 0) {
@@ -399,18 +400,19 @@ export default function Importar() {
                         />
                         {l.destino === "transferencia_cartao" ? (
                           <>
-                            {/* De onde saiu: só cartões de CRÉDITO, que são os
-                                que geram fatura. Um cartão de débito aqui não
-                                queria dizer nada. */}
+                            {/* De onde saiu: qualquer conta ou cartão do
+                                usuário. Sendo cartão de crédito, o valor vai
+                                parar à fatura dele; sendo conta comum, não vai
+                                a fatura nenhuma — e é isso mesmo. */}
                             <Seletor
                               variante="inline"
-                              rotulo={`Cartão de origem de ${l.descricao}`}
+                              rotulo={`Conta de origem de ${l.descricao}`}
                               nivel={0}
-                              valor={l.cartaoOrigem}
-                              opcoes={cartoesCredito}
-                              rotuloVazio="Cartão de origem…"
-                              aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { cartaoOrigem: v })}
+                              valor={l.contaOrigem}
+                              opcoes={cfg.contasCartoes}
+                              rotuloVazio="De onde veio…"
+                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
                             />
                             {/* E para onde foi: o extrato não diz de que conta
                                 é, e sem isto o saldo dela ficava sem este
@@ -459,12 +461,17 @@ export default function Importar() {
                         ) : (
                           <Seletor
                             variante="inline"
-                            rotulo={`Categoria de ${l.descricao}`}
+                            rotulo={
+                              l.classificacao.tipo === "receita"
+                                ? `Fonte de ${l.descricao}`
+                                : `Categoria de ${l.descricao}`
+                            }
                             nivel={0}
                             valor={l.categoriaEscolhida}
-                            opcoes={opcoesCategoria}
+                            opcoes={
+                              l.classificacao.tipo === "receita" ? opcoesFonte : opcoesCategoria
+                            }
                             aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
-                            desativado={l.classificacao.tipo === "receita"}
                           />
                         )}
                       </div>
@@ -479,11 +486,11 @@ export default function Importar() {
                         l.destino === "transferencia_cartao" &&
                         dadosDaTransferencia(l) === null && (
                           <p className={styles.faltaCarga}>
-                            {!l.cartaoOrigem.trim()
-                              ? "Escolha o cartão de crédito de onde veio."
+                            {!l.contaOrigem.trim()
+                              ? "Escolha a conta ou cartão de onde veio."
                               : !l.contaDestino.trim()
                                 ? "Escolha a conta que recebeu."
-                                : "A conta que recebeu tem de ser diferente do cartão."}
+                                : "A conta que recebeu tem de ser diferente da de origem."}
                           </p>
                         )}
                       {l.duplicata.status !== "new" && l.duplicata.correspondencia && (

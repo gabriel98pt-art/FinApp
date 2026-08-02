@@ -677,7 +677,7 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
         : "lancamento",
     localCarga: carga.local,
     kwhCarga: "",
-    cartaoOrigem: "",
+    contaOrigem: "",
     contaDestino: "",
   };
 }

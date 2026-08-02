@@ -356,7 +356,7 @@ describe("analisarLinha com transferência vinda de cartão", () => {
     expect(r.classificacao.incerto).toBe(true);
     expect(r.destino).toBe("transferencia_cartao");
     // O cartão e a conta são escolha do usuário — não há como adivinhar.
-    expect(r.cartaoOrigem).toBe("");
+    expect(r.contaOrigem).toBe("");
     expect(r.contaDestino).toBe("");
   });
 

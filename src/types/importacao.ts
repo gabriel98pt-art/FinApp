@@ -54,10 +54,10 @@ export type DecisaoLinha = "auto_classificada" | "nova" | "duplicata_provavel" |
  *
  *  `carga` grava uma recarga elétrica no veículo.
  *
- *  `transferencia_cartao` é dinheiro que veio de um cartão de CRÉDITO para uma
- *  conta: entra positivo no extrato e parece receita, mas não é dinheiro
- *  ganho — é dinheiro emprestado, que volta na fatura. Gravado como
- *  `Transferencia`, é o que faz a fatura do cartão contá-lo sozinha. */
+ *  `transferencia_cartao` é dinheiro que veio de outra conta ou cartão do
+ *  próprio usuário: entra positivo no extrato e parece receita, mas não é
+ *  dinheiro ganho — só mudou de sítio. Gravado como `Transferencia`; vindo de
+ *  um cartão de crédito, é isso que faz a fatura contá-lo sozinha. */
 export type DestinoLinha = "lancamento" | "carga" | "transferencia_cartao";
 
 export interface LinhaAnalisada {
@@ -79,9 +79,11 @@ export interface LinhaAnalisada {
   /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O
    *  extrato não traz esta informação e o app não tem como a adivinhar. */
   kwhCarga: string;
-  /** Só com `destino === "transferencia_cartao"`: cartão de crédito de onde o
-   *  dinheiro saiu — é por ele que a fatura vai buscar este valor. */
-  cartaoOrigem: string;
+  /** Só com `destino === "transferencia_cartao"`: conta ou cartão de onde o
+   *  dinheiro saiu. Sendo um cartão de crédito, é por aqui que a fatura vai
+   *  buscar este valor; sendo uma conta comum, não entra em fatura nenhuma —
+   *  que é o certo, uma conta não tem fatura. */
+  contaOrigem: string;
   /** Só com `destino === "transferencia_cartao"`: conta que recebeu. O extrato
    *  não diz de que conta é (a importação não tem esse conceito), e sem isto o
    *  saldo dessa conta ficaria sem o dinheiro que entrou. */
