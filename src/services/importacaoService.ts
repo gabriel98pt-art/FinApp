@@ -4,7 +4,7 @@
 
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
-import { semIndefinidos } from "./lancamentosService";
+import { criarTransferencia, semIndefinidos } from "./lancamentosService";
 import { criarCarga } from "./veiculoService";
 import type {
   CargaEletrica,
@@ -13,6 +13,7 @@ import type {
   ExistenteParaDedup,
   LinhaAnalisada,
   Receita,
+  Transferencia,
 } from "../types";
 
 /** Lançamentos existentes pra deduplicação: todo o dinheiro já registado que
@@ -84,6 +85,20 @@ export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> |
   return { data: linha.data, kwh, custo, precoKwh: Math.round(custo / kwh), local };
 }
 
+/** Uma linha marcada como transferência vinda de cartão de crédito, no formato
+ *  que o app já usa para transferências. `null` quando falta o que só o usuário
+ *  sabe — mesma tranca dupla da recarga.
+ *
+ *  `valor` vai POSITIVO, como no formulário manual de transferências: é assim
+ *  que `calcularFaturaAutomatica` o soma à fatura do cartão de origem, sem
+ *  inverter sinal. Origem e destino diferentes, também como lá. */
+export function dadosDaTransferencia(linha: LinhaAnalisada): Omit<Transferencia, "id"> | null {
+  const de = linha.cartaoOrigem.trim();
+  const para = linha.contaDestino.trim();
+  if (!de || !para || de === para) return null;
+  return { data: linha.data, de, para, valor: Math.abs(linha.valor), descricao: linha.descricao };
+}
+
 export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[]) {
   const raiz = `users/${uid}/fin_v5`;
   const atualizacoes: Record<string, unknown> = {};
@@ -93,15 +108,22 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
   // se uma estiver incompleta, nada é gravado, em vez de metade do extrato
   // entrar e a outra metade rebentar a meio.
   const cargas: Omit<CargaEletrica, "id">[] = [];
+  const transferencias: Omit<Transferencia, "id">[] = [];
   for (const linha of linhas) {
-    if (linha.acao !== "import" || linha.destino !== "carga") continue;
-    const dados = dadosDaCarga(linha);
-    if (!dados) throw new Error(`Recarga sem kWh ou sem local: ${linha.descricao}`);
-    cargas.push(dados);
+    if (linha.acao !== "import") continue;
+    if (linha.destino === "carga") {
+      const dados = dadosDaCarga(linha);
+      if (!dados) throw new Error(`Recarga sem kWh ou sem local: ${linha.descricao}`);
+      cargas.push(dados);
+    } else if (linha.destino === "transferencia_cartao") {
+      const dados = dadosDaTransferencia(linha);
+      if (!dados) throw new Error(`Transferência sem cartão ou sem conta: ${linha.descricao}`);
+      transferencias.push(dados);
+    }
   }
 
   for (const linha of linhas) {
-    if (linha.acao !== "import" || linha.destino === "carga") continue;
+    if (linha.acao !== "import" || linha.destino !== "lancamento") continue;
     const { classificacao } = linha;
 
     if (classificacao.tipo === "receita") {
@@ -130,5 +152,6 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
 
   if (Object.keys(atualizacoes).length > 0) await update(ref(db, raiz), atualizacoes);
   for (const dados of cargas) await criarCarga(uid, dados);
-  return Object.keys(atualizacoes).length + cargas.length;
+  for (const dados of transferencias) await criarTransferencia(uid, dados);
+  return Object.keys(atualizacoes).length + cargas.length + transferencias.length;
 }

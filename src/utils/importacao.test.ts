@@ -341,3 +341,45 @@ describe("analisarLinha com recarga", () => {
     expect(r.localCarga).toBe("");
   });
 });
+
+describe("analisarLinha com transferência vinda de cartão", () => {
+  const base = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
+
+  test("transferência com dinheiro a ENTRAR já vem sugerida como vinda do cartão", () => {
+    // A regra de transferência bate, mas o valor é positivo: contraditório, e
+    // é o retrato do cartão de crédito a mandar dinheiro para a conta.
+    const r = analisarLinha(
+      { data: "2026-07-12", descricao: "Transferência de ActivoBank", valor: 30000 },
+      0,
+      base,
+    );
+    expect(r.classificacao.incerto).toBe(true);
+    expect(r.destino).toBe("transferencia_cartao");
+    // O cartão e a conta são escolha do usuário — não há como adivinhar.
+    expect(r.cartaoOrigem).toBe("");
+    expect(r.contaDestino).toBe("");
+  });
+
+  test("transferência com dinheiro a SAIR continua no caminho normal", () => {
+    const r = analisarLinha(
+      { data: "2026-07-12", descricao: "Transferência para LUIS", valor: -2000 },
+      0,
+      base,
+    );
+    expect(r.classificacao.incerto).toBe(false);
+    expect(r.destino).toBe("lancamento");
+  });
+
+  test("receita comum a entrar não é confundida com transferência", () => {
+    const r = analisarLinha({ data: "2026-07-05", descricao: "Salário", valor: 200000 }, 0, base);
+    expect(r.destino).toBe("lancamento");
+  });
+
+  test("recarga ganha do sinal de transferência — uma saída nunca vem do cartão", () => {
+    const r = analisarLinha({ data: "2026-07-08", descricao: "IONITY GMBH", valor: -2480 }, 0, {
+      ...base,
+      locaisCarregamento: ["Ionity A1"],
+    });
+    expect(r.destino).toBe("carga");
+  });
+});

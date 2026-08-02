@@ -48,11 +48,17 @@ export interface ResultadoDuplicata {
 export type DecisaoLinha = "auto_classificada" | "nova" | "duplicata_provavel" | "revisao";
 
 /** Onde a linha vai parar ao confirmar. `lancamento` é o caminho de sempre —
- *  receita ou despesa corrente, conforme `classificacao.tipo`. `carga` grava
- *  uma recarga elétrica no veículo, que não é despesa corrente nenhuma e por
- *  isso não cabia em `TipoClassificado`: é escolha do usuário na revisão, não
- *  resultado da classificação. */
-export type DestinoLinha = "lancamento" | "carga";
+ *  receita ou despesa corrente, conforme `classificacao.tipo`. Os outros dois
+ *  gravam noutros domínios e por isso não cabiam em `TipoClassificado`: são
+ *  escolha do usuário na revisão, não resultado da classificação.
+ *
+ *  `carga` grava uma recarga elétrica no veículo.
+ *
+ *  `transferencia_cartao` é dinheiro que veio de um cartão de CRÉDITO para uma
+ *  conta: entra positivo no extrato e parece receita, mas não é dinheiro
+ *  ganho — é dinheiro emprestado, que volta na fatura. Gravado como
+ *  `Transferencia`, é o que faz a fatura do cartão contá-lo sozinha. */
+export type DestinoLinha = "lancamento" | "carga" | "transferencia_cartao";
 
 export interface LinhaAnalisada {
   id: number;
@@ -73,4 +79,11 @@ export interface LinhaAnalisada {
   /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O
    *  extrato não traz esta informação e o app não tem como a adivinhar. */
   kwhCarga: string;
+  /** Só com `destino === "transferencia_cartao"`: cartão de crédito de onde o
+   *  dinheiro saiu — é por ele que a fatura vai buscar este valor. */
+  cartaoOrigem: string;
+  /** Só com `destino === "transferencia_cartao"`: conta que recebeu. O extrato
+   *  não diz de que conta é (a importação não tem esse conceito), e sem isto o
+   *  saldo dessa conta ficaria sem o dinheiro que entrou. */
+  contaDestino: string;
 }

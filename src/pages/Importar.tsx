@@ -8,6 +8,7 @@ import {
   construirExistentes,
   confirmarImportacao,
   dadosDaCarga,
+  dadosDaTransferencia,
 } from "../services/importacaoService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
@@ -31,11 +32,17 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
 };
 
 /** Destino de cada linha na revisão. "Lançamento normal" é o que sempre houve
- *  (receita ou despesa); "Recarga elétrica" grava no veículo. */
-const DESTINOS: DestinoLinha[] = ["lancamento", "carga"];
+ *  (receita ou despesa); os outros dois gravam noutros domínios.
+ *
+ *  Cada um só faz sentido de um lado: uma recarga é dinheiro a sair, e o
+ *  dinheiro que vem do cartão de crédito é sempre uma entrada. Oferecer os dois
+ *  em todas as linhas só daria escolhas impossíveis. */
+const DESTINOS_SAIDA: DestinoLinha[] = ["lancamento", "carga"];
+const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
 const ROTULO_DESTINO: Record<DestinoLinha, string> = {
   lancamento: "Lançamento normal",
   carga: "Recarga elétrica",
+  transferencia_cartao: "Veio do cartão de crédito",
 };
 
 const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
@@ -75,6 +82,9 @@ export default function Importar() {
   const opcoesCategoria = [
     ...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"]),
   ];
+  // Só os de crédito podem ser origem de "veio do cartão": são os que têm
+  // fatura para onde este dinheiro volta.
+  const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
 
   function analisar(brutas: LinhaExtrato[]) {
     if (brutas.length === 0) {
@@ -156,7 +166,7 @@ export default function Importar() {
       return;
     }
     if (incompletas.length > 0) {
-      mostrarToast(`${incompletas.length} recarga(s) sem kWh ou sem local.`);
+      mostrarToast(`${incompletas.length} linha(s) por completar.`);
       return;
     }
     setEnviando(true);
@@ -178,7 +188,10 @@ export default function Importar() {
   // trava a confirmação e fica assinalada na própria linha.
   const incompletas =
     linhas?.filter(
-      (l) => l.acao === "import" && l.destino === "carga" && dadosDaCarga(l) === null,
+      (l) =>
+        l.acao === "import" &&
+        ((l.destino === "carga" && dadosDaCarga(l) === null) ||
+          (l.destino === "transferencia_cartao" && dadosDaTransferencia(l) === null)),
     ) ?? [];
 
   return (
@@ -324,20 +337,45 @@ export default function Importar() {
                         >
                           {ROTULO_DECISAO[l.decisao]}
                         </span>
-                        {/* Só uma saída pode ser recarga; numa entrada o
-                            destino nem se pergunta. */}
-                        {l.valor < 0 && (
-                          <Seletor
-                            variante="inline"
-                            rotulo={`Destino de ${l.descricao}`}
-                            nivel={0}
-                            valor={l.destino}
-                            opcoes={DESTINOS}
-                            rotuloOpcao={(d) => ROTULO_DESTINO[d as DestinoLinha]}
-                            aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
-                          />
-                        )}
-                        {l.destino === "carga" ? (
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Destino de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.destino}
+                          opcoes={l.valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA}
+                          rotuloOpcao={(d) => ROTULO_DESTINO[d as DestinoLinha]}
+                          aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
+                        />
+                        {l.destino === "transferencia_cartao" ? (
+                          <>
+                            {/* De onde saiu: só cartões de CRÉDITO, que são os
+                                que geram fatura. Um cartão de débito aqui não
+                                queria dizer nada. */}
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Cartão de origem de ${l.descricao}`}
+                              nivel={0}
+                              valor={l.cartaoOrigem}
+                              opcoes={cartoesCredito}
+                              rotuloVazio="Cartão de origem…"
+                              aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { cartaoOrigem: v })}
+                            />
+                            {/* E para onde foi: o extrato não diz de que conta
+                                é, e sem isto o saldo dela ficava sem este
+                                dinheiro. */}
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Conta que recebeu ${l.descricao}`}
+                              nivel={0}
+                              valor={l.contaDestino}
+                              opcoes={cfg.contasCartoes}
+                              rotuloVazio="Conta que recebeu…"
+                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { contaDestino: v })}
+                            />
+                          </>
+                        ) : l.destino === "carga" ? (
                           <>
                             <Seletor
                               variante="inline"
@@ -386,6 +424,17 @@ export default function Importar() {
                             : "Escreva os kWh desta recarga."}
                         </p>
                       )}
+                      {l.acao === "import" &&
+                        l.destino === "transferencia_cartao" &&
+                        dadosDaTransferencia(l) === null && (
+                          <p className={styles.faltaCarga}>
+                            {!l.cartaoOrigem.trim()
+                              ? "Escolha o cartão de crédito de onde veio."
+                              : !l.contaDestino.trim()
+                                ? "Escolha a conta que recebeu."
+                                : "A conta que recebeu tem de ser diferente do cartão."}
+                          </p>
+                        )}
                       {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                         <p className={styles.motivoDup}>
                           Parece com "{l.duplicata.correspondencia.descricao}" —{" "}

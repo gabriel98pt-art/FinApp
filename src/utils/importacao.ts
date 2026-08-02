@@ -654,6 +654,12 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
   // para isso. Um toque no destino devolve a linha ao caminho normal.
   const carga = reconhecerCarga(tx, ctx.locaisCarregamento);
 
+  // Regra de transferência que bateu com o dinheiro a ENTRAR — a contradição
+  // que a classificação já marcava como incerta. É o retrato do cartão de
+  // crédito a mandar dinheiro para a conta: entra como se fosse receita, mas é
+  // adiantamento que volta na fatura. Sugerido, não imposto.
+  const transferenciaSuspeita = classificacao.tipo === "transferencia" && classificacao.incerto;
+
   return {
     id,
     data: tx.data,
@@ -664,8 +670,14 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     decisao,
     acao,
     categoriaEscolhida: classificacao.categoria ?? "Outros",
-    destino: carga.ehCarga ? "carga" : "lancamento",
+    destino: carga.ehCarga
+      ? "carga"
+      : transferenciaSuspeita
+        ? "transferencia_cartao"
+        : "lancamento",
     localCarga: carga.local,
     kwhCarga: "",
+    cartaoOrigem: "",
+    contaDestino: "",
   };
 }

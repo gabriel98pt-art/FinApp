@@ -10,13 +10,24 @@ vi.mock("firebase/database", () => ({
 }));
 // Mock parcial: o resto do módulo (VEICULO_VAZIO e companhia) continua a ser
 // preciso por quem o importa mais acima na cadeia.
+vi.mock("./lancamentosService", async (original) => ({
+  ...(await original<typeof import("./lancamentosService")>()),
+  criarTransferencia: vi.fn(async () => "id-transf"),
+}));
 vi.mock("./veiculoService", async (original) => ({
   ...(await original<typeof import("./veiculoService")>()),
   criarCarga: vi.fn(async () => "id-carga"),
 }));
-import { confirmarImportacao, construirExistentes, dadosDaCarga } from "./importacaoService";
+import {
+  confirmarImportacao,
+  construirExistentes,
+  dadosDaCarga,
+  dadosDaTransferencia,
+} from "./importacaoService";
 import { update } from "firebase/database";
 import { criarCarga } from "./veiculoService";
+import { criarTransferencia } from "./lancamentosService";
+import { calcularFaturaAutomatica } from "../utils/fatura";
 import { analisarLinha, verificarDuplicata } from "../utils/importacao";
 import type {
   CargaEletrica,
@@ -201,6 +212,8 @@ describe("dadosDaCarga", () => {
     destino: "carga",
     localCarga: "Powerdot",
     kwhCarga: "10",
+    cartaoOrigem: "",
+    contaDestino: "",
     ...mudancas,
   });
 
@@ -247,6 +260,8 @@ describe("confirmarImportacao com recarga", () => {
     destino: "lancamento",
     localCarga: "",
     kwhCarga: "",
+    cartaoOrigem: "",
+    contaDestino: "",
     ...mudancas,
   });
 
@@ -305,5 +320,156 @@ describe("confirmarImportacao com recarga", () => {
     expect(criarCarga).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
     expect(n).toBe(0);
+  });
+});
+
+describe("transferência vinda de cartão de crédito", () => {
+  const linha = (mudancas: Partial<LinhaAnalisada>): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-12",
+    descricao: "Transferência de ActivoBank",
+    valor: 30000,
+    classificacao: {
+      tipo: "transferencia",
+      categoria: "Transferência",
+      incerto: true,
+      confianca: "medium",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "revisao",
+    acao: "import",
+    categoriaEscolhida: "Transferência",
+    destino: "transferencia_cartao",
+    localCarga: "",
+    kwhCarga: "",
+    cartaoOrigem: "AB Gold (C)",
+    contaDestino: "Conta Principal",
+    ...mudancas,
+  });
+
+  beforeEach(() => {
+    vi.mocked(update).mockClear();
+    vi.mocked(criarCarga).mockClear();
+    vi.mocked(criarTransferencia).mockClear();
+  });
+
+  test("monta a transferência com valor positivo, como a fatura a soma", () => {
+    expect(dadosDaTransferencia(linha({}))).toEqual({
+      data: "2026-07-12",
+      de: "AB Gold (C)",
+      para: "Conta Principal",
+      valor: 30000,
+      descricao: "Transferência de ActivoBank",
+    });
+  });
+
+  test("sem cartão, sem conta, ou com as duas iguais, não dá transferência", () => {
+    expect(dadosDaTransferencia(linha({ cartaoOrigem: "" }))).toBeNull();
+    expect(dadosDaTransferencia(linha({ contaDestino: " " }))).toBeNull();
+    expect(dadosDaTransferencia(linha({ contaDestino: "AB Gold (C)" }))).toBeNull();
+  });
+
+  test("ao confirmar não vira receita nenhuma — vai para transferências", async () => {
+    const n = await confirmarImportacao("u1", [linha({})]);
+
+    expect(criarTransferencia).toHaveBeenCalledWith("u1", {
+      data: "2026-07-12",
+      de: "AB Gold (C)",
+      para: "Conta Principal",
+      valor: 30000,
+      descricao: "Transferência de ActivoBank",
+    });
+    // Nada em receitas nem em despesas correntes.
+    expect(update).not.toHaveBeenCalled();
+    expect(n).toBe(1);
+  });
+
+  test("a mesma importação reparte os três destinos", async () => {
+    const n = await confirmarImportacao("u1", [
+      linha({ id: 1 }),
+      linha({
+        id: 2,
+        descricao: "POWERDOT",
+        valor: -1050,
+        destino: "carga",
+        localCarga: "Powerdot",
+        kwhCarga: "10",
+      }),
+      linha({
+        id: 3,
+        descricao: "Salário",
+        valor: 200000,
+        destino: "lancamento",
+        classificacao: {
+          tipo: "receita",
+          categoria: "Salário",
+          incerto: false,
+          confianca: "high",
+          motivo: "regra",
+        },
+        categoriaEscolhida: "Salário",
+      }),
+    ]);
+
+    expect(criarTransferencia).toHaveBeenCalledTimes(1);
+    expect(criarCarga).toHaveBeenCalledTimes(1);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, unknown>;
+    expect(Object.keys(gravado)).toHaveLength(1);
+    expect(Object.keys(gravado)[0].startsWith("receitas/")).toBe(true);
+    expect(n).toBe(3);
+  });
+
+  test("transferência incompleta faz falhar antes de gravar seja o que for", async () => {
+    await expect(confirmarImportacao("u1", [linha({ cartaoOrigem: "" })])).rejects.toThrow(
+      /Transferência/,
+    );
+    expect(update).not.toHaveBeenCalled();
+    expect(criarTransferencia).not.toHaveBeenCalled();
+  });
+});
+
+// A ponta a ponta que interessa: o que a importação grava é exatamente o que a
+// fatura do cartão vai buscar. Sem isto, o destino novo podia gravar uma
+// transferência bem formada que a fatura nunca somasse.
+describe("a transferência importada chega à fatura do cartão", () => {
+  test("entra no valor devido do ciclo, no cartão de origem", () => {
+    const linha: LinhaAnalisada = {
+      id: 0,
+      data: "2026-06-12",
+      descricao: "Transferência de ActivoBank",
+      valor: 30000,
+      classificacao: {
+        tipo: "transferencia",
+        categoria: "Transferência",
+        incerto: true,
+        confianca: "medium",
+        motivo: "regra",
+      },
+      duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+      decisao: "revisao",
+      acao: "import",
+      categoriaEscolhida: "Transferência",
+      destino: "transferencia_cartao",
+      localCarga: "",
+      kwhCarga: "",
+      cartaoOrigem: "AB Gold (C)",
+      contaDestino: "Conta Principal",
+    };
+    const transferencia = { ...dadosDaTransferencia(linha)!, id: "t1" };
+
+    const dados = {
+      despesasFixas: [],
+      despesasFixasVeiculo: [],
+      despesasCorrentes: [],
+      parcelas: [],
+      transferencias: [transferencia],
+    };
+    // O 2º argumento é o MÊS DA FATURA, não o ciclo: a fatura de julho é que
+    // cobra os gastos de junho, e é ela que tem de trazer esta transferência.
+    expect(calcularFaturaAutomatica("AB Gold (C)", "2026-07", dados)).toBe(30000);
+    // Noutro cartão, ou noutra fatura, não aparece.
+    expect(calcularFaturaAutomatica("Outro cartão", "2026-07", dados)).toBe(0);
+    expect(calcularFaturaAutomatica("AB Gold (C)", "2026-08", dados)).toBe(0);
   });
 });
