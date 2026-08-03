@@ -10,6 +10,7 @@ import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useFundosStore } from "../stores/fundosStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
@@ -37,6 +38,9 @@ export default function Metas() {
   const erro = useFundosStore((s) => s.erro);
 
   const real = mesAtual();
+  // O mês do header manda no que se vê; `real` continua a ser o mês de
+  // verdade, que é o que diz se o mês olhado ainda está a decorrer.
+  const mesVisivel = useMesVisivelStore((s) => s.mes);
   const hoje = hojeIso();
   const diaDeHoje = parseInt(hoje.slice(8, 10), 10);
 
@@ -46,7 +50,7 @@ export default function Metas() {
     despesasFixas,
     parcelas,
     veiculo,
-    real,
+    mesVisivel,
     real,
     diaDeHoje,
     cfg.metaPoupanca,

@@ -17,6 +17,7 @@ import {
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useTvdeStore } from "../stores/tvdeStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { SemanaTvde } from "../types";
@@ -216,6 +217,7 @@ export default function Tvde() {
   const [editando, setEditando] = useState<number | null>(null);
   const [aba, setAba] = useState<"semanas" | "meses" | "periodos" | "extras">("semanas");
   const [segMes, setSegMes] = useState(mesAtual());
+  const mesVisivel = useMesVisivelStore((s) => s.mes);
   const [segValor, setSegValor] = useState("");
   const [despDescricao, setDespDescricao] = useState("");
   const [despValor, setDespValor] = useState("");
@@ -410,7 +412,12 @@ export default function Tvde() {
               <p className={styles.vazioTab}>Sem meses ainda.</p>
             ) : (
               meses.map((m) => (
-                <div key={m.mes} className={styles.linhaTab}>
+                // O mês escolhido no header fica destacado aqui — a navegação
+                // por período desta aba continua a ser a dela, não se mexeu.
+                <div
+                  key={m.mes}
+                  className={`${styles.linhaTab} ${m.mes === mesVisivel ? styles.linhaMesAtual : ""}`}
+                >
                   <span className={styles.mesNome}>{rotuloMes(m.mes)}</span>
                   <span>{eur(m.lucro)}</span>
                   <span>{m.seg ? `− ${eur(m.seg)}` : "—"}</span>

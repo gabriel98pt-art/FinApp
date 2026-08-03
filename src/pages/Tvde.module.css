@@ -422,3 +422,12 @@
   font-size: 0.72rem;
   font-weight: 500;
 }
+
+/* O mês escolhido no header, destacado na tabela de meses: fundo de acento
+   leve e a barra à esquerda, para se achar de relance sem tirar as outras
+   linhas da frente. */
+.linhaMesAtual {
+  background: color-mix(in srgb, var(--lrj) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--lrj);
+  border-radius: var(--r-xs);
+}
