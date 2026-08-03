@@ -28,12 +28,15 @@ import type {
  *  fora da lista, eram importadas segunda vez sem um aviso.
  *
  *  Cargas e despesas do veículo entram pela mesma razão. Ficaram de fora só
- *  porque o veículo ainda não era um domínio próprio quando isto foi escrito. */
+ *  porque o veículo ainda não era um domínio próprio quando isto foi escrito.
+ *
+ *  Transferências entram por duas — ver abaixo. */
 export function construirExistentes(
   receitas: Receita[],
   despesas: DespesaCorrente[],
   cargas: CargaEletrica[],
   despesasVeiculo: DespesaVeiculo[],
+  transferencias: Transferencia[],
 ): ExistenteParaDedup[] {
   const deReceitas: ExistenteParaDedup[] = receitas.map((r) => ({
     id: r.id,
@@ -67,7 +70,22 @@ export function construirExistentes(
     valor: -d.valor,
     descricao: `${d.nota ?? ""} ${d.categoria}`.trim(),
   }));
-  return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo];
+  // Uma transferência vale por DUAS: o mesmo dinheiro já é conhecido como
+  // saída da conta `de` e como entrada na conta `para`, e a linha nova do
+  // extrato pode ser qualquer um dos dois lados — depende de qual conta é o
+  // extrato que se está a importar. Sem os dois sinais, importar o extrato do
+  // outro lado do mesmo movimento passava sem aviso e duplicava o dinheiro.
+  //
+  // O `id` repete-se de propósito: é o mesmo registo real, só a comparação é
+  // que precisa de o ver dos dois ângulos.
+  const deTransferencias: ExistenteParaDedup[] = transferencias.flatMap((t) => {
+    const descricao = t.descricao ?? `${t.de} → ${t.para}`;
+    return [
+      { id: t.id, data: t.data, valor: -t.valor, descricao },
+      { id: t.id, data: t.data, valor: t.valor, descricao },
+    ];
+  });
+  return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo, ...deTransferencias];
 }
 
 /** Uma linha marcada como recarga elétrica, no formato que o veículo guarda.

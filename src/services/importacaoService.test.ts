@@ -35,6 +35,7 @@ import type {
   DespesaVeiculo,
   LinhaAnalisada,
   Receita,
+  Transferencia,
 } from "../types";
 
 // Uma parcela paga e um pagamento de fatura chegam a `despesasCorrentes` com
@@ -82,18 +83,19 @@ const DESPESA_VEICULO: DespesaVeiculo = {
   nota: "Norauto",
 };
 
-const SEM_VEICULO: [CargaEletrica[], DespesaVeiculo[]] = [[], []];
+/** Os domínios que a maioria destes testes não usa: veículo e transferências. */
+const SO_OS_DOIS: [CargaEletrica[], DespesaVeiculo[], Transferencia[]] = [[], [], []];
 
 describe("construirExistentes", () => {
   test("despesa com origem parc/fat entra na comparação", () => {
-    const existentes = construirExistentes([], [PARCELA_PAGA, PAGAMENTO_FATURA], ...SEM_VEICULO);
+    const existentes = construirExistentes([], [PARCELA_PAGA, PAGAMENTO_FATURA], ...SO_OS_DOIS);
     expect(existentes.map((e) => e.id)).toEqual(["d-parc", "d-fat"]);
     // Despesa: valor negativo, para bater com a saída do extrato.
     expect(existentes[0].valor).toBe(-9990);
   });
 
   test("carga elétrica e despesa do veículo entram, como despesa", () => {
-    const existentes = construirExistentes([], [], [CARGA], [DESPESA_VEICULO]);
+    const existentes = construirExistentes([], [], [CARGA], [DESPESA_VEICULO], []);
     expect(existentes).toEqual([
       { id: "v-c1", data: "2026-07-08", valor: -1050, descricao: "Powerdot" },
       { id: "v-d1", data: "2026-07-20", valor: -8500, descricao: "Norauto Manutenção" },
@@ -102,7 +104,7 @@ describe("construirExistentes", () => {
 
   test("despesa do veículo sem nota fica só com a categoria", () => {
     const semNota: DespesaVeiculo = { ...DESPESA_VEICULO, nota: undefined };
-    expect(construirExistentes([], [], [], [semNota])[0].descricao).toBe("Manutenção");
+    expect(construirExistentes([], [], [], [semNota], [])[0].descricao).toBe("Manutenção");
   });
 
   test("receita continua com o valor positivo", () => {
@@ -113,7 +115,7 @@ describe("construirExistentes", () => {
       data: "2026-07-05",
       fonte: "Salário",
     };
-    expect(construirExistentes([receita], [], ...SEM_VEICULO)[0]).toEqual({
+    expect(construirExistentes([receita], [], ...SO_OS_DOIS)[0]).toEqual({
       id: "r1",
       data: "2026-07-05",
       valor: 200000,
@@ -126,7 +128,7 @@ describe("dedup com os lançamentos que faltavam", () => {
   const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
 
   test("pagamento da prestação no extrato deixa de passar como novo", () => {
-    const existentes = construirExistentes([], [PARCELA_PAGA], ...SEM_VEICULO);
+    const existentes = construirExistentes([], [PARCELA_PAGA], ...SO_OS_DOIS);
     // Como o banco escreve: nada a ver com "TV Samsung Parcelas" no texto.
     const linha = { data: "2026-07-10", descricao: "PAG.PRESTACAO N. 009", valor: -9990 };
 
@@ -142,13 +144,13 @@ describe("dedup com os lançamentos que faltavam", () => {
   });
 
   test("pagamento de fatura do cartão no extrato é apanhado", () => {
-    const existentes = construirExistentes([], [PAGAMENTO_FATURA], ...SEM_VEICULO);
+    const existentes = construirExistentes([], [PAGAMENTO_FATURA], ...SO_OS_DOIS);
     const linha = { data: "2026-07-15", descricao: "PAGAMENTO CARTAO CREDITO", valor: -45000 };
     expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
   });
 
   test("recarga já lançada na aba Veículo é apanhada — e pelo nome do posto", () => {
-    const existentes = construirExistentes([], [], [CARGA], []);
+    const existentes = construirExistentes([], [], [CARGA], [], []);
     const linha = { data: "2026-07-08", descricao: "POWERDOT PORTUGAL", valor: -1050 };
     const analisada = analisarLinha(linha, 0, { ...ctx, existentes });
     expect(analisada.acao).toBe("skip");
@@ -161,13 +163,13 @@ describe("dedup com os lançamentos que faltavam", () => {
   });
 
   test("recarga com o nome do posto igual ao do extrato vira duplicata provável", () => {
-    const existentes = construirExistentes([], [], [CARGA], []);
+    const existentes = construirExistentes([], [], [CARGA], [], []);
     const linha = { data: "2026-07-08", descricao: "Powerdot", valor: -1050 };
     expect(analisarLinha(linha, 0, { ...ctx, existentes }).decisao).toBe("duplicata_provavel");
   });
 
   test("despesa do veículo já lançada é apanhada pela nota", () => {
-    const existentes = construirExistentes([], [], [], [DESPESA_VEICULO]);
+    const existentes = construirExistentes([], [], [], [DESPESA_VEICULO], []);
     const linha = { data: "2026-07-20", descricao: "NORAUTO MATOSINHOS", valor: -8500 };
     expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
   });
@@ -178,6 +180,7 @@ describe("dedup com os lançamentos que faltavam", () => {
       [DESPESA_COMUM, PARCELA_PAGA, PAGAMENTO_FATURA],
       [CARGA],
       [DESPESA_VEICULO],
+      [],
     );
     const linha = { data: "2026-07-22", descricao: "Mercadona", valor: -3200 };
     const analisada = analisarLinha(linha, 0, { ...ctx, existentes });
@@ -186,7 +189,7 @@ describe("dedup com os lançamentos que faltavam", () => {
   });
 
   test("mesmo valor mas fora da janela de datas não é duplicata", () => {
-    const existentes = construirExistentes([], [PARCELA_PAGA], ...SEM_VEICULO);
+    const existentes = construirExistentes([], [PARCELA_PAGA], ...SO_OS_DOIS);
     const linha = { data: "2026-08-10", descricao: "PAG.PRESTACAO N. 010", valor: -9990 };
     expect(verificarDuplicata(linha, existentes).status).toBe("new");
   });
@@ -658,5 +661,76 @@ describe("transferência do lado de quem manda", () => {
   test("a mesma validação da entrada vale para a saída", () => {
     expect(dadosDaTransferencia(saida({ contaOrigem: "" }))).toBeNull();
     expect(dadosDaTransferencia(saida({ contaDestino: "Conta Principal" }))).toBeNull();
+  });
+});
+
+describe("transferência já registada aparece nos dois lados", () => {
+  // O movimento do commit anterior: 250 € da conta principal para a poupança.
+  const TRANSFERENCIA: Transferencia = {
+    id: "t-1",
+    data: "2026-07-18",
+    de: "Conta Principal",
+    para: "Conta Poupança",
+    valor: 25000,
+    descricao: "Transferência para a poupança",
+  };
+  const ctx = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    locaisCarregamento: [],
+  };
+  const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA]);
+
+  test("uma transferência vira duas entradas, uma por sentido", () => {
+    expect(existentes).toEqual([
+      { id: "t-1", data: "2026-07-18", valor: -25000, descricao: "Transferência para a poupança" },
+      { id: "t-1", data: "2026-07-18", valor: 25000, descricao: "Transferência para a poupança" },
+    ]);
+  });
+
+  test("o extrato de quem MANDOU reconhece o lado da saída", () => {
+    const linha = { data: "2026-07-18", descricao: "Transferência para a poupança", valor: -25000 };
+    const achado = verificarDuplicata(linha, existentes);
+    expect(achado.status).not.toBe("new");
+    expect(achado.correspondencia?.id).toBe("t-1");
+    expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
+  });
+
+  test("o extrato de quem RECEBEU reconhece o lado da entrada", () => {
+    // Era este o furo: o outro extrato do mesmo dinheiro entrava sem aviso.
+    const linha = { data: "2026-07-18", descricao: "Transferência recebida", valor: 25000 };
+    const achado = verificarDuplicata(linha, existentes);
+    expect(achado.status).not.toBe("new");
+    expect(achado.correspondencia?.id).toBe("t-1");
+    expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
+  });
+
+  test("sem descrição própria, compara-se pelo caminho do dinheiro", () => {
+    const semDescricao = construirExistentes(
+      [],
+      [],
+      [],
+      [],
+      [{ ...TRANSFERENCIA, descricao: undefined }],
+    );
+    expect(semDescricao[0].descricao).toBe("Conta Principal → Conta Poupança");
+  });
+
+  test("transferência mesmo nova continua a entrar como nova", () => {
+    // Valor diferente...
+    expect(
+      verificarDuplicata(
+        { data: "2026-07-18", descricao: "Transferência para a poupança", valor: -10000 },
+        existentes,
+      ).status,
+    ).toBe("new");
+    // ...e data fora da janela.
+    expect(
+      verificarDuplicata(
+        { data: "2026-08-18", descricao: "Transferência para a poupança", valor: -25000 },
+        existentes,
+      ).status,
+    ).toBe("new");
   });
 });

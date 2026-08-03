@@ -13,7 +13,11 @@ import {
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
-import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import {
+  useDespesasStore,
+  useReceitasStore,
+  useTransferenciasStore,
+} from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
@@ -80,9 +84,10 @@ export default function Importar() {
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
-  // Carga elétrica e despesa do veículo também são dinheiro que pode vir
-  // repetido no extrato — entram na comparação de duplicatas.
+  // Carga elétrica, despesa do veículo e transferência também são dinheiro que
+  // pode vir repetido no extrato — entram na comparação de duplicatas.
   const veiculo = useVeiculoStore((s) => s.dados);
+  const transferencias = useTransferenciasStore((s) => s.itens);
 
   const [aba, setAba] = useState<Aba>("extrato");
   const [texto, setTexto] = useState("");
@@ -107,7 +112,13 @@ export default function Importar() {
       mostrarToast("Nenhuma linha reconhecida — confira o formato do extrato.");
       return;
     }
-    const existentes = construirExistentes(receitas, despesas, veiculo.cargas, veiculo.despesas);
+    const existentes = construirExistentes(
+      receitas,
+      despesas,
+      veiculo.cargas,
+      veiculo.despesas,
+      transferencias,
+    );
     const analisadas = brutas.map((tx, i) =>
       analisarLinha(tx, i, {
         parcelas,
