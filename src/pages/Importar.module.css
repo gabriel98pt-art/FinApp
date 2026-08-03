@@ -378,3 +378,10 @@
   width: 17px;
   height: 17px;
 }
+
+/* A outra ponta da mesma transferência, já registada. Tom de informação e não
+   de alerta: nada está errado, é só o mesmo dinheiro visto do outro lado. */
+.outraPonta {
+  color: var(--blu);
+  font-size: 0.72rem;
+}

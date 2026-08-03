@@ -261,6 +261,7 @@ describe("dadosDaCarga", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
     ...mudancas,
   });
 
@@ -323,6 +324,7 @@ describe("confirmarImportacao com recarga", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
     ...mudancas,
   });
 
@@ -409,6 +411,7 @@ describe("transferência vinda de cartão de crédito", () => {
     contaDestino: "Conta Principal",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
     ...mudancas,
   });
 
@@ -524,6 +527,7 @@ describe("a transferência importada chega à fatura do cartão", () => {
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
       fatMesEscolhido: "2026-07",
+      outraPonta: null,
     };
     const transferencia = { ...dadosDaTransferencia(linha)!, id: "t1" };
 
@@ -568,6 +572,7 @@ describe("fonte da receita e origem da transferência", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
   });
 
   beforeEach(() => {
@@ -600,6 +605,7 @@ describe("fonte da receita e origem da transferência", () => {
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
       fatMesEscolhido: "2026-07",
+      outraPonta: null,
     };
     const transferencia = { ...dadosDaTransferencia(linha)!, id: "t2" };
     const dados = {
@@ -655,6 +661,7 @@ describe("o lado escolhido à mão manda sobre o automático", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
   });
 
   beforeEach(() => vi.mocked(update).mockClear());
@@ -702,6 +709,7 @@ describe("transferência do lado de quem manda", () => {
     contaDestino: "Conta Poupança",
     fatCartaoEscolhido: "",
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
     ...mudancas,
   });
 
@@ -983,6 +991,7 @@ describe("pagamento da fatura do cartão", () => {
     fatCartaoEscolhido: "AB Gold (C)",
     // Pagou em agosto a fatura de julho — é por isto que o mês é editável.
     fatMesEscolhido: "2026-07",
+    outraPonta: null,
     ...mudancas,
   });
 

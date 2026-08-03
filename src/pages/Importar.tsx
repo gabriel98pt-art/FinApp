@@ -678,6 +678,17 @@ export default function Importar() {
                                 : "A conta que recebeu tem de ser diferente da de origem."}
                           </p>
                         )}
+                      {/* A outra ponta da mesma transferência, já lançada do
+                          lado contrário. Fica em tom próprio: não é "isto já
+                          foi importado", é "este dinheiro já está no app pelo
+                          outro lado". */}
+                      {l.outraPonta?.correspondencia && (
+                        <p className={styles.outraPonta}>
+                          Isto pode ser a mesma transferência que já tens registada como "
+                          {l.outraPonta.correspondencia.descricao}", do outro lado — vê se não vale
+                          a pena deixar de fora.
+                        </p>
+                      )}
                       {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                         <p className={styles.motivoDup}>
                           Parece com "{l.duplicata.correspondencia.descricao}" —{" "}

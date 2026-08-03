@@ -531,6 +531,11 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
 export function verificarDuplicata(
   tx: LinhaExtrato,
   existentes: ExistenteParaDedup[],
+  /** Comparar contra o sinal CONTRÁRIO em vez do mesmo. Serve um caso só: a
+   *  linha é uma transferência entre contas do próprio usuário, e a outra
+   *  ponta do mesmo dinheiro pode já estar lançada — como despesa se esta é
+   *  receita, ou ao contrário. Ver `analisarLinha`. */
+  sinalOposto = false,
 ): ResultadoDuplicata {
   const abs = Math.abs(tx.valor);
   const txIsCredit = tx.valor > 0;
@@ -542,7 +547,8 @@ export function verificarDuplicata(
     const exAbs = Math.abs(ex.valor);
     // valor* já em centavos inteiros — comparar direto (tolerância 2 cêntimos)
     if (Math.abs(exAbs - abs) >= 2) continue;
-    if (ex.valor > 0 !== txIsCredit) continue;
+    const mesmoSinal = ex.valor > 0 === txIsCredit;
+    if (mesmoSinal === sinalOposto) continue;
 
     const txD = new Date(tx.data + "T00:00:00").getTime();
     const exD = new Date(ex.data + "T00:00:00").getTime();
@@ -773,6 +779,19 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
   // ficava a saber que a fatura tinha sido paga.
   const ehPagamentoFatura = classificacao.tipo === "fatura";
 
+  // Segunda passagem, só para transferências: o MESMO dinheiro pode já estar
+  // no app pelo outro lado, lançado como despesa comum se esta linha é receita
+  // (ou ao contrário) — por exemplo se foi registado antes de existir o
+  // destino "transferência", ou pelo registo rápido. A comparação normal nunca
+  // o encontra, porque só olha para existentes do mesmo sinal. Isto é aviso,
+  // não veredito: nada fica bloqueado nem desmarcado por causa dele.
+  const outraPonta = ehTransferencia
+    ? (() => {
+        const achado = verificarDuplicata(tx, ctx.existentes, true);
+        return achado.status === "new" ? null : achado;
+      })()
+    : null;
+
   return {
     id,
     data: tx.data,
@@ -797,5 +816,6 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     contaDestino: "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: mesDe(tx.data),
+    outraPonta,
   };
 }

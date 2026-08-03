@@ -115,4 +115,9 @@ export interface LinhaAnalisada {
    *  própria linha, que é o palpite razoável, e é editável — quem paga a 2 de
    *  agosto a fatura de julho corrige aqui. */
   fatMesEscolhido: string;
+  /** Numa transferência, o lançamento de SINAL CONTRÁRIO que parece ser a
+   *  outra ponta do mesmo dinheiro, já registado. `null` quando não há nada
+   *  parecido — ou quando a linha não é transferência. É um aviso para o
+   *  usuário reconhecer o movimento, não um impedimento. */
+  outraPonta: ResultadoDuplicata | null;
 }

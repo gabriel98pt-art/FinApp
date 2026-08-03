@@ -662,3 +662,72 @@ describe("categorização aprendida do histórico", () => {
     expect(c.categoria).toBe("Assinaturas");
   });
 });
+
+describe("a outra ponta da transferência já registada", () => {
+  const base = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
+    locaisCarregamento: [],
+    cargasHistorico: [],
+  };
+  // Uma DESPESA comum já lançada — não uma `Transferencia` formal.
+  const despesaLancada: ExistenteParaDedup = {
+    id: "d1",
+    data: "2026-07-18",
+    valor: -25000,
+    descricao: "Transferência para poupança",
+    origem: "despesa",
+  };
+
+  test("receita nova acha a despesa do outro lado, apesar do sinal contrário", () => {
+    const r = analisarLinha(
+      { data: "2026-07-18", descricao: "Transferência recebida", valor: 25000 },
+      0,
+      { ...base, existentes: [despesaLancada] },
+    );
+    expect(r.outraPonta?.correspondencia?.id).toBe("d1");
+    // A checagem normal (mesmo sinal) não encontra nada — é outro aviso.
+    expect(r.duplicata.status).toBe("new");
+  });
+
+  test("não bloqueia nem desmarca nada — é só aviso", () => {
+    const r = analisarLinha(
+      { data: "2026-07-18", descricao: "Transferência recebida", valor: 25000 },
+      0,
+      { ...base, existentes: [despesaLancada] },
+    );
+    expect(r.acao).toBe("import");
+  });
+
+  test("transferência sem nada do lado oposto não inventa aviso", () => {
+    const r = analisarLinha(
+      { data: "2026-07-18", descricao: "Transferência recebida", valor: 25000 },
+      0,
+      { ...base, existentes: [{ ...despesaLancada, valor: -9900 }] },
+    );
+    expect(r.outraPonta).toBeNull();
+  });
+
+  test("linha que não é transferência nunca faz a segunda passagem", () => {
+    // Mesmo valor e data do lado oposto, mas isto é uma compra.
+    const r = analisarLinha({ data: "2026-07-18", descricao: "Mercadona", valor: 25000 }, 0, {
+      ...base,
+      existentes: [despesaLancada],
+    });
+    expect(r.outraPonta).toBeNull();
+  });
+
+  test("a duplicata normal, de mesmo sinal, continua a funcionar", () => {
+    const r = analisarLinha(
+      { data: "2026-07-18", descricao: "Transferência para poupança", valor: -25000 },
+      0,
+      { ...base, existentes: [despesaLancada] },
+    );
+    expect(r.duplicata.status).not.toBe("new");
+    expect(r.acao).toBe("skip");
+    // E do lado oposto não há nada, então nenhum aviso extra.
+    expect(r.outraPonta).toBeNull();
+  });
+});
