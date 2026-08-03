@@ -4,8 +4,15 @@
 
 import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
-import { criarTransferencia, semIndefinidos } from "./lancamentosService";
-import { criarCarga } from "./veiculoService";
+import {
+  atualizarDespesaFixa,
+  criarTransferencia,
+  removerDespesa,
+  removerReceita,
+  removerTransferencia,
+  semIndefinidos,
+} from "./lancamentosService";
+import { criarCarga, removerCarga, removerDespesaVeiculo } from "./veiculoService";
 import { diaDoMes } from "../utils/vencimentos";
 import type {
   CargaEletrica,
@@ -47,12 +54,14 @@ export function construirExistentes(
     data: r.data,
     valor: r.valor,
     descricao: `${r.fonte} ${r.descricao}`,
+    origem: "receita",
   }));
   const deDespesas: ExistenteParaDedup[] = despesas.map((d) => ({
     id: d.id,
     data: d.data,
     valor: -d.valor,
     descricao: `${d.descricao} ${d.categoria}`,
+    origem: "despesa",
   }));
   // A carga não tem campo de descrição: `local` é o nome curto do posto
   // ("Ionity A1", "Powerdot"), justamente o que costuma vir escrito na linha
@@ -64,6 +73,7 @@ export function construirExistentes(
     data: c.data,
     valor: -c.custo,
     descricao: c.local,
+    origem: "carga",
   }));
   // Na despesa do veículo é a `nota` que costuma guardar o nome de quem
   // recebeu (a oficina, o seguro), com a categoria a fazer de contexto — o
@@ -73,6 +83,7 @@ export function construirExistentes(
     data: d.data,
     valor: -d.valor,
     descricao: `${d.nota ?? ""} ${d.categoria}`.trim(),
+    origem: "despesaVeiculo",
   }));
   // Uma transferência vale por DUAS: o mesmo dinheiro já é conhecido como
   // saída da conta `de` e como entrada na conta `para`, e a linha nova do
@@ -85,8 +96,8 @@ export function construirExistentes(
   const deTransferencias: ExistenteParaDedup[] = transferencias.flatMap((t) => {
     const descricao = t.descricao ?? `${t.de} → ${t.para}`;
     return [
-      { id: t.id, data: t.data, valor: -t.valor, descricao },
-      { id: t.id, data: t.data, valor: t.valor, descricao },
+      { id: t.id, data: t.data, valor: -t.valor, descricao, origem: "transferencia" as const },
+      { id: t.id, data: t.data, valor: t.valor, descricao, origem: "transferencia" as const },
     ];
   });
   // Despesa fixa paga não tem lançamento espelho — o "pago" é só uma marca no
@@ -108,6 +119,8 @@ export function construirExistentes(
             data: diaDoMes(mes, d.diaVencimento!),
             valor: -d.valor,
             descricao: `${d.descricao} ${d.categoria}`,
+            origem: "despesaFixa" as const,
+            mes,
           })),
   );
   return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo, ...deTransferencias, ...deFixas];
@@ -207,4 +220,56 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
   for (const dados of cargas) await criarCarga(uid, dados);
   for (const dados of transferencias) await criarTransferencia(uid, dados);
   return Object.keys(atualizacoes).length + cargas.length + transferencias.length;
+}
+
+/** Apaga os registos existentes que o usuário marcou na revisão de duplicatas.
+ *
+ *  Só corre para o que ELE marcou, uma linha de cada vez — a pontuação de
+ *  duplicata é palpite, e apagar sozinho um lançamento verdadeiro seria pior
+ *  do que ficar com um repetido.
+ *
+ *  Despesa fixa é o caso à parte: apagá-la deitaria fora a recorrência toda.
+ *  Ali desmarca-se o mês que bateu, que é o que corresponde ao dinheiro
+ *  repetido.
+ *
+ *  A mesma chave nunca é apagada duas vezes: uma transferência aparece na
+ *  lista de comparação com os dois sinais, e o mesmo registo pode bater em
+ *  mais do que uma linha. */
+export async function apagarExistentes(
+  uid: string,
+  existentes: ExistenteParaDedup[],
+  despesasFixas: DespesaFixa[],
+) {
+  const feitos = new Set<string>();
+  for (const ex of existentes) {
+    const chave = `${ex.origem}:${ex.id}:${ex.mes ?? ""}`;
+    if (feitos.has(chave)) continue;
+    feitos.add(chave);
+    switch (ex.origem) {
+      case "receita":
+        await removerReceita(uid, ex.id);
+        break;
+      case "despesa":
+        await removerDespesa(uid, ex.id);
+        break;
+      case "carga":
+        await removerCarga(uid, ex.id);
+        break;
+      case "despesaVeiculo":
+        await removerDespesaVeiculo(uid, ex.id);
+        break;
+      case "transferencia":
+        await removerTransferencia(uid, ex.id);
+        break;
+      case "despesaFixa": {
+        const fixa = despesasFixas.find((f) => f.id === ex.id);
+        if (!fixa || !ex.mes) break;
+        await atualizarDespesaFixa(uid, {
+          ...fixa,
+          pagoPorMes: { ...fixa.pagoPorMes, [ex.mes]: false },
+        });
+        break;
+      }
+    }
+  }
 }

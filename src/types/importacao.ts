@@ -1,4 +1,4 @@
-import type { Cents, Id, IsoDate } from "./common";
+import type { Cents, Id, IsoDate, YearMonth } from "./common";
 
 /** Uma linha crua do extrato, já parseada (CSV ou texto colado). */
 export interface LinhaExtrato {
@@ -29,11 +29,20 @@ export interface Classificacao {
 
 export type StatusDuplicata = "exact_duplicate" | "duplicate" | "possible" | "new";
 
+/** De que domínio veio o registo que bateu — sem isto sabe-se QUAL registo é,
+ *  mas não onde ele mora, e não há como lhe mexer a partir da revisão. */
+export type OrigemExistente =
+  "receita" | "despesa" | "carga" | "despesaVeiculo" | "transferencia" | "despesaFixa";
+
 export interface ExistenteParaDedup {
   id: Id;
   data: IsoDate;
   valor: Cents;
   descricao: string;
+  origem: OrigemExistente;
+  /** Só em `despesaFixa`: o mês que estava marcado como pago. Apagar aqui é
+   *  desmarcar esse mês, nunca apagar a despesa recorrente inteira. */
+  mes?: YearMonth;
 }
 
 export interface ResultadoDuplicata {

@@ -13,20 +13,32 @@ vi.mock("firebase/database", () => ({
 vi.mock("./lancamentosService", async (original) => ({
   ...(await original<typeof import("./lancamentosService")>()),
   criarTransferencia: vi.fn(async () => "id-transf"),
+  removerReceita: vi.fn(async () => undefined),
+  removerDespesa: vi.fn(async () => undefined),
+  removerTransferencia: vi.fn(async () => undefined),
+  atualizarDespesaFixa: vi.fn(async () => undefined),
 }));
 vi.mock("./veiculoService", async (original) => ({
   ...(await original<typeof import("./veiculoService")>()),
   criarCarga: vi.fn(async () => "id-carga"),
+  removerCarga: vi.fn(async () => undefined),
+  removerDespesaVeiculo: vi.fn(async () => undefined),
 }));
 import {
+  apagarExistentes,
   confirmarImportacao,
   construirExistentes,
   dadosDaCarga,
   dadosDaTransferencia,
 } from "./importacaoService";
 import { update } from "firebase/database";
-import { criarCarga } from "./veiculoService";
-import { criarTransferencia } from "./lancamentosService";
+import { criarCarga, removerCarga } from "./veiculoService";
+import {
+  atualizarDespesaFixa,
+  criarTransferencia,
+  removerDespesa,
+  removerReceita,
+} from "./lancamentosService";
 import { calcularFaturaAutomatica } from "../utils/fatura";
 import { analisarLinha, verificarDuplicata } from "../utils/importacao";
 import type {
@@ -34,6 +46,7 @@ import type {
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
+  ExistenteParaDedup,
   LinhaAnalisada,
   Receita,
   Transferencia,
@@ -103,8 +116,14 @@ describe("construirExistentes", () => {
   test("carga elétrica e despesa do veículo entram, como despesa", () => {
     const existentes = construirExistentes([], [], [CARGA], [DESPESA_VEICULO], [], []);
     expect(existentes).toEqual([
-      { id: "v-c1", data: "2026-07-08", valor: -1050, descricao: "Powerdot" },
-      { id: "v-d1", data: "2026-07-20", valor: -8500, descricao: "Norauto Manutenção" },
+      { id: "v-c1", data: "2026-07-08", valor: -1050, descricao: "Powerdot", origem: "carga" },
+      {
+        id: "v-d1",
+        data: "2026-07-20",
+        valor: -8500,
+        descricao: "Norauto Manutenção",
+        origem: "despesaVeiculo",
+      },
     ]);
   });
 
@@ -126,6 +145,7 @@ describe("construirExistentes", () => {
       data: "2026-07-05",
       valor: 200000,
       descricao: "Salário Julho",
+      origem: "receita",
     });
   });
 });
@@ -712,9 +732,23 @@ describe("transferência já registada aparece nos dois lados", () => {
   const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA], []);
 
   test("uma transferência vira duas entradas, uma por sentido", () => {
+    // O mesmo registo, visto dos dois lados — e marcado como transferência,
+    // para a revisão saber o que apagar se o usuário quiser.
     expect(existentes).toEqual([
-      { id: "t-1", data: "2026-07-18", valor: -25000, descricao: "Transferência para a poupança" },
-      { id: "t-1", data: "2026-07-18", valor: 25000, descricao: "Transferência para a poupança" },
+      {
+        id: "t-1",
+        data: "2026-07-18",
+        valor: -25000,
+        descricao: "Transferência para a poupança",
+        origem: "transferencia",
+      },
+      {
+        id: "t-1",
+        data: "2026-07-18",
+        valor: 25000,
+        descricao: "Transferência para a poupança",
+        origem: "transferencia",
+      },
     ]);
   });
 
@@ -786,9 +820,24 @@ describe("despesa fixa paga entra na busca por duplicata", () => {
   const existentes = construirExistentes([], [], [], [], [], [FIXA]);
 
   test("uma entrada por mês PAGO, na data do vencimento", () => {
+    // O `mes` vem junto: apagar aqui é desmarcar o mês, não a fixa inteira.
     expect(existentes).toEqual([
-      { id: "f-1", data: "2026-07-08", valor: -65000, descricao: "Renda Casa" },
-      { id: "f-1", data: "2026-06-08", valor: -65000, descricao: "Renda Casa" },
+      {
+        id: "f-1",
+        data: "2026-07-08",
+        valor: -65000,
+        descricao: "Renda Casa",
+        origem: "despesaFixa",
+        mes: "2026-07",
+      },
+      {
+        id: "f-1",
+        data: "2026-06-08",
+        valor: -65000,
+        descricao: "Renda Casa",
+        origem: "despesaFixa",
+        mes: "2026-06",
+      },
     ]);
   });
 
@@ -824,5 +873,64 @@ describe("despesa fixa paga entra na busca por duplicata", () => {
       pagoPorMes: { "2026-02": true },
     };
     expect(construirExistentes([], [], [], [], [], [dia31])[0].data).toBe("2026-02-28");
+  });
+});
+
+describe("apagar o registo antigo que o usuário marcou", () => {
+  const ex = (mudancas: Partial<ExistenteParaDedup> = {}): ExistenteParaDedup => ({
+    id: "x1",
+    data: "2026-07-10",
+    valor: -4590,
+    descricao: "Continente Alimentação",
+    origem: "despesa",
+    ...mudancas,
+  });
+
+  beforeEach(() => {
+    vi.mocked(removerDespesa).mockClear();
+    vi.mocked(removerReceita).mockClear();
+    vi.mocked(removerCarga).mockClear();
+    vi.mocked(atualizarDespesaFixa).mockClear();
+  });
+
+  test("cada origem chama a remoção do seu domínio", async () => {
+    await apagarExistentes(
+      "u1",
+      [ex(), ex({ id: "r1", origem: "receita" }), ex({ id: "c1", origem: "carga" })],
+      [],
+    );
+    expect(removerDespesa).toHaveBeenCalledWith("u1", "x1");
+    expect(removerReceita).toHaveBeenCalledWith("u1", "r1");
+    expect(removerCarga).toHaveBeenCalledWith("u1", "c1");
+  });
+
+  test("despesa fixa não é apagada — só o mês deixa de estar pago", async () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Renda",
+      valor: 65000,
+      categoria: "Casa",
+      diaVencimento: 8,
+      pagoPorMes: { "2026-07": true, "2026-06": true },
+    };
+    await apagarExistentes("u1", [ex({ id: "f1", origem: "despesaFixa", mes: "2026-07" })], [fixa]);
+    expect(atualizarDespesaFixa).toHaveBeenCalledWith("u1", {
+      ...fixa,
+      // Junho continua pago; a despesa recorrente continua a existir.
+      pagoPorMes: { "2026-07": false, "2026-06": true },
+    });
+  });
+
+  test("o mesmo registo marcado duas vezes só é apagado uma", async () => {
+    // Acontece de verdade: uma transferência entra na comparação com os dois
+    // sinais, e pode bater em duas linhas do mesmo extrato.
+    await apagarExistentes("u1", [ex(), ex(), ex({ valor: 4590 })], []);
+    expect(removerDespesa).toHaveBeenCalledTimes(1);
+  });
+
+  test("sem nada marcado não se apaga nada", async () => {
+    await apagarExistentes("u1", [], []);
+    expect(removerDespesa).not.toHaveBeenCalled();
+    expect(atualizarDespesaFixa).not.toHaveBeenCalled();
   });
 });

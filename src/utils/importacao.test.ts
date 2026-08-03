@@ -203,6 +203,7 @@ describe("verificarDuplicata — score-based (seção da spec)", () => {
     data: "2026-07-10",
     valor: -4590,
     descricao: "Mercado Continente",
+    origem: "despesa",
   };
 
   test("duplicata exata: mesma data, mesmo valor, descrição quase idêntica", () => {
@@ -260,6 +261,7 @@ describe("analisarLinha — decisão combinada", () => {
       id: "e1",
       data: "2026-07-10",
       valor: -1000,
+      origem: "despesa",
       descricao: "Compra genérica",
     };
     const r = analisarLinha(linha(), 0, {

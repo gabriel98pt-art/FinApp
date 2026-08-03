@@ -317,3 +317,64 @@
     position: static;
   }
 }
+
+/* Revisão de duplicatas: o que entra ao lado do que já existe, uma coluna
+   para cada, com a caixa de apagar por baixo. */
+.revisaoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.revisaoItem {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+
+.revisaoLado {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.revisaoRotulo {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.revisaoDesc {
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.revisaoMeta {
+  font-size: 0.75rem;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A caixa ocupa a largura toda, por baixo das duas colunas. */
+.revisaoApagar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--txt);
+}
+
+.revisaoApagar input {
+  width: 17px;
+  height: 17px;
+}

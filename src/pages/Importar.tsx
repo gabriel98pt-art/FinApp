@@ -4,7 +4,9 @@ import Pagina, { EstadoVazio } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
 import Seletor from "../components/Seletor";
+import BottomSheet from "../components/BottomSheet";
 import {
+  apagarExistentes,
   construirExistentes,
   confirmarImportacao,
   dadosDaCarga,
@@ -26,7 +28,14 @@ import { analisarLinha, estimarKwh } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
-import type { Confianca, DecisaoLinha, DestinoLinha, LinhaAnalisada, LinhaExtrato } from "../types";
+import type {
+  Confianca,
+  DecisaoLinha,
+  DestinoLinha,
+  ExistenteParaDedup,
+  LinhaAnalisada,
+  LinhaExtrato,
+} from "../types";
 import styles from "./Importar.module.css";
 
 const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
@@ -98,6 +107,12 @@ export default function Importar() {
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
   const [arrastando, setArrastando] = useState(false);
+  /** Linhas que vão entrar e que se parecem com algo já registado — quando há,
+   *  passam pela folha de revisão antes de qualquer gravação. */
+  const [revisaoDup, setRevisaoDup] = useState<LinhaAnalisada[] | null>(null);
+  /** Ids das linhas cujo registo antigo o usuário mandou apagar. Desligado por
+   *  omissão: apagar é sempre escolha dele, nunca automático. */
+  const [marcadasParaApagar, setMarcadasParaApagar] = useState<Set<number>>(new Set());
   const arquivoRef = useRef<HTMLInputElement>(null);
 
   const categoriasConfiguradas = [...cfg.categoriasFixas, ...cfg.categoriasCorrentes];
@@ -237,6 +252,27 @@ export default function Importar() {
     setLinhas((atual) => atual?.map((l) => ({ ...l, acao })) ?? null);
   }
 
+  /** Grava tudo o que está marcado para importar — sempre tudo, sem exceção —
+   *  e só depois apaga os registos antigos que o usuário tenha mandado apagar
+   *  na revisão. Por esta ordem: se apagar falhar, ficou um repetido, que se
+   *  resolve à mão; ao contrário, teria desaparecido dinheiro. */
+  async function gravar(aImportar: LinhaAnalisada[], apagar: ExistenteParaDedup[]) {
+    if (!uid) return;
+    setEnviando(true);
+    try {
+      const n = await confirmarImportacao(uid, aImportar);
+      if (apagar.length) await apagarExistentes(uid, apagar, despesasFixas);
+      mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
+      setLinhas(null);
+      setTexto("");
+      setRevisaoDup(null);
+    } catch {
+      mostrarToast("Não foi possível importar. Tente de novo.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
   async function confirmar() {
     if (!uid || !linhas) return;
     const aImportar = linhas.filter((l) => l.acao === "import");
@@ -248,17 +284,20 @@ export default function Importar() {
       mostrarToast(`${incompletas.length} linha(s) por completar.`);
       return;
     }
-    setEnviando(true);
-    try {
-      const n = await confirmarImportacao(uid, aImportar);
-      mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
-      setLinhas(null);
-      setTexto("");
-    } catch {
-      mostrarToast("Não foi possível importar. Tente de novo.");
-    } finally {
-      setEnviando(false);
+    // Alguma das que vão entrar já se parece com algo que existe? Nesse caso
+    // mostra-se o que bateu antes de gravar. A maioria das importações não
+    // passa por aqui e segue direta, como sempre seguiu.
+    const suspeitas = aImportar.filter(
+      (l) =>
+        (l.decisao === "duplicata_provavel" || l.decisao === "revisao") &&
+        l.duplicata.correspondencia,
+    );
+    if (suspeitas.length > 0) {
+      setMarcadasParaApagar(new Set());
+      setRevisaoDup(suspeitas);
+      return;
     }
+    await gravar(aImportar, []);
   }
 
   const visiveis = linhas?.filter((l) => filtro === "todas" || l.decisao === filtro) ?? [];
@@ -583,6 +622,74 @@ export default function Importar() {
             </>
           ))}
       </AbaTransicao>
+
+      {/* Revisão antes de gravar: o que vai entrar, ao lado do que já existe e
+          se parece com isso. A importação acontece de qualquer maneira — o que
+          se decide aqui é só se o registo ANTIGO também sai. Desligado por
+          omissão: a pontuação de duplicata é palpite, e apagar por engano um
+          lançamento verdadeiro é pior do que ficar com um repetido. */}
+      <BottomSheet
+        aberta={revisaoDup !== null}
+        aoFechar={() => setRevisaoDup(null)}
+        titulo="Isto já parece existir"
+      >
+        <div className={styles.revisaoLista}>
+          {revisaoDup?.map((l) => {
+            const ex = l.duplicata.correspondencia!;
+            const marcada = marcadasParaApagar.has(l.id);
+            return (
+              <div key={l.id} className={styles.revisaoItem}>
+                <div className={styles.revisaoLado}>
+                  <span className={styles.revisaoRotulo}>A importar</span>
+                  <span className={styles.revisaoDesc}>{l.descricao}</span>
+                  <span className={styles.revisaoMeta}>
+                    {l.data.slice(8, 10)}/{l.data.slice(5, 7)} ·{" "}
+                    {formatMoney(l.valor, cfg.currency)}
+                  </span>
+                </div>
+                <div className={styles.revisaoLado}>
+                  <span className={styles.revisaoRotulo}>Já registado</span>
+                  <span className={styles.revisaoDesc}>{ex.descricao}</span>
+                  <span className={styles.revisaoMeta}>
+                    {ex.data.slice(8, 10)}/{ex.data.slice(5, 7)} ·{" "}
+                    {formatMoney(ex.valor, cfg.currency)}
+                  </span>
+                </div>
+                <label className={styles.revisaoApagar}>
+                  <input
+                    type="checkbox"
+                    checked={marcada}
+                    onChange={(e) =>
+                      setMarcadasParaApagar((atual) => {
+                        const novo = new Set(atual);
+                        if (e.target.checked) novo.add(l.id);
+                        else novo.delete(l.id);
+                        return novo;
+                      })
+                    }
+                  />
+                  {ex.origem === "despesaFixa"
+                    ? "também desmarcar esse mês como pago"
+                    : "também apagar o registo existente"}
+                </label>
+              </div>
+            );
+          })}
+        </div>
+        <button
+          className={styles.confirmar}
+          disabled={enviando}
+          onClick={() => {
+            const aImportar = linhas?.filter((l) => l.acao === "import") ?? [];
+            const apagar = (revisaoDup ?? [])
+              .filter((l) => marcadasParaApagar.has(l.id))
+              .map((l) => l.duplicata.correspondencia!);
+            void gravar(aImportar, apagar);
+          }}
+        >
+          {enviando ? "Aguarde…" : `Importar mesmo assim (${totalImportar})`}
+        </button>
+      </BottomSheet>
     </Pagina>
   );
 }
