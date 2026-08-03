@@ -72,6 +72,13 @@ export interface LinhaAnalisada {
   acao: "import" | "skip";
   /** Categoria editável (começa na sugestão da classificação). */
   categoriaEscolhida: string;
+  /** Receita ou despesa, à escolha do usuário — começa no que a classificação
+   *  decidiu, mas manda sobre ela. Sem isto, um classificador que errasse o
+   *  lado não tinha correção possível: o tipo não é editável depois de gravado
+   *  (receitas e despesas são coleções separadas), e a revisão é a única
+   *  oportunidade. `fatura` e `transferencia` continuam a começar em despesa,
+   *  como sempre foi. */
+  tipoEscolhido: "receita" | "despesa";
   /** Destino editável (começa em "carga" se a linha foi reconhecida como uma). */
   destino: DestinoLinha;
   /** Só com `destino === "carga"`: posto escolhido, dos cadastrados. */

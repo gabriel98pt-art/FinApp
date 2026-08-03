@@ -209,6 +209,7 @@ describe("dadosDaCarga", () => {
     decisao: "auto_classificada",
     acao: "import",
     categoriaEscolhida: "Veículo",
+    tipoEscolhido: "despesa",
     destino: "carga",
     localCarga: "Powerdot",
     kwhCarga: "10",
@@ -257,6 +258,7 @@ describe("confirmarImportacao com recarga", () => {
     decisao: "auto_classificada",
     acao: "import",
     categoriaEscolhida: "Veículo",
+    tipoEscolhido: "despesa",
     destino: "lancamento",
     localCarga: "",
     kwhCarga: "",
@@ -340,6 +342,7 @@ describe("transferência vinda de cartão de crédito", () => {
     decisao: "revisao",
     acao: "import",
     categoriaEscolhida: "Transferência",
+    tipoEscolhido: "despesa",
     destino: "transferencia_cartao",
     localCarga: "",
     kwhCarga: "",
@@ -409,6 +412,8 @@ describe("transferência vinda de cartão de crédito", () => {
           motivo: "regra",
         },
         categoriaEscolhida: "Salário",
+        // Quem decide o lado é esta escolha, não a classificação.
+        tipoEscolhido: "receita",
       }),
     ]);
 
@@ -450,6 +455,7 @@ describe("a transferência importada chega à fatura do cartão", () => {
       decisao: "revisao",
       acao: "import",
       categoriaEscolhida: "Transferência",
+      tipoEscolhido: "despesa",
       destino: "transferencia_cartao",
       localCarga: "",
       kwhCarga: "",
@@ -491,6 +497,7 @@ describe("fonte da receita e origem da transferência", () => {
     decisao: "nova",
     acao: "import",
     categoriaEscolhida,
+    tipoEscolhido: "receita",
     destino: "lancamento",
     localCarga: "",
     kwhCarga: "",
@@ -551,5 +558,51 @@ describe("fonte da receita e origem da transferência", () => {
     expect(
       calcularFaturaAutomatica("AB Gold (C)", "2026-07", { ...dados, transferencias: [doCartao] }),
     ).toBe(1611);
+  });
+});
+
+describe("o lado escolhido à mão manda sobre o automático", () => {
+  const estorno = (tipoEscolhido: "receita" | "despesa"): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-20",
+    descricao: "Mercadona Amial",
+    valor: 20,
+    // O automático classificou como despesa (bateu em "Mercadona"), ainda que
+    // marcando a contradição — o valor está a entrar.
+    classificacao: {
+      tipo: "despesa",
+      categoria: "Mercado",
+      incerto: true,
+      confianca: "high",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "revisao",
+    acao: "import",
+    categoriaEscolhida: tipoEscolhido === "receita" ? "Outros" : "Mercado",
+    tipoEscolhido,
+    destino: "lancamento",
+    localCarga: "",
+    kwhCarga: "",
+    contaOrigem: "",
+    contaDestino: "",
+  });
+
+  beforeEach(() => vi.mocked(update).mockClear());
+
+  test("virado para Receita, grava em receitas apesar da classificação dizer despesa", async () => {
+    await confirmarImportacao("u1", [estorno("receita")]);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, { fonte?: string }>;
+    const [caminho, valor] = Object.entries(gravado)[0];
+    expect(caminho.startsWith("receitas/")).toBe(true);
+    expect(valor.fonte).toBe("Outros");
+  });
+
+  test("deixado como Despesa, continua a gravar onde sempre gravou", async () => {
+    await confirmarImportacao("u1", [estorno("despesa")]);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<string, { categoria?: string }>;
+    const [caminho, valor] = Object.entries(gravado)[0];
+    expect(caminho.startsWith("despesasCorrentes/")).toBe(true);
+    expect(valor.categoria).toBe("Mercado");
   });
 });

@@ -687,6 +687,7 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     decisao,
     acao,
     categoriaEscolhida: classificacao.categoria ?? "Outros",
+    tipoEscolhido: classificacao.tipo === "receita" ? "receita" : "despesa",
     destino: carga.ehCarga
       ? "carga"
       : transferenciaSuspeita

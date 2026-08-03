@@ -124,9 +124,8 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
 
   for (const linha of linhas) {
     if (linha.acao !== "import" || linha.destino !== "lancamento") continue;
-    const { classificacao } = linha;
 
-    if (classificacao.tipo === "receita") {
+    if (linha.tipoEscolhido === "receita") {
       const id = push(ref(db, `${raiz}/receitas`)).key!;
       const receita: Omit<Receita, "id"> = {
         descricao: linha.descricao,
@@ -136,9 +135,14 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
       };
       atualizacoes[`receitas/${id}`] = semIndefinidos(receita);
     } else {
-      // despesa, fatura ou transferência: todas viram despesa corrente com
-      // a categoria escolhida — evita atribuir automaticamente a um cartão/
-      // fatura específico sem confirmação do usuário (ver nota em types/importacao.ts)
+      // Despesa é o outro lado do interruptor — e é onde caem também fatura e
+      // transferência, que viram despesa corrente com a categoria escolhida:
+      // evita atribuir automaticamente a um cartão/fatura específico sem
+      // confirmação do usuário (ver nota em types/importacao.ts).
+      //
+      // Quem manda é a escolha do usuário na revisão, não a classificação: o
+      // automático erra o lado (um estorno do supermercado bate numa regra de
+      // despesa), e este era o único sítio onde isso ainda dava para corrigir.
       const id = push(ref(db, `${raiz}/despesasCorrentes`)).key!;
       const despesa: Omit<DespesaCorrente, "id"> = {
         descricao: linha.descricao,

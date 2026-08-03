@@ -45,6 +45,16 @@ const ROTULO_DESTINO: Record<DestinoLinha, string> = {
   transferencia_cartao: "Veio de outra conta minha",
 };
 
+/** Receita ou despesa, à mão. O automático acerta quase sempre, mas quando
+ *  erra o lado — um estorno do supermercado que bate numa regra de despesa —
+ *  a revisão é a última oportunidade de corrigir: depois de gravado, o tipo
+ *  não se muda (são coleções separadas). */
+const TIPOS: LinhaAnalisada["tipoEscolhido"][] = ["despesa", "receita"];
+const ROTULO_TIPO: Record<LinhaAnalisada["tipoEscolhido"], string> = {
+  despesa: "Despesa",
+  receita: "Receita",
+};
+
 const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
   { id: "todas", rotulo: "Todas" },
   { id: "auto_classificada", rotulo: "Auto-classificadas" },
@@ -459,20 +469,42 @@ export default function Importar() {
                             </span>
                           </>
                         ) : (
-                          <Seletor
-                            variante="inline"
-                            rotulo={
-                              l.classificacao.tipo === "receita"
-                                ? `Fonte de ${l.descricao}`
-                                : `Categoria de ${l.descricao}`
-                            }
-                            nivel={0}
-                            valor={l.categoriaEscolhida}
-                            opcoes={
-                              l.classificacao.tipo === "receita" ? opcoesFonte : opcoesCategoria
-                            }
-                            aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
-                          />
+                          <>
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Receita ou despesa — ${l.descricao}`}
+                              nivel={0}
+                              valor={l.tipoEscolhido}
+                              opcoes={TIPOS}
+                              rotuloOpcao={(t) => ROTULO_TIPO[t as LinhaAnalisada["tipoEscolhido"]]}
+                              aoMudar={(t) => {
+                                const tipo = t as LinhaAnalisada["tipoEscolhido"];
+                                // Trocar de lado troca a lista ao lado. Um
+                                // valor da lista antiga não pode ficar para
+                                // trás — "Extra" é fonte de receita, e ficaria
+                                // gravado como se fosse categoria de despesa.
+                                const lista = tipo === "receita" ? opcoesFonte : opcoesCategoria;
+                                atualizarLinha(l.id, {
+                                  tipoEscolhido: tipo,
+                                  categoriaEscolhida: lista.includes(l.categoriaEscolhida)
+                                    ? l.categoriaEscolhida
+                                    : "Outros",
+                                });
+                              }}
+                            />
+                            <Seletor
+                              variante="inline"
+                              rotulo={
+                                l.tipoEscolhido === "receita"
+                                  ? `Fonte de ${l.descricao}`
+                                  : `Categoria de ${l.descricao}`
+                              }
+                              nivel={0}
+                              valor={l.categoriaEscolhida}
+                              opcoes={l.tipoEscolhido === "receita" ? opcoesFonte : opcoesCategoria}
+                              aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
+                            />
+                          </>
                         )}
                       </div>
                       {l.acao === "import" && l.destino === "carga" && dadosDaCarga(l) === null && (

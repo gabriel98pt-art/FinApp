@@ -435,4 +435,25 @@ describe("sinal contraditório com o tipo", () => {
     });
     expect(r.classificacao.incerto).toBe(true);
   });
+
+  test("o tipo escolhido começa no que a classificação decidiu", () => {
+    const receita = analisarLinha({ data: "2026-07-20", descricao: "Salário", valor: 1000 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(receita.tipoEscolhido).toBe("receita");
+    const despesa = analisarLinha({ data: "2026-07-20", descricao: "Lidl", valor: -1000 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(despesa.tipoEscolhido).toBe("despesa");
+    // Transferência colapsa para despesa, como sempre foi.
+    const transf = analisarLinha(
+      { data: "2026-07-20", descricao: "Transferência para LUIS", valor: -1000 },
+      0,
+      { ...ctx, categoriasConfiguradas: [] },
+    );
+    expect(transf.classificacao.tipo).toBe("transferencia");
+    expect(transf.tipoEscolhido).toBe("despesa");
+  });
 });
