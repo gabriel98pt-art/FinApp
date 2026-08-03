@@ -25,4 +25,5 @@ export const CONFIG_PADRAO: ConfigConta = {
   faturaManual: {},
   faturasPagas: {},
   locaisCarregamento: [],
+  intermediadoresParcelamento: [],
 };

@@ -81,6 +81,7 @@ export default function RegistroRapido() {
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
+  const [intermediador, setIntermediador] = useState("");
   // Folha aninhada do parcelamento (os campos dela ficavam dentro desta folha
   // e forçavam rolagem, já que a altura agora é fixa).
   const [folhaParcelamento, setFolhaParcelamento] = useState(false);
@@ -227,6 +228,7 @@ export default function RegistroRapido() {
           categoria: etiquetaFinal,
           cartao: conta || null,
           autoDebit,
+          intermediador: intermediador || undefined,
           pagoPorMes: {},
           nota: notaFinal,
         });
@@ -505,6 +507,16 @@ export default function RegistroRapido() {
             {autoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
             Débito automático — entra na fatura do cartão
           </button>
+
+          <Seletor
+            rotulo="Intermediador (opcional)"
+            valor={intermediador}
+            opcoes={cfg.intermediadoresParcelamento}
+            aoMudar={setIntermediador}
+            rotuloVazio="Sem intermediador"
+            aviso="Nenhum intermediador guardado — a lista vive na aba Parcelas."
+            nivel={2}
+          />
 
           <div className={styles.campo}>
             <span>Como você sabe o valor</span>

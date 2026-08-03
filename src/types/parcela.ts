@@ -30,8 +30,13 @@ export interface Parcela {
    *  para o devido histórico não mudar. (Correção do double-charge do app
    *  antigo, mesma família dos bugs da seção 4.1.) */
   pagoPorMes: Record<YearMonth, boolean | "fatura">;
-  /** Dia do mês do vencimento (1-31), usado pra marcar no Calendário. */
+  /** Dia do mês do vencimento (1-31), usado pra marcar no Calendário. Em
+   *  débito automático no cartão vale o dia da FATURA — ver
+   *  `diaVencimentoEfetivo`. */
   diaVencimento?: number;
+  /** Quem intermedia o parcelamento (Klarna, Scalapay…), da lista do usuário.
+   *  Opcional: uma parcela sem intermediador é o caso normal. */
+  intermediador?: string;
   /** Descrição livre, separada do nome curto em `descricao`. */
   nota?: string;
 }

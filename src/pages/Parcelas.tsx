@@ -20,6 +20,7 @@ import {
   quitarParcela,
 } from "../services/parcelasService";
 import { atualizarParcela } from "../services/lancamentosService";
+import { adicionarItemLista, removerItemLista } from "../services/cfgService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -167,6 +168,7 @@ function FormParcela({
   const [dia, setDia] = useState("");
   const [categoria, setCategoria] = useState("");
   const [cartao, setCartao] = useState("");
+  const [intermediador, setIntermediador] = useState("");
   const [autoDebit, setAutoDebit] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -186,6 +188,7 @@ function FormParcela({
     setDia(editando?.diaVencimento ? String(editando.diaVencimento) : "");
     setCategoria(editando?.categoria ?? "");
     setCartao(editando?.cartao ?? "");
+    setIntermediador(editando?.intermediador ?? "");
     setAutoDebit(!!editando?.autoDebit);
     setErro(null);
   }
@@ -209,6 +212,7 @@ function FormParcela({
       diaVencimento: diaNum,
       categoria: categoria || "Parcelas",
       cartao: cartao || null,
+      intermediador: intermediador || undefined,
       autoDebit: cartaoCredito && autoDebit,
     };
     try {
@@ -318,6 +322,14 @@ function FormParcela({
           aoMudar={setCartao}
           rotuloVazio="Sem cartão"
         />
+        <Seletor
+          rotulo="Intermediador (opcional)"
+          valor={intermediador}
+          opcoes={cfg.intermediadoresParcelamento}
+          aoMudar={setIntermediador}
+          rotuloVazio="Sem intermediador"
+          aviso="Nenhum intermediador guardado ainda — adicione um na lista abaixo da tela."
+        />
         {cartaoCredito && (
           <label className={styles.checkbox}>
             <input
@@ -361,6 +373,32 @@ export default function Parcelas() {
   // Esconder as já pagas até ao fim: escolha da visita, não uma preferência
   // guardada — quem quer conferir o histórico volta a mostrar num toque.
   const [esconderQuitadas, setEsconderQuitadas] = useState(false);
+  const [novoIntermediador, setNovoIntermediador] = useState("");
+  const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
+
+  async function adicionarIntermediador(e: FormEvent) {
+    e.preventDefault();
+    const nome = novoIntermediador.trim();
+    if (!nome) return mostrarToast("Escreva um nome primeiro.");
+    try {
+      await adicionarItemLista(uid!, cfg, "intermediadoresParcelamento", nome);
+      mostrarToast(`✓ "${nome}" adicionado`);
+      setNovoIntermediador("");
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+    }
+  }
+
+  async function removerIntermediador(nome: string) {
+    if (!(await confirmar(`Remover "${nome}"? Parcelas já criadas não mudam.`))) return;
+    try {
+      await removerItemLista(uid!, cfg, "intermediadoresParcelamento", nome);
+      mostrarToast(`"${nome}" removido`);
+    } catch {
+      mostrarToast("Não foi possível remover.");
+    }
+  }
 
   function abrirNova() {
     setEditando(null);
@@ -441,6 +479,41 @@ export default function Parcelas() {
           ))}
         </div>
       )}
+
+      {/* A lista de intermediadores vive aqui, junto de quem a usa, e não em
+          Definições — mesma razão dos locais de carregamento estarem no
+          Veículo: é conceito deste domínio, não configuração geral. */}
+      <form className={styles.gerir} onSubmit={adicionarIntermediador}>
+        <p className={styles.gerirTitulo}>Intermediadores de parcelamento</p>
+        {cfg.intermediadoresParcelamento.length > 0 && (
+          <ul className={styles.chips}>
+            {cfg.intermediadoresParcelamento.map((i) => (
+              <li key={i} className={styles.chip}>
+                {i}
+                <button
+                  type="button"
+                  className={styles.chipRemover}
+                  aria-label={`Remover ${i}`}
+                  onClick={() => void removerIntermediador(i)}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className={styles.gerirLinha}>
+          <input
+            placeholder="Nome (ex. Klarna)"
+            aria-label="Nome do intermediador"
+            value={novoIntermediador}
+            onChange={(e) => setNovoIntermediador(e.target.value)}
+          />
+          <button type="submit" className={styles.gerirBotao}>
+            Adicionar
+          </button>
+        </div>
+      </form>
 
       <FormParcela
         aberta={folhaAberta}

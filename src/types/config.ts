@@ -67,6 +67,10 @@ export interface ConfigConta {
 
   /** Locais de carregamento elétrico salvos (antigo `locais`). */
   locaisCarregamento: string[];
+  /** Quem intermedia os parcelamentos (Klarna, Scalapay…). Lista do próprio
+   *  usuário, gerida na aba Parcelas — é conceito daquele domínio, como os
+   *  locais de carregamento são do Veículo. */
+  intermediadoresParcelamento: string[];
 
   /** Cores centrais escolhidas pelo usuário, POR TEMA — os tons de cada token
    *  já são diferentes entre claro e escuro, então um valor só não serviria

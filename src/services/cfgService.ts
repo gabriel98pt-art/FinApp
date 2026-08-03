@@ -145,7 +145,8 @@ type ListaDeCategorias =
   | "categoriasCorrentes"
   | "categoriasVeiculo"
   | "fontesReceita"
-  | "locaisCarregamento";
+  | "locaisCarregamento"
+  | "intermediadoresParcelamento";
 
 /** Adiciona um item a uma das 3 listas configuráveis (categorias de despesa
  *  fixa/corrente, fontes de receita) — usadas no Registro Rápido, Cartões e
