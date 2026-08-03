@@ -12,6 +12,7 @@ import type {
   Parcela,
   ResultadoDuplicata,
   StatusDuplicata,
+  TipoClassificado,
 } from "../types";
 import { formatCents } from "./money";
 import { valorDaParcela } from "./parcelas";
@@ -320,6 +321,18 @@ function bateComoPalavra(texto: string, alvo: string, fechaPalavra: boolean): bo
   return re.test(texto);
 }
 
+/** O sinal do valor contradiz o tipo? Só a receita entra dinheiro; despesa e
+ *  fatura são sempre saída. Uma condição só para os três, em vez de uma lista
+ *  de casos que já esqueceu dois: era a despesa a bater com valor positivo (o
+ *  estorno do supermercado) que passava sem ninguém dar por ela.
+ *
+ *  `transferencia` fica de fora: aí o dinheiro pode ir nos dois sentidos, e
+ *  entrar tem um significado próprio — ver `analisarLinha`. */
+function sinalContradiz(tipo: TipoClassificado, isCredit: boolean): boolean {
+  if (tipo === "transferencia") return false;
+  return (tipo === "receita") !== isCredit;
+}
+
 /** Classificação em cascata (_impClassify): parcela → despesa fixa (não
  *  aplicável — sem domínio próprio ainda) → categoria configurada → palavras-
  *  chave → fallback. Para na primeira que bater. */
@@ -381,7 +394,11 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
       return {
         tipo: "despesa",
         categoria: cat,
-        incerto: false,
+        // Categoria de DESPESA a bater com dinheiro a entrar é contraditório —
+        // o estorno do supermercado é isso mesmo. Sem esta marca a linha ia
+        // direta a "auto-classificada" e passava como despesa sem ninguém
+        // olhar para ela.
+        incerto: sinalContradiz("despesa", isCredit),
         confianca: "high",
         motivo: `categoria: ${cat}`,
       };
@@ -405,9 +422,9 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
         bateComoPalavra(normL, kwNormalizada, fechaPalavra) ||
         bateComoPalavra(origL, kw.trimEnd(), fechaPalavra)
       ) {
-        // Sinal inconsistente com o tipo: marcar como incerto
+        // Sinal inconsistente com o tipo: marcar como incerto.
         const incerto =
-          (regra.tipo === "transferencia" && isCredit) || (regra.tipo === "receita" && !isCredit);
+          sinalContradiz(regra.tipo, isCredit) || (regra.tipo === "transferencia" && isCredit);
         // A regra pode sugerir uma categoria (ex. "Veículo") que a conta não
         // tem configurada — cai explicitamente em "Outros" em vez de deixar
         // uma categoria inválida (o <select> na UI, sem essa opção, acaba

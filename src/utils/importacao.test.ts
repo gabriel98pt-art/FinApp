@@ -383,3 +383,56 @@ describe("analisarLinha com transferência vinda de cartão", () => {
     expect(r.destino).toBe("carga");
   });
 });
+
+describe("sinal contraditório com o tipo", () => {
+  const ctx = {
+    parcelas: [],
+    categoriasConfiguradas: ["Mercado"],
+    locaisCarregamento: [],
+    existentes: [],
+  };
+
+  test("categoria configurada de despesa com dinheiro a ENTRAR fica incerta", () => {
+    // O estorno do supermercado: bate na categoria "Mercado", mas é entrada.
+    const r = analisarLinha({ data: "2026-07-20", descricao: "Mercado Amial", valor: 20 }, 0, ctx);
+    expect(r.classificacao.incerto).toBe(true);
+    // E por isso não passa como auto-classificada — vai para revisão.
+    expect(r.decisao).toBe("nova");
+  });
+
+  test("regra de despesa com dinheiro a ENTRAR fica incerta", () => {
+    const r = analisarLinha({ data: "2026-07-20", descricao: "Mercadona Amial", valor: 20 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(r.classificacao.tipo).toBe("despesa");
+    expect(r.classificacao.incerto).toBe(true);
+    expect(r.decisao).not.toBe("auto_classificada");
+  });
+
+  test("a mesma linha a SAIR continua certa e auto-classificada", () => {
+    const r = analisarLinha({ data: "2026-07-20", descricao: "Mercadona Amial", valor: -3200 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(r.classificacao.incerto).toBe(false);
+    expect(r.decisao).toBe("auto_classificada");
+  });
+
+  test("pagamento de fatura com dinheiro a entrar também é contraditório", () => {
+    const r = analisarLinha({ data: "2026-07-20", descricao: "Pagamento cartão", valor: 5000 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(r.classificacao.tipo).toBe("fatura");
+    expect(r.classificacao.incerto).toBe(true);
+  });
+
+  test("receita com dinheiro a sair continua contraditória, como já era", () => {
+    const r = analisarLinha({ data: "2026-07-20", descricao: "Salário", valor: -100 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: [],
+    });
+    expect(r.classificacao.incerto).toBe(true);
+  });
+});
