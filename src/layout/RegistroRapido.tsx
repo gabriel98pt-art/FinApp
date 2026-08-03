@@ -508,8 +508,14 @@ export default function RegistroRapido() {
 
           <div className={styles.campo}>
             <span>Como você sabe o valor</span>
+            {/* Segmentado subordinado, como a sub-escolha do Veículo — e NÃO o
+                seletor de tipo: aquele tira o fundo do estado ativo de uma cor
+                de categoria aplicada inline (Despesa/Receita/Veículo), que aqui
+                não existe. Reaproveitado tal e qual, a opção escolhida ficava
+                sem fundo nenhum, só a negrito, e a caixa parecia morta ao lado
+                dos outros controlos da folha. */}
             <div
-              className={`${styles.seletorTipo} ${styles.alternadorValor}`}
+              className={`${styles.subTipos} ${styles.alternadorValor}`}
               role="radiogroup"
               aria-label="Como você sabe o valor"
             >
@@ -524,7 +530,7 @@ export default function RegistroRapido() {
                   type="button"
                   role="radio"
                   aria-checked={modoValorParcela === v}
-                  className={`${styles.tipo} ${modoValorParcela === v ? styles.tipoAtivo : ""}`}
+                  className={`${styles.subTipo} ${modoValorParcela === v ? styles.subTipoAtivo : ""}`}
                   onClick={() => setModoValorParcela(v)}
                 >
                   {rotulo}

@@ -223,9 +223,15 @@
   padding: 4px 0 16px;
 }
 
-/* Reaproveita o seletor de tipo, mas com rótulos bem mais longos ("Sei o valor
-   da parcela") — sem isto quebram em duas linhas e desalinham os dois lados. */
+/* Rótulos bem mais longos que os do resto ("Sei o valor da parcela") — sem
+   isto quebram em duas linhas e desalinham os dois lados. O segmentado ocupa a
+   largura toda aqui, ao contrário da sub-escolha do Veículo, que é curta. */
+.alternadorValor {
+  align-self: stretch;
+}
+
 .alternadorValor button {
+  flex: 1;
   font-size: 0.8rem;
   padding-inline: 6px;
   white-space: nowrap;
