@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   extrairActivoBank,
+  extrairActivoBankCartao,
   extrairRevolut,
   extrairWise,
   type ItemTexto,
@@ -493,5 +494,196 @@ describe("extrairRevolut", () => {
       ],
     ]);
     expect(linhas).toEqual([{ data: "2026-07-01", descricao: "Continente", valor: -1240 }]);
+  });
+});
+
+// ------------------------------------------- ActivoBank, fatura de cartão
+
+/* Coordenadas do extrato real: as duas datas vêm no MESMO item, à esquerda
+   (x=56.7); a descrição em x=163; a marca da rede ("VIS") numa linha própria
+   logo abaixo; e os números alinhados à direita — débito perto de 464-469,
+   crédito perto de 538-548, com os rótulos em 457.2 e 535.5. */
+function cabecalhoCartao(y: number): ItemTexto[] {
+  return [
+    item("Data", 56.7, y + 9),
+    item("Data", 105.9, y + 9),
+    item("Movimento", 56.7, y),
+    item("Valor", 105.9, y),
+    item("Descritivo", 160.3, y),
+    item("Rede", 310.8, y),
+    item("Débito", 457.2, y),
+    item("Crédito", 535.5, y),
+  ];
+}
+
+function movimentoCartao(opcoes: {
+  y: number;
+  datas: string;
+  descricao: string;
+  debito?: string;
+  credito?: string;
+  rede?: string;
+}): ItemTexto[] {
+  const { y, datas, descricao, debito, credito, rede } = opcoes;
+  return [
+    item(datas, 56.7, y),
+    item(descricao, 163, y),
+    ...(debito ? [item(debito, 464, y)] : []),
+    ...(credito ? [item(credito, 538.5, y)] : []),
+    // A rede assenta numa linha própria, por baixo — nunca deve entrar na
+    // descrição nem virar movimento nenhum.
+    ...(rede ? [item(rede, 319.1, y - 9)] : []),
+  ];
+}
+
+describe("extrairActivoBankCartao", () => {
+  test("débito fica negativo e crédito positivo, com a data VALOR", () => {
+    const linhas = extrairActivoBankCartao([
+      [
+        item("DETALHE DOS MOVIMENTOS", 56.7, 700),
+        ...cabecalhoCartao(680),
+        ...movimentoCartao({
+          y: 660,
+          datas: "2026/06/30 2026/07/01",
+          descricao: "COMPRA 6897 CONTINENTE BOM DIA PORTO",
+          debito: "15.78",
+          rede: "VIS",
+        }),
+        ...movimentoCartao({
+          y: 640,
+          datas: "2026/07/01 2026/07/15",
+          descricao: "PAGAMENTO CARTAO DE CREDITO",
+          credito: "220.41",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([
+      // A data guardada é a segunda: é quando o valor mexeu na fatura.
+      { data: "2026-07-01", descricao: "COMPRA 6897 CONTINENTE BOM DIA PORTO", valor: -1578 },
+      { data: "2026-07-15", descricao: "PAGAMENTO CARTAO DE CREDITO", valor: 22041 },
+    ]);
+  });
+
+  test("o plano de prestações não entra — é a mesma compra outra vez", () => {
+    const linhas = extrairActivoBankCartao([
+      [
+        // O plano vem ANTES da tabela de movimentos na página real.
+        item("DETALHE DE TRANSAÇÕES COM PAGAMENTO FRACIONADO", 56.7, 760),
+        item("Data", 56.7, 740),
+        item("Capital em", 172.7, 740),
+        item("Mensalidade", 513.3, 740),
+        item("2026/09/30", 56.7, 720),
+        item("COMPRA 6897 CLINICA LN VILA NOVA DE GAIA", 111.2, 720),
+        item("54.60", 544.3, 710),
+        item("DETALHE DOS MOVIMENTOS", 56.7, 690),
+        ...cabecalhoCartao(670),
+        ...movimentoCartao({
+          y: 650,
+          datas: "2026/07/03 2026/07/06",
+          descricao: "COMPRA 6897 MCH Portugal",
+          debito: "12.22",
+          rede: "VIS",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([
+      { data: "2026-07-06", descricao: "COMPRA 6897 MCH Portugal", valor: -1222 },
+    ]);
+  });
+
+  test("plano de prestações DEPOIS dos movimentos também fica de fora", () => {
+    const linhas = extrairActivoBankCartao([
+      [
+        item("DETALHE DOS MOVIMENTOS", 56.7, 700),
+        ...cabecalhoCartao(680),
+        ...movimentoCartao({
+          y: 660,
+          datas: "2026/07/03 2026/07/06",
+          descricao: "COMPRA 6897 MCH Portugal",
+          debito: "12.22",
+        }),
+        item("DETALHE DE TRANSAÇÕES COM PAGAMENTO FRACIONADO", 56.7, 640),
+        // Linha do plano com a forma de um movimento: duas datas e um número.
+        item("2026/09/30 2026/09/30", 56.7, 620),
+        item("COMPRA 6897 CLINICA LN VILA NOVA DE GAIA", 163, 620),
+        item("54.60", 464, 620),
+      ],
+    ]);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].descricao).toBe("COMPRA 6897 MCH Portugal");
+  });
+
+  test('"FRACIONADO" na descrição de um movimento não desliga a leitura', () => {
+    // O juro do plano é um movimento de verdade, e vem escrito abreviado.
+    const linhas = extrairActivoBankCartao([
+      [
+        item("DETALHE DOS MOVIMENTOS", 56.7, 700),
+        ...cabecalhoCartao(680),
+        ...movimentoCartao({
+          y: 660,
+          datas: "2026/07/31 2026/07/31",
+          descricao: "JUROS PAG FRACIONADO",
+          debito: "0.94",
+        }),
+        ...movimentoCartao({
+          y: 640,
+          datas: "2026/07/31 2026/07/31",
+          descricao: "COMPRA 6897 Fracionada x3",
+          debito: "10.00",
+        }),
+      ],
+    ]);
+    expect(linhas.map((l) => l.descricao)).toEqual([
+      "JUROS PAG FRACIONADO",
+      "COMPRA 6897 Fracionada x3",
+    ]);
+  });
+
+  test("cabeçalho repetido noutra página continua a valer", () => {
+    const pagina = (y: number, datas: string, descricao: string, debito: string) => [
+      item("DETALHE DOS MOVIMENTOS", 56.7, y + 40),
+      ...cabecalhoCartao(y + 20),
+      ...movimentoCartao({ y, datas, descricao, debito, rede: "VIS" }),
+    ];
+    const linhas = extrairActivoBankCartao([
+      pagina(660, "2026/07/03 2026/07/06", "Primeira página", "12.22"),
+      pagina(660, "2026/07/16 2026/07/17", "Segunda página", "4.37"),
+    ]);
+    expect(linhas).toEqual([
+      { data: "2026-07-06", descricao: "Primeira página", valor: -1222 },
+      { data: "2026-07-17", descricao: "Segunda página", valor: -437 },
+    ]);
+  });
+
+  test("a marca da rede não entra na descrição nem vira movimento", () => {
+    const linhas = extrairActivoBankCartao([
+      [
+        item("DETALHE DOS MOVIMENTOS", 56.7, 700),
+        ...cabecalhoCartao(680),
+        ...movimentoCartao({
+          y: 660,
+          datas: "2026/07/28 2026/07/28",
+          descricao: "COMPRA 6897 MBWAY - CINEMAS",
+          debito: "81.00",
+          rede: "MB",
+        }),
+      ],
+    ]);
+    expect(linhas).toEqual([
+      { data: "2026-07-28", descricao: "COMPRA 6897 MBWAY - CINEMAS", valor: -8100 },
+    ]);
+  });
+
+  test("sem cabeçalho de movimentos não se lê nada", () => {
+    // Página de resumo: tem datas e números, mas não é a tabela.
+    const linhas = extrairActivoBankCartao([
+      [
+        item("RESUMO DE MOVIMENTOS", 56.7, 700),
+        item("2026/07/01 2026/07/31", 56.7, 680),
+        item("Débitos", 163, 680),
+        item("808.54", 464, 680),
+      ],
+    ]);
+    expect(linhas).toEqual([]);
   });
 });

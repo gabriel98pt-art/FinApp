@@ -4,8 +4,11 @@
 // diante o fluxo de importação (classificação, dedup, revisão) é o mesmo.
 //
 // Quatro caminhos — os dois do original, mais a Wise e o Revolut:
-//  1. ActivoBank, reconhecido pelo cabeçalho: extração ciente das colunas,
-//     usando a posição X de cada item do PDF. O valor de cada linha vem da
+//  0. ActivoBank, FATURA DE CARTÃO: outra tabela e outro documento — testado
+//     primeiro, porque o nome do banco aparece nos dois. Ver
+//     `extrairActivoBankCartao`.
+//  1. ActivoBank conta à ordem, reconhecido pelo cabeçalho: extração ciente das
+//     colunas, usando a posição X de cada item do PDF. O valor de cada linha vem da
 //     DIFERENÇA entre o saldo dela e o da linha anterior — mais confiável do
 //     que ler a coluna de débito/crédito, que vem com espaçamento errático.
 //  2. Wise: duas linhas de texto por transação (descrição+valores em cima,
@@ -205,6 +208,135 @@ export function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
         data: `${ano}-${pad2(mes)}-${pad2(dia)}`,
         descricao,
         valor: Math.round(valor * 100),
+      });
+    }
+  }
+
+  return linhasExtrato;
+}
+
+/* ActivoBank — FATURA DE CARTÃO ("EXTRATO VISA …"), que é um documento
+   diferente do extrato da conta à ordem, apesar do mesmo banco no rodapé. Era
+   por causa desse rodapé que caía no extrair da conta: o formato não batia,
+   não saía linha nenhuma, e o usuário via "nenhuma linha reconhecida" sem
+   perceber que era só outro tipo de documento.
+
+   A tabela que interessa é a de "DETALHE DOS MOVIMENTOS":
+
+     Data Movimento | Data Valor | Descritivo | Rede | Débito | Crédito
+
+   A fatura traz ainda "DETALHE DE TRANSAÇÕES COM PAGAMENTO FRACIONADO", que
+   é o plano de prestações — a MESMA compra que já está nos movimentos, aberta
+   em mensalidades futuras. Importar isso contaria o gasto várias vezes. */
+const RE_CARTAO_SECAO = /DETALHE\s+DOS\s+MOVIMENTOS/i;
+const RE_CARTAO_TITULO = /EXTRATO\s+VISA|Cart[ãa]o\s+de\s+Cr[ée]dito/i;
+
+/** Título da tabela do plano de prestações. Escrito por extenso de propósito:
+ *  a descrição de um movimento verdadeiro pode conter "PAG FRACIONADO" (o juro
+ *  do plano é um movimento real), e isso não pode desligar a leitura. */
+const RE_CARTAO_FRACIONADO = /DETALHE\s+DE\s+TRANSA[ÇC][ÕO]ES\s+COM\s+PAGAMENTO\s+FRACIONADO/i;
+
+/** aaaa/mm/dd — as duas datas da linha vêm no mesmo item de texto, separadas
+ *  por um espaço ("2026/06/30 2026/07/01"). */
+const RE_DATA_CARTAO = /(\d{4})[/-](\d{2})[/-](\d{2})/g;
+
+/** Folga à esquerda de cada fronteira: os números são alinhados à DIREITA e
+ *  começam antes do rótulo da coluna. */
+const TOL_CARTAO = 3;
+
+interface ColunasCartao {
+  descritivo: number;
+  /** A marca da rede ("VIS", "MB") — vem em linha própria, mas se algum dia
+   *  vier na mesma, é aqui que se corta para não entrar na descrição. */
+  rede: number | null;
+  debito: number;
+  credito: number;
+}
+
+/** Colunas lidas do cabeçalho da tabela, como no Revolut — e não de X fixos.
+ *  "Data Movimento"/"Data Valor" partem-se em duas linhas de texto e não são
+ *  precisos: as duas datas de cada movimento vêm juntas à esquerda da
+ *  descrição, e a que interessa é sempre a segunda (a data valor). */
+function colunasCartao(linha: ItemTexto[]): ColunasCartao | null {
+  const xDe = (re: RegExp) => linha.find((i) => re.test(i.str.trim()))?.transform[4];
+  const descritivo = xDe(/^Descritivo$/i);
+  const debito = xDe(/^D[ée]bito$/i);
+  const credito = xDe(/^Cr[ée]dito$/i);
+  if (descritivo === undefined || debito === undefined || credito === undefined) return null;
+  if (!(descritivo < debito && debito < credito)) return null;
+  return { descritivo, rede: xDe(/^Rede$/i) ?? null, debito, credito };
+}
+
+/** Fatura de cartão do ActivoBank. Uma linha por movimento, com o valor OU na
+ *  coluna Débito (compra: sai dinheiro, valor negativo) OU na Crédito
+ *  (pagamento da fatura, cashback: valor positivo) — nunca nas duas.
+ *
+ *  Débito e crédito distinguem-se por qual das duas colunas está mais perto,
+ *  e não pelo X exato: os números são alinhados à direita, cada um começa num
+ *  sítio diferente conforme a largura, e o meio entre os dois rótulos separa-os
+ *  sem ambiguidade. */
+export function extrairActivoBankCartao(paginas: ItemTexto[][]): LinhaExtrato[] {
+  const linhasExtrato: LinhaExtrato[] = [];
+  let col: ColunasCartao | null = null;
+
+  for (const itens of paginas) {
+    for (const linha of agruparPorLinha(
+      itens.filter((i) => i.str.trim()),
+      3,
+    )) {
+      const texto = linha.map((i) => i.str.trim()).join(" ");
+
+      // Daqui para baixo é o plano de prestações: parar de ler até aparecer o
+      // cabeçalho da tabela de movimentos outra vez.
+      if (RE_CARTAO_FRACIONADO.test(texto)) {
+        col = null;
+        continue;
+      }
+      const cabecalho = colunasCartao(linha);
+      if (cabecalho) {
+        col = cabecalho;
+        continue;
+      }
+      if (!col) continue;
+
+      // Tudo à esquerda da descrição: é aí que estão as duas datas.
+      const antesDaDescricao = linha
+        .filter((i) => i.transform[4] < col!.descritivo - TOL_CARTAO)
+        .sort((a, b) => a.transform[4] - b.transform[4])
+        .map((i) => i.str.trim())
+        .join(" ");
+      const datas = [...antesDaDescricao.matchAll(RE_DATA_CARTAO)];
+      // Sem duas datas não é linha de movimento (é título, total, rodapé…).
+      if (datas.length < 2) continue;
+      const dataValor = datas[datas.length - 1];
+
+      const limiteDescricao = col.rede ?? col.debito;
+      const descricao = linha
+        .filter(
+          (i) =>
+            i.transform[4] >= col!.descritivo - TOL_CARTAO &&
+            i.transform[4] < limiteDescricao - TOL_CARTAO,
+        )
+        .sort((a, b) => a.transform[4] - b.transform[4])
+        .map((i) => i.str.trim())
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      if (!descricao) continue;
+
+      const naArea = linha
+        .filter((i) => i.transform[4] >= col!.debito - 40)
+        .sort((a, b) => a.transform[4] - b.transform[4]);
+      const item = naArea.find((i) => /\d/.test(i.str) && !Number.isNaN(valorActivoBank(i.str)));
+      if (!item) continue;
+      const euros = valorActivoBank(item.str.trim());
+      if (!Number.isFinite(euros) || euros === 0) continue;
+
+      const ehCredito = item.transform[4] >= (col.debito + col.credito) / 2;
+      linhasExtrato.push({
+        data: `${dataValor[1]}-${dataValor[2]}-${dataValor[3]}`,
+        descricao,
+        valor: Math.round(Math.abs(euros) * 100) * (ehCredito ? 1 : -1),
       });
     }
   }
@@ -533,6 +665,15 @@ export async function extrairExtratoPdf(buffer: ArrayBuffer): Promise<LinhaExtra
           .join(" "),
       )
       .join(" ");
+
+    // A fatura de cartão tem de ser testada ANTES do ActivoBank genérico: o
+    // nome do banco aparece no rodapé dela também, e sem isto caía no extrair
+    // da conta à ordem e devolvia lista vazia. Procura-se no documento todo, e
+    // não só na amostra do início — o "DETALHE DOS MOVIMENTOS" só aparece
+    // depois das páginas de resumo.
+    const textoTudo = paginas.map((itens) => itens.map((i) => i.str).join(" ")).join(" ");
+    if (RE_CARTAO_SECAO.test(textoTudo) && RE_CARTAO_TITULO.test(textoTudo))
+      return extrairActivoBankCartao(paginas);
 
     if (RE_ACTIVOBANK.test(amostra)) return extrairActivoBank(paginas);
 
