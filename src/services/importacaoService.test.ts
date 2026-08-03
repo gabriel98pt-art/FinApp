@@ -606,3 +606,57 @@ describe("o lado escolhido à mão manda sobre o automático", () => {
     expect(valor.categoria).toBe("Mercado");
   });
 });
+
+describe("transferência do lado de quem manda", () => {
+  const saida = (mudancas: Partial<LinhaAnalisada> = {}): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-07-18",
+    descricao: "Transferência para a poupança",
+    // Negativo: é a linha no extrato da conta que MANDA o dinheiro.
+    valor: -25000,
+    classificacao: {
+      tipo: "transferencia",
+      categoria: "Transferência",
+      incerto: false,
+      confianca: "medium",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "revisao",
+    acao: "import",
+    categoriaEscolhida: "Transferência",
+    tipoEscolhido: "despesa",
+    destino: "transferencia_cartao",
+    localCarga: "",
+    kwhCarga: "",
+    contaOrigem: "Conta Principal",
+    contaDestino: "Conta Poupança",
+    ...mudancas,
+  });
+
+  beforeEach(() => {
+    vi.mocked(update).mockClear();
+    vi.mocked(criarTransferencia).mockClear();
+  });
+
+  test("grava com valor positivo, no sentido escolhido — não é despesa", async () => {
+    const n = await confirmarImportacao("u1", [saida()]);
+    expect(criarTransferencia).toHaveBeenCalledWith("u1", {
+      data: "2026-07-18",
+      de: "Conta Principal",
+      para: "Conta Poupança",
+      // O sinal do extrato diz o lado, não o valor guardado: `Transferencia`
+      // é sempre positiva, com a direção em `de`/`para`.
+      valor: 25000,
+      descricao: "Transferência para a poupança",
+    });
+    // Nada em despesasCorrentes: era aqui que este dinheiro inchava os gastos.
+    expect(update).not.toHaveBeenCalled();
+    expect(n).toBe(1);
+  });
+
+  test("a mesma validação da entrada vale para a saída", () => {
+    expect(dadosDaTransferencia(saida({ contaOrigem: "" }))).toBeNull();
+    expect(dadosDaTransferencia(saida({ contaDestino: "Conta Principal" }))).toBeNull();
+  });
+});

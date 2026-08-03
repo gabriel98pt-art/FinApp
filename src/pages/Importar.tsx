@@ -34,16 +34,20 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
 /** Destino de cada linha na revisão. "Lançamento normal" é o que sempre houve
  *  (receita ou despesa); os outros dois gravam noutros domínios.
  *
- *  Cada um só faz sentido de um lado: uma recarga é dinheiro a sair, e o
- *  dinheiro que vem do cartão de crédito é sempre uma entrada. Oferecer os dois
- *  em todas as linhas só daria escolhas impossíveis. */
-const DESTINOS_SAIDA: DestinoLinha[] = ["lancamento", "carga"];
+ *  A recarga só existe do lado das saídas — não se recarrega o carro a receber
+ *  dinheiro. A transferência entre contas próprias existe dos dois lados: a
+ *  mesma passagem de dinheiro aparece a sair no extrato de uma conta e a
+ *  entrar no da outra. */
+const DESTINOS_SAIDA: DestinoLinha[] = ["lancamento", "carga", "transferencia_cartao"];
 const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
-const ROTULO_DESTINO: Record<DestinoLinha, string> = {
-  lancamento: "Lançamento normal",
-  carga: "Recarga elétrica",
-  transferencia_cartao: "Veio de outra conta minha",
-};
+
+/** O rótulo da transferência depende do lado: a mesma opção é "veio" no
+ *  extrato de quem recebe e "foi" no de quem manda. */
+function rotuloDestino(destino: DestinoLinha, ehSaida: boolean): string {
+  if (destino === "lancamento") return "Lançamento normal";
+  if (destino === "carga") return "Recarga elétrica";
+  return ehSaida ? "Foi para outra conta minha" : "Veio de outra conta minha";
+}
 
 /** Receita ou despesa, à mão. O automático acerta quase sempre, mas quando
  *  erra o lado — um estorno do supermercado que bate numa regra de despesa —
@@ -405,7 +409,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.destino}
                           opcoes={l.valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA}
-                          rotuloOpcao={(d) => ROTULO_DESTINO[d as DestinoLinha]}
+                          rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha, l.valor < 0)}
                           aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
                         />
                         {l.destino === "transferencia_cartao" ? (

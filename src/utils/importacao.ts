@@ -671,11 +671,13 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
   // para isso. Um toque no destino devolve a linha ao caminho normal.
   const carga = reconhecerCarga(tx, ctx.locaisCarregamento);
 
-  // Regra de transferência que bateu com o dinheiro a ENTRAR — a contradição
-  // que a classificação já marcava como incerta. É o retrato do cartão de
-  // crédito a mandar dinheiro para a conta: entra como se fosse receita, mas é
-  // adiantamento que volta na fatura. Sugerido, não imposto.
-  const transferenciaSuspeita = classificacao.tipo === "transferencia" && classificacao.incerto;
+  // Bateu uma regra de transferência: dinheiro que muda de sítio entre contas
+  // do próprio usuário, e não gasto nem ganho. Vale para os dois lados — o que
+  // entra (a conta que recebe) e o que sai (a conta que manda). Antes só se
+  // sugeria o lado de entrada, e as saídas iam parar a despesa comum, a inchar
+  // o total de gastos com dinheiro que nunca saiu do bolso. Sugerido, não
+  // imposto: um toque no destino devolve a linha ao caminho normal.
+  const ehTransferencia = classificacao.tipo === "transferencia";
 
   return {
     id,
@@ -688,11 +690,7 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     acao,
     categoriaEscolhida: classificacao.categoria ?? "Outros",
     tipoEscolhido: classificacao.tipo === "receita" ? "receita" : "despesa",
-    destino: carga.ehCarga
-      ? "carga"
-      : transferenciaSuspeita
-        ? "transferencia_cartao"
-        : "lancamento",
+    destino: carga.ehCarga ? "carga" : ehTransferencia ? "transferencia_cartao" : "lancamento",
     localCarga: carga.local,
     kwhCarga: "",
     contaOrigem: "",

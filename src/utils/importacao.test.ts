@@ -342,7 +342,7 @@ describe("analisarLinha com recarga", () => {
   });
 });
 
-describe("analisarLinha com transferência vinda de cartão", () => {
+describe("analisarLinha com transferência entre contas próprias", () => {
   const base = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
 
   test("transferência com dinheiro a ENTRAR já vem sugerida como vinda do cartão", () => {
@@ -360,14 +360,17 @@ describe("analisarLinha com transferência vinda de cartão", () => {
     expect(r.contaDestino).toBe("");
   });
 
-  test("transferência com dinheiro a SAIR continua no caminho normal", () => {
+  test("transferência com dinheiro a SAIR também vem sugerida", () => {
+    // Antes ia parar a despesa comum de categoria "Transferência", a inchar o
+    // total de gastos com dinheiro que só mudou de conta.
     const r = analisarLinha(
       { data: "2026-07-12", descricao: "Transferência para LUIS", valor: -2000 },
       0,
       base,
     );
+    // Sair não é contraditório — a sugestão já não depende disso.
     expect(r.classificacao.incerto).toBe(false);
-    expect(r.destino).toBe("lancamento");
+    expect(r.destino).toBe("transferencia_cartao");
   });
 
   test("receita comum a entrar não é confundida com transferência", () => {
