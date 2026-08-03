@@ -38,6 +38,9 @@ const COR_SEMANTICA: Record<string, string> = {
   // nome + override em cfg.categoriaCor). São os mesmos --red e --grn.
   Despesa: "#fb7185",
   Receita: "#4ade80",
+  // Mesma ideia para o TVDE: é o laranja `--lrj`, o mesmo do card "Lucro
+  // total" dessa aba — o botão flutuante chega já com a cor da tela.
+  TVDE: "#fb923c",
   Manutenção: "#65a30d",
   Portagens: "#4d7c0f",
   Revisão: "#3f6212",
