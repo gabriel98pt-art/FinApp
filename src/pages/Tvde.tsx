@@ -271,9 +271,11 @@ export default function Tvde() {
       {/* denso: 4 KPIs por linha mesmo no mobile (só o TVDE) */}
       <Kpis denso>
         <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="laranja" />
-        <KpiCard rotulo="Líquido (− Seg. Social)" valor={eur(t.lucroLiquido)} tom="verde" />
         <KpiCard rotulo="Média/semana" valor={eur(t.mediaSemana)} />
         <KpiCard rotulo="Média €/hora" valor={t.mediaPorHora ? eur(t.mediaPorHora) : "—"} />
+        {/* No fim e sem cor: ao lado do "Lucro total" eram dois valores
+            grandes e coloridos a disputar a mesma atenção. */}
+        <KpiCard rotulo="Líquido (− Seg. Social)" valor={eur(t.lucroLiquido)} />
       </Kpis>
 
       <div className={styles.abas} role="tablist">
