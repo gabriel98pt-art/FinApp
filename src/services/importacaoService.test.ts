@@ -32,6 +32,7 @@ import { analisarLinha, verificarDuplicata } from "../utils/importacao";
 import type {
   CargaEletrica,
   DespesaCorrente,
+  DespesaFixa,
   DespesaVeiculo,
   LinhaAnalisada,
   Receita,
@@ -84,7 +85,12 @@ const DESPESA_VEICULO: DespesaVeiculo = {
 };
 
 /** Os domínios que a maioria destes testes não usa: veículo e transferências. */
-const SO_OS_DOIS: [CargaEletrica[], DespesaVeiculo[], Transferencia[]] = [[], [], []];
+const SO_OS_DOIS: [CargaEletrica[], DespesaVeiculo[], Transferencia[], DespesaFixa[]] = [
+  [],
+  [],
+  [],
+  [],
+];
 
 describe("construirExistentes", () => {
   test("despesa com origem parc/fat entra na comparação", () => {
@@ -95,7 +101,7 @@ describe("construirExistentes", () => {
   });
 
   test("carga elétrica e despesa do veículo entram, como despesa", () => {
-    const existentes = construirExistentes([], [], [CARGA], [DESPESA_VEICULO], []);
+    const existentes = construirExistentes([], [], [CARGA], [DESPESA_VEICULO], [], []);
     expect(existentes).toEqual([
       { id: "v-c1", data: "2026-07-08", valor: -1050, descricao: "Powerdot" },
       { id: "v-d1", data: "2026-07-20", valor: -8500, descricao: "Norauto Manutenção" },
@@ -104,7 +110,7 @@ describe("construirExistentes", () => {
 
   test("despesa do veículo sem nota fica só com a categoria", () => {
     const semNota: DespesaVeiculo = { ...DESPESA_VEICULO, nota: undefined };
-    expect(construirExistentes([], [], [], [semNota], [])[0].descricao).toBe("Manutenção");
+    expect(construirExistentes([], [], [], [semNota], [], [])[0].descricao).toBe("Manutenção");
   });
 
   test("receita continua com o valor positivo", () => {
@@ -150,7 +156,7 @@ describe("dedup com os lançamentos que faltavam", () => {
   });
 
   test("recarga já lançada na aba Veículo é apanhada — e pelo nome do posto", () => {
-    const existentes = construirExistentes([], [], [CARGA], [], []);
+    const existentes = construirExistentes([], [], [CARGA], [], [], []);
     const linha = { data: "2026-07-08", descricao: "POWERDOT PORTUGAL", valor: -1050 };
     const analisada = analisarLinha(linha, 0, { ...ctx, existentes });
     expect(analisada.acao).toBe("skip");
@@ -163,13 +169,13 @@ describe("dedup com os lançamentos que faltavam", () => {
   });
 
   test("recarga com o nome do posto igual ao do extrato vira duplicata provável", () => {
-    const existentes = construirExistentes([], [], [CARGA], [], []);
+    const existentes = construirExistentes([], [], [CARGA], [], [], []);
     const linha = { data: "2026-07-08", descricao: "Powerdot", valor: -1050 };
     expect(analisarLinha(linha, 0, { ...ctx, existentes }).decisao).toBe("duplicata_provavel");
   });
 
   test("despesa do veículo já lançada é apanhada pela nota", () => {
-    const existentes = construirExistentes([], [], [], [DESPESA_VEICULO], []);
+    const existentes = construirExistentes([], [], [], [DESPESA_VEICULO], [], []);
     const linha = { data: "2026-07-20", descricao: "NORAUTO MATOSINHOS", valor: -8500 };
     expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
   });
@@ -180,6 +186,7 @@ describe("dedup com os lançamentos que faltavam", () => {
       [DESPESA_COMUM, PARCELA_PAGA, PAGAMENTO_FATURA],
       [CARGA],
       [DESPESA_VEICULO],
+      [],
       [],
     );
     const linha = { data: "2026-07-22", descricao: "Mercadona", valor: -3200 };
@@ -680,7 +687,7 @@ describe("transferência já registada aparece nos dois lados", () => {
     existentes: [],
     locaisCarregamento: [],
   };
-  const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA]);
+  const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA], []);
 
   test("uma transferência vira duas entradas, uma por sentido", () => {
     expect(existentes).toEqual([
@@ -713,6 +720,7 @@ describe("transferência já registada aparece nos dois lados", () => {
       [],
       [],
       [{ ...TRANSFERENCIA, descricao: undefined }],
+      [],
     );
     expect(semDescricao[0].descricao).toBe("Conta Principal → Conta Poupança");
   });
@@ -732,5 +740,59 @@ describe("transferência já registada aparece nos dois lados", () => {
         existentes,
       ).status,
     ).toBe("new");
+  });
+});
+
+describe("despesa fixa paga entra na busca por duplicata", () => {
+  const FIXA: DespesaFixa = {
+    id: "f-1",
+    descricao: "Renda",
+    valor: 65000,
+    categoria: "Casa",
+    diaVencimento: 8,
+    pagoPorMes: { "2026-07": true, "2026-06": true, "2026-05": false },
+  };
+  const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
+  const existentes = construirExistentes([], [], [], [], [], [FIXA]);
+
+  test("uma entrada por mês PAGO, na data do vencimento", () => {
+    expect(existentes).toEqual([
+      { id: "f-1", data: "2026-07-08", valor: -65000, descricao: "Renda Casa" },
+      { id: "f-1", data: "2026-06-08", valor: -65000, descricao: "Renda Casa" },
+    ]);
+  });
+
+  test("o banco debitou 3 dias depois do vencimento — continua a ser a mesma", () => {
+    const linha = { data: "2026-07-11", descricao: "TRF RENDA CASA", valor: -65000 };
+    const achado = verificarDuplicata(linha, existentes);
+    expect(achado.status).not.toBe("new");
+    expect(achado.correspondencia?.id).toBe("f-1");
+    expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
+  });
+
+  test("e 6 dias depois também — a janela da comparação já dava para isso", () => {
+    const linha = { data: "2026-07-14", descricao: "TRF RENDA CASA", valor: -65000 };
+    expect(verificarDuplicata(linha, existentes).status).not.toBe("new");
+    expect(analisarLinha(linha, 0, { ...ctx, existentes }).acao).toBe("skip");
+  });
+
+  test("mês por pagar não entra — esse dinheiro ainda não saiu", () => {
+    // Maio está em `pagoPorMes` como false: uma linha de maio é mesmo nova.
+    const linha = { data: "2026-05-08", descricao: "TRF RENDA CASA", valor: -65000 };
+    expect(verificarDuplicata(linha, existentes).status).toBe("new");
+  });
+
+  test("fixa sem dia de vencimento não gera entrada nenhuma", () => {
+    const semDia: DespesaFixa = { ...FIXA, diaVencimento: undefined };
+    expect(construirExistentes([], [], [], [], [], [semDia])).toEqual([]);
+  });
+
+  test("vencimento a 31 num mês curto fica no último dia, não escorrega", () => {
+    const dia31: DespesaFixa = {
+      ...FIXA,
+      diaVencimento: 31,
+      pagoPorMes: { "2026-02": true },
+    };
+    expect(construirExistentes([], [], [], [], [], [dia31])[0].data).toBe("2026-02-28");
   });
 });

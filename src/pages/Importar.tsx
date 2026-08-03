@@ -14,6 +14,7 @@ import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import {
+  useDespesasFixasStore,
   useDespesasStore,
   useReceitasStore,
   useTransferenciasStore,
@@ -88,6 +89,7 @@ export default function Importar() {
   // pode vir repetido no extrato — entram na comparação de duplicatas.
   const veiculo = useVeiculoStore((s) => s.dados);
   const transferencias = useTransferenciasStore((s) => s.itens);
+  const despesasFixas = useDespesasFixasStore((s) => s.itens);
 
   const [aba, setAba] = useState<Aba>("extrato");
   const [texto, setTexto] = useState("");
@@ -118,6 +120,7 @@ export default function Importar() {
       veiculo.cargas,
       veiculo.despesas,
       transferencias,
+      despesasFixas,
     );
     const analisadas = brutas.map((tx, i) =>
       analisarLinha(tx, i, {

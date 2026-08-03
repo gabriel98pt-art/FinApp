@@ -6,9 +6,11 @@ import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { criarTransferencia, semIndefinidos } from "./lancamentosService";
 import { criarCarga } from "./veiculoService";
+import { diaDoMes } from "../utils/vencimentos";
 import type {
   CargaEletrica,
   DespesaCorrente,
+  DespesaFixa,
   DespesaVeiculo,
   ExistenteParaDedup,
   LinhaAnalisada,
@@ -30,13 +32,15 @@ import type {
  *  Cargas e despesas do veículo entram pela mesma razão. Ficaram de fora só
  *  porque o veículo ainda não era um domínio próprio quando isto foi escrito.
  *
- *  Transferências entram por duas — ver abaixo. */
+ *  Transferências entram por duas, e as fixas pagas por uma por mês — ver
+ *  abaixo. */
 export function construirExistentes(
   receitas: Receita[],
   despesas: DespesaCorrente[],
   cargas: CargaEletrica[],
   despesasVeiculo: DespesaVeiculo[],
   transferencias: Transferencia[],
+  despesasFixas: DespesaFixa[],
 ): ExistenteParaDedup[] {
   const deReceitas: ExistenteParaDedup[] = receitas.map((r) => ({
     id: r.id,
@@ -85,7 +89,28 @@ export function construirExistentes(
       { id: t.id, data: t.data, valor: t.valor, descricao },
     ];
   });
-  return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo, ...deTransferencias];
+  // Despesa fixa paga não tem lançamento espelho — o "pago" é só uma marca no
+  // mês —, mas o dinheiro saiu à mesma e aparece no extrato. A data sai do dia
+  // de vencimento; a folga de dias entre o vencimento e o débito real já está
+  // coberta pela janela da comparação.
+  //
+  // Sem `diaVencimento` não há data nenhuma para comparar, e um dia inventado
+  // tanto podia aproximar como afastar da linha certa: essa fica de fora. O
+  // `id` repete-se por mês pago, como nas transferências — é o mesmo registo
+  // visto em alturas diferentes.
+  const deFixas: ExistenteParaDedup[] = despesasFixas.flatMap((d) =>
+    d.diaVencimento === undefined
+      ? []
+      : Object.entries(d.pagoPorMes)
+          .filter(([, pago]) => pago === true)
+          .map(([mes]) => ({
+            id: d.id,
+            data: diaDoMes(mes, d.diaVencimento!),
+            valor: -d.valor,
+            descricao: `${d.descricao} ${d.categoria}`,
+          })),
+  );
+  return [...deReceitas, ...deDespesas, ...deCargas, ...deVeiculo, ...deTransferencias, ...deFixas];
 }
 
 /** Uma linha marcada como recarga elétrica, no formato que o veículo guarda.
