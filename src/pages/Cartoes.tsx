@@ -8,6 +8,7 @@ import Seletor from "../components/Seletor";
 import {
   adicionarCartao,
   definirFaturaManual,
+  definirDiaVencimentoFatura,
   removerCartao,
   renomearCartao,
 } from "../services/cfgService";
@@ -353,6 +354,26 @@ export default function Cartoes() {
                 <span className={styles.chipTipo}>
                   {cfg.tipoCartao[c] === "credit" ? "crédito" : "débito"}
                 </span>
+                {/* Só o cartão de crédito tem fatura, e é o dia dela que
+                    manda também nas parcelas em débito automático. */}
+                {cfg.tipoCartao[c] === "credit" && (
+                  <label className={styles.chipDia}>
+                    vence dia
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={cfg.diaVencimentoFatura?.[c] ?? ""}
+                      placeholder="—"
+                      aria-label={`Dia de vencimento da fatura de ${c}`}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
+                        void definirDiaVencimentoFatura(uid!, c, Number.isFinite(n) ? n : null)
+                          .then(() => mostrarToast("Dia de vencimento guardado"))
+                          .catch(() => mostrarToast("Não foi possível guardar."));
+                      }}
+                    />
+                  </label>
+                )}
                 <button
                   type="button"
                   className={styles.chipAcao}

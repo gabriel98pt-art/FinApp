@@ -10,7 +10,7 @@
 
 import type { Cents, DespesaFixa, IsoDate, Parcela, YearMonth } from "../types";
 import { fixaAtivaNoMes } from "./fatura";
-import { mesesDaParcela, valorDaParcela } from "./parcelas";
+import { diaVencimentoEfetivo, mesesDaParcela, valorDaParcela } from "./parcelas";
 
 export type TipoVencimento = "fixa" | "parcela" | "fatura";
 
@@ -49,14 +49,20 @@ export function vencimentosDeFixas(fixas: DespesaFixa[], ym: YearMonth): Vencime
 }
 
 /** Parcelas cujo plano inclui este mês e que têm dia de vencimento. */
-export function vencimentosDeParcelas(parcelas: Parcela[], ym: YearMonth): Vencimento[] {
+export function vencimentosDeParcelas(
+  parcelas: Parcela[],
+  ym: YearMonth,
+  /** Dia em que a fatura de cada cartão vence — uma parcela em débito
+   *  automático sai com a fatura, não em data própria. */
+  diaVencimentoFatura?: Record<string, number>,
+): Vencimento[] {
   return parcelas
-    .filter((p) => p.diaVencimento && mesesDaParcela(p).includes(ym))
+    .filter((p) => diaVencimentoEfetivo(p, diaVencimentoFatura) && mesesDaParcela(p).includes(ym))
     .map((p) => {
       const meses = mesesDaParcela(p);
       return {
         tipo: "parcela" as const,
-        dia: diaDoMes(ym, p.diaVencimento!),
+        dia: diaDoMes(ym, diaVencimentoEfetivo(p, diaVencimentoFatura)!),
         titulo: p.descricao,
         detalhe: `parcela ${meses.indexOf(ym) + 1}/${p.numParcelas}`,
         valor: valorDaParcela(p, ym),

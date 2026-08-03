@@ -13,6 +13,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   categoriasCorrentes: CATEGORIAS_DESPESA_PADRAO,
   contasCartoes: [],
   tipoCartao: {},
+  diaVencimentoFatura: {},
   // "Carregamento" fica de fora: cargas elétricas têm tracking próprio (kWh/local)
   categoriasVeiculo: ["Manutenção", "Seguro", "Portagens", "Revisão", "Outros"],
   categoriaIcone: {},

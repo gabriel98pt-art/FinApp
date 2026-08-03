@@ -30,6 +30,11 @@ export interface ConfigConta {
   contasCartoes: string[];
   /** Tipo de cada cartão (crédito entra no fluxo de fatura, seção 4.1). */
   tipoCartao: Record<string, TipoCartao>;
+  /** Dia do mês em que a fatura de cada cartão de crédito vence (1-31). O
+   *  cálculo da fatura só conhece o MÊS; este dia serve para saber QUANDO ela
+   *  se paga — e é também o vencimento das parcelas em débito automático
+   *  nesse cartão, que saem com a fatura e não em data própria. */
+  diaVencimentoFatura: Record<string, number>;
   /** Categorias de despesa do veículo (antigo `vcat`). */
   categoriasVeiculo: string[];
 

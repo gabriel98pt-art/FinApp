@@ -7,7 +7,7 @@
 // `valorQuitacao`. Ordenar por elas é ordenar pela contribuição de cada
 // parcela ao KPI correspondente.
 
-import type { Parcela } from "../types";
+import type { Parcela, YearMonth } from "../types";
 import { compararPorOrdem, ORDENS, ROTULOS_ORDEM, type Ordem } from "./ordem";
 import { parcelaQuitada, proximoMesEmAberto, valorQuitacao } from "./parcelas";
 
@@ -24,12 +24,17 @@ export const ROTULOS_ORDEM_PARCELA: Record<OrdemParcela, string> = {
 /** Comparador da lista de parcelas. As 4 ordens genéricas caem em
  *  `compararPorOrdem`, com `data` = mês da primeira parcela e `valor` = total
  *  da compra (o mesmo que a tela já usava). */
-export function compararParcelas(ordem: OrdemParcela): (a: Parcela, b: Parcela) => number {
+export function compararParcelas(
+  ordem: OrdemParcela,
+  /** Mês de referência — o que a tela está a mostrar. Decide o que já conta
+   *  como pago numa parcela em débito automático (ver `estaEfetivamentePaga`). */
+  mesReferencia?: YearMonth,
+): (a: Parcela, b: Parcela) => number {
   if (ordem === "proximoVencimento") {
     // Mais cedo primeiro. Parcela sem mês em aberto (quitada) vai pro fim.
     return (a, b) => {
-      const ma = proximoMesEmAberto(a);
-      const mb = proximoMesEmAberto(b);
+      const ma = proximoMesEmAberto(a, mesReferencia);
+      const mb = proximoMesEmAberto(b, mesReferencia);
       if (ma === undefined && mb === undefined) return 0;
       if (ma === undefined) return 1;
       if (mb === undefined) return -1;
@@ -38,7 +43,7 @@ export function compararParcelas(ordem: OrdemParcela): (a: Parcela, b: Parcela) 
   }
   if (ordem === "valorRestante") {
     // Maior primeiro — quitada tem restante 0 e cai naturalmente pro fim.
-    return (a, b) => valorQuitacao(b) - valorQuitacao(a);
+    return (a, b) => valorQuitacao(b, mesReferencia) - valorQuitacao(a, mesReferencia);
   }
   const generico = compararPorOrdem<{ data: string; valor: number }>(ordem);
   return (a, b) =>
@@ -52,10 +57,11 @@ export function parcelasVisiveis(
   parcelas: Parcela[],
   ordem: OrdemParcela,
   esconderQuitadas = false,
+  mesReferencia?: YearMonth,
 ): Parcela[] {
-  const comparar = compararParcelas(ordem);
+  const comparar = compararParcelas(ordem, mesReferencia);
   const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
-  const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p)));
+  const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p, mesReferencia)));
   if (esconderQuitadas) return ativas;
-  return [...ativas, ...ordenar(parcelas.filter(parcelaQuitada))];
+  return [...ativas, ...ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)))];
 }

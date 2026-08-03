@@ -24,13 +24,15 @@ import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useParcelasStore } from "../stores/parcelasStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { Currency, Parcela } from "../types";
+import type { Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney, parseMoney } from "../utils/money";
 import {
   debitoMensalDaParcela,
   mesesNaoPagos,
+  diaVencimentoEfetivo,
   parcelaQuitada,
   progressoDaParcela,
   valorDaParcela,
@@ -42,16 +44,22 @@ function LinhaParcela({
   p,
   moeda,
   aoEditar,
+  mesRef,
+  diaVencimentoFatura,
 }: {
   p: Parcela;
   moeda: Currency;
   aoEditar: (p: Parcela) => void;
+  mesRef: YearMonth;
+  diaVencimentoFatura: Record<string, number> | undefined;
 }) {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
-  const quitada = parcelaQuitada(p);
-  const { pagas, total } = progressoDaParcela(p);
-  const abertos = mesesNaoPagos(p);
+  const quitada = parcelaQuitada(p, mesRef);
+  const { pagas, total } = progressoDaParcela(p, mesRef);
+  const abertos = mesesNaoPagos(p, mesRef);
+  // Paga por cartão em débito automático, a parcela vence com a FATURA.
+  const diaVenc = diaVencimentoEfetivo(p, diaVencimentoFatura);
   const proximo = abertos[0];
 
   async function agir(acao: () => Promise<void>, msg: string) {
@@ -73,7 +81,7 @@ function LinhaParcela({
             <span className={styles.detalhe}>
               {formatMoney(p.total, moeda)}
               {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
-              {p.diaVencimento ? ` · dia ${p.diaVencimento}` : ""}
+              {diaVenc ? ` · dia ${diaVenc}` : ""}
             </span>
           </span>
           <span className={`${styles.progresso} ${quitada ? styles.quitada : ""}`}>
@@ -339,7 +347,9 @@ function FormParcela({
 }
 
 export default function Parcelas() {
-  const moeda = useCfgStore((s) => s.cfg.currency);
+  const cfg = useCfgStore((s) => s.cfg);
+  const moeda = cfg.currency;
+  const mesRef = useMesVisivelStore((s) => s.mes);
   const parcelas = useParcelasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
   const erro = useParcelasStore((s) => s.erro);
@@ -362,12 +372,15 @@ export default function Parcelas() {
     setFolhaAberta(true);
   }
 
-  const ativas = parcelas.filter((p) => !parcelaQuitada(p));
-  const quitadas = parcelas.filter(parcelaQuitada);
-  const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p), 0);
-  const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p), 0);
+  // Tudo o que conta parcelas em aberto olha para o mês do header, e não para
+  // "hoje": muda-se o mês em cima e os números acompanham. É também esse mês
+  // que diz até onde uma parcela em débito automático já está resolvida.
+  const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef));
+  const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef));
+  const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p, mesRef), 0);
+  const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
-  const visiveis = parcelasVisiveis(parcelas, ordem, esconderQuitadas);
+  const visiveis = parcelasVisiveis(parcelas, ordem, esconderQuitadas, mesRef);
 
   return (
     <Pagina titulo="Parcelas">
@@ -417,7 +430,14 @@ export default function Parcelas() {
       ) : (
         <div className={styles.lista}>
           {visiveis.map((p) => (
-            <LinhaParcela key={p.id} p={p} moeda={moeda} aoEditar={abrirEdicao} />
+            <LinhaParcela
+              key={p.id}
+              p={p}
+              moeda={moeda}
+              aoEditar={abrirEdicao}
+              mesRef={mesRef}
+              diaVencimentoFatura={cfg.diaVencimentoFatura}
+            />
           ))}
         </div>
       )}

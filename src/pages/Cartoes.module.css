@@ -394,3 +394,24 @@
   gap: 12px;
   padding-top: 14px;
 }
+
+/* Dia de vencimento da fatura, dentro do chip do cartão: campo minúsculo, só
+   dois dígitos — é o dia do mês, não uma data. */
+.chipDia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--mut);
+}
+
+.chipDia input {
+  width: 2.6em;
+  padding: 2px 4px;
+  border: 1px solid var(--brd);
+  border-radius: var(--r-xs);
+  background: var(--s1);
+  color: var(--txt);
+  font-size: 0.72rem;
+  text-align: center;
+}

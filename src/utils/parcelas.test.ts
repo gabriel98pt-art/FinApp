@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import type { Parcela } from "../types";
 import {
   contribuicaoParcelasMes,
+  diaVencimentoEfetivo,
+  estaEfetivamentePaga,
   mesesDaParcela,
   mesesNaoPagos,
   parcelaQuitada,
@@ -135,5 +137,83 @@ describe("totalDaCompra — os dois modos do Registro Rápido", () => {
     const p = parcela({ total: totalDaCompra(5599, 3, "total"), numParcelas: 3 });
     const meses = mesesDaParcela(p);
     expect(meses.map((m) => valorDaParcela(p, m))).toEqual([1867, 1866, 1866]);
+  });
+});
+
+describe("parcela paga por cartão em débito automático", () => {
+  const noCartao: Parcela = {
+    id: "p1",
+    descricao: "Portátil",
+    total: 60000,
+    numParcelas: 6,
+    primeiroMes: "2026-05",
+    cartao: "AB Gold (C)",
+    autoDebit: true,
+    pagoPorMes: {},
+    diaVencimento: 3,
+  };
+  const emDinheiro: Parcela = { ...noCartao, cartao: undefined, autoDebit: false };
+
+  test("o mês já cobrado no cartão conta como resolvido, sem esperar a fatura", () => {
+    // Julho é o mês de referência: maio, junho e julho já foram ao cartão.
+    expect(estaEfetivamentePaga(noCartao, "2026-07", "2026-07")).toBe(true);
+    expect(progressoDaParcela(noCartao, "2026-07").pagas).toBe(3);
+  });
+
+  test("mês FUTURO continua a exigir marcação", () => {
+    expect(estaEfetivamentePaga(noCartao, "2026-08", "2026-07")).toBe(false);
+    expect(mesesNaoPagos(noCartao, "2026-07")).toEqual(["2026-08", "2026-09", "2026-10"]);
+    expect(valorQuitacao(noCartao, "2026-07")).toBe(30000);
+  });
+
+  test("sem cartão nada é adiantado — continua tudo por marcar", () => {
+    expect(estaEfetivamentePaga(emDinheiro, "2026-07", "2026-07")).toBe(false);
+    expect(progressoDaParcela(emDinheiro, "2026-07").pagas).toBe(0);
+    expect(valorQuitacao(emDinheiro, "2026-07")).toBe(60000);
+  });
+
+  test("sem mês de referência o comportamento é o de sempre", () => {
+    // É assim que o Copiloto e o resto do app continuam a ver as parcelas.
+    expect(progressoDaParcela(noCartao).pagas).toBe(0);
+    expect(valorQuitacao(noCartao)).toBe(60000);
+    expect(parcelaQuitada(noCartao)).toBe(false);
+  });
+
+  test("marcação manual continua a valer por cima de tudo", () => {
+    const comMarca = { ...noCartao, pagoPorMes: { "2026-08": true as const } };
+    expect(estaEfetivamentePaga(comMarca, "2026-08", "2026-07")).toBe(true);
+  });
+
+  test("no último mês a parcela fica quitada sozinha", () => {
+    expect(parcelaQuitada(noCartao, "2026-10")).toBe(true);
+  });
+});
+
+describe("diaVencimentoEfetivo", () => {
+  const base: Parcela = {
+    id: "p1",
+    descricao: "Portátil",
+    total: 60000,
+    numParcelas: 6,
+    primeiroMes: "2026-05",
+    pagoPorMes: {},
+    diaVencimento: 3,
+  };
+
+  test("em débito automático vence com a fatura do cartão, não no dia próprio", () => {
+    const p = { ...base, cartao: "AB Gold (C)", autoDebit: true };
+    expect(diaVencimentoEfetivo(p, { "AB Gold (C)": 15 })).toBe(15);
+  });
+
+  test("sem dia de fatura guardado, o dia próprio ainda serve", () => {
+    const p = { ...base, cartao: "AB Gold (C)", autoDebit: true };
+    expect(diaVencimentoEfetivo(p, {})).toBe(3);
+    expect(diaVencimentoEfetivo(p, undefined)).toBe(3);
+  });
+
+  test("paga em dinheiro mantém o dia próprio mesmo com cartão configurado", () => {
+    expect(diaVencimentoEfetivo(base, { "AB Gold (C)": 15 })).toBe(3);
+    // Cartão sem débito automático: quem escolhe quando paga é o usuário.
+    expect(diaVencimentoEfetivo({ ...base, cartao: "AB Gold (C)" }, { "AB Gold (C)": 15 })).toBe(3);
   });
 });

@@ -64,19 +64,54 @@ export function totalParcelasGeral(parcelas: Parcela[]): Cents {
   );
 }
 
-export function mesesNaoPagos(p: Parcela): YearMonth[] {
-  return mesesDaParcela(p).filter((m) => !p.pagoPorMes[m]);
+/** Este mês da parcela já está resolvido?
+ *
+ *  Marcado à mão (`true`) ou quitado pela fatura (`"fatura"`) conta sempre. E,
+ *  quando a parcela é paga por CARTÃO em débito automático, conta também
+ *  qualquer mês até ao de referência: a cobrança já entrou no cartão e vai ser
+ *  paga quando a fatura vencer, sem o usuário ter de decidir mais nada.
+ *  Esperar pela fatura para o dar por pago inchava o "falta pagar" com
+ *  dinheiro que já não está em jogo.
+ *
+ *  Sem `mesReferencia` conta só o que está marcado — o comportamento de
+ *  sempre, que é o que o Copiloto e o resto do app continuam a ver. */
+export function estaEfetivamentePaga(
+  p: Parcela,
+  mes: YearMonth,
+  mesReferencia?: YearMonth,
+): boolean {
+  if (p.pagoPorMes[mes]) return true;
+  return !!mesReferencia && !!p.cartao && !!p.autoDebit && mes <= mesReferencia;
+}
+
+/** Dia em que a parcela vence de facto. Paga por cartão em débito automático,
+ *  ela sai com a FATURA — o dia próprio deixa de valer, porque não é o usuário
+ *  que escolhe quando aquilo é cobrado. Sem cartão (dinheiro, transferência),
+ *  continua a valer o dia da própria parcela. */
+export function diaVencimentoEfetivo(
+  p: Parcela,
+  diaVencimentoFatura: Record<string, number> | undefined,
+): number | undefined {
+  if (p.cartao && p.autoDebit) {
+    const daFatura = diaVencimentoFatura?.[p.cartao];
+    if (daFatura) return daFatura;
+  }
+  return p.diaVencimento;
+}
+
+export function mesesNaoPagos(p: Parcela, mesReferencia?: YearMonth): YearMonth[] {
+  return mesesDaParcela(p).filter((m) => !estaEfetivamentePaga(p, m, mesReferencia));
 }
 
 /** Mês da próxima parcela em aberto, ou `undefined` se já está quitada. */
-export function proximoMesEmAberto(p: Parcela): YearMonth | undefined {
-  return mesesNaoPagos(p)[0];
+export function proximoMesEmAberto(p: Parcela, mesReferencia?: YearMonth): YearMonth | undefined {
+  return mesesNaoPagos(p, mesReferencia)[0];
 }
 
 /** Quanto esta parcela pesa no débito do próximo mês em aberto — 0 quando já
  *  está quitada. É a contribuição de cada parcela ao KPI "Débito mensal". */
-export function debitoMensalDaParcela(p: Parcela): Cents {
-  const proximo = proximoMesEmAberto(p);
+export function debitoMensalDaParcela(p: Parcela, mesReferencia?: YearMonth): Cents {
+  const proximo = proximoMesEmAberto(p, mesReferencia);
   return proximo === undefined ? 0 : valorDaParcela(p, proximo);
 }
 
@@ -93,15 +128,21 @@ export function totalDaCompra(
 }
 
 /** Soma das parcelas em aberto — o valor de uma quitação antecipada. */
-export function valorQuitacao(p: Parcela): Cents {
-  return mesesNaoPagos(p).reduce((s, m) => s + valorDaParcela(p, m), 0);
+export function valorQuitacao(p: Parcela, mesReferencia?: YearMonth): Cents {
+  return mesesNaoPagos(p, mesReferencia).reduce((s, m) => s + valorDaParcela(p, m), 0);
 }
 
-export function progressoDaParcela(p: Parcela): { pagas: number; total: number } {
+export function progressoDaParcela(
+  p: Parcela,
+  mesReferencia?: YearMonth,
+): { pagas: number; total: number } {
   const meses = mesesDaParcela(p);
-  return { pagas: meses.filter((m) => p.pagoPorMes[m]).length, total: meses.length };
+  return {
+    pagas: meses.filter((m) => estaEfetivamentePaga(p, m, mesReferencia)).length,
+    total: meses.length,
+  };
 }
 
-export function parcelaQuitada(p: Parcela): boolean {
-  return mesesNaoPagos(p).length === 0;
+export function parcelaQuitada(p: Parcela, mesReferencia?: YearMonth): boolean {
+  return mesesNaoPagos(p, mesReferencia).length === 0;
 }

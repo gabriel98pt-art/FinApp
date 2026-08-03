@@ -64,6 +64,15 @@ export async function adicionarCartao(
   });
 }
 
+/** Dia em que a fatura deste cartão vence. `null`/0 apaga o dia — nem todo o
+ *  cartão precisa de ter um, e sem ele nada muda em relação a antes. */
+export async function definirDiaVencimentoFatura(uid: string, cartao: string, dia: number | null) {
+  snapshotHistorico();
+  await update(ref(db, caminho(uid)), {
+    [`diaVencimentoFatura/${cartao}`]: dia && dia >= 1 && dia <= 31 ? dia : null,
+  });
+}
+
 /** Raiz da conta — a renomeação com cascata escreve cfg e lançamentos de uma
  *  vez, então o `update()` sobe um nível em relação ao `caminho()` acima. */
 const raiz = (uid: string) => `users/${uid}/fin_v5`;
@@ -127,6 +136,7 @@ export async function removerCartao(uid: string, cfg: ConfigConta, nome: string)
   await update(ref(db, caminho(uid)), {
     contasCartoes: cfg.contasCartoes.filter((c) => c !== nome),
     [`tipoCartao/${nome}`]: null,
+    [`diaVencimentoFatura/${nome}`]: null,
   });
 }
 
