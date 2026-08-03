@@ -126,6 +126,10 @@ export default function Importar() {
       analisarLinha(tx, i, {
         parcelas,
         categoriasConfiguradas,
+        // A memória do app é o próprio histórico do usuário: o que ele já
+        // categorizou antes vale mais do que qualquer regra genérica.
+        despesasHistorico: despesas,
+        receitasHistorico: receitas,
         existentes,
         locaisCarregamento: cfg.locaisCarregamento,
         cargasHistorico: veiculo.cargas,

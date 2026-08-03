@@ -137,6 +137,8 @@ describe("dedup com os lançamentos que faltavam", () => {
     existentes: [],
     locaisCarregamento: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
   };
 
   test("pagamento da prestação no extrato deixa de passar como novo", () => {
@@ -704,6 +706,8 @@ describe("transferência já registada aparece nos dois lados", () => {
     existentes: [],
     locaisCarregamento: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
   };
   const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA], []);
 
@@ -776,6 +780,8 @@ describe("despesa fixa paga entra na busca por duplicata", () => {
     existentes: [],
     locaisCarregamento: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
   };
   const existentes = construirExistentes([], [], [], [], [], [FIXA]);
 

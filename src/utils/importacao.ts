@@ -284,6 +284,11 @@ export interface ContextoClassificacao {
   parcelas: Parcela[];
   /** Categorias já configuradas na conta (fixas + correntes). */
   categoriasConfiguradas: string[];
+  /** Despesas que o usuário já lançou — a memória de que categoria ele dá a
+   *  cada sítio. Só os dois campos que interessam à comparação. */
+  despesasHistorico: { descricao: string; categoria: string }[];
+  /** O mesmo para as receitas, onde o papel da categoria é da fonte. */
+  receitasHistorico: { descricao: string; fonte: string }[];
 }
 
 function escaparRegex(s: string): string {
@@ -335,6 +340,49 @@ function sinalContradiz(tipo: TipoClassificado, isCredit: boolean): boolean {
   return (tipo === "receita") !== isCredit;
 }
 
+/** Mesmo limiar do "nome parecido" das parcelas (passo 1) — o problema é o
+ *  mesmo (duas descrições bancárias do mesmo sítio) e não havia razão para
+ *  inventar outro número. */
+const SIM_APRENDIDA = 0.65;
+
+/** O que o usuário já fez com uma descrição parecida a esta.
+ *
+ *  Procura no histórico dele — despesas se a linha é saída, receitas se é
+ *  entrada — a descrição mais parecida acima do limiar, e devolve a categoria
+ *  (ou fonte) daquele lançamento. Fica com a de MAIOR semelhança: com "Uber
+ *  Eats" repetido dezenas de vezes na mesma categoria, contar votos daria o
+ *  mesmo resultado com mais código.
+ *
+ *  Os dois lados nunca se misturam: uma categoria de despesa não pode ir
+ *  parar a uma receita só porque o texto se parecia. */
+function categoriaAprendida(tx: LinhaExtrato, ctx: ContextoClassificacao): Classificacao | null {
+  const ehReceita = tx.valor > 0;
+  const candidatos = ehReceita
+    ? ctx.receitasHistorico.map((r) => ({ descricao: r.descricao, categoria: r.fonte }))
+    : ctx.despesasHistorico.map((d) => ({ descricao: d.descricao, categoria: d.categoria }));
+
+  let melhor: { descricao: string; categoria: string } | null = null;
+  let melhorSim = 0;
+  for (const c of candidatos) {
+    if (!c.descricao || !c.categoria) continue;
+    const sim = similaridadeDescricoes(c.descricao, tx.descricao);
+    if (sim >= SIM_APRENDIDA && sim > melhorSim) {
+      melhorSim = sim;
+      melhor = c;
+    }
+  }
+  if (!melhor) return null;
+
+  return {
+    tipo: ehReceita ? "receita" : "despesa",
+    categoria: melhor.categoria,
+    incerto: false,
+    // Foi o usuário que decidiu isto — não há palpite nenhum aqui.
+    confianca: "high",
+    motivo: `aprendido: ${melhor.descricao}`,
+  };
+}
+
 /** Classificação em cascata (_impClassify): parcela → despesa fixa (não
  *  aplicável — sem domínio próprio ainda) → categoria configurada → palavras-
  *  chave → fallback. Para na primeira que bater. */
@@ -384,6 +432,16 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
   // 2. Despesas fixas: sem domínio próprio no FinApp ainda — passo mantido
   // como comentário-âncora pra quando esse domínio existir (a ordem da
   // cascata importa: fixas vêm ANTES das categorias configuradas genéricas).
+
+  // 2.5. O que o próprio usuário já fez com uma descrição parecida.
+  //
+  // Vem antes das categorias configuradas e das regras genéricas porque é o
+  // sinal mais forte que existe: não é uma palavra que calhou aparecer no
+  // texto, é ele a ter classificado exatamente isto antes. "Uber Eats" não
+  // bate em regra nenhuma, mas se já foi Restaurante das outras vezes, é
+  // Restaurante desta.
+  const aprendida = categoriaAprendida(tx, ctx);
+  if (aprendida) return aprendida;
 
   // 3. Categorias já configuradas pelo usuário.
   // Sempre com fronteira dos dois lados: o nome de uma categoria escrita pelo

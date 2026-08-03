@@ -44,6 +44,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "Telemovel Samsung Lda", valor: -3000 }), {
       parcelas: [parcela],
       categoriasConfiguradas: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({
       tipo: "despesa",
@@ -58,6 +60,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "Compra em Ginásio Central" }), {
       parcelas: [],
       categoriasConfiguradas: ["Saúde", "Ginásio"],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({
       tipo: "despesa",
@@ -72,7 +76,12 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
   test("2b) categoria configurada não pega pedaço de outra palavra", () => {
     const cls = classificarLancamento(
       linha({ descricao: "PRENDA DE CASAMENTO JOANA", valor: -5000 }),
-      { parcelas: [], categoriasConfiguradas: ["Casa", "Presentes"] },
+      {
+        parcelas: [],
+        categoriasConfiguradas: ["Casa", "Presentes"],
+        despesasHistorico: [],
+        receitasHistorico: [],
+      },
     );
     expect(cls.categoria).not.toBe("Casa");
     expect(cls.motivo).not.toContain("categoria: Casa");
@@ -82,6 +91,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "SEGURO DA CASA CONTINUADO" }), {
       parcelas: [],
       categoriasConfiguradas: ["Casa"],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({ categoria: "Casa", confianca: "high" });
   });
@@ -90,6 +101,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "COMPRA CONTINENTE LX" }), {
       parcelas: [],
       categoriasConfiguradas: ["Mercado"],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({ tipo: "despesa", categoria: "Mercado", confianca: "high" });
   });
@@ -98,6 +111,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "COMPRA CONTINENTE LX" }), {
       parcelas: [],
       categoriasConfiguradas: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({ tipo: "despesa", categoria: "Outros", confianca: "high" });
   });
@@ -106,6 +121,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "TRANSFERENCIA RECEBIDA", valor: 5000 }), {
       parcelas: [],
       categoriasConfiguradas: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls.tipo).toBe("transferencia");
     expect(cls.incerto).toBe(true);
@@ -115,6 +132,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const credito = classificarLancamento(linha({ descricao: "XYZ123", valor: 5000 }), {
       parcelas: [],
       categoriasConfiguradas: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(credito).toMatchObject({
       tipo: "receita",
@@ -126,6 +145,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const debito = classificarLancamento(linha({ descricao: "XYZ123", valor: -5000 }), {
       parcelas: [],
       categoriasConfiguradas: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(debito).toMatchObject({
       tipo: "despesa",
@@ -142,7 +163,12 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
   test("palavra-chave da operadora não pega pedaço de outra palavra ('nos' em 'diagnost')", () => {
     const cls = classificarLancamento(
       linha({ descricao: "PAGAMENTO INSTITUTO DIAGNOSTICO PORTO", valor: -4500 }),
-      { parcelas: [], categoriasConfiguradas: ["Saúde", "Telemóvel"] },
+      {
+        parcelas: [],
+        categoriasConfiguradas: ["Saúde", "Telemóvel"],
+        despesasHistorico: [],
+        receitasHistorico: [],
+      },
     );
     expect(cls.categoria).not.toBe("Telemóvel");
     expect(cls.motivo).not.toContain('"nos "');
@@ -152,6 +178,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
     const cls = classificarLancamento(linha({ descricao: "NOS COMUNICACOES SA", valor: -3990 }), {
       parcelas: [],
       categoriasConfiguradas: ["Telemóvel"],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(cls).toMatchObject({ tipo: "despesa", categoria: "Telemóvel", confianca: "high" });
   });
@@ -161,6 +189,8 @@ describe("classificarLancamento — cascata (seção da spec)", () => {
       const cls = classificarLancamento(linha({ descricao, valor: -2000 }), {
         parcelas: [],
         categoriasConfiguradas: ["Restaurante", "Saúde"],
+        despesasHistorico: [],
+        receitasHistorico: [],
       });
       expect(cls.motivo, descricao).not.toBe("sem correspondência");
     }
@@ -238,6 +268,8 @@ describe("analisarLinha — decisão combinada", () => {
       existentes: [existente],
       locaisCarregamento: [],
       cargasHistorico: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(r.decisao).toBe("duplicata_provavel");
     expect(r.acao).toBe("skip");
@@ -250,6 +282,8 @@ describe("analisarLinha — decisão combinada", () => {
       existentes: [],
       locaisCarregamento: [],
       cargasHistorico: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(r.decisao).toBe("auto_classificada");
     expect(r.acao).toBe("import");
@@ -263,6 +297,8 @@ describe("analisarLinha — decisão combinada", () => {
       existentes: [],
       locaisCarregamento: [],
       cargasHistorico: [],
+      despesasHistorico: [],
+      receitasHistorico: [],
     });
     expect(r.decisao).toBe("nova");
     expect(r.acao).toBe("import");
@@ -328,6 +364,8 @@ describe("analisarLinha com recarga", () => {
     categoriasConfiguradas: [],
     existentes: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
   };
 
   test("posto reconhecido e sem histórico: local preenchido, kWh por escrever", () => {
@@ -375,6 +413,8 @@ describe("analisarLinha com transferência entre contas próprias", () => {
     existentes: [],
     locaisCarregamento: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
   };
 
   test("transferência com dinheiro a ENTRAR já vem sugerida como vinda do cartão", () => {
@@ -425,6 +465,8 @@ describe("sinal contraditório com o tipo", () => {
     categoriasConfiguradas: ["Mercado"],
     locaisCarregamento: [],
     cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
     existentes: [],
   };
 
@@ -529,5 +571,92 @@ describe("estimarKwh", () => {
     expect(estimarKwh(1000, "Casa", [semPreco])).toBe("");
     // Mas uma anterior COM preço ainda serve.
     expect(estimarKwh(1000, "Casa", [semPreco, carga("Casa", "2026-06-01", 20)])).toBe("50");
+  });
+});
+
+describe("categorização aprendida do histórico", () => {
+  const base = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    despesasHistorico: [{ descricao: "UBER EATS PORTUGAL", categoria: "Restaurante" }],
+    receitasHistorico: [],
+  };
+
+  test("descrição parecida com uma já classificada herda a categoria", () => {
+    const c = classificarLancamento(
+      { data: "2026-07-20", descricao: "UBER *EATS", valor: -1800 },
+      base,
+    );
+    expect(c.categoria).toBe("Restaurante");
+    expect(c.tipo).toBe("despesa");
+    expect(c.confianca).toBe("high");
+    expect(c.incerto).toBe(false);
+    // Dá para distinguir de "categoria:" e "regra:" quando se investiga.
+    expect(c.motivo).toBe("aprendido: UBER EATS PORTUGAL");
+  });
+
+  test("o histórico do lado errado não vale", () => {
+    // A mesma descrição, mas só em receitas: não pode categorizar uma despesa.
+    const c = classificarLancamento(
+      { data: "2026-07-20", descricao: "UBER *EATS", valor: -1800 },
+      {
+        ...base,
+        despesasHistorico: [],
+        receitasHistorico: [{ descricao: "UBER EATS PORTUGAL", fonte: "Extra" }],
+      },
+    );
+    expect(c.categoria).not.toBe("Extra");
+    expect(c.motivo).not.toMatch(/aprendido/);
+  });
+
+  test("numa receita, é a fonte que se aprende", () => {
+    const c = classificarLancamento(
+      // O ref é limpo pela normalização, o resto do nome bate.
+      { data: "2026-07-20", descricao: "BOLT OPERATIONS OU REF 998877", valor: 45000 },
+      {
+        ...base,
+        receitasHistorico: [{ descricao: "BOLT OPERATIONS OU", fonte: "TVDE" }],
+      },
+    );
+    expect(c.tipo).toBe("receita");
+    expect(c.categoria).toBe("TVDE");
+    expect(c.motivo).toMatch(/aprendido/);
+  });
+
+  test("entre vários parecidos fica com o mais parecido", () => {
+    const c = classificarLancamento(
+      { data: "2026-07-20", descricao: "CONTINENTE BOM DIA MATOSINHOS", valor: -1200 },
+      {
+        ...base,
+        despesasHistorico: [
+          { descricao: "CONTINENTE ONLINE", categoria: "Mercado" },
+          { descricao: "CONTINENTE BOM DIA MATOSINHOS", categoria: "Padaria" },
+        ],
+      },
+    );
+    expect(c.categoria).toBe("Padaria");
+  });
+
+  test("sem nada parecido, a cascata segue como sempre seguiu", () => {
+    // "Farmácia" não está no histórico: cai na regra de palavra-chave.
+    const c = classificarLancamento(
+      { data: "2026-07-20", descricao: "FARMACIA CENTRAL", valor: -2500 },
+      { ...base, categoriasConfiguradas: ["Saúde"] },
+    );
+    expect(c.categoria).toBe("Saúde");
+    expect(c.motivo).not.toMatch(/aprendido/);
+  });
+
+  test("o aprendido ganha à regra genérica, que é mais fraca", () => {
+    // "Netflix" bate na regra "Lazer", mas o usuário sempre pôs em Assinaturas.
+    const c = classificarLancamento(
+      { data: "2026-07-20", descricao: "NETFLIX.COM", valor: -1599 },
+      {
+        ...base,
+        categoriasConfiguradas: ["Lazer", "Assinaturas"],
+        despesasHistorico: [{ descricao: "NETFLIX.COM", categoria: "Assinaturas" }],
+      },
+    );
+    expect(c.categoria).toBe("Assinaturas");
   });
 });
