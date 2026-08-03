@@ -114,17 +114,23 @@ export function construirExistentes(
 }
 
 /** Uma linha marcada como recarga elétrica, no formato que o veículo guarda.
- *  Devolve `null` se falta o que só o usuário pode dar — a tela de revisão não
- *  deixa confirmar nesse estado, e aqui é a segunda tranca: mais vale falhar
- *  do que gravar uma carga sem kWh.
+ *  Devolve `null` só quando falta o LOCAL: sem saber que posto é, a carga não
+ *  diz nada, e o local escolhe-se de uma lista — não custa exigi-lo.
  *
  *  `precoKwh` sai de custo ÷ kWh, a mesma conta do formulário de registo
  *  rápido (RegistroRapido.tsx) — o preço nunca é digitado em lado nenhum. */
 export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> | null {
-  const kwh = parseFloat(linha.kwhCarga.replace(",", "."));
   const local = linha.localCarga.trim();
-  if (!Number.isFinite(kwh) || kwh <= 0 || !local) return null;
+  if (!local) return null;
   const custo = Math.abs(linha.valor);
+  const kwh = parseFloat(linha.kwhCarga.replace(",", "."));
+  // Sem kWh a carga entra incompleta (0 e 0) em vez de travar a importação
+  // inteira: o valor e a data já estão certos, e o que falta completa-se
+  // depois na aba Veículo. Antes, um posto sem histórico para estimar
+  // obrigava a escrever um número na hora ou a desistir da linha.
+  if (!Number.isFinite(kwh) || kwh <= 0) {
+    return { data: linha.data, kwh: 0, custo, precoKwh: 0, local };
+  }
   return { data: linha.data, kwh, custo, precoKwh: Math.round(custo / kwh), local };
 }
 
@@ -156,7 +162,7 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
     if (linha.acao !== "import") continue;
     if (linha.destino === "carga") {
       const dados = dadosDaCarga(linha);
-      if (!dados) throw new Error(`Recarga sem kWh ou sem local: ${linha.descricao}`);
+      if (!dados) throw new Error(`Recarga sem local: ${linha.descricao}`);
       cargas.push(dados);
     } else if (linha.destino === "transferencia_cartao") {
       const dados = dadosDaTransferencia(linha);

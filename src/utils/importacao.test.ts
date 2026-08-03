@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
+import type { CargaEletrica } from "../types";
 import type { ExistenteParaDedup, LinhaExtrato, Parcela } from "../types";
 import {
   analisarLinha,
   classificarLancamento,
+  estimarKwh,
   normalizarDescricao,
   reconhecerCarga,
   similaridadeDescricoes,
@@ -235,6 +237,7 @@ describe("analisarLinha — decisão combinada", () => {
       categoriasConfiguradas: [],
       existentes: [existente],
       locaisCarregamento: [],
+      cargasHistorico: [],
     });
     expect(r.decisao).toBe("duplicata_provavel");
     expect(r.acao).toBe("skip");
@@ -246,6 +249,7 @@ describe("analisarLinha — decisão combinada", () => {
       categoriasConfiguradas: ["Saúde"],
       existentes: [],
       locaisCarregamento: [],
+      cargasHistorico: [],
     });
     expect(r.decisao).toBe("auto_classificada");
     expect(r.acao).toBe("import");
@@ -258,6 +262,7 @@ describe("analisarLinha — decisão combinada", () => {
       categoriasConfiguradas: [],
       existentes: [],
       locaisCarregamento: [],
+      cargasHistorico: [],
     });
     expect(r.decisao).toBe("nova");
     expect(r.acao).toBe("import");
@@ -318,9 +323,14 @@ describe("reconhecerCarga", () => {
 });
 
 describe("analisarLinha com recarga", () => {
-  const base = { parcelas: [], categoriasConfiguradas: [], existentes: [] };
+  const base = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    cargasHistorico: [],
+  };
 
-  test("linha de posto reconhecido já chega com destino e local preenchidos", () => {
+  test("posto reconhecido e sem histórico: local preenchido, kWh por escrever", () => {
     const r = analisarLinha(
       { data: "2026-07-08", descricao: "POWERDOT PORTUGAL", valor: -1050 },
       0,
@@ -328,8 +338,24 @@ describe("analisarLinha com recarga", () => {
     );
     expect(r.destino).toBe("carga");
     expect(r.localCarga).toBe("Powerdot");
-    // O kWh é o único campo que fica por preencher.
+    // Sem carga anterior nesse posto não há preço por kWh de onde estimar.
     expect(r.kwhCarga).toBe("");
+  });
+
+  test("posto com histórico: o kWh já vem estimado pelo preço da última carga", () => {
+    const r = analisarLinha(
+      { data: "2026-07-08", descricao: "POWERDOT PORTUGAL", valor: -1050 },
+      0,
+      {
+        ...base,
+        locaisCarregamento: ["Powerdot"],
+        // 10,50 € a 24 cêntimos/kWh = 43,75 kWh.
+        cargasHistorico: [
+          { id: "c1", data: "2026-06-01", kwh: 30, precoKwh: 24, custo: 720, local: "Powerdot" },
+        ],
+      },
+    );
+    expect(r.kwhCarga).toBe("43,75");
   });
 
   test("linha comum continua exatamente como antes", () => {
@@ -343,7 +369,13 @@ describe("analisarLinha com recarga", () => {
 });
 
 describe("analisarLinha com transferência entre contas próprias", () => {
-  const base = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
+  const base = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    locaisCarregamento: [],
+    cargasHistorico: [],
+  };
 
   test("transferência com dinheiro a ENTRAR já vem sugerida como vinda do cartão", () => {
     // A regra de transferência bate, mas o valor é positivo: contraditório, e
@@ -392,6 +424,7 @@ describe("sinal contraditório com o tipo", () => {
     parcelas: [],
     categoriasConfiguradas: ["Mercado"],
     locaisCarregamento: [],
+    cargasHistorico: [],
     existentes: [],
   };
 
@@ -458,5 +491,43 @@ describe("sinal contraditório com o tipo", () => {
     );
     expect(transf.classificacao.tipo).toBe("transferencia");
     expect(transf.tipoEscolhido).toBe("despesa");
+  });
+});
+
+describe("estimarKwh", () => {
+  const carga = (local: string, data: string, precoKwh: number): CargaEletrica => ({
+    id: `c-${data}`,
+    data,
+    kwh: 10,
+    precoKwh,
+    custo: precoKwh * 10,
+    local,
+  });
+
+  test("usa o preço da carga MAIS RECENTE daquele posto", () => {
+    const cargas = [
+      carga("Ionity A1", "2026-05-01", 60),
+      carga("Ionity A1", "2026-07-01", 50),
+      carga("Casa", "2026-07-02", 10),
+    ];
+    // 25,00 € a 50 cêntimos/kWh = 50 kWh (e não 41,67, que era o preço antigo).
+    expect(estimarKwh(2500, "Ionity A1", cargas)).toBe("50");
+  });
+
+  test("posto sem histórico não dá estimativa nenhuma", () => {
+    expect(estimarKwh(2500, "Posto Novo", [carga("Casa", "2026-07-02", 10)])).toBe("");
+    expect(estimarKwh(2500, "", [carga("Casa", "2026-07-02", 10)])).toBe("");
+    expect(estimarKwh(2500, "Casa", [])).toBe("");
+  });
+
+  test("decimal com vírgula, como o campo espera", () => {
+    expect(estimarKwh(1050, "Casa", [carga("Casa", "2026-07-02", 24)])).toBe("43,75");
+  });
+
+  test("carga antiga sem preço não serve de referência", () => {
+    const semPreco = { ...carga("Casa", "2026-07-05", 0), precoKwh: 0 };
+    expect(estimarKwh(1000, "Casa", [semPreco])).toBe("");
+    // Mas uma anterior COM preço ainda serve.
+    expect(estimarKwh(1000, "Casa", [semPreco, carga("Casa", "2026-06-01", 20)])).toBe("50");
   });
 });

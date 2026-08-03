@@ -131,7 +131,13 @@ describe("construirExistentes", () => {
 });
 
 describe("dedup com os lançamentos que faltavam", () => {
-  const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
+  const ctx = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    locaisCarregamento: [],
+    cargasHistorico: [],
+  };
 
   test("pagamento da prestação no extrato deixa de passar como novo", () => {
     const existentes = construirExistentes([], [PARCELA_PAGA], ...SO_OS_DOIS);
@@ -243,11 +249,22 @@ describe("dadosDaCarga", () => {
     expect(dadosDaCarga(linhaCarga({ kwhCarga: "32,5", valor: -1300 })!)?.kwh).toBe(32.5);
   });
 
-  test("sem kWh, sem kWh válido ou sem local não dá carga nenhuma", () => {
-    expect(dadosDaCarga(linhaCarga({ kwhCarga: "" }))).toBeNull();
-    expect(dadosDaCarga(linhaCarga({ kwhCarga: "0" }))).toBeNull();
-    expect(dadosDaCarga(linhaCarga({ kwhCarga: "abc" }))).toBeNull();
+  test("sem local não dá carga nenhuma — é o único campo obrigatório", () => {
     expect(dadosDaCarga(linhaCarga({ localCarga: "  " }))).toBeNull();
+  });
+
+  test("sem kWh a carga entra incompleta, em vez de travar a importação", () => {
+    // Posto novo, sem histórico para estimar: o valor e a data já valem, e os
+    // kWh completam-se depois na aba Veículo.
+    for (const kwhCarga of ["", "0", "abc"]) {
+      expect(dadosDaCarga(linhaCarga({ kwhCarga }))).toEqual({
+        data: "2026-07-08",
+        kwh: 0,
+        custo: 1050,
+        precoKwh: 0,
+        local: "Powerdot",
+      });
+    }
   });
 });
 
@@ -314,13 +331,13 @@ describe("confirmarImportacao com recarga", () => {
     expect(n).toBe(2);
   });
 
-  test("recarga incompleta faz falhar antes de gravar seja o que for", async () => {
+  test("recarga sem local faz falhar antes de gravar seja o que for", async () => {
     await expect(
       confirmarImportacao("u1", [
         linha({ id: 1, descricao: "Mercadona", valor: -3200 }),
-        linha({ id: 2, destino: "carga", localCarga: "Powerdot", kwhCarga: "" }),
+        linha({ id: 2, destino: "carga", localCarga: "", kwhCarga: "10" }),
       ]),
-    ).rejects.toThrow(/kWh/);
+    ).rejects.toThrow(/Recarga/);
     expect(update).not.toHaveBeenCalled();
     expect(criarCarga).not.toHaveBeenCalled();
   });
@@ -686,6 +703,7 @@ describe("transferência já registada aparece nos dois lados", () => {
     categoriasConfiguradas: [],
     existentes: [],
     locaisCarregamento: [],
+    cargasHistorico: [],
   };
   const existentes = construirExistentes([], [], [], [], [TRANSFERENCIA], []);
 
@@ -752,7 +770,13 @@ describe("despesa fixa paga entra na busca por duplicata", () => {
     diaVencimento: 8,
     pagoPorMes: { "2026-07": true, "2026-06": true, "2026-05": false },
   };
-  const ctx = { parcelas: [], categoriasConfiguradas: [], existentes: [], locaisCarregamento: [] };
+  const ctx = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    locaisCarregamento: [],
+    cargasHistorico: [],
+  };
   const existentes = construirExistentes([], [], [], [], [], [FIXA]);
 
   test("uma entrada por mês PAGO, na data do vencimento", () => {

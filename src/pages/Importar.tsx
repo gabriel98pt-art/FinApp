@@ -22,7 +22,7 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
-import { analisarLinha } from "../utils/importacao";
+import { analisarLinha, estimarKwh } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
@@ -128,6 +128,7 @@ export default function Importar() {
         categoriasConfiguradas,
         existentes,
         locaisCarregamento: cfg.locaisCarregamento,
+        cargasHistorico: veiculo.cargas,
       }),
     );
     setLinhas(analisadas);
@@ -466,7 +467,15 @@ export default function Importar() {
                               opcoes={cfg.locaisCarregamento}
                               rotuloVazio="Escolher local…"
                               aviso="Nenhum local de carregamento guardado — os locais vêm da aba Veículo."
-                              aoMudar={(v) => atualizarLinha(l.id, { localCarga: v })}
+                              aoMudar={(v) =>
+                                atualizarLinha(l.id, {
+                                  localCarga: v,
+                                  // Outro posto, outro preço por kWh: a
+                                  // estimativa é refeita na hora, com o mesmo
+                                  // histórico que a sugestão automática usa.
+                                  kwhCarga: estimarKwh(Math.abs(l.valor), v, veiculo.cargas),
+                                })
+                              }
                             />
                             {/* O extrato não traz os kWh e o app não os pode
                                 deduzir: é o único campo digitado aqui. A
@@ -525,13 +534,19 @@ export default function Importar() {
                           </>
                         )}
                       </div>
-                      {l.acao === "import" && l.destino === "carga" && dadosDaCarga(l) === null && (
-                        <p className={styles.faltaCarga}>
-                          {!l.localCarga.trim()
-                            ? "Escolha o local desta recarga."
-                            : "Escreva os kWh desta recarga."}
-                        </p>
+                      {l.acao === "import" && l.destino === "carga" && !l.localCarga.trim() && (
+                        <p className={styles.faltaCarga}>Escolha o local desta recarga.</p>
                       )}
+                      {/* Sem kWh a linha entra na mesma — só fica por
+                          completar. Aviso, não bloqueio. */}
+                      {l.acao === "import" &&
+                        l.destino === "carga" &&
+                        l.localCarga.trim() &&
+                        !l.kwhCarga.trim() && (
+                          <p className={styles.notaCarga}>
+                            Sem kWh — entra assim e completa-se depois no Veículo.
+                          </p>
+                        )}
                       {l.acao === "import" &&
                         l.destino === "transferencia_cartao" &&
                         dadosDaTransferencia(l) === null && (

@@ -3,6 +3,8 @@
 // dedup). Funções puras, sem dependência de Firebase/DOM.
 
 import type {
+  CargaEletrica,
+  Cents,
   Classificacao,
   Confianca,
   DecisaoLinha,
@@ -644,10 +646,37 @@ export function reconhecerCarga(tx: LinhaExtrato, locais: string[]): CargaReconh
   return { ehCarga: false, local: "" };
 }
 
+/** kWh prováveis desta recarga, a partir do que aquele posto costumava
+ *  custar — devolve o texto do campo ("43,75"), ou "" quando não há por onde
+ *  estimar.
+ *
+ *  O extrato traz o custo mas nunca a energia. O que o app sabe é o preço por
+ *  kWh das cargas anteriores NAQUELE posto: com ele, custo ÷ preço dá os kWh
+ *  sem ninguém escrever nada. Usa-se a carga mais recente do local, não uma
+ *  média — o preço da eletricidade muda, e o valor de há um ano diria menos
+ *  do que o do mês passado.
+ *
+ *  É um ponto de partida, não uma verdade: o campo continua editável. */
+export function estimarKwh(custo: Cents, local: string, cargas: CargaEletrica[]): string {
+  const alvo = local.trim();
+  if (!alvo) return "";
+  let referencia: CargaEletrica | null = null;
+  for (const c of cargas) {
+    if (c.local !== alvo || c.precoKwh <= 0) continue;
+    if (!referencia || c.data > referencia.data) referencia = c;
+  }
+  if (!referencia) return "";
+  const kwh = Math.round((custo / referencia.precoKwh) * 100) / 100;
+  if (!Number.isFinite(kwh) || kwh <= 0) return "";
+  return String(kwh).replace(".", ",");
+}
+
 export interface ContextoAnalise extends ContextoClassificacao {
   existentes: ExistenteParaDedup[];
   /** Postos de carregamento cadastrados, para reconhecer recargas. */
   locaisCarregamento: string[];
+  /** Cargas já registadas — é delas que sai o preço por kWh de cada posto. */
+  cargasHistorico: CargaEletrica[];
 }
 
 /** Decisão final por linha (_impAnalyze): combina classificação + dedup. */
@@ -692,7 +721,7 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     tipoEscolhido: classificacao.tipo === "receita" ? "receita" : "despesa",
     destino: carga.ehCarga ? "carga" : ehTransferencia ? "transferencia_cartao" : "lancamento",
     localCarga: carga.local,
-    kwhCarga: "",
+    kwhCarga: carga.ehCarga ? estimarKwh(Math.abs(tx.valor), carga.local, ctx.cargasHistorico) : "",
     contaOrigem: "",
     contaDestino: "",
   };

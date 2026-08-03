@@ -276,6 +276,12 @@
   gap: 5px;
 }
 
+/* Falta um dado, mas não trava nada: fica no tom de aviso, não no de erro. */
+.notaCarga {
+  color: var(--mut);
+  font-size: 0.72rem;
+}
+
 /* Campo dos kWh: cabe na mesma linha dos seletores, largura só para "132,5". */
 .kwh {
   width: 4.5em;
