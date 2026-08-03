@@ -18,6 +18,10 @@ vi.mock("./lancamentosService", async (original) => ({
   removerTransferencia: vi.fn(async () => undefined),
   atualizarDespesaFixa: vi.fn(async () => undefined),
 }));
+vi.mock("./faturaService", async (original) => ({
+  ...(await original<typeof import("./faturaService")>()),
+  pagarFatura: vi.fn(async () => undefined),
+}));
 vi.mock("./veiculoService", async (original) => ({
   ...(await original<typeof import("./veiculoService")>()),
   criarCarga: vi.fn(async () => "id-carga"),
@@ -30,9 +34,11 @@ import {
   construirExistentes,
   dadosDaCarga,
   dadosDaTransferencia,
+  pagamentoDaLinha,
 } from "./importacaoService";
 import { update } from "firebase/database";
 import { criarCarga, removerCarga } from "./veiculoService";
+import { pagarFatura } from "./faturaService";
 import {
   atualizarDespesaFixa,
   criarTransferencia,
@@ -253,6 +259,8 @@ describe("dadosDaCarga", () => {
     kwhCarga: "10",
     contaOrigem: "",
     contaDestino: "",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
     ...mudancas,
   });
 
@@ -313,6 +321,8 @@ describe("confirmarImportacao com recarga", () => {
     kwhCarga: "",
     contaOrigem: "",
     contaDestino: "",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
     ...mudancas,
   });
 
@@ -397,6 +407,8 @@ describe("transferência vinda de cartão de crédito", () => {
     kwhCarga: "",
     contaOrigem: "AB Gold (C)",
     contaDestino: "Conta Principal",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
     ...mudancas,
   });
 
@@ -510,6 +522,8 @@ describe("a transferência importada chega à fatura do cartão", () => {
       kwhCarga: "",
       contaOrigem: "AB Gold (C)",
       contaDestino: "Conta Principal",
+      fatCartaoEscolhido: "",
+      fatMesEscolhido: "2026-07",
     };
     const transferencia = { ...dadosDaTransferencia(linha)!, id: "t1" };
 
@@ -552,6 +566,8 @@ describe("fonte da receita e origem da transferência", () => {
     kwhCarga: "",
     contaOrigem: "",
     contaDestino: "",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
   });
 
   beforeEach(() => {
@@ -582,6 +598,8 @@ describe("fonte da receita e origem da transferência", () => {
       destino: "transferencia_cartao",
       contaOrigem: "Conta Poupança",
       contaDestino: "Conta Principal",
+      fatCartaoEscolhido: "",
+      fatMesEscolhido: "2026-07",
     };
     const transferencia = { ...dadosDaTransferencia(linha)!, id: "t2" };
     const dados = {
@@ -635,6 +653,8 @@ describe("o lado escolhido à mão manda sobre o automático", () => {
     kwhCarga: "",
     contaOrigem: "",
     contaDestino: "",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
   });
 
   beforeEach(() => vi.mocked(update).mockClear());
@@ -680,6 +700,8 @@ describe("transferência do lado de quem manda", () => {
     kwhCarga: "",
     contaOrigem: "Conta Principal",
     contaDestino: "Conta Poupança",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: "2026-07",
     ...mudancas,
   });
 
@@ -932,5 +954,120 @@ describe("apagar o registo antigo que o usuário marcou", () => {
     await apagarExistentes("u1", [], []);
     expect(removerDespesa).not.toHaveBeenCalled();
     expect(atualizarDespesaFixa).not.toHaveBeenCalled();
+  });
+});
+
+describe("pagamento da fatura do cartão", () => {
+  const linha = (mudancas: Partial<LinhaAnalisada> = {}): LinhaAnalisada => ({
+    id: 0,
+    data: "2026-08-02",
+    descricao: "PAGAMENTO CARTAO DE CREDITO",
+    valor: -22041,
+    classificacao: {
+      tipo: "fatura",
+      categoria: "Cartão de Crédito",
+      incerto: false,
+      confianca: "high",
+      motivo: "regra",
+    },
+    duplicata: { status: "new", confianca: null, correspondencia: null, score: 0, motivos: [] },
+    decisao: "auto_classificada",
+    acao: "import",
+    categoriaEscolhida: "Cartão de Crédito",
+    tipoEscolhido: "despesa",
+    destino: "pagamento_fatura",
+    localCarga: "",
+    kwhCarga: "",
+    contaOrigem: "Conta Principal",
+    contaDestino: "",
+    fatCartaoEscolhido: "AB Gold (C)",
+    // Pagou em agosto a fatura de julho — é por isto que o mês é editável.
+    fatMesEscolhido: "2026-07",
+    ...mudancas,
+  });
+
+  const contexto = {
+    faturasPagas: {},
+    parcelas: [],
+    dados: {
+      despesasFixas: [],
+      despesasFixasVeiculo: [],
+      despesasCorrentes: [],
+      parcelas: [],
+      transferencias: [],
+    },
+  };
+
+  beforeEach(() => {
+    vi.mocked(update).mockClear();
+    vi.mocked(pagarFatura).mockClear();
+  });
+
+  test("a linha traz cartão, mês, conta e o valor sempre positivo", () => {
+    expect(pagamentoDaLinha(linha())).toEqual({
+      cartao: "AB Gold (C)",
+      de: "Conta Principal",
+      mes: "2026-07",
+      valor: 22041,
+    });
+  });
+
+  test("sem cartão ou sem conta de origem não dá pagamento nenhum", () => {
+    expect(pagamentoDaLinha(linha({ fatCartaoEscolhido: "" }))).toBeNull();
+    expect(pagamentoDaLinha(linha({ contaOrigem: " " }))).toBeNull();
+  });
+
+  test("ao confirmar vai por pagarFatura, e não para despesas correntes", async () => {
+    const n = await confirmarImportacao("u1", [linha()], contexto);
+
+    expect(pagarFatura).toHaveBeenCalledWith("u1", {
+      cartao: "AB Gold (C)",
+      mes: "2026-07",
+      valor: 22041,
+      de: "Conta Principal",
+      pagamentosAtuais: [],
+      devido: 0,
+      parcelas: [],
+    });
+    // Nada no lote das despesas: quem cria o lançamento é o pagarFatura, com
+    // origem "fat" — fora dos totais de despesa, porque a compra já contou.
+    expect(update).not.toHaveBeenCalled();
+    expect(n).toBe(1);
+  });
+
+  test("o devido e os pagamentos já feitos vêm do contexto da tela", async () => {
+    await confirmarImportacao("u1", [linha()], {
+      ...contexto,
+      faturasPagas: {
+        "AB Gold (C)": {
+          "2026-07": { pagamentos: [{ id: "p1", data: "2026-07-20", valor: 5000 }] },
+        },
+      },
+      dados: {
+        ...contexto.dados,
+        // Compra no cartão em junho — é o ciclo que a fatura de julho cobra.
+        despesasCorrentes: [
+          {
+            id: "d1",
+            descricao: "Compra",
+            valor: 30000,
+            data: "2026-06-10",
+            categoria: "Compras",
+            contaCartao: "AB Gold (C)",
+          },
+        ],
+      },
+    });
+    const ctx = vi.mocked(pagarFatura).mock.calls[0][1];
+    expect(ctx.devido).toBe(30000);
+    expect(ctx.pagamentosAtuais).toHaveLength(1);
+  });
+
+  test("linha incompleta faz falhar antes de gravar seja o que for", async () => {
+    await expect(
+      confirmarImportacao("u1", [linha({ fatCartaoEscolhido: "" })], contexto),
+    ).rejects.toThrow(/fatura/i);
+    expect(pagarFatura).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
   });
 });

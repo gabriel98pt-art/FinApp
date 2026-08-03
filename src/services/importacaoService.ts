@@ -14,13 +14,17 @@ import {
 } from "./lancamentosService";
 import { criarCarga, removerCarga, removerDespesaVeiculo } from "./veiculoService";
 import { diaDoMes } from "../utils/vencimentos";
+import { calcularFaturaAutomatica, pagamentosDaFatura, type DadosFatura } from "../utils/fatura";
+import { pagarFatura } from "./faturaService";
 import type {
   CargaEletrica,
+  ConfigConta,
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
   ExistenteParaDedup,
   LinhaAnalisada,
+  Parcela,
   Receita,
   Transferencia,
 } from "../types";
@@ -161,7 +165,33 @@ export function dadosDaTransferencia(linha: LinhaAnalisada): Omit<Transferencia,
   return { data: linha.data, de, para, valor: Math.abs(linha.valor), descricao: linha.descricao };
 }
 
-export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[]) {
+/** O que uma linha de pagamento de fatura traz por si — o resto (quanto já
+ *  foi pago, quanto se deve) vem do contexto, que a tela tem carregado.
+ *  `null` quando falta o que só o usuário pode dizer: sem cartão não se sabe
+ *  que fatura é, sem conta de origem não se sabe de onde saiu o dinheiro. */
+export function pagamentoDaLinha(linha: LinhaAnalisada) {
+  const cartao = linha.fatCartaoEscolhido.trim();
+  const de = linha.contaOrigem.trim();
+  const mes = linha.fatMesEscolhido.trim();
+  if (!cartao || !de || !mes) return null;
+  return { cartao, de, mes, valor: Math.abs(linha.valor) };
+}
+
+/** Tudo o que o serviço precisa para registar um pagamento de fatura e que não
+ *  vem da linha. Entregue pela tela, que já tem isto carregado — assim o
+ *  serviço de importação não vai buscar dados a lado nenhum nem passa a
+ *  depender das stores. */
+export interface ContextoFaturas {
+  faturasPagas: ConfigConta["faturasPagas"];
+  parcelas: Parcela[];
+  dados: DadosFatura;
+}
+
+export async function confirmarImportacao(
+  uid: string,
+  linhas: LinhaAnalisada[],
+  contextoFaturas?: ContextoFaturas,
+) {
   const raiz = `users/${uid}/fin_v5`;
   const atualizacoes: Record<string, unknown> = {};
 
@@ -171,6 +201,7 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
   // entrar e a outra metade rebentar a meio.
   const cargas: Omit<CargaEletrica, "id">[] = [];
   const transferencias: Omit<Transferencia, "id">[] = [];
+  const pagamentos: NonNullable<ReturnType<typeof pagamentoDaLinha>>[] = [];
   for (const linha of linhas) {
     if (linha.acao !== "import") continue;
     if (linha.destino === "carga") {
@@ -181,6 +212,11 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
       const dados = dadosDaTransferencia(linha);
       if (!dados) throw new Error(`Transferência sem cartão ou sem conta: ${linha.descricao}`);
       transferencias.push(dados);
+    } else if (linha.destino === "pagamento_fatura") {
+      const dados = pagamentoDaLinha(linha);
+      if (!dados || !contextoFaturas)
+        throw new Error(`Pagamento de fatura sem cartão ou sem conta: ${linha.descricao}`);
+      pagamentos.push(dados);
     }
   }
 
@@ -219,7 +255,26 @@ export async function confirmarImportacao(uid: string, linhas: LinhaAnalisada[])
   if (Object.keys(atualizacoes).length > 0) await update(ref(db, raiz), atualizacoes);
   for (const dados of cargas) await criarCarga(uid, dados);
   for (const dados of transferencias) await criarTransferencia(uid, dados);
-  return Object.keys(atualizacoes).length + cargas.length + transferencias.length;
+  // Pagamento de fatura vai pelo MESMO caminho do pagamento feito à mão na aba
+  // Cartões: cria o lançamento com origem "fat" (fora dos totais de despesa —
+  // a compra já contou quando aconteceu), acrescenta o pagamento à fatura do
+  // mês e, se quitar, fecha as parcelas em débito automático do ciclo. Nada
+  // disso é reescrito aqui.
+  for (const p of pagamentos) {
+    const ctx = contextoFaturas!;
+    await pagarFatura(uid, {
+      cartao: p.cartao,
+      mes: p.mes,
+      valor: p.valor,
+      de: p.de,
+      pagamentosAtuais: pagamentosDaFatura(ctx.faturasPagas?.[p.cartao]?.[p.mes]),
+      devido: calcularFaturaAutomatica(p.cartao, p.mes, ctx.dados),
+      parcelas: ctx.parcelas,
+    });
+  }
+  return (
+    Object.keys(atualizacoes).length + cargas.length + transferencias.length + pagamentos.length
+  );
 }
 
 /** Apaga os registos existentes que o usuário marcou na revisão de duplicatas.

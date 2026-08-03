@@ -11,6 +11,7 @@ import {
   confirmarImportacao,
   dadosDaCarga,
   dadosDaTransferencia,
+  pagamentoDaLinha,
 } from "../services/importacaoService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
@@ -28,6 +29,7 @@ import { analisarLinha, estimarKwh } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
+import { rotuloMes, somarMeses } from "../utils/calculos";
 import type {
   Confianca,
   DecisaoLinha,
@@ -52,7 +54,12 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
  *  dinheiro. A transferência entre contas próprias existe dos dois lados: a
  *  mesma passagem de dinheiro aparece a sair no extrato de uma conta e a
  *  entrar no da outra. */
-const DESTINOS_SAIDA: DestinoLinha[] = ["lancamento", "carga", "transferencia_cartao"];
+const DESTINOS_SAIDA: DestinoLinha[] = [
+  "lancamento",
+  "carga",
+  "transferencia_cartao",
+  "pagamento_fatura",
+];
 const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
 
 /** O rótulo da transferência depende do lado: a mesma opção é "veio" no
@@ -60,6 +67,7 @@ const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
 function rotuloDestino(destino: DestinoLinha, ehSaida: boolean): string {
   if (destino === "lancamento") return "Lançamento normal";
   if (destino === "carga") return "Recarga elétrica";
+  if (destino === "pagamento_fatura") return "Paguei a fatura do cartão";
   return ehSaida ? "Foi para outra conta minha" : "Veio de outra conta minha";
 }
 
@@ -80,6 +88,14 @@ const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
   { id: "duplicata_provavel", rotulo: "Prováveis duplicatas" },
   { id: "revisao", rotulo: "Revisão" },
 ];
+
+/** Meses possíveis para a fatura paga nesta linha: o mês da linha, dois antes
+ *  e um depois. Cobre o pagamento adiantado e o atrasado sem obrigar a
+ *  escrever uma data. */
+function mesesDaFatura(data: string): string[] {
+  const base = data.slice(0, 7);
+  return [-2, -1, 0, 1].map((n) => somarMeses(base, n));
+}
 
 function corConfianca(c: Confianca): string {
   return c === "high" ? styles.confAlta : c === "medium" ? styles.confMedia : styles.confBaixa;
@@ -123,6 +139,8 @@ export default function Importar() {
   // lista de despesas ("Alimentação", "Saúde") não dizia nada a quem estava a
   // classificar um salário.
   const opcoesFonte = [...new Set([...cfg.fontesReceita, "Transferência", "Outros"])];
+  // Só cartões de crédito têm fatura para pagar.
+  const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
 
   function analisar(brutas: LinhaExtrato[]) {
     if (brutas.length === 0) {
@@ -260,7 +278,21 @@ export default function Importar() {
     if (!uid) return;
     setEnviando(true);
     try {
-      const n = await confirmarImportacao(uid, aImportar);
+      const n = await confirmarImportacao(uid, aImportar, {
+        // O serviço não vai buscar dados a lado nenhum: o que ele precisa para
+        // registar um pagamento de fatura sai daqui, onde já está carregado.
+        faturasPagas: cfg.faturasPagas,
+        parcelas,
+        dados: {
+          despesasFixas,
+          despesasFixasVeiculo: veiculo.despesasFixas,
+          despesasCorrentes: despesas,
+          parcelas,
+          transferencias,
+          cargas: veiculo.cargas,
+          despesasVeiculo: veiculo.despesas,
+        },
+      });
       if (apagar.length) await apagarExistentes(uid, apagar, despesasFixas);
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
       setLinhas(null);
@@ -309,7 +341,8 @@ export default function Importar() {
       (l) =>
         l.acao === "import" &&
         ((l.destino === "carga" && dadosDaCarga(l) === null) ||
-          (l.destino === "transferencia_cartao" && dadosDaTransferencia(l) === null)),
+          (l.destino === "transferencia_cartao" && dadosDaTransferencia(l) === null) ||
+          (l.destino === "pagamento_fatura" && pagamentoDaLinha(l) === null)),
     ) ?? [];
 
   return (
@@ -470,7 +503,42 @@ export default function Importar() {
                           rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha, l.valor < 0)}
                           aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
                         />
-                        {l.destino === "transferencia_cartao" ? (
+                        {l.destino === "pagamento_fatura" ? (
+                          <>
+                            {/* Qual fatura foi paga: cartão e mês. O mês começa
+                                no da própria linha e corrige-se aqui — quem
+                                paga a 2 de agosto a fatura de julho. */}
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Cartão de ${l.descricao}`}
+                              nivel={0}
+                              valor={l.fatCartaoEscolhido}
+                              opcoes={cartoesCredito}
+                              rotuloVazio="Qual cartão…"
+                              aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { fatCartaoEscolhido: v })}
+                            />
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Mês da fatura de ${l.descricao}`}
+                              nivel={0}
+                              valor={l.fatMesEscolhido}
+                              opcoes={mesesDaFatura(l.data)}
+                              rotuloOpcao={rotuloMes}
+                              aoMudar={(v) => atualizarLinha(l.id, { fatMesEscolhido: v })}
+                            />
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Conta que pagou ${l.descricao}`}
+                              nivel={0}
+                              valor={l.contaOrigem}
+                              opcoes={cfg.contasCartoes}
+                              rotuloVazio="Pago de…"
+                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
+                            />
+                          </>
+                        ) : l.destino === "transferencia_cartao" ? (
                           <>
                             {/* De onde saiu: qualquer conta ou cartão do
                                 usuário. Sendo cartão de crédito, o valor vai
@@ -588,6 +656,15 @@ export default function Importar() {
                         !l.kwhCarga.trim() && (
                           <p className={styles.notaCarga}>
                             Sem kWh — entra assim e completa-se depois no Veículo.
+                          </p>
+                        )}
+                      {l.acao === "import" &&
+                        l.destino === "pagamento_fatura" &&
+                        pagamentoDaLinha(l) === null && (
+                          <p className={styles.faltaCarga}>
+                            {!l.fatCartaoEscolhido.trim()
+                              ? "Escolha de que cartão é esta fatura."
+                              : "Escolha a conta que pagou."}
                           </p>
                         )}
                       {l.acao === "import" &&

@@ -16,6 +16,7 @@ import type {
   StatusDuplicata,
   TipoClassificado,
 } from "../types";
+import { mesDe } from "./calculos";
 import { formatCents } from "./money";
 import { valorDaParcela } from "./parcelas";
 
@@ -766,6 +767,12 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
   // imposto: um toque no destino devolve a linha ao caminho normal.
   const ehTransferencia = classificacao.tipo === "transferencia";
 
+  // Pagamento da fatura do cartão: a regra de palavra-chave já o reconhece
+  // ("PAGAMENTO CARTÃO DE CRÉDITO"), só faltava ter para onde o mandar. Como
+  // despesa comum o dinheiro saía certo da conta, mas a aba Cartões nunca
+  // ficava a saber que a fatura tinha sido paga.
+  const ehPagamentoFatura = classificacao.tipo === "fatura";
+
   return {
     id,
     data: tx.data,
@@ -777,10 +784,18 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     acao,
     categoriaEscolhida: classificacao.categoria ?? "Outros",
     tipoEscolhido: classificacao.tipo === "receita" ? "receita" : "despesa",
-    destino: carga.ehCarga ? "carga" : ehTransferencia ? "transferencia_cartao" : "lancamento",
+    destino: carga.ehCarga
+      ? "carga"
+      : ehTransferencia
+        ? "transferencia_cartao"
+        : ehPagamentoFatura
+          ? "pagamento_fatura"
+          : "lancamento",
     localCarga: carga.local,
     kwhCarga: carga.ehCarga ? estimarKwh(Math.abs(tx.valor), carga.local, ctx.cargasHistorico) : "",
     contaOrigem: "",
     contaDestino: "",
+    fatCartaoEscolhido: "",
+    fatMesEscolhido: mesDe(tx.data),
   };
 }

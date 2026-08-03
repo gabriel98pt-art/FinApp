@@ -63,11 +63,16 @@ export type DecisaoLinha = "auto_classificada" | "nova" | "duplicata_provavel" |
  *
  *  `carga` grava uma recarga elétrica no veículo.
  *
+ *  `pagamento_fatura` é o pagamento da fatura do cartão de crédito: como
+ *  despesa comum a conta ficava certa mas a aba Cartões nunca sabia que a
+ *  fatura tinha sido paga. Vai por `pagarFatura`, o mesmo caminho do
+ *  pagamento registado à mão.
+ *
  *  `transferencia_cartao` é dinheiro que veio de outra conta ou cartão do
  *  próprio usuário: entra positivo no extrato e parece receita, mas não é
  *  dinheiro ganho — só mudou de sítio. Gravado como `Transferencia`; vindo de
  *  um cartão de crédito, é isso que faz a fatura contá-lo sozinha. */
-export type DestinoLinha = "lancamento" | "carga" | "transferencia_cartao";
+export type DestinoLinha = "lancamento" | "carga" | "transferencia_cartao" | "pagamento_fatura";
 
 export interface LinhaAnalisada {
   id: number;
@@ -95,13 +100,19 @@ export interface LinhaAnalisada {
   /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O
    *  extrato não traz esta informação e o app não tem como a adivinhar. */
   kwhCarga: string;
-  /** Só com `destino === "transferencia_cartao"`: conta ou cartão de onde o
-   *  dinheiro saiu. Sendo um cartão de crédito, é por aqui que a fatura vai
-   *  buscar este valor; sendo uma conta comum, não entra em fatura nenhuma —
-   *  que é o certo, uma conta não tem fatura. */
+  /** De onde o dinheiro saiu. Serve os dois destinos que o perguntam, porque
+   *  o papel é o mesmo: na transferência é a conta de origem (sendo cartão de
+   *  crédito, é por aqui que a fatura vai buscar o valor); no pagamento de
+   *  fatura é a conta que pagou. */
   contaOrigem: string;
   /** Só com `destino === "transferencia_cartao"`: conta que recebeu. O extrato
    *  não diz de que conta é (a importação não tem esse conceito), e sem isto o
    *  saldo dessa conta ficaria sem o dinheiro que entrou. */
   contaDestino: string;
+  /** Só com `destino === "pagamento_fatura"`: cartão cuja fatura foi paga. */
+  fatCartaoEscolhido: string;
+  /** Só com `destino === "pagamento_fatura"`: mês da fatura. Começa no mês da
+   *  própria linha, que é o palpite razoável, e é editável — quem paga a 2 de
+   *  agosto a fatura de julho corrige aqui. */
+  fatMesEscolhido: string;
 }
