@@ -810,6 +810,7 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
         : ehPagamentoFatura
           ? "pagamento_fatura"
           : "lancamento",
+    contaEscolhida: "",
     localCarga: carga.local,
     kwhCarga: carga.ehCarga ? estimarKwh(Math.abs(tx.valor), carga.local, ctx.cargasHistorico) : "",
     contaOrigem: "",

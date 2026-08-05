@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
-import AbaTransicao from "../components/AbaTransicao";
-import ImportarBackupAntigo from "../components/ImportarBackupAntigo";
 import Seletor from "../components/Seletor";
 import BottomSheet from "../components/BottomSheet";
 import {
@@ -22,6 +20,7 @@ import {
   useReceitasStore,
   useTransferenciasStore,
 } from "../stores/lancamentosStore";
+import { useImportacaoStore } from "../stores/importacaoStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
@@ -114,8 +113,6 @@ function corConfianca(c: Confianca): string {
   return c === "high" ? styles.confAlta : c === "medium" ? styles.confMedia : styles.confBaixa;
 }
 
-type Aba = "extrato" | "backupAntigo";
-
 export default function Importar() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const pedirConfirmacao = useConfirmar();
@@ -129,9 +126,15 @@ export default function Importar() {
   const transferencias = useTransferenciasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
 
-  const [aba, setAba] = useState<Aba>("extrato");
-  const [texto, setTexto] = useState("");
-  const [linhas, setLinhas] = useState<LinhaAnalisada[] | null>(null);
+  // O rascunho (texto colado + linhas analisadas) vive numa store persistida:
+  // trocar de página e voltar, ou até dar refresh, mantém o extrato que ainda
+  // não foi confirmado — antes desaparecia ao desmontar a página.
+  const texto = useImportacaoStore((s) => s.texto);
+  const setTexto = useImportacaoStore((s) => s.setTexto);
+  const linhas = useImportacaoStore((s) => s.linhas);
+  const setLinhas = useImportacaoStore((s) => s.setLinhas);
+  const resetarRascunho = useImportacaoStore((s) => s.resetar);
+
   const [filtro, setFiltro] = useState<DecisaoLinha | "todas">("todas");
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
@@ -360,30 +363,30 @@ export default function Importar() {
 
   return (
     <Pagina titulo="Importar">
-      <div className={styles.abas} role="tablist">
-        {(
-          [
-            ["extrato", "Extrato bancário"],
-            ["backupAntigo", "Backup da app antiga"],
-          ] as const
-        ).map(([id, nome]) => (
+      {/* Escape hatch sempre visível: o rascunho fica guardado entre trocas de
+          aba e até um refresh (ver `importacaoStore`), então precisa de uma
+          saída igualmente sempre à mão — sem isto, um extrato que ficasse num
+          estado estranho prendia a tela para sempre. Some sozinho quando não
+          há nada por limpar. */}
+      {(texto.trim() || linhas !== null) && (
+        <div className={styles.resetLinha}>
           <button
-            key={id}
-            role="tab"
-            aria-selected={aba === id}
-            className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
-            onClick={() => setAba(id)}
+            className={styles.linkBotao}
+            onClick={() => {
+              void (async () => {
+                if (!(await pedirConfirmacao("Limpar o rascunho da importação e recomeçar?")))
+                  return;
+                resetarRascunho();
+                setFiltro("todas");
+              })();
+            }}
           >
-            {nome}
+            Resetar importação
           </button>
-        ))}
-      </div>
+        </div>
+      )}
 
-      <AbaTransicao aba={aba}>
-        {aba === "backupAntigo" && <ImportarBackupAntigo />}
-
-        {aba === "extrato" &&
-          (linhas === null ? (
+      {linhas === null ? (
             <div
               className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""}`}
               onDragOver={aoArrastarPorCima}
@@ -655,6 +658,21 @@ export default function Importar() {
                               opcoes={l.tipoEscolhido === "receita" ? opcoesFonte : opcoesCategoria}
                               aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
                             />
+                            {/* De que conta ou cartão saiu/entrou este
+                                dinheiro. Sendo cartão de crédito, é isto que
+                                faz o lançamento contar pra fatura dele — sem
+                                escolher nada aqui, fica de fora de qualquer
+                                fatura, como sempre foi. */}
+                            <Seletor
+                              variante="inline"
+                              rotulo={`Conta ou cartão de ${l.descricao}`}
+                              nivel={0}
+                              valor={l.contaEscolhida}
+                              opcoes={cfg.contasCartoes}
+                              rotuloVazio="Nenhuma conta…"
+                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                              aoMudar={(v) => atualizarLinha(l.id, { contaEscolhida: v })}
+                            />
                           </>
                         )}
                       </div>
@@ -722,8 +740,7 @@ export default function Importar() {
                 {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
               </button>
             </>
-          ))}
-      </AbaTransicao>
+          )}
 
       {/* Revisão antes de gravar: o que vai entrar, ao lado do que já existe e
           se parece com isso. A importação acontece de qualquer maneira — o que

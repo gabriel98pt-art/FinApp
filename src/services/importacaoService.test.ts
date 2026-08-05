@@ -260,6 +260,7 @@ describe("dadosDaCarga", () => {
     contaOrigem: "",
     contaDestino: "",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -323,6 +324,7 @@ describe("confirmarImportacao com recarga", () => {
     contaOrigem: "",
     contaDestino: "",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -410,6 +412,7 @@ describe("transferência vinda de cartão de crédito", () => {
     contaOrigem: "AB Gold (C)",
     contaDestino: "Conta Principal",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -526,6 +529,7 @@ describe("a transferência importada chega à fatura do cartão", () => {
       contaOrigem: "AB Gold (C)",
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
+      contaEscolhida: "",
       fatMesEscolhido: "2026-07",
       outraPonta: null,
     };
@@ -571,6 +575,7 @@ describe("fonte da receita e origem da transferência", () => {
     contaOrigem: "",
     contaDestino: "",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
   });
@@ -604,6 +609,7 @@ describe("fonte da receita e origem da transferência", () => {
       contaOrigem: "Conta Poupança",
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
+      contaEscolhida: "",
       fatMesEscolhido: "2026-07",
       outraPonta: null,
     };
@@ -660,6 +666,7 @@ describe("o lado escolhido à mão manda sobre o automático", () => {
     contaOrigem: "",
     contaDestino: "",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
   });
@@ -708,6 +715,7 @@ describe("transferência do lado de quem manda", () => {
     contaOrigem: "Conta Principal",
     contaDestino: "Conta Poupança",
     fatCartaoEscolhido: "",
+    contaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -989,6 +997,7 @@ describe("pagamento da fatura do cartão", () => {
     contaOrigem: "Conta Principal",
     contaDestino: "",
     fatCartaoEscolhido: "AB Gold (C)",
+    contaEscolhida: "",
     // Pagou em agosto a fatura de julho — é por isto que o mês é editável.
     fatMesEscolhido: "2026-07",
     outraPonta: null,

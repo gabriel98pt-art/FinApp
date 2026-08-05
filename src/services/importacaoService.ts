@@ -230,13 +230,16 @@ export async function confirmarImportacao(
         valor: Math.abs(linha.valor),
         data: linha.data,
         fonte: linha.categoriaEscolhida || "Outros",
+        conta: linha.contaEscolhida || undefined,
       };
       atualizacoes[`receitas/${id}`] = semIndefinidos(receita);
     } else {
       // Despesa é o outro lado do interruptor — e é onde caem também fatura e
       // transferência, que viram despesa corrente com a categoria escolhida:
       // evita atribuir automaticamente a um cartão/fatura específico sem
-      // confirmação do usuário (ver nota em types/importacao.ts).
+      // confirmação do usuário (ver nota em types/importacao.ts). A conta/
+      // cartão em si já é escolha do usuário — `contaEscolhida` começa vazia,
+      // nunca é palpite.
       //
       // Quem manda é a escolha do usuário na revisão, não a classificação: o
       // automático erra o lado (um estorno do supermercado bate numa regra de
@@ -247,6 +250,7 @@ export async function confirmarImportacao(
         valor: Math.abs(linha.valor),
         data: linha.data,
         categoria: linha.categoriaEscolhida || "Outros",
+        contaCartao: linha.contaEscolhida || undefined,
       };
       atualizacoes[`despesasCorrentes/${id}`] = semIndefinidos(despesa);
     }

@@ -67,8 +67,6 @@ export interface DespesaCorrente extends LancamentoBase {
   /** Num pagamento de fatura (origem 'fat'): qual cartão/mês ele quita. */
   fatCartao?: string;
   fatMes?: YearMonth;
-  /** Id do backup legado "Quick€" para deduplicação na importação (antigo `_qfId`). */
-  qfId?: string;
 }
 
 /** Transferência entre contas (antigo `trf`). Saídas contra cartão de crédito

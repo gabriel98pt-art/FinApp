@@ -95,6 +95,13 @@ export interface LinhaAnalisada {
   tipoEscolhido: "receita" | "despesa";
   /** Destino editável (começa em "carga" se a linha foi reconhecida como uma). */
   destino: DestinoLinha;
+  /** Só com `destino === "lancamento"`: conta ou cartão de pagamento, à
+   *  escolha do usuário — começa vazio (nenhum). Sendo cartão de crédito,
+   *  entra automaticamente na fatura dele (`utils/fatura.ts`); sendo conta
+   *  comum, fica só como registo de onde saiu o dinheiro. Sem isto, tudo o
+   *  que vinha do extrato ficava fora de qualquer fatura, mesmo quando era o
+   *  extrato de um cartão. */
+  contaEscolhida: string;
   /** Só com `destino === "carga"`: posto escolhido, dos cadastrados. */
   localCarga: string;
   /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O

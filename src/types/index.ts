@@ -1,4 +1,3 @@
-export type * from "./backupAntigo";
 export type * from "./common";
 export type * from "./config";
 export type * from "./fatura";
