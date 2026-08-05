@@ -374,7 +374,7 @@ export default function Tvde() {
                               void (async () => {
                                 if (
                                   !(await confirmar(
-                                    `Lançar ${eur(Math.round(c.lucro))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                                    `Lançar ${eur(Math.round(c.receita))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
                                   ))
                                 )
                                   return;

@@ -112,19 +112,23 @@ export async function removerDespesaTvde(uid: string, id: Id) {
   await remove(ref(db, `${raiz(uid)}/despesas/${id}`));
 }
 
-/** Lança o lucro da semana como Receita nas finanças gerais — sempre manual,
- *  com rastreio para nunca lançar a mesma semana duas vezes. Multi-path
- *  atômico: receita + marca nascem juntas. */
+/** Lança a receita da semana nas finanças gerais — sempre manual, com rastreio
+ *  para nunca lançar a mesma semana duas vezes. Multi-path atômico: receita +
+ *  marca nascem juntas.
+ *
+ *  É `receita` (faturação menos frota/portagens/aluguer/recarga) e não `lucro`:
+ *  o lucro já desconta a Segurança Social e soma gorjetas, coisas que não são
+ *  receita e que, lançadas aqui, davam um valor a menos nas finanças. */
 export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTvde) {
   if (dados.lancamentos[String(n)]) throw new Error("Semana já lançada nas finanças.");
   const semana = dados.semanas[String(n)];
   if (!semana) throw new Error("Semana inexistente.");
   snapshotHistorico();
-  const lucro = Math.round(calcularSemana(semana, dados.cfg.pctFrota).lucro);
+  const valorReceita = Math.round(calcularSemana(semana, dados.cfg.pctFrota).receita);
   const receitaId = push(ref(db, `users/${uid}/fin_v5/receitas`)).key!;
   const receita: Omit<Receita, "id"> = {
     descricao: `TVDE — Semana ${n} (${rotuloDaSemana(dados.cfg.inicioSemana1, n)})`,
-    valor: lucro,
+    valor: valorReceita,
     data: dataPagamentoDaSemana(dados.cfg.inicioSemana1, n),
     fonte: "TVDE",
   };

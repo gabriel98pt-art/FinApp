@@ -8,6 +8,7 @@
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { DadosTvde, Receita, SemanaTvde } from "../types";
+import { calcularSemana } from "../utils/tvde";
 
 let dados: Record<string, unknown> = {};
 let updates: { caminho: string; mudancas: Record<string, unknown> }[] = [];
@@ -156,13 +157,38 @@ describe("lancarReceitaSemana", () => {
     expect(updates[0].mudancas["tvde/lancamentos/1"]).toBe("k1");
   });
 
-  test("a receita leva o lucro da semana, sem as gorjetas", async () => {
+  test("lança a RECEITA da semana, não o lucro", async () => {
     await s.lancarReceitaSemana(UID, 1, base);
     const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
-    // 100000 - 6% frota (6000) - 2000 portagens - 26000 aluguel - 5000 recarga
-    expect(receita.valor).toBe(61000);
+    // 100000 - 6% frota (6000) - 2000 portagens - 26000 aluguel - 0 recarga frota
+    expect(receita.valor).toBe(66000);
     expect(receita.fonte).toBe("TVDE");
     expect(receita.descricao).toContain("Semana 1");
+  });
+
+  test("a recarga própria e o extra ficam de fora — são coisa do lucro", async () => {
+    // O bug: lançava-se `lucro` (receita - recarga própria + extra), que dá
+    // 61000 nesta semana. Receita e lucro são campos separados de
+    // `calcularSemana`, e o que entra nas finanças é a receita.
+    const c = calcularSemana(semana, s.TVDE_CFG_PADRAO.pctFrota);
+    expect(c.receita).toBe(66000);
+    expect(c.lucro).toBe(61000);
+
+    await s.lancarReceitaSemana(UID, 1, base);
+    const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
+    expect(receita.valor).toBe(c.receita);
+    expect(receita.valor).not.toBe(c.lucro);
+  });
+
+  test("as gorjetas nunca entram, nem na receita nem no lucro", async () => {
+    // A semana base tem gorj: 1500 — nenhum dos dois valores o inclui.
+    const comMaisGorjetas = {
+      ...base,
+      semanas: { "1": { ...semana, gorj: 90000 } },
+    };
+    await s.lancarReceitaSemana(UID, 1, comMaisGorjetas);
+    const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
+    expect(receita.valor).toBe(66000);
   });
 
   test("recusa lançar a mesma semana duas vezes", async () => {
