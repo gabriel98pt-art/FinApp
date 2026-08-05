@@ -175,7 +175,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       origem: "carga",
       data: c.data,
       titulo: c.local,
-      categoria: "Carregamento",
+      categoria: "Carga Elétrica",
       valor: c.custo,
       entrada: false,
     });
