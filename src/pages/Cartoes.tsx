@@ -533,6 +533,7 @@ export default function Cartoes() {
                   </span>
                   <span className={styles.itemDetalhe}>
                     {t.descricao ? `${t.descricao} · ` : ""}
+                    {t.nota ? `${t.nota} · ` : ""}
                     {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
                   </span>
                 </span>

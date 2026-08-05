@@ -333,6 +333,7 @@ export default function Despesas() {
                           <span className={styles.itemNome}>{f.descricao}</span>
                           <span className={styles.itemDetalhe}>
                             {f.categoria}
+                            {f.nota ? ` · ${f.nota}` : ""}
                             {f.contaCartao ? ` · ${f.contaCartao}` : ""}
                             {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
                             {f.autoDebit && (

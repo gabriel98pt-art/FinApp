@@ -58,7 +58,7 @@ export default function Receitas() {
           descricao: r.descricao,
           valor: r.valor,
           data: r.data,
-          etiqueta: r.fonte,
+          etiqueta: r.nota ? `${r.fonte} · ${r.nota}` : r.fonte,
           categoria: r.fonte,
         }))}
         carregado={carregado}

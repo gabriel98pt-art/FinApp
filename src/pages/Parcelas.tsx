@@ -81,6 +81,7 @@ function LinhaParcela({
             <span className={styles.nome}>{p.descricao}</span>
             <span className={styles.detalhe}>
               {formatMoney(p.total, moeda)}
+              {p.nota ? ` · ${p.nota}` : ""}
               {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
               {diaVenc ? ` · dia ${diaVenc}` : ""}
             </span>

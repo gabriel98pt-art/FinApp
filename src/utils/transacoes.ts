@@ -45,6 +45,9 @@ export interface Transacao {
   /** Categoria (despesa) ou fonte (receita). */
   categoria?: string;
   conta?: string;
+  /** Nota livre do item de origem — não confundir com `titulo`, que na receita
+   *  e na despesa é a `descricao`. São dois campos diferentes do mesmo item. */
+  nota?: string;
   valor: Cents;
   /** true = entra dinheiro (verde); false = sai (vermelho). */
   entrada: boolean;
@@ -79,6 +82,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       titulo: r.descricao,
       categoria: r.fonte,
       conta: r.conta,
+      nota: r.nota,
       valor: r.valor,
       entrada: true,
     });
@@ -94,6 +98,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       titulo: d.descricao,
       categoria: d.categoria,
       conta: d.contaCartao,
+      nota: d.nota,
       valor: d.valor,
       entrada: false,
     });
@@ -111,6 +116,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       titulo: f.descricao,
       categoria: f.categoria,
       conta: f.contaCartao,
+      nota: f.nota,
       valor: f.valor,
       entrada: false,
     });
@@ -147,6 +153,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       titulo: `${p.descricao} (${idx + 1}/${p.numParcelas})`,
       categoria: p.categoria ?? "Parcelas",
       conta: p.cartao ?? undefined,
+      nota: p.nota,
       valor: valorDaParcela(p, ym),
       entrada: false,
     });
@@ -162,6 +169,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       titulo: t.descricao || `${t.de} → ${t.para}`,
       categoria: "Transferência",
       conta: t.de,
+      nota: t.nota,
       valor: t.valor,
       entrada: false,
     });
@@ -176,6 +184,7 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       data: c.data,
       titulo: c.local,
       categoria: "Carga Elétrica",
+      nota: c.nota,
       valor: c.custo,
       entrada: false,
     });
@@ -188,6 +197,8 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
       refId: d.id,
       origem: "despesaVeiculo",
       data: d.data,
+      // A nota é o próprio título aqui (a despesa do veículo não tem descrição
+      // separada) — repeti-la em `nota` mostrava-a duas vezes na mesma linha.
       titulo: d.nota || d.categoria,
       categoria: d.categoria,
       valor: d.valor,

@@ -246,6 +246,74 @@ describe("transacoesDoMes", () => {
     });
   });
 
+  it("leva a nota de cada domínio para o feed", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        receitas: [
+          {
+            id: "r1",
+            descricao: "Salário",
+            valor: 100,
+            data: "2026-07-05",
+            fonte: "Trabalho",
+            nota: "com subsídio",
+          },
+        ],
+        despesasCorrentes: [
+          {
+            id: "d1",
+            descricao: "Compra",
+            valor: 100,
+            data: "2026-07-06",
+            categoria: "Casa",
+            nota: "torneira nova",
+          },
+        ],
+        transferencias: [
+          {
+            id: "t1",
+            data: "2026-07-07",
+            de: "A",
+            para: "B",
+            valor: 100,
+            nota: "poupança do mês",
+          },
+        ],
+      },
+      "2026-07",
+    );
+    const porOrigem = Object.fromEntries(t.map((x) => [x.origem, x.nota]));
+    expect(porOrigem).toEqual({
+      receita: "com subsídio",
+      despesa: "torneira nova",
+      transferencia: "poupança do mês",
+    });
+  });
+
+  it("na despesa de veículo a nota é o próprio título — não vem repetida", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...VEICULO_VAZIO,
+          despesas: [
+            {
+              id: "dv1",
+              data: "2026-07-09",
+              categoria: "Manutenção",
+              valor: 5000,
+              nota: "troca de óleo",
+            },
+          ],
+        },
+      },
+      "2026-07",
+    );
+    expect(t[0].titulo).toBe("troca de óleo");
+    expect(t[0].nota).toBeUndefined();
+  });
+
   it("fixa sem dia de vencimento cai no dia 1, só pra ter lugar na ordem", () => {
     const t = transacoesDoMes(
       {

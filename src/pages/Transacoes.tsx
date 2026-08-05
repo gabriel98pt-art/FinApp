@@ -105,6 +105,7 @@ export default function Transacoes() {
                 <span className={styles.detalhe}>
                   {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
                   {t.categoria ? ` · ${t.categoria}` : ""}
+                  {t.nota ? ` · ${t.nota}` : ""}
                   {t.conta ? ` · ${t.conta}` : ""}
                 </span>
               </span>
@@ -147,6 +148,12 @@ export default function Transacoes() {
               <div className={styles.linhaDetalhe}>
                 <span>Conta/cartão</span>
                 <strong>{detalhe.conta}</strong>
+              </div>
+            )}
+            {detalhe.nota && (
+              <div className={styles.linhaDetalhe}>
+                <span>Nota</span>
+                <strong>{detalhe.nota}</strong>
               </div>
             )}
             <button
