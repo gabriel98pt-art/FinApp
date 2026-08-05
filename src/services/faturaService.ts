@@ -6,7 +6,14 @@ import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
-import type { Cents, DespesaCorrente, PagamentoFatura, Parcela, YearMonth } from "../types";
+import type {
+  Cents,
+  DespesaCorrente,
+  IsoDate,
+  PagamentoFatura,
+  Parcela,
+  YearMonth,
+} from "../types";
 import { hojeIso } from "../utils/calculos";
 import { cicloDaFatura } from "../utils/fatura";
 import { mesesDaParcela, valorDaParcela } from "../utils/parcelas";
@@ -26,6 +33,11 @@ export interface ContextoPagamento {
   devido: Cents;
   /** Todas as parcelas da conta — para quitar as autoDebit do ciclo. */
   parcelas: Parcela[];
+  /** Dia em que o pagamento foi mesmo feito. Omitido = hoje, como sempre foi —
+   *  quem regista no próprio dia não precisa de mexer nisto. Serve para acertar
+   *  pagamentos passados: sem isto, todos ficavam com a data em que foram
+   *  registados, e vários acertos no mesmo dia amontoavam-se todos aí. */
+  data?: IsoDate;
 }
 
 /** Registra um pagamento (parcial ou total).
@@ -37,7 +49,9 @@ export interface ContextoPagamento {
  *    da parcela nunca ficar invisível nos totais (bug 2 da seção 4.1). */
 export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
   snapshotHistorico();
-  const hoje = hojeIso();
+  // A data do pagamento. As parcelas que a quitação da fatura arrasta ficam com
+  // a mesma: saíram no mesmo movimento de dinheiro.
+  const dataPagamento = ctx.data ?? hojeIso();
   const ciclo = cicloDaFatura(ctx.mes);
   const atualizacoes: Record<string, unknown> = {};
 
@@ -45,7 +59,7 @@ export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
   const lancamentoPagamento: Omit<DespesaCorrente, "id"> = {
     descricao: `Cartão de Crédito ${ctx.cartao}`,
     valor: ctx.valor,
-    data: hoje,
+    data: dataPagamento,
     categoria: "Cartão de Crédito",
     contaCartao: ctx.de,
     origem: "fat",
@@ -57,7 +71,12 @@ export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
 
   const pagamentos = [
     ...ctx.pagamentosAtuais,
-    semIndefinidos<PagamentoFatura>({ id: dcId, data: hoje, valor: ctx.valor, de: ctx.de }),
+    semIndefinidos<PagamentoFatura>({
+      id: dcId,
+      data: dataPagamento,
+      valor: ctx.valor,
+      de: ctx.de,
+    }),
   ];
   atualizacoes[`cfg/faturasPagas/${ctx.cartao}/${ctx.mes}`] = { pagamentos };
 
@@ -72,7 +91,7 @@ export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
       const lancamentoParcela: Omit<DespesaCorrente, "id"> = {
         descricao: p.descricao,
         valor: valorDaParcela(p, ciclo),
-        data: hoje,
+        data: dataPagamento,
         categoria: p.categoria ?? "Parcelas",
         origem: "parc",
         nota: `${idx}ª de ${p.numParcelas} — via fatura`,

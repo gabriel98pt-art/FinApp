@@ -196,6 +196,10 @@ export default function Cartoes() {
   const [novoTipo, setNovoTipo] = useState<TipoCartao>("credit");
   const [valorTexto, setValorTexto] = useState("");
   const [pagarDe, setPagarDe] = useState("");
+  // Dia em que a fatura foi mesmo paga. Começa em hoje — quem regista no
+  // próprio dia não mexe nisto —, mas quem está a acertar pagamentos passados
+  // consegue pôr a data certa em vez de os amontoar todos no dia de hoje.
+  const [pagarData, setPagarData] = useState(hojeIso());
   const [renomeando, setRenomeando] = useState<string | null>(null);
 
   // ---- caixa de transferência (criar/editar) ----
@@ -359,6 +363,7 @@ export default function Cartoes() {
         mes: pagando.mes,
         valor,
         de: pagarDe,
+        data: pagarData,
         pagamentosAtuais: calcularPagamentos(pagando),
         devido: pagando.devido,
         parcelas,
@@ -575,6 +580,7 @@ export default function Cartoes() {
                 aoPagar={() => {
                   setValorTexto(formatCents(faturaAberta.restante));
                   setPagarDe(contasDebito[0] ?? "");
+                  setPagarData(hojeIso());
                   setContaAberta(null);
                   setPagando(faturaAberta);
                 }}
@@ -614,6 +620,7 @@ export default function Cartoes() {
                 required
               />
             </label>
+            <SeletorData valor={pagarData} aoMudar={setPagarData} />
             <Seletor rotulo="Sai de" valor={pagarDe} opcoes={contasDebito} aoMudar={setPagarDe} />
             {contasDebito.length === 0 && (
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
