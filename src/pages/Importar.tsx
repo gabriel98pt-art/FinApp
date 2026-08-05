@@ -24,7 +24,7 @@ import { useImportacaoStore } from "../stores/importacaoStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
-import { analisarLinha, estimarKwh } from "../utils/importacao";
+import { analisarLinha, aplicarContaATodas, estimarKwh } from "../utils/importacao";
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
@@ -292,28 +292,9 @@ export default function Importar() {
     setLinhas((atual) => atual?.map((l) => ({ ...l, acao })) ?? null);
   }
 
-  /** Põe a mesma conta em todas as linhas, seja qual for o destino de cada uma:
-   *  o lançamento normal guarda em `contaEscolhida`, o pagamento de fatura e a
-   *  transferência para cartão guardam a conta de onde saiu o dinheiro em
-   *  `contaOrigem`. A recarga fica de fora porque hoje não grava conta nenhuma,
-   *  e a conta de DESTINO de uma transferência também: é, por definição, outra
-   *  conta que não esta.
-   *
-   *  Aplica a todas as linhas e não só às marcadas para importar — assim uma
-   *  linha que o usuário volte a marcar depois já vem com a conta certa. E
-   *  sobrescreve o que estava, como o "Marcar tudo p/ importar" faz com a ação. */
   function marcarContaParaTodas(conta: string) {
     setContaEmMassa(conta);
-    setLinhas(
-      (atual) =>
-        atual?.map((l) =>
-          l.destino === "lancamento"
-            ? { ...l, contaEscolhida: conta }
-            : l.destino === "transferencia_cartao" || l.destino === "pagamento_fatura"
-              ? { ...l, contaOrigem: conta }
-              : l,
-        ) ?? null,
-    );
+    setLinhas((atual) => (atual ? aplicarContaATodas(atual, conta) : null));
   }
 
   /** Grava tudo o que está marcado para importar — sempre tudo, sem exceção —

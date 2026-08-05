@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
 import type { CargaEletrica } from "../types";
-import type { ExistenteParaDedup, LinhaExtrato, Parcela } from "../types";
+import type { ExistenteParaDedup, LinhaAnalisada, LinhaExtrato, Parcela } from "../types";
 import {
   analisarLinha,
+  aplicarContaATodas,
   classificarLancamento,
   estimarKwh,
   normalizarDescricao,
@@ -729,5 +730,101 @@ describe("a outra ponta da transferência já registada", () => {
     expect(r.acao).toBe("skip");
     // E do lado oposto não há nada, então nenhum aviso extra.
     expect(r.outraPonta).toBeNull();
+  });
+});
+
+describe("aplicarContaATodas", () => {
+  const ctx = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    existentes: [],
+    locaisCarregamento: ["Powerdot"],
+    cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
+  };
+
+  /** Uma linha analisada com o destino que o teste precisa. O destino é
+   *  editável na revisão, então forçá-lo é o que o usuário faz na página. */
+  const comDestino = (destino: LinhaAnalisada["destino"], id = 0): LinhaAnalisada => ({
+    ...analisarLinha(linha({ descricao: "Compra qualquer" }), id, ctx),
+    destino,
+  });
+
+  test("lançamento normal recebe a conta em contaEscolhida", () => {
+    const [r] = aplicarContaATodas([comDestino("lancamento")], "Millennium");
+    expect(r.contaEscolhida).toBe("Millennium");
+    // O campo do outro destino fica como estava.
+    expect(r.contaOrigem).toBe("");
+  });
+
+  test("transferência para cartão recebe a conta em contaOrigem", () => {
+    const [r] = aplicarContaATodas([comDestino("transferencia_cartao")], "Millennium");
+    expect(r.contaOrigem).toBe("Millennium");
+    expect(r.contaEscolhida).toBe("");
+  });
+
+  test("pagamento de fatura recebe a conta em contaOrigem", () => {
+    const [r] = aplicarContaATodas([comDestino("pagamento_fatura")], "Millennium");
+    expect(r.contaOrigem).toBe("Millennium");
+    expect(r.contaEscolhida).toBe("");
+  });
+
+  test("a conta de destino da transferência nunca é tocada", () => {
+    // É outra conta por definição — a que recebeu, não a que mandou.
+    const origem = { ...comDestino("transferencia_cartao"), contaDestino: "Poupança" };
+    const [r] = aplicarContaATodas([origem], "Millennium");
+    expect(r.contaDestino).toBe("Poupança");
+  });
+
+  test("recarga fica intacta — hoje não grava conta nenhuma", () => {
+    const carga = comDestino("carga");
+    const [r] = aplicarContaATodas([carga], "Millennium");
+    expect(r).toBe(carga);
+    expect(r.contaEscolhida).toBe("");
+    expect(r.contaOrigem).toBe("");
+  });
+
+  test("sobrescreve a conta que já lá estava, sem perguntar", () => {
+    const antes = { ...comDestino("lancamento"), contaEscolhida: "ActivoBank" };
+    const [r] = aplicarContaATodas([antes], "Millennium");
+    expect(r.contaEscolhida).toBe("Millennium");
+  });
+
+  test("conta vazia limpa a escolha", () => {
+    const antes = { ...comDestino("lancamento"), contaEscolhida: "ActivoBank" };
+    const [r] = aplicarContaATodas([antes], "");
+    expect(r.contaEscolhida).toBe("");
+  });
+
+  test("mexe também nas linhas marcadas para pular, não só nas de importar", () => {
+    // Se o usuário voltar a marcar a linha, ela já vem com a conta certa.
+    const pulada = { ...comDestino("lancamento"), acao: "skip" as const };
+    const [r] = aplicarContaATodas([pulada], "Millennium");
+    expect(r.acao).toBe("skip");
+    expect(r.contaEscolhida).toBe("Millennium");
+  });
+
+  test("mistura de destinos: cada um no seu campo, de uma só passagem", () => {
+    const r = aplicarContaATodas(
+      [
+        comDestino("lancamento", 0),
+        comDestino("carga", 1),
+        comDestino("transferencia_cartao", 2),
+        comDestino("pagamento_fatura", 3),
+      ],
+      "Millennium",
+    );
+    expect(r.map((l) => l.contaEscolhida)).toEqual(["Millennium", "", "", ""]);
+    expect(r.map((l) => l.contaOrigem)).toEqual(["", "", "Millennium", "Millennium"]);
+  });
+
+  test("não altera o array nem as linhas que recebeu", () => {
+    const original = comDestino("lancamento");
+    const entrada = [original];
+    const r = aplicarContaATodas(entrada, "Millennium");
+    expect(r).not.toBe(entrada);
+    expect(entrada).toHaveLength(1);
+    expect(original.contaEscolhida).toBe("");
   });
 });

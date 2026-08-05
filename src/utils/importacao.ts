@@ -820,3 +820,26 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     outraPonta,
   };
 }
+
+/** Põe a mesma conta em todas as linhas, seja qual for o destino de cada uma.
+ *  O extrato costuma ser todo da mesma conta, e escolhê-la linha a linha era o
+ *  trabalho repetido da página de importação.
+ *
+ *  Cada destino guarda a conta no seu campo: o lançamento normal em
+ *  `contaEscolhida`, o pagamento de fatura e a transferência para cartão em
+ *  `contaOrigem` — a conta de onde o dinheiro saiu. Ficam de fora a recarga,
+ *  que hoje não grava conta nenhuma, e a `contaDestino` de uma transferência,
+ *  que é por definição outra conta que não esta.
+ *
+ *  Sobrescreve o que já lá estava, como o "marcar tudo" faz com a ação, e mexe
+ *  em todas as linhas e não só nas marcadas para importar — assim uma linha que
+ *  volte a ser marcada depois já vem com a conta certa. */
+export function aplicarContaATodas(linhas: LinhaAnalisada[], conta: string): LinhaAnalisada[] {
+  return linhas.map((l) =>
+    l.destino === "lancamento"
+      ? { ...l, contaEscolhida: conta }
+      : l.destino === "transferencia_cartao" || l.destino === "pagamento_fatura"
+        ? { ...l, contaOrigem: conta }
+        : l,
+  );
+}
