@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { VEICULO_VAZIO } from "../services/veiculoService";
+import type { DespesaCorrente, Parcela } from "../types";
 import { transacoesDoMes, type DadosTransacoes } from "./transacoes";
 
 const vazio: DadosTransacoes = {
@@ -73,7 +74,7 @@ describe("transacoesDoMes", () => {
             total: 30000,
             numParcelas: 3,
             primeiroMes: "2026-07",
-            pagoPorMes: {},
+            pagoPorMes: { "2026-07": true },
           },
         ],
         despesasCorrentes: [
@@ -85,6 +86,7 @@ describe("transacoesDoMes", () => {
             categoria: "Parcelas",
             origem: "parc",
             parcelaId: "p1",
+            parcelaMes: "2026-07",
           },
         ],
       },
@@ -149,6 +151,99 @@ describe("transacoesDoMes", () => {
       "2026-07-08",
     );
     expect(transacoesDoMes({ ...vazio, despesasFixas: [fixa] }, "2026-08")).toHaveLength(0);
+  });
+
+  describe("parcela: só o mês pago entra, e com a data em que se pagou mesmo", () => {
+    const sofa: Parcela = {
+      id: "p1",
+      descricao: "Sofá",
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-07",
+      categoria: "Casa",
+      diaVencimento: 20,
+      pagoPorMes: {},
+    };
+    /** O lançamento que `pagarMesParcela`/`pagarFatura` criam ao pagar. */
+    const lancamento = (extra: Partial<DespesaCorrente>): DespesaCorrente => ({
+      id: "d1",
+      descricao: "Sofá",
+      valor: 10000,
+      data: "2026-08-03",
+      categoria: "Parcelas",
+      origem: "parc",
+      parcelaId: "p1",
+      ...extra,
+    });
+
+    it("mês por pagar não aparece, mesmo estando no plano da parcela", () => {
+      // O bug: a parcela de agosto vencia a 20 e aparecia a 20/08 no extrato,
+      // estando-se a 5/08 e sem nada ter sido pago.
+      const t = transacoesDoMes({ ...vazio, parcelas: [sofa] }, "2026-08");
+      expect(t).toHaveLength(0);
+    });
+
+    it("mês pago usa a data do lançamento, não o dia do vencimento", () => {
+      const t = transacoesDoMes(
+        {
+          ...vazio,
+          parcelas: [{ ...sofa, pagoPorMes: { "2026-08": true } }],
+          despesasCorrentes: [lancamento({ data: "2026-08-03", parcelaMes: "2026-08" })],
+        },
+        "2026-08",
+      );
+      expect(t).toHaveLength(1);
+      expect(t[0].data).toBe("2026-08-03");
+    });
+
+    it("pago pela fatura do cartão também conta como pago", () => {
+      // `pagarFatura` marca "fatura" em vez de true — os dois querem dizer pago.
+      const t = transacoesDoMes(
+        {
+          ...vazio,
+          parcelas: [{ ...sofa, pagoPorMes: { "2026-07": "fatura" as const } }],
+          despesasCorrentes: [lancamento({ data: "2026-07-15", parcelaMes: "2026-07" })],
+        },
+        "2026-07",
+      );
+      expect(t).toHaveLength(1);
+      expect(t[0].data).toBe("2026-07-15");
+    });
+
+    it("quitação antecipada: os meses varridos herdam a data do lançamento 'quit'", () => {
+      const dados: DadosTransacoes = {
+        ...vazio,
+        parcelas: [{ ...sofa, pagoPorMes: { "2026-07": true, "2026-08": true, "2026-09": true } }],
+        despesasCorrentes: [lancamento({ data: "2026-07-02", parcelaMes: "quit", valor: 30000 })],
+      };
+      // Um lançamento só cobre os três meses — todos ficam com a data dele.
+      expect(transacoesDoMes(dados, "2026-07")[0].data).toBe("2026-07-02");
+      expect(transacoesDoMes(dados, "2026-08")[0].data).toBe("2026-07-02");
+      expect(transacoesDoMes(dados, "2026-09")[0].data).toBe("2026-07-02");
+    });
+
+    it("sem lançamento nenhum (dado incoerente) cai no dia do vencimento", () => {
+      const t = transacoesDoMes(
+        { ...vazio, parcelas: [{ ...sofa, pagoPorMes: { "2026-08": true } }] },
+        "2026-08",
+      );
+      expect(t).toHaveLength(1);
+      expect(t[0].data).toBe("2026-08-20");
+    });
+
+    it("o lançamento de OUTRA parcela não serve de data", () => {
+      const t = transacoesDoMes(
+        {
+          ...vazio,
+          parcelas: [{ ...sofa, pagoPorMes: { "2026-08": true } }],
+          despesasCorrentes: [
+            lancamento({ id: "d9", data: "2026-08-01", parcelaMes: "2026-08", parcelaId: "outra" }),
+          ],
+        },
+        "2026-08",
+      );
+      expect(t[0].data).toBe("2026-08-20");
+    });
   });
 
   it("fixa sem dia de vencimento cai no dia 1, só pra ter lugar na ordem", () => {

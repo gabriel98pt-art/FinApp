@@ -12,8 +12,10 @@
 //     DOIS lados: não é uma transação real, é uma correção de saldo (mesma
 //     regra de `despesasNosTotais`/`receitasNosTotais`, `utils/calculos.ts`).
 //
-// Fixa e parcela não têm data exata: caem no `diaVencimento` quando existe,
-// senão no dia 1 do mês — só pra terem um lugar na ordenação.
+// Fixa e parcela só entram no mês que já foi marcado pago. A fixa não tem data
+// exata: cai no `diaVencimento` quando existe, senão no dia 1 do mês — só pra
+// ter um lugar na ordenação. A parcela usa a data do lançamento real que o
+// pagamento criou, e só cai no `diaVencimento` se esse lançamento faltar.
 
 import type {
   Cents,
@@ -114,14 +116,34 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
     });
   }
 
+  // Parcelas, como as fixas: só o mês já pago entra. Antes entrava qualquer mês
+  // do plano — incluindo os que ainda nem chegaram — sempre com a data do
+  // vencimento do cartão, um dia inventado. Uma parcela de agosto com
+  // vencimento a 20 aparecia no extrato a 20/08 estando-se a 5/08.
+  //
+  // E a data é a do lançamento REAL que `pagarMesParcela`/`pagarFatura` criam
+  // (origem 'parc'), que é quando o dinheiro saiu mesmo. Esse lançamento fica
+  // fora do feed pelo seu próprio lado, para a compra não aparecer duas vezes
+  // — mas a data dele é a boa. O `diaVencimento` fica só como último recurso,
+  // para dados incoerentes (mês marcado pago sem lançamento nenhum).
   for (const p of dados.parcelas) {
     if (!mesesDaParcela(p).includes(ym)) continue;
+    if (!p.pagoPorMes[ym]) continue;
     const idx = mesesDaParcela(p).indexOf(ym);
+    // "quit" é a quitação antecipada: UM lançamento que varreu vários meses de
+    // uma vez. Todos eles herdam essa data — é o dia real em que se pagou,
+    // ainda que não discrimine mês a mês.
+    const real = dados.despesasCorrentes.find(
+      (d) =>
+        d.origem === "parc" &&
+        d.parcelaId === p.id &&
+        (d.parcelaMes === ym || d.parcelaMes === "quit"),
+    );
     itens.push({
       chave: `parcela-${p.id}-${ym}`,
       refId: p.id,
       origem: "parcela",
-      data: diaDoMes(ym, p.diaVencimento),
+      data: real?.data ?? diaDoMes(ym, p.diaVencimento),
       titulo: `${p.descricao} (${idx + 1}/${p.numParcelas})`,
       categoria: p.categoria ?? "Parcelas",
       conta: p.cartao ?? undefined,
