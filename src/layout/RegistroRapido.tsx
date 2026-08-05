@@ -95,12 +95,24 @@ export default function RegistroRapido() {
 
   const ehVeiculo = tipo === "carga" || tipo === "despesaVeiculo";
 
+  /** Lado escolhido à mão numa edição, quando difere do que o lançamento é
+   *  hoje. Fica à parte do `tipo` do store porque é esse `tipo` que diz em que
+   *  coleção o registo existe — trocá-lo faria procurar no sítio errado. */
+  const [tipoTrocado, setTipoTrocado] = useState<"receita" | "despesa" | null>(null);
+
   const editando =
     editandoId !== null
       ? tipo === "receita"
         ? receitas.find((r) => r.id === editandoId)
         : despesas.find((d) => d.id === editandoId)
       : undefined;
+
+  /** O lado que o formulário está a mostrar e que vai ser gravado. Igual ao
+   *  `tipo` em tudo o resto — só a edição de receita/despesa o pode trocar. */
+  const lado = tipoTrocado ?? tipo;
+  /** Reclassificar entre domínios (fixa, parcela, carga…) é conversão de dados
+   *  a sério; aqui é só o interruptor receita↔despesa, o erro comum. */
+  const podeTrocarLado = !!editando && (tipo === "receita" || tipo === "despesa");
 
   // Reinicia o formulário quando a folha abre (novo ou edição) — padrão
   // "ajustar estado durante o render", sem effect.
@@ -113,6 +125,8 @@ export default function RegistroRapido() {
     setAnterior({ assinatura, tipo });
     if (assinatura !== null && assinatura !== anterior.assinatura) {
       setErro(null);
+      // Cada abertura começa no lado que o lançamento tem de facto.
+      setTipoTrocado(null);
       if (editando) {
         setDescricao(editando.descricao);
         setNota(editando.nota ?? "");
@@ -152,9 +166,9 @@ export default function RegistroRapido() {
   const ehParcelada = tipo === "despesa" && parcelada && !editando;
 
   const opcoes =
-    tipo === "receita"
+    lado === "receita"
       ? cfg.fontesReceita
-      : tipo === "despesaVeiculo"
+      : lado === "despesaVeiculo"
         ? cfg.categoriasVeiculo
         : cfg.categoriasCorrentes;
 
@@ -232,6 +246,35 @@ export default function RegistroRapido() {
           pagoPorMes: {},
           nota: notaFinal,
         });
+      } else if (editando && lado !== tipo) {
+        // Trocou o lado numa edição. Receitas e despesas são coleções separadas
+        // no Firebase: não há campo para virar, tem de nascer do outro lado — e
+        // com id novo, que é o que se perde nesta troca.
+        //
+        // Cria primeiro, apaga depois: se apagar falhar fica um repetido, que
+        // se resolve à mão; pela ordem contrária teria desaparecido dinheiro.
+        // Mesma regra da confirmação da importação.
+        if (lado === "receita") {
+          await criarReceita(uid, {
+            descricao,
+            valor,
+            data,
+            fonte: etiquetaFinal,
+            conta: conta || undefined,
+            nota: notaFinal,
+          });
+          await removerDespesa(uid, editando.id);
+        } else {
+          await criarDespesa(uid, {
+            descricao,
+            valor,
+            data,
+            categoria: etiquetaFinal,
+            contaCartao: conta || undefined,
+            nota: notaFinal,
+          });
+          await removerReceita(uid, editando.id);
+        }
       } else if (tipo === "receita") {
         const dados = {
           descricao,
@@ -256,17 +299,21 @@ export default function RegistroRapido() {
         else await criarDespesa(uid, dados);
       }
       mostrarToast(
-        editando
-          ? "Alterações salvas"
-          : tipo === "receita"
-            ? "Receita adicionada"
-            : tipo === "despesa" && parcelada
-              ? `Parcela criada em ${numParcelas}x`
-              : tipo === "carga"
-                ? "Carregamento registado"
-                : tipo === "despesaVeiculo"
-                  ? "Despesa do veículo adicionada"
-                  : "Despesa adicionada",
+        editando && lado !== tipo
+          ? lado === "receita"
+            ? "✓ Virou receita"
+            : "✓ Virou despesa"
+          : editando
+            ? "Alterações salvas"
+            : tipo === "receita"
+              ? "Receita adicionada"
+              : tipo === "despesa" && parcelada
+                ? `Parcela criada em ${numParcelas}x`
+                : tipo === "carga"
+                  ? "Carregamento registado"
+                  : tipo === "despesaVeiculo"
+                    ? "Despesa do veículo adicionada"
+                    : "Despesa adicionada",
       );
       fecharRegistro();
     } catch {
@@ -342,6 +389,38 @@ export default function RegistroRapido() {
           </>
         )}
 
+        {/* Na edição dá para trocar de lado: classificar mal receita/despesa é
+            o engano mais comum, e até aqui a única saída era apagar e lançar de
+            novo. Só estes dois — os outros tipos vivem noutros domínios. */}
+        {podeTrocarLado && (
+          <div className={styles.seletorTipo} role="radiogroup" aria-label="Receita ou despesa">
+            {(["despesa", "receita"] as const).map((t) => {
+              const ativo = lado === t;
+              const rotulo = t === "receita" ? "Receita" : "Despesa";
+              const fundo = corDaCategoriaVisual(cfg, rotulo);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  role="radio"
+                  aria-checked={ativo}
+                  className={`${styles.tipo} ${ativo ? styles.tipoAtivo : ""}`}
+                  style={ativo ? { background: fundo, color: corDoIconeSobre(fundo) } : undefined}
+                  onClick={() => {
+                    if (t === lado) return;
+                    setTipoTrocado(t);
+                    // Fonte de receita e categoria de despesa são listas
+                    // diferentes: a escolha antiga não se traduz.
+                    setEtiqueta("");
+                  }}
+                >
+                  {rotulo}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Nome + Nota lado a lado. A despesa do veículo não tem nome próprio
             no modelo de dados (só categoria + nota), então ali a Nota ocupa a
             linha inteira. */}
@@ -407,9 +486,12 @@ export default function RegistroRapido() {
 
         <SeletorData valor={data} aoMudar={setData} />
 
-        {tipo !== "carga" && (
+        {lado !== "carga" && (
           <SeletorCategoria
-            rotulo={tipo === "receita" ? "Fonte" : "Categoria"}
+            // Segue o lado escolhido, não o que o lançamento era: trocado para
+            // receita, a lista passa a ser de fontes e o rótulo tem de a
+            // acompanhar, senão dizia "Categoria" sobre uma lista de fontes.
+            rotulo={lado === "receita" ? "Fonte" : "Categoria"}
             valor={etiqueta}
             opcoes={opcoes}
             aoMudar={setEtiqueta}
