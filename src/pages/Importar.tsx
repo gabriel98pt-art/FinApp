@@ -47,13 +47,12 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
   revisao: "Revisão",
 };
 
-/** Destino de cada linha na revisão. "Lançamento normal" é o que sempre houve
- *  (receita ou despesa); os outros dois gravam noutros domínios.
+/** Tipo do registo de cada linha na revisão. "Lançamento simples" é o que
+ *  sempre houve (receita ou despesa); os outros dois gravam noutros domínios.
  *
  *  A recarga só existe do lado das saídas — não se recarrega o carro a receber
- *  dinheiro. A transferência entre contas próprias existe dos dois lados: a
- *  mesma passagem de dinheiro aparece a sair no extrato de uma conta e a
- *  entrar no da outra. */
+ *  dinheiro. A transferência interna existe dos dois lados: a mesma passagem de
+ *  dinheiro aparece a sair no extrato de uma conta e a entrar no da outra. */
 const DESTINOS_SAIDA: DestinoLinha[] = [
   "lancamento",
   "carga",
@@ -62,13 +61,13 @@ const DESTINOS_SAIDA: DestinoLinha[] = [
 ];
 const DESTINOS_ENTRADA: DestinoLinha[] = ["lancamento", "transferencia_cartao"];
 
-/** O rótulo da transferência depende do lado: a mesma opção é "veio" no
- *  extrato de quem recebe e "foi" no de quem manda. */
-function rotuloDestino(destino: DestinoLinha, ehSaida: boolean): string {
-  if (destino === "lancamento") return "Lançamento normal";
+/** A transferência tem o mesmo nome dos dois lados: a direção já se lê no sinal
+ *  e na cor do valor, ao lado, e não precisa de ser repetida aqui. */
+function rotuloDestino(destino: DestinoLinha): string {
+  if (destino === "lancamento") return "Lançamento simples";
   if (destino === "carga") return "Recarga elétrica";
-  if (destino === "pagamento_fatura") return "Paguei a fatura do cartão";
-  return ehSaida ? "Foi para outra conta minha" : "Veio de outra conta minha";
+  if (destino === "pagamento_fatura") return "Fatura paga";
+  return "Transferência interna";
 }
 
 /** Receita ou despesa, à mão. O automático acerta quase sempre, mas quando
@@ -529,11 +528,11 @@ export default function Importar() {
                     </span>
                     <Seletor
                       variante="inline"
-                      rotulo={`Destino de ${l.descricao}`}
+                      rotulo={`Tipo do registro de ${l.descricao}`}
                       nivel={0}
                       valor={l.destino}
                       opcoes={l.valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA}
-                      rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha, l.valor < 0)}
+                      rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha)}
                       aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
                     />
                     {l.destino === "pagamento_fatura" ? (
