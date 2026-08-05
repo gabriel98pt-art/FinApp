@@ -32,6 +32,7 @@ import { formatMoney } from "../utils/money";
 import { rotuloMes, somarMeses } from "../utils/calculos";
 import type {
   Confianca,
+  Currency,
   DecisaoLinha,
   DestinoLinha,
   ExistenteParaDedup,
@@ -95,6 +96,18 @@ const FILTROS: { id: DecisaoLinha | "todas"; rotulo: string }[] = [
 function mesesDaFatura(data: string): string[] {
   const base = data.slice(0, 7);
   return [-2, -1, 0, 1].map((n) => somarMeses(base, n));
+}
+
+/** Descrição legível de um lançamento já existente, pro aviso de duplicata.
+ *  A carga elétrica não guarda um texto de descrição — só o local do posto
+ *  (ver `construirExistentes`) —, e mostrar isso sozinho ("Ionity A1") não diz
+ *  a quem lê que é uma carga nem quanto custou. Os outros domínios já guardam
+ *  descrição legível, por isso ficam como estão. */
+function descricaoExistente(ex: ExistenteParaDedup, currency: Currency): string {
+  if (ex.origem === "carga") {
+    return `Carga elétrica em ${ex.descricao} no valor de ${formatMoney(Math.abs(ex.valor), currency)}`;
+  }
+  return ex.descricao;
 }
 
 function corConfianca(c: Confianca): string {
@@ -685,13 +698,14 @@ export default function Importar() {
                       {l.outraPonta?.correspondencia && (
                         <p className={styles.outraPonta}>
                           Isto pode ser a mesma transferência que já tens registada como "
-                          {l.outraPonta.correspondencia.descricao}", do outro lado — vê se não vale
-                          a pena deixar de fora.
+                          {descricaoExistente(l.outraPonta.correspondencia, cfg.currency)}", do
+                          outro lado — vê se não vale a pena deixar de fora.
                         </p>
                       )}
                       {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                         <p className={styles.motivoDup}>
-                          Parece com "{l.duplicata.correspondencia.descricao}" —{" "}
+                          Parece com "
+                          {descricaoExistente(l.duplicata.correspondencia, cfg.currency)}" —{" "}
                           {l.duplicata.motivos.join(", ")}
                         </p>
                       )}
@@ -737,7 +751,9 @@ export default function Importar() {
                 </div>
                 <div className={styles.revisaoLado}>
                   <span className={styles.revisaoRotulo}>Já registado</span>
-                  <span className={styles.revisaoDesc}>{ex.descricao}</span>
+                  <span className={styles.revisaoDesc}>
+                    {ex.origem === "carga" ? `Carga elétrica em ${ex.descricao}` : ex.descricao}
+                  </span>
                   <span className={styles.revisaoMeta}>
                     {ex.data.slice(8, 10)}/{ex.data.slice(5, 7)} ·{" "}
                     {formatMoney(ex.valor, cfg.currency)}
