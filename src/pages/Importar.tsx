@@ -139,6 +139,12 @@ export default function Importar() {
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
   const [arrastando, setArrastando] = useState(false);
+  /** Conta escolhida para o extrato todo de uma vez. O extrato costuma ser de
+   *  uma conta só, e escolher a mesma linha a linha era o trabalho repetido
+   *  desta página. Só guarda o que foi escolhido em massa — a fonte da verdade
+   *  continua a ser o campo de cada linha, que fica livre para ser mudado
+   *  depois individualmente. */
+  const [contaEmMassa, setContaEmMassa] = useState<string>("");
   /** Linhas que vão entrar e que se parecem com algo já registado — quando há,
    *  passam pela folha de revisão antes de qualquer gravação. */
   const [revisaoDup, setRevisaoDup] = useState<LinhaAnalisada[] | null>(null);
@@ -284,6 +290,30 @@ export default function Importar() {
 
   function marcarTodas(acao: "import" | "skip") {
     setLinhas((atual) => atual?.map((l) => ({ ...l, acao })) ?? null);
+  }
+
+  /** Põe a mesma conta em todas as linhas, seja qual for o destino de cada uma:
+   *  o lançamento normal guarda em `contaEscolhida`, o pagamento de fatura e a
+   *  transferência para cartão guardam a conta de onde saiu o dinheiro em
+   *  `contaOrigem`. A recarga fica de fora porque hoje não grava conta nenhuma,
+   *  e a conta de DESTINO de uma transferência também: é, por definição, outra
+   *  conta que não esta.
+   *
+   *  Aplica a todas as linhas e não só às marcadas para importar — assim uma
+   *  linha que o usuário volte a marcar depois já vem com a conta certa. E
+   *  sobrescreve o que estava, como o "Marcar tudo p/ importar" faz com a ação. */
+  function marcarContaParaTodas(conta: string) {
+    setContaEmMassa(conta);
+    setLinhas(
+      (atual) =>
+        atual?.map((l) =>
+          l.destino === "lancamento"
+            ? { ...l, contaEscolhida: conta }
+            : l.destino === "transferencia_cartao" || l.destino === "pagamento_fatura"
+              ? { ...l, contaOrigem: conta }
+              : l,
+        ) ?? null,
+    );
   }
 
   /** Grava tudo o que está marcado para importar — sempre tudo, sem exceção —
@@ -463,6 +493,16 @@ export default function Importar() {
             <button className={styles.botao} onClick={() => marcarTodas("skip")}>
               Marcar tudo p/ pular
             </button>
+            <Seletor
+              variante="inline"
+              rotulo="Conta de todas as linhas"
+              nivel={0}
+              valor={contaEmMassa}
+              opcoes={cfg.contasCartoes}
+              rotuloVazio="Conta de todas…"
+              aviso="Nenhuma conta guardada — as contas vêm de Definições."
+              aoMudar={marcarContaParaTodas}
+            />
           </div>
 
           <div className={styles.filtros} role="tablist">
