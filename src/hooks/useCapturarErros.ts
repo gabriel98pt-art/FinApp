@@ -29,7 +29,10 @@ export function useCapturarErros() {
     }
 
     function aoErro(e: ErrorEvent) {
-      gravar(e.message || "Erro sem mensagem", e.error instanceof Error ? e.error.stack : undefined);
+      gravar(
+        e.message || "Erro sem mensagem",
+        e.error instanceof Error ? e.error.stack : undefined,
+      );
     }
 
     function aoRejeitar(e: PromiseRejectionEvent) {

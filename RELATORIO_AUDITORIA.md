@@ -76,14 +76,14 @@ Varredura: toda lista que sai de um store (`useXStore((s) => s.itens)` ou
 `.dados`) e chega a um `.map()` — conferindo se passa por `doMes`, `mesDe`,
 `naSemana` ou `fixaAtivaNoMes` no caminho.
 
-| Rota | Listas | Situação |
-|---|---|---|
-| `/receitas` | 1 | OK — `doMes(itens, mes)` (`Receitas.tsx:21`) |
-| `/despesas` | 3 abas | OK — correntes via `doPeriodo` (:113), fixas via `fixaAtivaNoMes` (:379), transferências via `doMes` (:426) |
-| `/cartoes` | faturas + resumos | OK — `calcularFatura(c, mes, …)` (:195), `resumosDasContas(…, mes)` (:196) |
-| `/veiculo` | 5 abas | **4 problemas, corrigidos** (Parte 1) |
-| `/calendario` | grid + dia + próximos 7 | grid e dia OK; **detalhe do dia corrigido** |
-| `/transacoes` | 1 | OK — `transacoesDoMes(dados, mes)` (:55) |
+| Rota          | Listas                  | Situação                                                                                                    |
+| ------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `/receitas`   | 1                       | OK — `doMes(itens, mes)` (`Receitas.tsx:21`)                                                                |
+| `/despesas`   | 3 abas                  | OK — correntes via `doPeriodo` (:113), fixas via `fixaAtivaNoMes` (:379), transferências via `doMes` (:426) |
+| `/cartoes`    | faturas + resumos       | OK — `calcularFatura(c, mes, …)` (:195), `resumosDasContas(…, mes)` (:196)                                  |
+| `/veiculo`    | 5 abas                  | **4 problemas, corrigidos** (Parte 1)                                                                       |
+| `/calendario` | grid + dia + próximos 7 | grid e dia OK; **detalhe do dia corrigido**                                                                 |
+| `/transacoes` | 1                       | OK — `transacoesDoMes(dados, mes)` (:55)                                                                    |
 
 ### Exceções legítimas encontradas (não são bugs)
 
@@ -252,7 +252,6 @@ nunca dispara: `mesesRecentes(meses, real)` não produz mês maior que `real`.
 - **"Telas usam mês real quando deviam usar o exibido"** — conferido: as seis
   rotas com seletor leem `useMesVisivelStore`; `mesAtual()` só aparece em
   Início, Metas e Planejamento, que não têm seletor.
-
 
 ---
 

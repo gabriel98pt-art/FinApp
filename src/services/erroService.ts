@@ -55,10 +55,7 @@ export async function registrarErro(
     // As chaves do push() são ordenáveis por ordem de criação — as primeiras
     // são as mais antigas.
     const aRemover = chaves.sort().slice(0, chaves.length - MAX_REGISTOS);
-    await update(
-      ref(db, caminho(uid)),
-      Object.fromEntries(aRemover.map((k) => [k, null])),
-    );
+    await update(ref(db, caminho(uid)), Object.fromEntries(aRemover.map((k) => [k, null])));
   } catch {
     // Sem rede ou sem permissão: o erro original já foi tratado por quem
     // chamou (fallback do ErrorBoundary, console). Aqui não há mais nada a
