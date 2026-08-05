@@ -387,360 +387,355 @@ export default function Importar() {
       )}
 
       {linhas === null ? (
-            <div
-              className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""}`}
-              onDragOver={aoArrastarPorCima}
-              onDragLeave={aoSairDoArrasto}
-              onDrop={aoSoltar}
-              onPaste={aoColar}
+        <div
+          className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""}`}
+          onDragOver={aoArrastarPorCima}
+          onDragLeave={aoSairDoArrasto}
+          onDrop={aoSoltar}
+          onPaste={aoColar}
+        >
+          <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
+          <p className={styles.entradaSub}>
+            PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
+            descrição e valor — exportado do banco ou colado direto de uma folha de cálculo. O
+            ficheiro também pode ser arrastado para aqui, ou colado com ⌘V.
+          </p>
+          <textarea
+            className={styles.textarea}
+            placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            rows={8}
+          />
+          <div className={styles.entradaAcoes}>
+            <button
+              className={styles.botaoPrimario}
+              onClick={() => analisar(parseExtratoCsv(texto))}
+              disabled={!texto.trim() || lendoPdf}
             >
-              <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
-              <p className={styles.entradaSub}>
-                PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de
-                data, descrição e valor — exportado do banco ou colado direto de uma folha de
-                cálculo. O ficheiro também pode ser arrastado para aqui, ou colado com ⌘V.
-              </p>
-              <textarea
-                className={styles.textarea}
-                placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
-                value={texto}
-                onChange={(e) => setTexto(e.target.value)}
-                rows={8}
-              />
-              <div className={styles.entradaAcoes}>
-                <button
-                  className={styles.botaoPrimario}
-                  onClick={() => analisar(parseExtratoCsv(texto))}
-                  disabled={!texto.trim() || lendoPdf}
-                >
-                  Analisar
-                </button>
-                <button
-                  className={styles.botao}
-                  onClick={() => arquivoRef.current?.click()}
-                  disabled={lendoPdf}
-                >
-                  <Upload size={15} aria-hidden /> {lendoPdf ? "Lendo…" : "Carregar arquivo"}
-                </button>
-                <input
-                  ref={arquivoRef}
-                  type="file"
-                  accept=".csv,.txt,.pdf"
-                  className={styles.arquivoOculto}
-                  onChange={aoCarregarArquivo}
-                />
-              </div>
-            </div>
-          ) : linhas.length === 0 ? (
-            <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
-          ) : (
-            <>
-              <div className={styles.resumo}>
-                <span>
-                  {linhas.length} linha(s) · {totalImportar} marcada(s) para importar
-                </span>
-                <button
-                  className={styles.linkBotao}
-                  onClick={() => {
-                    void (async () => {
-                      if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?")))
-                        return;
-                      setLinhas(null);
-                    })();
-                  }}
-                >
-                  Novo extrato
-                </button>
-              </div>
+              Analisar
+            </button>
+            <button
+              className={styles.botao}
+              onClick={() => arquivoRef.current?.click()}
+              disabled={lendoPdf}
+            >
+              <Upload size={15} aria-hidden /> {lendoPdf ? "Lendo…" : "Carregar arquivo"}
+            </button>
+            <input
+              ref={arquivoRef}
+              type="file"
+              accept=".csv,.txt,.pdf"
+              className={styles.arquivoOculto}
+              onChange={aoCarregarArquivo}
+            />
+          </div>
+        </div>
+      ) : linhas.length === 0 ? (
+        <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
+      ) : (
+        <>
+          <div className={styles.resumo}>
+            <span>
+              {linhas.length} linha(s) · {totalImportar} marcada(s) para importar
+            </span>
+            <button
+              className={styles.linkBotao}
+              onClick={() => {
+                void (async () => {
+                  if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?")))
+                    return;
+                  setLinhas(null);
+                })();
+              }}
+            >
+              Novo extrato
+            </button>
+          </div>
 
-              <div className={styles.acoesLote}>
-                <button className={styles.botao} onClick={aceitarAutoClassificadas}>
-                  ✓ Aceitar auto-classificadas
-                </button>
-                <button className={styles.botao} onClick={() => marcarTodas("import")}>
-                  Marcar tudo p/ importar
-                </button>
-                <button className={styles.botao} onClick={() => marcarTodas("skip")}>
-                  Marcar tudo p/ pular
-                </button>
-              </div>
+          <div className={styles.acoesLote}>
+            <button className={styles.botao} onClick={aceitarAutoClassificadas}>
+              ✓ Aceitar auto-classificadas
+            </button>
+            <button className={styles.botao} onClick={() => marcarTodas("import")}>
+              Marcar tudo p/ importar
+            </button>
+            <button className={styles.botao} onClick={() => marcarTodas("skip")}>
+              Marcar tudo p/ pular
+            </button>
+          </div>
 
-              <div className={styles.filtros} role="tablist">
-                {FILTROS.map((f) => (
-                  <button
-                    key={f.id}
-                    role="tab"
-                    aria-selected={filtro === f.id}
-                    className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
-                    onClick={() => setFiltro(f.id)}
-                  >
-                    {f.rotulo}
-                    {f.id !== "todas" && ` (${linhas.filter((l) => l.decisao === f.id).length})`}
-                  </button>
-                ))}
-              </div>
+          <div className={styles.filtros} role="tablist">
+            {FILTROS.map((f) => (
+              <button
+                key={f.id}
+                role="tab"
+                aria-selected={filtro === f.id}
+                className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
+                onClick={() => setFiltro(f.id)}
+              >
+                {f.rotulo}
+                {f.id !== "todas" && ` (${linhas.filter((l) => l.decisao === f.id).length})`}
+              </button>
+            ))}
+          </div>
 
-              <div className={styles.lista}>
-                {visiveis.map((l) => (
-                  <div key={l.id} className={styles.linha}>
-                    <label className={styles.linhaAcao}>
-                      <input
-                        type="checkbox"
-                        checked={l.acao === "import"}
-                        onChange={(e) =>
-                          atualizarLinha(l.id, { acao: e.target.checked ? "import" : "skip" })
-                        }
-                      />
-                    </label>
-                    <div className={styles.linhaCorpo}>
-                      <div className={styles.linhaTopo}>
-                        <span className={styles.linhaDesc}>{l.descricao}</span>
-                        <span
-                          className={l.valor >= 0 ? styles.valorPositivo : styles.valorNegativo}
-                        >
-                          {formatMoney(l.valor, cfg.currency)}
-                        </span>
-                      </div>
-                      <div className={styles.linhaMeta}>
-                        <span>
-                          {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
-                        </span>
-                        <span
-                          className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}
-                        >
-                          {ROTULO_DECISAO[l.decisao]}
-                        </span>
-                        <Seletor
-                          variante="inline"
-                          rotulo={`Destino de ${l.descricao}`}
-                          nivel={0}
-                          valor={l.destino}
-                          opcoes={l.valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA}
-                          rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha, l.valor < 0)}
-                          aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
-                        />
-                        {l.destino === "pagamento_fatura" ? (
-                          <>
-                            {/* Qual fatura foi paga: cartão e mês. O mês começa
+          <div className={styles.lista}>
+            {visiveis.map((l) => (
+              <div key={l.id} className={styles.linha}>
+                <label className={styles.linhaAcao}>
+                  <input
+                    type="checkbox"
+                    checked={l.acao === "import"}
+                    onChange={(e) =>
+                      atualizarLinha(l.id, { acao: e.target.checked ? "import" : "skip" })
+                    }
+                  />
+                </label>
+                <div className={styles.linhaCorpo}>
+                  <div className={styles.linhaTopo}>
+                    <span className={styles.linhaDesc}>{l.descricao}</span>
+                    <span className={l.valor >= 0 ? styles.valorPositivo : styles.valorNegativo}>
+                      {formatMoney(l.valor, cfg.currency)}
+                    </span>
+                  </div>
+                  <div className={styles.linhaMeta}>
+                    <span>
+                      {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
+                    </span>
+                    <span className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}>
+                      {ROTULO_DECISAO[l.decisao]}
+                    </span>
+                    <Seletor
+                      variante="inline"
+                      rotulo={`Destino de ${l.descricao}`}
+                      nivel={0}
+                      valor={l.destino}
+                      opcoes={l.valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA}
+                      rotuloOpcao={(d) => rotuloDestino(d as DestinoLinha, l.valor < 0)}
+                      aoMudar={(d) => atualizarLinha(l.id, { destino: d as DestinoLinha })}
+                    />
+                    {l.destino === "pagamento_fatura" ? (
+                      <>
+                        {/* Qual fatura foi paga: cartão e mês. O mês começa
                                 no da própria linha e corrige-se aqui — quem
                                 paga a 2 de agosto a fatura de julho. */}
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Cartão de ${l.descricao}`}
-                              nivel={0}
-                              valor={l.fatCartaoEscolhido}
-                              opcoes={cartoesCredito}
-                              rotuloVazio="Qual cartão…"
-                              aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { fatCartaoEscolhido: v })}
-                            />
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Mês da fatura de ${l.descricao}`}
-                              nivel={0}
-                              valor={l.fatMesEscolhido}
-                              opcoes={mesesDaFatura(l.data)}
-                              rotuloOpcao={rotuloMes}
-                              aoMudar={(v) => atualizarLinha(l.id, { fatMesEscolhido: v })}
-                            />
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Conta que pagou ${l.descricao}`}
-                              nivel={0}
-                              valor={l.contaOrigem}
-                              opcoes={cfg.contasCartoes}
-                              rotuloVazio="Pago de…"
-                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
-                            />
-                          </>
-                        ) : l.destino === "transferencia_cartao" ? (
-                          <>
-                            {/* De onde saiu: qualquer conta ou cartão do
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Cartão de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.fatCartaoEscolhido}
+                          opcoes={cartoesCredito}
+                          rotuloVazio="Qual cartão…"
+                          aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
+                          aoMudar={(v) => atualizarLinha(l.id, { fatCartaoEscolhido: v })}
+                        />
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Mês da fatura de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.fatMesEscolhido}
+                          opcoes={mesesDaFatura(l.data)}
+                          rotuloOpcao={rotuloMes}
+                          aoMudar={(v) => atualizarLinha(l.id, { fatMesEscolhido: v })}
+                        />
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Conta que pagou ${l.descricao}`}
+                          nivel={0}
+                          valor={l.contaOrigem}
+                          opcoes={cfg.contasCartoes}
+                          rotuloVazio="Pago de…"
+                          aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                          aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
+                        />
+                      </>
+                    ) : l.destino === "transferencia_cartao" ? (
+                      <>
+                        {/* De onde saiu: qualquer conta ou cartão do
                                 usuário. Sendo cartão de crédito, o valor vai
                                 parar à fatura dele; sendo conta comum, não vai
                                 a fatura nenhuma — e é isso mesmo. */}
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Conta de origem de ${l.descricao}`}
-                              nivel={0}
-                              valor={l.contaOrigem}
-                              opcoes={cfg.contasCartoes}
-                              rotuloVazio="De onde veio…"
-                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
-                            />
-                            {/* E para onde foi: o extrato não diz de que conta
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Conta de origem de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.contaOrigem}
+                          opcoes={cfg.contasCartoes}
+                          rotuloVazio="De onde veio…"
+                          aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                          aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
+                        />
+                        {/* E para onde foi: o extrato não diz de que conta
                                 é, e sem isto o saldo dela ficava sem este
                                 dinheiro. */}
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Conta que recebeu ${l.descricao}`}
-                              nivel={0}
-                              valor={l.contaDestino}
-                              opcoes={cfg.contasCartoes}
-                              rotuloVazio="Conta que recebeu…"
-                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { contaDestino: v })}
-                            />
-                          </>
-                        ) : l.destino === "carga" ? (
-                          <>
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Local de ${l.descricao}`}
-                              nivel={0}
-                              valor={l.localCarga}
-                              opcoes={cfg.locaisCarregamento}
-                              rotuloVazio="Escolher local…"
-                              aviso="Nenhum local de carregamento guardado — os locais vêm da aba Veículo."
-                              aoMudar={(v) =>
-                                atualizarLinha(l.id, {
-                                  localCarga: v,
-                                  // Outro posto, outro preço por kWh: a
-                                  // estimativa é refeita na hora, com o mesmo
-                                  // histórico que a sugestão automática usa.
-                                  kwhCarga: estimarKwh(Math.abs(l.valor), v, veiculo.cargas),
-                                })
-                              }
-                            />
-                            {/* O extrato não traz os kWh e o app não os pode
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Conta que recebeu ${l.descricao}`}
+                          nivel={0}
+                          valor={l.contaDestino}
+                          opcoes={cfg.contasCartoes}
+                          rotuloVazio="Conta que recebeu…"
+                          aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                          aoMudar={(v) => atualizarLinha(l.id, { contaDestino: v })}
+                        />
+                      </>
+                    ) : l.destino === "carga" ? (
+                      <>
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Local de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.localCarga}
+                          opcoes={cfg.locaisCarregamento}
+                          rotuloVazio="Escolher local…"
+                          aviso="Nenhum local de carregamento guardado — os locais vêm da aba Veículo."
+                          aoMudar={(v) =>
+                            atualizarLinha(l.id, {
+                              localCarga: v,
+                              // Outro posto, outro preço por kWh: a
+                              // estimativa é refeita na hora, com o mesmo
+                              // histórico que a sugestão automática usa.
+                              kwhCarga: estimarKwh(Math.abs(l.valor), v, veiculo.cargas),
+                            })
+                          }
+                        />
+                        {/* O extrato não traz os kWh e o app não os pode
                                 deduzir: é o único campo digitado aqui. A
                                 unidade fica ao lado — o placeholder desaparece
                                 assim que se escreve, e um número solto no meio
                                 dos seletores não diz o que é. */}
-                            <span className={styles.campoKwh}>
-                              <input
-                                className={styles.kwh}
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="0,0"
-                                aria-label={`kWh de ${l.descricao}`}
-                                value={l.kwhCarga}
-                                onChange={(e) => atualizarLinha(l.id, { kwhCarga: e.target.value })}
-                              />
-                              kWh
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Receita ou despesa — ${l.descricao}`}
-                              nivel={0}
-                              valor={l.tipoEscolhido}
-                              opcoes={TIPOS}
-                              rotuloOpcao={(t) => ROTULO_TIPO[t as LinhaAnalisada["tipoEscolhido"]]}
-                              aoMudar={(t) => {
-                                const tipo = t as LinhaAnalisada["tipoEscolhido"];
-                                // Trocar de lado troca a lista ao lado. Um
-                                // valor da lista antiga não pode ficar para
-                                // trás — "Extra" é fonte de receita, e ficaria
-                                // gravado como se fosse categoria de despesa.
-                                const lista = tipo === "receita" ? opcoesFonte : opcoesCategoria;
-                                atualizarLinha(l.id, {
-                                  tipoEscolhido: tipo,
-                                  categoriaEscolhida: lista.includes(l.categoriaEscolhida)
-                                    ? l.categoriaEscolhida
-                                    : "Outros",
-                                });
-                              }}
-                            />
-                            <Seletor
-                              variante="inline"
-                              rotulo={
-                                l.tipoEscolhido === "receita"
-                                  ? `Fonte de ${l.descricao}`
-                                  : `Categoria de ${l.descricao}`
-                              }
-                              nivel={0}
-                              valor={l.categoriaEscolhida}
-                              opcoes={l.tipoEscolhido === "receita" ? opcoesFonte : opcoesCategoria}
-                              aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
-                            />
-                            {/* De que conta ou cartão saiu/entrou este
+                        <span className={styles.campoKwh}>
+                          <input
+                            className={styles.kwh}
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="0,0"
+                            aria-label={`kWh de ${l.descricao}`}
+                            value={l.kwhCarga}
+                            onChange={(e) => atualizarLinha(l.id, { kwhCarga: e.target.value })}
+                          />
+                          kWh
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Receita ou despesa — ${l.descricao}`}
+                          nivel={0}
+                          valor={l.tipoEscolhido}
+                          opcoes={TIPOS}
+                          rotuloOpcao={(t) => ROTULO_TIPO[t as LinhaAnalisada["tipoEscolhido"]]}
+                          aoMudar={(t) => {
+                            const tipo = t as LinhaAnalisada["tipoEscolhido"];
+                            // Trocar de lado troca a lista ao lado. Um
+                            // valor da lista antiga não pode ficar para
+                            // trás — "Extra" é fonte de receita, e ficaria
+                            // gravado como se fosse categoria de despesa.
+                            const lista = tipo === "receita" ? opcoesFonte : opcoesCategoria;
+                            atualizarLinha(l.id, {
+                              tipoEscolhido: tipo,
+                              categoriaEscolhida: lista.includes(l.categoriaEscolhida)
+                                ? l.categoriaEscolhida
+                                : "Outros",
+                            });
+                          }}
+                        />
+                        <Seletor
+                          variante="inline"
+                          rotulo={
+                            l.tipoEscolhido === "receita"
+                              ? `Fonte de ${l.descricao}`
+                              : `Categoria de ${l.descricao}`
+                          }
+                          nivel={0}
+                          valor={l.categoriaEscolhida}
+                          opcoes={l.tipoEscolhido === "receita" ? opcoesFonte : opcoesCategoria}
+                          aoMudar={(c) => atualizarLinha(l.id, { categoriaEscolhida: c })}
+                        />
+                        {/* De que conta ou cartão saiu/entrou este
                                 dinheiro. Sendo cartão de crédito, é isto que
                                 faz o lançamento contar pra fatura dele — sem
                                 escolher nada aqui, fica de fora de qualquer
                                 fatura, como sempre foi. */}
-                            <Seletor
-                              variante="inline"
-                              rotulo={`Conta ou cartão de ${l.descricao}`}
-                              nivel={0}
-                              valor={l.contaEscolhida}
-                              opcoes={cfg.contasCartoes}
-                              rotuloVazio="Nenhuma conta…"
-                              aviso="Nenhuma conta guardada — as contas vêm de Definições."
-                              aoMudar={(v) => atualizarLinha(l.id, { contaEscolhida: v })}
-                            />
-                          </>
-                        )}
-                      </div>
-                      {l.acao === "import" && l.destino === "carga" && !l.localCarga.trim() && (
-                        <p className={styles.faltaCarga}>Escolha o local desta recarga.</p>
-                      )}
-                      {/* Sem kWh a linha entra na mesma — só fica por
+                        <Seletor
+                          variante="inline"
+                          rotulo={`Conta ou cartão de ${l.descricao}`}
+                          nivel={0}
+                          valor={l.contaEscolhida}
+                          opcoes={cfg.contasCartoes}
+                          rotuloVazio="Nenhuma conta…"
+                          aviso="Nenhuma conta guardada — as contas vêm de Definições."
+                          aoMudar={(v) => atualizarLinha(l.id, { contaEscolhida: v })}
+                        />
+                      </>
+                    )}
+                  </div>
+                  {l.acao === "import" && l.destino === "carga" && !l.localCarga.trim() && (
+                    <p className={styles.faltaCarga}>Escolha o local desta recarga.</p>
+                  )}
+                  {/* Sem kWh a linha entra na mesma — só fica por
                           completar. Aviso, não bloqueio. */}
-                      {l.acao === "import" &&
-                        l.destino === "carga" &&
-                        l.localCarga.trim() &&
-                        !l.kwhCarga.trim() && (
-                          <p className={styles.notaCarga}>
-                            Sem kWh — entra assim e completa-se depois no Veículo.
-                          </p>
-                        )}
-                      {l.acao === "import" &&
-                        l.destino === "pagamento_fatura" &&
-                        pagamentoDaLinha(l) === null && (
-                          <p className={styles.faltaCarga}>
-                            {!l.fatCartaoEscolhido.trim()
-                              ? "Escolha de que cartão é esta fatura."
-                              : "Escolha a conta que pagou."}
-                          </p>
-                        )}
-                      {l.acao === "import" &&
-                        l.destino === "transferencia_cartao" &&
-                        dadosDaTransferencia(l) === null && (
-                          <p className={styles.faltaCarga}>
-                            {!l.contaOrigem.trim()
-                              ? "Escolha a conta ou cartão de onde veio."
-                              : !l.contaDestino.trim()
-                                ? "Escolha a conta que recebeu."
-                                : "A conta que recebeu tem de ser diferente da de origem."}
-                          </p>
-                        )}
-                      {/* A outra ponta da mesma transferência, já lançada do
+                  {l.acao === "import" &&
+                    l.destino === "carga" &&
+                    l.localCarga.trim() &&
+                    !l.kwhCarga.trim() && (
+                      <p className={styles.notaCarga}>
+                        Sem kWh — entra assim e completa-se depois no Veículo.
+                      </p>
+                    )}
+                  {l.acao === "import" &&
+                    l.destino === "pagamento_fatura" &&
+                    pagamentoDaLinha(l) === null && (
+                      <p className={styles.faltaCarga}>
+                        {!l.fatCartaoEscolhido.trim()
+                          ? "Escolha de que cartão é esta fatura."
+                          : "Escolha a conta que pagou."}
+                      </p>
+                    )}
+                  {l.acao === "import" &&
+                    l.destino === "transferencia_cartao" &&
+                    dadosDaTransferencia(l) === null && (
+                      <p className={styles.faltaCarga}>
+                        {!l.contaOrigem.trim()
+                          ? "Escolha a conta ou cartão de onde veio."
+                          : !l.contaDestino.trim()
+                            ? "Escolha a conta que recebeu."
+                            : "A conta que recebeu tem de ser diferente da de origem."}
+                      </p>
+                    )}
+                  {/* A outra ponta da mesma transferência, já lançada do
                           lado contrário. Fica em tom próprio: não é "isto já
                           foi importado", é "este dinheiro já está no app pelo
                           outro lado". */}
-                      {l.outraPonta?.correspondencia && (
-                        <p className={styles.outraPonta}>
-                          Isto pode ser a mesma transferência que já tens registada como "
-                          {descricaoExistente(l.outraPonta.correspondencia, cfg.currency)}", do
-                          outro lado — vê se não vale a pena deixar de fora.
-                        </p>
-                      )}
-                      {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
-                        <p className={styles.motivoDup}>
-                          Parece com "
-                          {descricaoExistente(l.duplicata.correspondencia, cfg.currency)}" —{" "}
-                          {l.duplicata.motivos.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  {l.outraPonta?.correspondencia && (
+                    <p className={styles.outraPonta}>
+                      Isto pode ser a mesma transferência que já tens registada como "
+                      {descricaoExistente(l.outraPonta.correspondencia, cfg.currency)}", do outro
+                      lado — vê se não vale a pena deixar de fora.
+                    </p>
+                  )}
+                  {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
+                    <p className={styles.motivoDup}>
+                      Parece com "{descricaoExistente(l.duplicata.correspondencia, cfg.currency)}" —{" "}
+                      {l.duplicata.motivos.join(", ")}
+                    </p>
+                  )}
+                </div>
               </div>
+            ))}
+          </div>
 
-              <button
-                className={styles.confirmar}
-                onClick={confirmar}
-                disabled={enviando || totalImportar === 0 || incompletas.length > 0}
-              >
-                {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
-              </button>
-            </>
-          )}
+          <button
+            className={styles.confirmar}
+            onClick={confirmar}
+            disabled={enviando || totalImportar === 0 || incompletas.length > 0}
+          >
+            {enviando ? "Aguarde…" : `Confirmar importação (${totalImportar})`}
+          </button>
+        </>
+      )}
 
       {/* Revisão antes de gravar: o que vai entrar, ao lado do que já existe e
           se parece com isso. A importação acontece de qualquer maneira — o que

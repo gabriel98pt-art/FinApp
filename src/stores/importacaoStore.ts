@@ -3,9 +3,7 @@ import { persist } from "zustand/middleware";
 import type { LinhaAnalisada } from "../types";
 
 type AtualizadorLinhas =
-  | LinhaAnalisada[]
-  | null
-  | ((atual: LinhaAnalisada[] | null) => LinhaAnalisada[] | null);
+  LinhaAnalisada[] | null | ((atual: LinhaAnalisada[] | null) => LinhaAnalisada[] | null);
 
 interface ImportacaoState {
   /** Extrato colado/carregado, ainda por analisar — sobrevive à troca de aba
