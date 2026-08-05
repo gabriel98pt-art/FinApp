@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import BottomSheet from "./BottomSheet";
+import FolhaAncorada from "./FolhaAncorada";
 import styles from "./Seletor.module.css";
 
 /** Seletor do app, no lugar do `<select>` nativo: um gatilho com o valor atual
@@ -45,6 +46,7 @@ export default function Seletor({
   className?: string;
 }) {
   const [aberta, setAberta] = useState(false);
+  const gatilhoRef = useRef<HTMLButtonElement>(null);
   const texto = (v: string) => (rotuloOpcao ? rotuloOpcao(v) : v);
 
   function escolher(v: string) {
@@ -52,16 +54,75 @@ export default function Seletor({
     setAberta(false);
   }
 
+  const opcoesLista = (
+    <>
+      <ul className={styles.lista}>
+        {rotuloVazio && (
+          <li>
+            <button
+              type="button"
+              className={`${styles.opcao} ${valor === "" ? styles.opcaoAtiva : ""}`}
+              onClick={() => escolher("")}
+            >
+              {renderIcone && <span className={styles.semIcone} aria-hidden />}
+              <span className={styles.nome}>{rotuloVazio}</span>
+              {valor === "" && <Check size={16} aria-hidden />}
+            </button>
+          </li>
+        )}
+        {opcoes.map((o) => (
+          <li key={o}>
+            <button
+              type="button"
+              className={`${styles.opcao} ${o === valor ? styles.opcaoAtiva : ""}`}
+              onClick={() => escolher(o)}
+            >
+              {renderIcone?.(o, 30)}
+              <span className={styles.nome}>{texto(o)}</span>
+              {o === valor && <Check size={16} aria-hidden />}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {opcoes.length === 0 && aviso && <p className={styles.aviso}>{aviso}</p>}
+    </>
+  );
+
+  // "inline" é a variante das listas densas — a revisão do extrato, onde há um
+  // seletor por linha e o ponteiro já está em cima dele. "campo" é o seletor de
+  // formulário, que vive dentro de uma folha e continua a abrir outra folha.
+  const conteudo =
+    variante === "inline" ? (
+      <FolhaAncorada
+        aberta={aberta}
+        aoFechar={() => setAberta(false)}
+        titulo={rotulo}
+        nivel={nivel}
+        ancoraRef={gatilhoRef}
+      >
+        {opcoesLista}
+      </FolhaAncorada>
+    ) : (
+      <BottomSheet aberta={aberta} aoFechar={() => setAberta(false)} titulo={rotulo} nivel={nivel}>
+        {opcoesLista}
+      </BottomSheet>
+    );
+
   return (
     <div
       className={`${styles.campo} ${variante === "inline" ? styles.inline : ""} ${className ?? ""}`}
     >
       {variante === "campo" && <span className={styles.rotulo}>{rotulo}</span>}
       <button
+        ref={gatilhoRef}
         type="button"
         className={styles.gatilho}
-        onClick={() => setAberta(true)}
+        // Um segundo clique no gatilho fecha, como num `<select>`: o popover
+        // não se fecha sozinho neste caso, para o clique de fora não competir
+        // com este (ver Popover.tsx).
+        onClick={() => setAberta(!aberta)}
         disabled={desativado}
+        aria-expanded={aberta}
         aria-label={variante === "inline" ? rotulo : undefined}
       >
         {valor ? (
@@ -75,37 +136,7 @@ export default function Seletor({
         <ChevronDown size={16} className={styles.seta} aria-hidden />
       </button>
 
-      <BottomSheet aberta={aberta} aoFechar={() => setAberta(false)} titulo={rotulo} nivel={nivel}>
-        <ul className={styles.lista}>
-          {rotuloVazio && (
-            <li>
-              <button
-                type="button"
-                className={`${styles.opcao} ${valor === "" ? styles.opcaoAtiva : ""}`}
-                onClick={() => escolher("")}
-              >
-                {renderIcone && <span className={styles.semIcone} aria-hidden />}
-                <span className={styles.nome}>{rotuloVazio}</span>
-                {valor === "" && <Check size={16} aria-hidden />}
-              </button>
-            </li>
-          )}
-          {opcoes.map((o) => (
-            <li key={o}>
-              <button
-                type="button"
-                className={`${styles.opcao} ${o === valor ? styles.opcaoAtiva : ""}`}
-                onClick={() => escolher(o)}
-              >
-                {renderIcone?.(o, 30)}
-                <span className={styles.nome}>{texto(o)}</span>
-                {o === valor && <Check size={16} aria-hidden />}
-              </button>
-            </li>
-          ))}
-        </ul>
-        {opcoes.length === 0 && aviso && <p className={styles.aviso}>{aviso}</p>}
-      </BottomSheet>
+      {conteudo}
     </div>
   );
 }

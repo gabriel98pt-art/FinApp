@@ -1,0 +1,44 @@
+/* Caixa ancorada do desktop (ver Popover.tsx). Mesma superfície da folha —
+   sólida, não vidro — mas pequena e sem véu: o que está por trás continua à
+   vista, porque escolher uma opção não é entrar noutro contexto. */
+
+.caixa {
+  position: fixed;
+  /* Antes de ser medida fica fora da vista, nunca escondida com
+     `display: none` — é preciso ter tamanho para se saber onde cabe. */
+  top: 0;
+  left: -9999px;
+  z-index: 46;
+  min-width: 200px;
+  max-width: min(320px, calc(100vw - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 6px;
+}
+
+/* Só anima depois de saber o sítio: animar a partir do canto seria um voo
+   pela tela em vez de um crescimento no lugar. */
+.posicionada {
+  animation: entrar var(--dur-enter) var(--ease-enter);
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .posicionada {
+    animation: none;
+  }
+}
