@@ -1,0 +1,62 @@
+/* Mesma silhueta do ErroSincronizacao, em vermelho: o crash de render
+   substitui o app inteiro, então a caixa fica centrada no ecrã em vez de
+   dentro de uma lista. */
+
+.ecra {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.caixa {
+  width: 100%;
+  max-width: 380px;
+  background: var(--s1);
+  border: 1px solid color-mix(in srgb, var(--red) 30%, var(--brd));
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.icone {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--red);
+  margin-bottom: 6px;
+}
+
+.mensagem {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.sub {
+  color: var(--mut);
+  font-size: 0.85rem;
+}
+
+.botao {
+  margin-top: 10px;
+  background: var(--s2);
+  color: var(--txt);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--r-sm);
+  padding: 10px 16px;
+  transition: background var(--dur-fast) var(--ease-exit);
+}
+
+.botao:hover {
+  background: var(--s3);
+}

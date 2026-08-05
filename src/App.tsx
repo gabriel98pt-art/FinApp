@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./layout/AppShell";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Login from "./pages/Login";
 import { useAuthStore } from "./stores/authStore";
 import { useCfgStore } from "./stores/cfgStore";
@@ -47,6 +48,17 @@ export default function App() {
   useIgnorarArquivoSolto();
   const status = useAuthStore((s) => s.status);
 
+  // A rede de segurança fica FORA do gate de sessão: um crash de render na tela
+  // de Login deixaria a mesma tela branca que um crash lá dentro. Continua
+  // dentro do <StrictMode> do main.tsx.
+  return (
+    <ErrorBoundary>
+      <Conteudo status={status} />
+    </ErrorBoundary>
+  );
+}
+
+function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>["status"] }) {
   // Nada de piscar tela: espera o Firebase restaurar a sessão persistida
   if (status === "carregando") return null;
   if (status === "deslogado") return <Login />;
