@@ -415,3 +415,101 @@
   font-size: 0.72rem;
   text-align: center;
 }
+
+/* ---- Transferências entre contas ----
+   Vieram da aba de Despesas, onde ninguém as encontrava: transferir é mover
+   dinheiro entre as contas e cartões desta tela. Mesmas regras que estavam em
+   Despesas.module.css, que as mantém — a aba "Fixas" continua a usá-las lá. */
+
+.cabecalhoLista {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tituloSecao {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Mesmo estilo do "+ Evento" do Calendário (item 2) */
+.botaoAdicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px;
+}
+
+/* Corpo clicável da linha: abre a caixa de edição (item 7). */
+.itemCorpo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  color: var(--txt);
+  text-align: left;
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemNome {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.itemDetalhe {
+  color: var(--mut);
+  font-size: 0.75rem;
+}
+
+.itemValor {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vazio {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 18px;
+}
+
+.linhaDupla {
+  display: flex;
+  gap: 10px;
+}
+
+.excluir {
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px;
+}

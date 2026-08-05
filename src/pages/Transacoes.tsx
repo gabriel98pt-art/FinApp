@@ -27,7 +27,7 @@ const TELA_DO_TIPO: Record<Transacao["origem"], { rota: string; nome: string }> 
   despesa: { rota: "/despesas", nome: "Despesas" },
   fixa: { rota: "/despesas", nome: "Despesas → Fixas" },
   parcela: { rota: "/parcelas", nome: "Parcelas" },
-  transferencia: { rota: "/despesas", nome: "Despesas → Transferências" },
+  transferencia: { rota: "/cartoes", nome: "Cartões → Transferências" },
   carga: { rota: "/veiculo", nome: "Veículo → Carregamentos" },
   despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas" },
 };

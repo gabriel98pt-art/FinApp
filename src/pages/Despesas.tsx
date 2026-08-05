@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowLeftRight, Plus, Square, SquareCheck, TrendingDown } from "lucide-react";
+import { Plus, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
@@ -8,7 +8,6 @@ import ErroSincronizacao from "../components/ErroSincronizacao";
 import ListaLancamentos from "../components/ListaLancamentos";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
-import SeletorData from "../components/SeletorData";
 import SeletorOrdem from "../components/SeletorOrdem";
 import SeletorSemana from "../components/SeletorSemana";
 import { compararPorOrdem, type Ordem } from "../utils/ordem";
@@ -16,42 +15,27 @@ import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils
 import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
-  atualizarTransferencia,
   criarDespesaFixa,
-  criarTransferencia,
   removerDespesaFixa,
-  removerTransferencia,
 } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
-import {
-  useDespesasFixasStore,
-  useDespesasStore,
-  useTransferenciasStore,
-} from "../stores/lancamentosStore";
+import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import {
-  despesasNosTotais,
-  doMes,
-  hojeIso,
-  mesAtual,
-  ordenarPorDataDesc,
-  rotuloMes,
-  total,
-} from "../utils/calculos";
+import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from "../utils/calculos";
 import { fixaAtivaNoMes } from "../utils/fatura";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney, parseMoney } from "../utils/money";
-import type { DespesaFixa, Id, Transferencia } from "../types";
+import type { DespesaFixa, Id } from "../types";
 import styles from "./Despesas.module.css";
 
-type Aba = "correntes" | "fixas" | "transferencias";
+type Aba = "correntes" | "fixas";
 
 function agir(acao: () => Promise<unknown>, ok: string) {
   return acao()
@@ -68,9 +52,7 @@ export default function Despesas() {
   const carregado = useDespesasStore((s) => s.carregado);
   const erroDespesas = useDespesasStore((s) => s.erro);
   const erroFixas = useDespesasFixasStore((s) => s.erro);
-  const erroTransferencias = useTransferenciasStore((s) => s.erro);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
-  const transferencias = useTransferenciasStore((s) => s.itens);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
@@ -219,71 +201,6 @@ export default function Despesas() {
     await agir(() => removerDespesaFixa(uid!, atual.id), "Despesa fixa excluída");
   }
 
-  // ---- caixa de transferência (criar/editar) ----
-  const [tfAberta, setTfAberta] = useState(false);
-  const [tfEditandoId, setTfEditandoId] = useState<Id | null>(null);
-  const [tfData, setTfData] = useState(hojeIso());
-  const [tfDe, setTfDe] = useState("");
-  const [tfPara, setTfPara] = useState("");
-  const [tfValor, setTfValor] = useState("");
-  const [tfDescricao, setTfDescricao] = useState("");
-  const [tfNota, setTfNota] = useState("");
-
-  function abrirNovaTransferencia() {
-    setTfEditandoId(null);
-    setTfData(hojeIso());
-    setTfDe("");
-    setTfPara("");
-    setTfValor("");
-    setTfDescricao("");
-    setTfNota("");
-    setTfAberta(true);
-  }
-
-  function abrirEdicaoTransferencia(t: Transferencia) {
-    setTfEditandoId(t.id);
-    setTfData(t.data);
-    setTfDe(t.de);
-    setTfPara(t.para);
-    setTfValor((t.valor / 100).toFixed(2).replace(".", ","));
-    setTfDescricao(t.descricao ?? "");
-    setTfNota(t.nota ?? "");
-    setTfAberta(true);
-  }
-
-  async function salvarTransferencia(e: FormEvent) {
-    e.preventDefault();
-    const valor = parseMoney(tfValor);
-    if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
-    if (!tfDe || !tfPara) return mostrarToast("Escolha origem e destino.");
-    if (tfDe === tfPara) return mostrarToast("Origem e destino não podem ser iguais.");
-    const dados = {
-      data: tfData,
-      de: tfDe,
-      para: tfPara,
-      valor,
-      descricao: tfDescricao || undefined,
-      nota: tfNota.trim() || undefined,
-    };
-    if (tfEditandoId) {
-      await agir(
-        () => atualizarTransferencia(uid!, { ...dados, id: tfEditandoId }),
-        "✓ Transferência atualizada",
-      );
-    } else {
-      await agir(() => criarTransferencia(uid!, dados), "✓ Transferência registrada");
-    }
-    setTfAberta(false);
-  }
-
-  async function excluirTransferencia() {
-    if (!tfEditandoId) return;
-    if (!(await confirmar("Excluir esta transferência?"))) return;
-    const id = tfEditandoId;
-    setTfAberta(false);
-    await agir(() => removerTransferencia(uid!, id), "Transferência excluída");
-  }
-
   return (
     <Pagina titulo="Despesas">
       <div className={styles.abas} role="tablist">
@@ -291,7 +208,6 @@ export default function Despesas() {
           [
             ["correntes", "Despesas"],
             ["fixas", "Fixas"],
-            ["transferencias", "Transferências"],
           ] as const
         ).map(([id, nome]) => (
           <button
@@ -448,50 +364,6 @@ export default function Despesas() {
           </>
         )}
 
-        {aba === "transferencias" && (
-          <>
-            <div className={styles.cabecalhoLista}>
-              <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
-                <Plus size={15} aria-hidden /> Adicionar transferência
-              </button>
-            </div>
-
-            <div className={styles.lista}>
-              {erroTransferencias && doMes(transferencias, mes).length > 0 && (
-                <ErroSincronizacao compacto />
-              )}
-              {erroTransferencias && doMes(transferencias, mes).length === 0 ? (
-                <ErroSincronizacao />
-              ) : doMes(transferencias, mes).length === 0 ? (
-                <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
-              ) : (
-                ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (
-                  <div key={t.id} className={styles.item}>
-                    <button
-                      className={styles.itemCorpo}
-                      onClick={() => abrirEdicaoTransferencia(t)}
-                    >
-                      <span className={styles.itemTexto}>
-                        <span className={styles.itemNome}>
-                          {t.de}{" "}
-                          <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
-                          {t.para}
-                        </span>
-                        <span className={styles.itemDetalhe}>
-                          {t.descricao ? `${t.descricao} · ` : ""}
-                          {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                        </span>
-                      </span>
-                      <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
-
         {/* Caixa única de despesa fixa: cria e edita (itens 2, 7, 11, 16, 17, 19) */}
       </AbaTransicao>
       <BottomSheet
@@ -571,51 +443,6 @@ export default function Despesas() {
           {dfEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
               Excluir despesa fixa
-            </button>
-          )}
-        </form>
-      </BottomSheet>
-
-      {/* Caixa única de transferência: cria e edita */}
-      <BottomSheet
-        aberta={tfAberta}
-        aoFechar={() => setTfAberta(false)}
-        titulo={tfEditandoId ? "Editar transferência" : "Nova transferência"}
-      >
-        <form className={styles.formFolha} onSubmit={salvarTransferencia}>
-          <label className={styles.campo}>
-            Valor
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={tfValor}
-              onChange={(e) => setTfValor(e.target.value)}
-              required
-            />
-          </label>
-          <SeletorData valor={tfData} aoMudar={setTfData} />
-          <div className={styles.linhaDupla}>
-            <Seletor rotulo="De" valor={tfDe} opcoes={cfg.contasCartoes} aoMudar={setTfDe} />
-            <Seletor rotulo="Para" valor={tfPara} opcoes={cfg.contasCartoes} aoMudar={setTfPara} />
-          </div>
-          <label className={styles.campo}>
-            Nome (opcional)
-            <input value={tfDescricao} onChange={(e) => setTfDescricao(e.target.value)} />
-          </label>
-          <label className={styles.campo}>
-            Descrição (opcional)
-            <input value={tfNota} onChange={(e) => setTfNota(e.target.value)} />
-          </label>
-          <button type="submit" className={styles.salvar}>
-            {tfEditandoId ? "Salvar alterações" : "Registrar transferência"}
-          </button>
-          {tfEditandoId && (
-            <button
-              type="button"
-              className={styles.excluir}
-              onClick={() => void excluirTransferencia()}
-            >
-              Excluir transferência
             </button>
           )}
         </form>
