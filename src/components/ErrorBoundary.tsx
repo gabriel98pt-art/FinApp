@@ -1,5 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
+import { registrarErro } from "../services/erroService";
+import { useAuthStore } from "../stores/authStore";
 import styles from "./ErrorBoundary.module.css";
 
 /** Rede de segurança contra a tela branca: uma exceção durante o render
@@ -24,9 +26,20 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, { 
   }
 
   componentDidCatch(erro: Error, info: ErrorInfo) {
-    // Deixa rasto no console para quem tiver o inspetor aberto. O registo
-    // persistente (para consultar depois em Definições) entra no item 2.
+    // Deixa rasto no console para quem tiver o inspetor aberto…
     console.error("Erro de render capturado pelo ErrorBoundary:", erro, info.componentStack);
+    // …e grava na conta, para poder ser consultado depois em Definições. É a
+    // mesma função da captura global (useCapturarErros): o registo vive num
+    // sítio só. Sem sessão não há onde gravar — fica só o console.
+    // `getState()` em vez do hook: isto é um class component.
+    const uid = useAuthStore.getState().sessao?.uid;
+    if (!uid) return;
+    void registrarErro(uid, {
+      mensagem: erro.message || "Erro de render sem mensagem",
+      pilha: erro.stack ?? info.componentStack ?? undefined,
+      url: window.location.href,
+      timestamp: Date.now(),
+    });
   }
 
   render() {

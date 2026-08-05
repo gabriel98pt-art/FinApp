@@ -1,6 +1,7 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   CarTaxiFront,
+  Copy,
   Download,
   EyeOff,
   LogOut,
@@ -9,6 +10,7 @@ import {
   Pencil,
   Shapes,
   Sun,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -22,6 +24,7 @@ import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
 import { sair } from "../services/authService";
+import { limparErros, observarErros, type ErroRegistado } from "../services/erroService";
 import {
   adicionarItemLista,
   atualizarConfig,
@@ -371,6 +374,87 @@ function LinhaOrcamento({
   );
 }
 
+/** Data legível para quem vai reportar o erro ("quinta às 14h32", não um
+ *  timestamp). */
+function quando(ts: number): string {
+  return new Date(ts).toLocaleString("pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Os últimos erros que o app apanhou, para poderem ser copiados e enviados
+ *  sem depender de descrever de memória o que aconteceu. A pilha não é
+ *  mostrada (ilegível na tela), mas vai inteira no "Copiar".
+ *
+ *  Leitura local com useState/useEffect: é a única tela que lê isto, não
+ *  justifica uma store global. */
+function ErrosRecentes({ uid }: { uid: string }) {
+  const [erros, setErros] = useState<ErroRegistado[]>([]);
+
+  useEffect(() => observarErros(uid, setErros), [uid]);
+
+  async function copiar(e: ErroRegistado) {
+    const texto = [`${quando(e.timestamp)} — ${e.mensagem}`, e.url, e.pilha ?? ""]
+      .filter(Boolean)
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(texto);
+      mostrarToast("✓ Erro copiado");
+    } catch {
+      mostrarToast("Não foi possível copiar.");
+    }
+  }
+
+  async function limpar() {
+    try {
+      await limparErros(uid);
+      mostrarToast("✓ Registo limpo");
+    } catch {
+      mostrarToast("Não foi possível limpar.");
+    }
+  }
+
+  return (
+    <div className={styles.grupo}>
+      <p className={styles.grupoTitulo}>Erros recentes</p>
+      <p className={styles.nota}>
+        {erros.length === 0
+          ? "Nada registado — o app não falhou desde a última limpeza."
+          : "Se algo correu mal, copie o erro e envie — evita ter de o descrever de memória."}
+      </p>
+      {erros.length > 0 && (
+        <>
+          <div className={styles.listaErros}>
+            {erros.map((e) => (
+              <div key={e.id} className={styles.linhaErro}>
+                <div className={styles.erroTexto}>
+                  <span className={styles.erroQuando}>{quando(e.timestamp)}</span>
+                  <span className={styles.erroMensagem}>{e.mensagem}</span>
+                </div>
+                <button
+                  className={styles.acaoCategoria}
+                  onClick={() => void copiar(e)}
+                  aria-label={`Copiar erro de ${quando(e.timestamp)}`}
+                >
+                  <Copy size={14} aria-hidden />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className={styles.linhaAdicionar}>
+            <button className={styles.botaoPequeno} onClick={() => void limpar()}>
+              <Trash2 size={14} aria-hidden /> Limpar registo
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Definicoes() {
   const sessao = useAuthStore((s) => s.sessao);
   const theme = useThemeStore((s) => s.theme);
@@ -556,6 +640,8 @@ export default function Definicoes() {
           />
         </div>
       </div>
+
+      <ErrosRecentes uid={uid} />
 
       <div className={styles.grupo}>
         <p className={styles.conta}>Sessão: {sessao?.email ?? "—"}</p>

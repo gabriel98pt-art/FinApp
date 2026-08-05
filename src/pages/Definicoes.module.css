@@ -262,3 +262,51 @@
   border-radius: 50%;
   border: 1px solid var(--brd);
 }
+
+/* Erros recentes — mesma silhueta da lista de categorias, mas cada linha tem
+   duas alturas de texto (quando + mensagem) em vez de um nome só. */
+
+.listaErros {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px 0;
+}
+
+.linhaErro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: var(--r-sm);
+}
+
+.linhaErro:hover {
+  background: var(--s2);
+}
+
+.erroTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.erroQuando {
+  font-size: 0.72rem;
+  color: var(--mut);
+  font-weight: 600;
+}
+
+.erroMensagem {
+  font-size: 0.84rem;
+  font-weight: 600;
+  /* Mensagens de erro são longas: duas linhas e corta. O texto inteiro
+     continua a ir no "Copiar". */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

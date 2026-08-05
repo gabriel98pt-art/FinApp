@@ -10,6 +10,7 @@ import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
 import { useAplicarCoresPersonalizadas } from "./hooks/useAplicarCoresPersonalizadas";
 import { usePwaUpdate } from "./hooks/usePwaUpdate";
 import { useIgnorarArquivoSolto } from "./hooks/useIgnorarArquivoSolto";
+import { useCapturarErros } from "./hooks/useCapturarErros";
 
 // Lazy loading por página (seção 8 — performance)
 const Inicio = lazy(() => import("./pages/Inicio"));
@@ -46,6 +47,9 @@ export default function App() {
   // Também fora do gate de sessão: largar um ficheiro ao lado da zona certa
   // não pode deitar o app fora, seja em que tela for.
   useIgnorarArquivoSolto();
+  // Também fora do gate: um erro na tela de login continua a ser um erro que
+  // vale a pena registar (só grava quando houver conta onde gravar).
+  useCapturarErros();
   const status = useAuthStore((s) => s.status);
 
   // A rede de segurança fica FORA do gate de sessão: um crash de render na tela
