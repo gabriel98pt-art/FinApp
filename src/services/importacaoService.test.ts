@@ -261,6 +261,7 @@ describe("dadosDaCarga", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -283,6 +284,16 @@ describe("dadosDaCarga", () => {
 
   test("sem local não dá carga nenhuma — é o único campo obrigatório", () => {
     expect(dadosDaCarga(linhaCarga({ localCarga: "  " }))).toBeNull();
+  });
+
+  test("leva a nota escrita na revisão", () => {
+    expect(dadosDaCarga(linhaCarga({ notaEscolhida: "carreguei a caminho do Porto" }))?.nota).toBe(
+      "carreguei a caminho do Porto",
+    );
+  });
+
+  test("nota vazia não vira string vazia gravada", () => {
+    expect(dadosDaCarga(linhaCarga())?.nota).toBeUndefined();
   });
 
   test("sem kWh a carga entra incompleta, em vez de travar a importação", () => {
@@ -325,6 +336,7 @@ describe("confirmarImportacao com recarga", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -413,6 +425,7 @@ describe("transferência vinda de cartão de crédito", () => {
     contaDestino: "Conta Principal",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -438,6 +451,14 @@ describe("transferência vinda de cartão de crédito", () => {
     expect(dadosDaTransferencia(linha({ contaOrigem: "" }))).toBeNull();
     expect(dadosDaTransferencia(linha({ contaDestino: " " }))).toBeNull();
     expect(dadosDaTransferencia(linha({ contaDestino: "AB Gold (C)" }))).toBeNull();
+  });
+
+  test("leva a nota escrita na revisão, e o nome editado", () => {
+    const d = dadosDaTransferencia(
+      linha({ descricao: "Passagem para a poupança", notaEscolhida: "mensal" }),
+    );
+    expect(d?.descricao).toBe("Passagem para a poupança");
+    expect(d?.nota).toBe("mensal");
   });
 
   test("ao confirmar não vira receita nenhuma — vai para transferências", async () => {
@@ -530,6 +551,7 @@ describe("a transferência importada chega à fatura do cartão", () => {
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
       contaEscolhida: "",
+      notaEscolhida: "",
       fatMesEscolhido: "2026-07",
       outraPonta: null,
     };
@@ -576,6 +598,7 @@ describe("fonte da receita e origem da transferência", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
   });
@@ -591,6 +614,19 @@ describe("fonte da receita e origem da transferência", () => {
     const [caminho, valor] = Object.entries(gravado)[0];
     expect(caminho.startsWith("receitas/")).toBe(true);
     expect(valor.fonte).toBe("TVDE");
+  });
+
+  test("a nota e o nome editados na revisão chegam à receita gravada", async () => {
+    await confirmarImportacao("u1", [
+      { ...receita("TVDE"), descricao: "Semana 31", notaEscolhida: "pago em atraso" },
+    ]);
+    const gravado = vi.mocked(update).mock.calls[0][1] as Record<
+      string,
+      { descricao: string; nota?: string }
+    >;
+    const valor = Object.values(gravado)[0];
+    expect(valor.descricao).toBe("Semana 31");
+    expect(valor.nota).toBe("pago em atraso");
   });
 
   test("sem fonte escolhida a receita cai em Outros, como antes", async () => {
@@ -610,6 +646,7 @@ describe("fonte da receita e origem da transferência", () => {
       contaDestino: "Conta Principal",
       fatCartaoEscolhido: "",
       contaEscolhida: "",
+      notaEscolhida: "",
       fatMesEscolhido: "2026-07",
       outraPonta: null,
     };
@@ -667,6 +704,7 @@ describe("o lado escolhido à mão manda sobre o automático", () => {
     contaDestino: "",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
   });
@@ -716,6 +754,7 @@ describe("transferência do lado de quem manda", () => {
     contaDestino: "Conta Poupança",
     fatCartaoEscolhido: "",
     contaEscolhida: "",
+    notaEscolhida: "",
     fatMesEscolhido: "2026-07",
     outraPonta: null,
     ...mudancas,
@@ -998,6 +1037,7 @@ describe("pagamento da fatura do cartão", () => {
     contaDestino: "",
     fatCartaoEscolhido: "AB Gold (C)",
     contaEscolhida: "",
+    notaEscolhida: "",
     // Pagou em agosto a fatura de julho — é por isto que o mês é editável.
     fatMesEscolhido: "2026-07",
     outraPonta: null,

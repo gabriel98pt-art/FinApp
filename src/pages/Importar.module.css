@@ -179,12 +179,49 @@
   gap: 10px;
 }
 
+/* Campo editável que se lê como texto: sem moldura em repouso, para a linha
+   continuar a parecer uma lista e não um formulário. A moldura aparece ao
+   passar o rato ou ao focar, que é quando importa saber que dá para escrever. */
 .linhaDesc {
   font-weight: 700;
   font-size: 0.88rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.linhaDesc:hover {
+  border-color: var(--brd);
+}
+
+.linhaDesc:focus {
+  border-color: var(--blu);
+  background: var(--s2);
+}
+
+.linhaNota {
+  width: 100%;
+  color: var(--mut);
+  font-size: 0.78rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 2px 4px;
+  margin: 2px -4px 0;
+}
+
+.linhaNota:hover {
+  border-color: var(--brd);
+}
+
+.linhaNota:focus {
+  color: var(--txt);
+  border-color: var(--blu);
+  background: var(--s2);
 }
 
 .valorPositivo {

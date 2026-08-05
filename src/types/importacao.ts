@@ -102,6 +102,10 @@ export interface LinhaAnalisada {
    *  que vinha do extrato ficava fora de qualquer fatura, mesmo quando era o
    *  extrato de um cartão. */
   contaEscolhida: string;
+  /** Nota livre, escrita na revisão — começa vazia. O extrato traz descrições
+   *  cifradas ("COMPRA 1234 PT"), e é aqui que se anota o que aquilo era de
+   *  facto. Vale para qualquer destino que tenha campo de nota. */
+  notaEscolhida: string;
   /** Só com `destino === "carga"`: posto escolhido, dos cadastrados. */
   localCarga: string;
   /** Só com `destino === "carga"`: kWh como o usuário digita ("32,5"). O

@@ -145,10 +145,11 @@ export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> |
   // inteira: o valor e a data já estão certos, e o que falta completa-se
   // depois na aba Veículo. Antes, um posto sem histórico para estimar
   // obrigava a escrever um número na hora ou a desistir da linha.
+  const nota = linha.notaEscolhida || undefined;
   if (!Number.isFinite(kwh) || kwh <= 0) {
-    return { data: linha.data, kwh: 0, custo, precoKwh: 0, local };
+    return { data: linha.data, kwh: 0, custo, precoKwh: 0, local, nota };
   }
-  return { data: linha.data, kwh, custo, precoKwh: Math.round(custo / kwh), local };
+  return { data: linha.data, kwh, custo, precoKwh: Math.round(custo / kwh), local, nota };
 }
 
 /** Uma linha marcada como transferência vinda de cartão de crédito, no formato
@@ -162,7 +163,14 @@ export function dadosDaTransferencia(linha: LinhaAnalisada): Omit<Transferencia,
   const de = linha.contaOrigem.trim();
   const para = linha.contaDestino.trim();
   if (!de || !para || de === para) return null;
-  return { data: linha.data, de, para, valor: Math.abs(linha.valor), descricao: linha.descricao };
+  return {
+    data: linha.data,
+    de,
+    para,
+    valor: Math.abs(linha.valor),
+    descricao: linha.descricao,
+    nota: linha.notaEscolhida || undefined,
+  };
 }
 
 /** O que uma linha de pagamento de fatura traz por si — o resto (quanto já
@@ -231,6 +239,7 @@ export async function confirmarImportacao(
         data: linha.data,
         fonte: linha.categoriaEscolhida || "Outros",
         conta: linha.contaEscolhida || undefined,
+        nota: linha.notaEscolhida || undefined,
       };
       atualizacoes[`receitas/${id}`] = semIndefinidos(receita);
     } else {
@@ -251,6 +260,7 @@ export async function confirmarImportacao(
         data: linha.data,
         categoria: linha.categoriaEscolhida || "Outros",
         contaCartao: linha.contaEscolhida || undefined,
+        nota: linha.notaEscolhida || undefined,
       };
       atualizacoes[`despesasCorrentes/${id}`] = semIndefinidos(despesa);
     }

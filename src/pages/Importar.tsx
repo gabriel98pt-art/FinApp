@@ -514,11 +514,27 @@ export default function Importar() {
                 </label>
                 <div className={styles.linhaCorpo}>
                   <div className={styles.linhaTopo}>
-                    <span className={styles.linhaDesc}>{l.descricao}</span>
+                    {/* O extrato traz nomes cifrados ("COMPRA 1234 PT"): dá para
+                        corrigir aqui, antes de gravar. Os rótulos dos seletores
+                        da linha acompanham sozinhos, são interpolação. */}
+                    <input
+                      className={styles.linhaDesc}
+                      aria-label={`Nome de ${l.descricao}`}
+                      value={l.descricao}
+                      onChange={(e) => atualizarLinha(l.id, { descricao: e.target.value })}
+                    />
                     <span className={l.valor >= 0 ? styles.valorPositivo : styles.valorNegativo}>
                       {formatMoney(l.valor, cfg.currency)}
                     </span>
                   </div>
+                  {/* Nota livre, em qualquer destino que tenha campo para ela. */}
+                  <input
+                    className={styles.linhaNota}
+                    aria-label={`Nota de ${l.descricao}`}
+                    placeholder="Nota (opcional)"
+                    value={l.notaEscolhida}
+                    onChange={(e) => atualizarLinha(l.id, { notaEscolhida: e.target.value })}
+                  />
                   <div className={styles.linhaMeta}>
                     <span>
                       {l.data.slice(8, 10)}/{l.data.slice(5, 7)}

@@ -13,3 +13,4 @@ SPEC_REESCRITA_COMPLETA.md
 .github/skills/
 .github/hooks/
 .claude/skills/
+.claude/settings.local.json
