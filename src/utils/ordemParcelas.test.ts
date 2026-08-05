@@ -22,7 +22,7 @@ function parcela(extra: Partial<Parcela> = {}): Parcela {
 const ordenar = (lista: Parcela[], ordem: Parameters<typeof compararParcelas>[0]) =>
   [...lista].sort(compararParcelas(ordem)).map((p) => p.id);
 
-test("as 6 opções têm rótulo, e as 4 genéricas continuam lá", () => {
+test("as 8 opções têm rótulo, e as 4 genéricas continuam lá", () => {
   expect(ORDENS_PARCELA).toEqual([
     "recentes",
     "antigas",
@@ -30,6 +30,8 @@ test("as 6 opções têm rótulo, e as 4 genéricas continuam lá", () => {
     "menorValor",
     "proximoVencimento",
     "valorRestante",
+    "maiorValorParcela",
+    "menorValorParcela",
   ]);
   for (const o of ORDENS_PARCELA) expect(ROTULOS_ORDEM_PARCELA[o]).toBeTruthy();
 });
@@ -104,6 +106,51 @@ describe("valorRestante — maior primeiro", () => {
   });
 });
 
+describe("maiorValorParcela / menorValorParcela — o que sai no mês", () => {
+  // A distinção que as ordens genéricas de valor não fazem: 'cara' custou menos
+  // ao todo, mas pesa mais por mês, porque foi em 2x em vez de 20x.
+  const cara = parcela({ id: "cara", total: 60000, numParcelas: 2 }); // 300,00/mês
+  const grandeTotal = parcela({ id: "grandeTotal", total: 200000, numParcelas: 20 }); // 100,00/mês
+
+  test("maior valor da parcela: a de mensalidade mais alta primeiro", () => {
+    expect(ordenar([grandeTotal, cara], "maiorValorParcela")).toEqual(["cara", "grandeTotal"]);
+  });
+
+  test("menor valor da parcela: o contrário", () => {
+    expect(ordenar([cara, grandeTotal], "menorValorParcela")).toEqual(["grandeTotal", "cara"]);
+  });
+
+  test("é mesmo a mensalidade, não o total — 'maiorValor' genérico dá o contrário", () => {
+    // A prova de que a ordem nova não é a antiga com outro nome.
+    expect(ordenar([cara, grandeTotal], "maiorValor")).toEqual(["grandeTotal", "cara"]);
+    expect(ordenar([cara, grandeTotal], "maiorValorParcela")).toEqual(["cara", "grandeTotal"]);
+  });
+
+  test("quitada tem mensalidade 0 e cai pro fim em 'maior'", () => {
+    const quitada = parcela({
+      id: "quitada",
+      pagoPorMes: { "2026-06": true, "2026-07": true, "2026-08": true },
+    });
+    const aberta = parcela({ id: "aberta" });
+    expect(ordenar([quitada, aberta], "maiorValorParcela")).toEqual(["aberta", "quitada"]);
+  });
+
+  test("em 'menor' a quitada vem à frente no comparador, mas a tela põe-na no fim", () => {
+    const quitada = parcela({
+      id: "quitada",
+      pagoPorMes: { "2026-06": true, "2026-07": true, "2026-08": true },
+    });
+    const aberta = parcela({ id: "aberta" });
+    // Sozinho, o comparador põe a mensalidade 0 em primeiro.
+    expect(ordenar([aberta, quitada], "menorValorParcela")).toEqual(["quitada", "aberta"]);
+    // Mas na lista real a quitada vai para o grupo de trás, como em qualquer ordem.
+    expect(parcelasVisiveis([aberta, quitada], "menorValorParcela").map((p) => p.id)).toEqual([
+      "aberta",
+      "quitada",
+    ]);
+  });
+});
+
 describe("parcelasVisiveis — a lista como a tela a mostra", () => {
   // Cenário com meses em aberto espalhados: uma atrasada (janeiro por pagar),
   // uma com buraco no meio, uma em curso, uma que só começa em setembro, e
@@ -155,9 +202,15 @@ describe("parcelasVisiveis — a lista como a tela a mostra", () => {
     expect(ids.slice(4)).toEqual(["quitadaVelha", "quitadaNova"]);
   });
 
-  test("com o filtro ligado, as quitadas somem e a ordem das outras não muda", () => {
+  test("com o filtro ligado, mostra SÓ as quitadas — as em aberto é que ficam fora", () => {
     const comFiltro = parcelasVisiveis(todas, "proximoVencimento", true).map((p) => p.id);
-    expect(comFiltro).toEqual(["atrasada", "buraco", "emCurso", "futura"]);
+    expect(comFiltro).toEqual(["quitadaNova", "quitadaVelha"]);
+  });
+
+  test("desligado (o padrão) mostra tudo, em aberto primeiro", () => {
+    const semFiltro = parcelasVisiveis(todas, "proximoVencimento", false).map((p) => p.id);
+    expect(semFiltro).toEqual(parcelasVisiveis(todas, "proximoVencimento").map((p) => p.id));
+    expect(semFiltro).toHaveLength(6);
   });
 
   test("não altera o array recebido", () => {

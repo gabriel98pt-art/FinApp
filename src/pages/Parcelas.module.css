@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* Com o filtro de quitadas na linha, no telemóvel não cabe tudo lado a lado:
-     as ações descem inteiras em vez de espremerem o título em duas linhas. */
+  /* No telemóvel nem sempre cabe tudo lado a lado: as ações descem inteiras em
+     vez de espremerem o título em duas linhas. */
   flex-wrap: wrap;
   gap: 4px 8px;
 }
@@ -20,30 +20,34 @@
   white-space: nowrap;
 }
 
-.filtro {
+/* Rodapé da página: só o olho de "ver só as quitadas". Fica encostado à
+   direita, alinhado com o fim dos cartões, e não puxa a atenção — é uma ação
+   de vez em quando, não do dia a dia. */
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filtroRodape {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   color: var(--mut);
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 6px 10px;
+  /* Alvo de toque confortável no telemóvel, mesmo o ícone sendo pequeno. */
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-sm);
-  white-space: nowrap;
 }
-.filtro:hover {
+
+.filtroRodape:hover {
   background: var(--s2);
+  color: var(--txt);
 }
-.filtroAtivo {
+
+.filtroRodapeAtivo,
+.filtroRodapeAtivo:hover {
   background: var(--s2);
   color: var(--blu);
-}
-.filtroContagem {
-  background: var(--s3);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-pill);
-  padding: 0 6px;
-  font-size: 0.72rem;
 }
 
 .adicionar {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Layers } from "lucide-react";
+import { Eye, EyeOff, Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -367,12 +367,12 @@ export default function Parcelas() {
   const erro = useParcelasStore((s) => s.erro);
   const [folhaAberta, setFolhaAberta] = useState(false);
   const [editando, setEditando] = useState<Parcela | null>(null);
-  // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 6
-  // opções, duas delas só de parcela (ver utils/ordemParcelas.ts).
+  // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 8
+  // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts).
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
-  // Esconder as já pagas até ao fim: escolha da visita, não uma preferência
-  // guardada — quem quer conferir o histórico volta a mostrar num toque.
-  const [esconderQuitadas, setEsconderQuitadas] = useState(false);
+  // Isolar as já pagas para rever o histórico de compras fechadas: escolha da
+  // visita, não uma preferência guardada — um toque volta a mostrar tudo.
+  const [apenasQuitadas, setApenasQuitadas] = useState(false);
   const [novoIntermediador, setNovoIntermediador] = useState("");
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
@@ -418,7 +418,7 @@ export default function Parcelas() {
   const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p, mesRef), 0);
   const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
-  const visiveis = parcelasVisiveis(parcelas, ordem, esconderQuitadas, mesRef);
+  const visiveis = parcelasVisiveis(parcelas, ordem, apenasQuitadas, mesRef);
 
   return (
     <Pagina titulo="Parcelas">
@@ -431,16 +431,6 @@ export default function Parcelas() {
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Compras parceladas</h3>
         <div className={styles.acoesCabecalho}>
-          {quitadas.length > 0 && (
-            <button
-              className={`${styles.filtro} ${esconderQuitadas ? styles.filtroAtivo : ""}`}
-              aria-pressed={esconderQuitadas}
-              onClick={() => setEsconderQuitadas(!esconderQuitadas)}
-            >
-              Esconder quitadas
-              <span className={styles.filtroContagem}>{quitadas.length}</span>
-            </button>
-          )}
           {parcelas.length > 1 && (
             <SeletorOrdemFolha
               valor={ordem}
@@ -514,6 +504,32 @@ export default function Parcelas() {
           </button>
         </div>
       </form>
+
+      {/* Rodapé discreto: isolar as quitadas é para rever o histórico de vez em
+          quando, não uma ação do dia a dia — por isso saiu do cabeçalho, onde
+          disputava espaço com "Nova parcela". O olho aberto é o estado normal
+          (nada fora da vista); fechado, são as em aberto que ficam de fora. */}
+      {quitadas.length > 0 && (
+        <div className={styles.rodape}>
+          <button
+            className={`${styles.filtroRodape} ${apenasQuitadas ? styles.filtroRodapeAtivo : ""}`}
+            aria-pressed={apenasQuitadas}
+            aria-label={
+              apenasQuitadas
+                ? "A mostrar só as quitadas — toque para ver todas"
+                : "Mostrar só as quitadas"
+            }
+            title={
+              apenasQuitadas
+                ? "A mostrar só as quitadas — toque para ver todas"
+                : "Mostrar só as quitadas"
+            }
+            onClick={() => setApenasQuitadas(!apenasQuitadas)}
+          >
+            {apenasQuitadas ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+      )}
 
       <FormParcela
         aberta={folhaAberta}
