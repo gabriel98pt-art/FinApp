@@ -59,6 +59,26 @@ export function totalVeiculoGeral(veiculo: DadosVeiculo): Cents {
   return cargas + despesas + fixas;
 }
 
+/** Preço por kWh do carregamento mais recente feito neste local, se houver.
+ *
+ *  Serve de referência para adivinhar os kWh a partir do custo: o posto é o
+ *  mesmo, o preço quase sempre também. O mais RECENTE, e não uma média, porque
+ *  o que interessa é o preço que está lá agora. */
+export function precoKwhDoLocal(cargas: CargaEletrica[], local: string): Cents | undefined {
+  const nome = local.trim();
+  if (!nome) return undefined;
+  const doLocal = cargas.filter((c) => c.local === nome);
+  if (doLocal.length === 0) return undefined;
+  const recente = doLocal.reduce((a, b) => (b.data > a.data ? b : a));
+  return recente.precoKwh > 0 ? recente.precoKwh : undefined;
+}
+
+/** Quantos kWh dá aquele custo àquele preço, já no formato do campo: vírgula
+ *  decimal e 3 casas — a terceira faz diferença numa carga pequena. */
+export function kwhPeloCusto(custo: Cents, precoKwh: Cents): string {
+  return (custo / precoKwh).toFixed(3).replace(".", ",");
+}
+
 /** A despesa comum que nasce de uma recarga classificada por engano.
  *
  *  Acontece porque o reconhecimento do extrato só tem o texto: um supermercado

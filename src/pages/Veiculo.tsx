@@ -43,7 +43,13 @@ import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { fixaAtivaNoMes } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
-import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "../utils/veiculo";
+import {
+  kwhPeloCusto,
+  precoKwhDoLocal,
+  totalCargasMes,
+  totalDespesasVeiculoMes,
+  totalVeiculoMes,
+} from "../utils/veiculo";
 import type { CargaEletrica, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import styles from "./Veiculo.module.css";
 
@@ -160,6 +166,20 @@ export default function Veiculo() {
   const [cgSessao, setCgSessao] = useState("");
   const [cgNota, setCgNota] = useState("");
   const [cgData, setCgData] = useState(hojeIso());
+  // O kWh preenche-se sozinho a partir do custo, mas assim que o usuário lhe
+  // toca deixa de ser recalculado — o palpite não pode apagar o que ele
+  // escreveu. Volta a ligar ao abrir outra carga ou ao trocar de local.
+  const [kwhTocado, setKwhTocado] = useState(false);
+
+  /** Refaz o palpite de kWh com o custo e o local que valerem agora. Só no modo
+   *  "Custo total": no modo €/kWh o usuário já informa o preço, não há custo de
+   *  onde derivar. Sem histórico naquele local, não há preço de referência —
+   *  fica vazio para escrever à mão, como antes. */
+  function palpitarKwh(custo: Cents | null, local: string) {
+    if (modoCusto !== "total" || custo === null || custo <= 0) return;
+    const preco = precoKwhDoLocal(dados.cargas, local);
+    if (preco !== undefined) setCgKwh(kwhPeloCusto(custo, preco));
+  }
 
   function abrirNovaCarga() {
     setCgEditandoId(null);
@@ -172,6 +192,7 @@ export default function Veiculo() {
     setCgSessao("");
     setCgNota("");
     setCgData(hojeIso());
+    setKwhTocado(false);
     setCgAberta(true);
   }
 
@@ -186,6 +207,9 @@ export default function Veiculo() {
     setCgSessao(c.sessao ?? "");
     setCgNota(c.nota ?? "");
     setCgData(c.data);
+    // Numa carga já gravada o kWh é dado, não palpite: não se mexe nele até o
+    // usuário mudar o local de propósito.
+    setKwhTocado(true);
     setCgAberta(true);
   }
 
@@ -820,7 +844,10 @@ export default function Veiculo() {
             <input
               inputMode="decimal"
               value={cgKwh}
-              onChange={(e) => setCgKwh(e.target.value)}
+              onChange={(e) => {
+                setKwhTocado(true);
+                setCgKwh(e.target.value);
+              }}
               required
             />
           </label>
@@ -844,7 +871,14 @@ export default function Veiculo() {
           {modoCusto === "total" ? (
             <label className={styles.campo}>
               Custo total
-              <CampoMoeda valor={cgCustoTotal} aoMudar={setCgCustoTotal} required />
+              <CampoMoeda
+                valor={cgCustoTotal}
+                aoMudar={(v) => {
+                  setCgCustoTotal(v);
+                  if (!kwhTocado) palpitarKwh(v, cgLocal);
+                }}
+                required
+              />
             </label>
           ) : (
             <label className={styles.campo}>
@@ -852,7 +886,16 @@ export default function Veiculo() {
               <CampoMoeda valor={cgPrecoKwh} aoMudar={setCgPrecoKwh} required />
             </label>
           )}
-          <SeletorLocal valor={cgLocal} opcoes={cfg.locaisCarregamento} aoMudar={setCgLocal} />
+          <SeletorLocal
+            valor={cgLocal}
+            opcoes={cfg.locaisCarregamento}
+            aoMudar={(v) => {
+              setCgLocal(v);
+              // Outro local, outro preço: o palpite volta a valer.
+              setKwhTocado(false);
+              palpitarKwh(cgCustoTotal, v);
+            }}
+          />
           <Seletor
             rotulo="Conta/cartão"
             valor={cgConta}

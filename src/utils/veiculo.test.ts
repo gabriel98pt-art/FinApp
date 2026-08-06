@@ -3,6 +3,8 @@ import type { CargaEletrica, DadosVeiculo, DespesaFixa, DespesaVeiculo } from ".
 import {
   contribuicaoFixasVeiculoMes,
   dadosDespesaDaCarga,
+  kwhPeloCusto,
+  precoKwhDoLocal,
   totalCargasMes,
   totalDespesasVeiculoMes,
   totalVeiculoGeral,
@@ -157,5 +159,32 @@ describe("dadosDespesaDaCarga — recarga que afinal não era recarga", () => {
     const d = dadosDespesaDaCarga(carga({ contaCartao: undefined, nota: undefined }), "Outros");
     expect(d.contaCartao).toBeUndefined();
     expect(d.nota).toBeUndefined();
+  });
+});
+
+describe("precoKwhDoLocal / kwhPeloCusto — adivinhar os kWh pelo custo", () => {
+  test("usa o preço do carregamento MAIS RECENTE naquele local", () => {
+    const cargas = [
+      carga({ id: "c1", local: "Ionity", data: "2026-05-01", precoKwh: 50 }),
+      carga({ id: "c2", local: "Ionity", data: "2026-07-01", precoKwh: 60 }),
+      carga({ id: "c3", local: "Ionity", data: "2026-06-01", precoKwh: 55 }),
+    ];
+    expect(precoKwhDoLocal(cargas, "Ionity")).toBe(60);
+  });
+
+  test("local sem histórico, local vazio e lista vazia não dão preço nenhum", () => {
+    const cargas = [carga({ local: "Casa", precoKwh: 24 })];
+    expect(precoKwhDoLocal(cargas, "Ionity")).toBeUndefined();
+    expect(precoKwhDoLocal(cargas, "   ")).toBeUndefined();
+    expect(precoKwhDoLocal([], "Casa")).toBeUndefined();
+  });
+
+  test("preço zero não serve de referência", () => {
+    expect(precoKwhDoLocal([carga({ local: "Casa", precoKwh: 0 })], "Casa")).toBeUndefined();
+  });
+
+  test("o kWh sai com vírgula e três casas", () => {
+    expect(kwhPeloCusto(768, 24)).toBe("32,000");
+    expect(kwhPeloCusto(1000, 33)).toBe("30,303");
   });
 });
