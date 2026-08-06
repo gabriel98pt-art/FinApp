@@ -4,7 +4,7 @@
 
 import type { CargaEletrica, Cents, DadosVeiculo, DespesaCorrente, YearMonth } from "../types";
 import { doMes, mesDe, totalDoMes } from "./calculos";
-import { fixaAtivaNoMes } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
 
 export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
   return veiculo.cargas.filter((c) => mesDe(c.data) === ym).reduce((s, c) => s + c.custo, 0);
@@ -29,7 +29,9 @@ export function contribuicaoFixasVeiculoMes(
 ): Cents {
   const ativas = veiculo.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym));
   if (ym === mesReal) {
-    return ativas.filter((f) => f.pagoPorMes[ym]).reduce((s, f) => s + f.valor, 0);
+    return ativas
+      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal))
+      .reduce((s, f) => s + f.valor, 0);
   }
   return ativas.reduce((s, f) => s + f.valor, 0);
 }

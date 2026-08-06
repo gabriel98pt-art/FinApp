@@ -153,6 +153,28 @@ describe("transacoesDoMes", () => {
     expect(transacoesDoMes({ ...vazio, despesasFixas: [fixa] }, "2026-08")).toHaveLength(0);
   });
 
+  it("fixa em débito automático no cartão entra sem ninguém a marcar", () => {
+    const fixa = {
+      id: "f2",
+      descricao: "Seguro",
+      valor: 4500,
+      categoria: "Seguro",
+      diaVencimento: 10,
+      contaCartao: "AB Gold (C)",
+      autoDebit: true,
+      inicio: "2026-06" as const,
+      pagoPorMes: {},
+    };
+    const dados = { ...vazio, despesasFixas: [fixa] };
+    // Com o mês de hoje: julho já saiu do cartão, mesmo sem marcação.
+    expect(transacoesDoMes(dados, "2026-07", "2026-08")).toHaveLength(1);
+    // Mês que ainda não chegou, e mês anterior ao início: não.
+    expect(transacoesDoMes(dados, "2026-09", "2026-08")).toHaveLength(0);
+    expect(transacoesDoMes(dados, "2026-05", "2026-08")).toHaveLength(0);
+    // Sem o mês de hoje, nada muda em relação ao comportamento antigo.
+    expect(transacoesDoMes(dados, "2026-07")).toHaveLength(0);
+  });
+
   describe("parcela: só o mês pago entra, e com a data em que se pagou mesmo", () => {
     const sofa: Parcela = {
       id: "p1",

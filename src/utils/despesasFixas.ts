@@ -2,7 +2,7 @@
 // das fixas do veículo (utils/veiculo.ts), domínio próprio e independente.
 
 import type { Cents, DespesaFixa, YearMonth } from "../types";
-import { fixaAtivaNoMes } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
 
 /** Contribuição das despesas fixas gerais no mês. Mesma regra do veículo
  *  (contribuicaoFixasVeiculoMes, seção "Parte A"):
@@ -16,7 +16,9 @@ export function contribuicaoFixasMes(
 ): Cents {
   const ativas = fixas.filter((f) => fixaAtivaNoMes(f, ym));
   if (ym === mesReal) {
-    return ativas.filter((f) => f.pagoPorMes[ym]).reduce((s, f) => s + f.valor, 0);
+    return ativas
+      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal))
+      .reduce((s, f) => s + f.valor, 0);
   }
   return ativas.reduce((s, f) => s + f.valor, 0);
 }

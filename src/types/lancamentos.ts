@@ -42,12 +42,15 @@ export interface DespesaFixa {
   pagoPorMes: Record<YearMonth, boolean>;
   /** Dia do mês do vencimento (1-31), usado pra marcar no Calendário. */
   diaVencimento?: number;
-  /** Anotação do usuário: "isto sai do cartão sozinho". SÓ INFORMATIVO —
-   *  ao contrário do `autoDebit` da Parcela, este NÃO entra em `utils/fatura.ts`
-   *  nem em cálculo nenhum. Uma fixa já entra na fatura sempre que `contaCartao`
-   *  é um cartão de crédito; se este campo passasse a filtrar isso, quem já tem
-   *  fixa em cartão hoje (portanto `undefined`) veria o valor sair da fatura sem
-   *  ter mexido em nada. Vale como uma nota visível, nada mais. */
+  /** "Isto sai do cartão sozinho". NÃO filtra o cálculo da fatura: uma fixa
+   *  entra nela sempre que `contaCartao` é cartão de crédito, e passar a exigir
+   *  este campo tirava da fatura o valor de quem já tem fixa em cartão hoje
+   *  (portanto `undefined`) sem ter mexido em nada.
+   *
+   *  O que ele decide é o contrário — se conta como PAGA sem ninguém a marcar
+   *  (`fixaEfetivamentePaga`, utils/fatura.ts). Uma fixa em débito automático
+   *  que ninguém marca à mão nunca aparecia como paga, e sumia do extrato e dos
+   *  totais do mês corrente. */
   autoDebit?: boolean;
   /** Descrição livre, separada do nome curto em `descricao`. */
   nota?: string;

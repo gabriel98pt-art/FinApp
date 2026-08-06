@@ -40,6 +40,31 @@ export function fixaAtivaNoMes(d: DespesaFixa, ym: YearMonth): boolean {
   return true;
 }
 
+/** Este mês da fixa já está resolvido? Mesma regra de `estaEfetivamentePaga`
+ *  (utils/parcelas.ts), agora para a DespesaFixa:
+ *
+ *  marcada à mão conta sempre; e quando sai por CARTÃO em débito automático,
+ *  conta também qualquer mês até ao de referência, sem toque nenhum — que é a
+ *  promessa do débito automático. Sem isso, uma fixa que ninguém marca (porque
+ *  não é preciso marcar) nunca aparecia como paga: sumia do extrato e dos
+ *  totais do mês corrente, apesar de o cálculo da fatura já a cobrar.
+ *
+ *  Sem `mesReferencia` conta só o que está marcado — o comportamento de
+ *  sempre, para quem chama sem se importar com o mês de hoje. */
+export function fixaEfetivamentePaga(
+  f: DespesaFixa,
+  mes: YearMonth,
+  mesReferencia?: YearMonth,
+): boolean {
+  // `pagoPorMes` pode vir indefinido: o RTDB apaga objetos vazios.
+  if (f.pagoPorMes?.[mes]) return true;
+  if (!mesReferencia || !f.contaCartao || !f.autoDebit || mes > mesReferencia) return false;
+  // O mês tem de estar dentro do plano da fixa — quem chama nem sempre filtra
+  // por isso antes (o extrato de Transações percorre todas), e sem esta linha
+  // uma fixa passava a "paga" em meses anteriores ao seu início.
+  return fixaAtivaNoMes(f, mes);
+}
+
 export interface DadosFatura {
   despesasFixas: DespesaFixa[];
   despesasFixasVeiculo: DespesaFixa[];

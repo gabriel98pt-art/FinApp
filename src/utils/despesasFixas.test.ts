@@ -31,6 +31,15 @@ describe("contribuicaoFixasMes — corrente parcial vs fechado total", () => {
     expect(contribuicaoFixasMes(fixas, "2026-07", "2026-08")).toBe(45999);
   });
 
+  // Ninguém marca uma fixa em débito automático — a promessa é não ter de mexer.
+  test("mês corrente: fixa em débito automático no cartão conta sem marcação", () => {
+    const fixas = [
+      fixa({ id: "f1", valor: 45000, contaCartao: "AB Gold (C)", autoDebit: true }),
+      fixa({ id: "f2", valor: 999, pagoPorMes: {} }), // sem cartão: continua a precisar
+    ];
+    expect(contribuicaoFixasMes(fixas, "2026-07", "2026-07")).toBe(45000);
+  });
+
   test("respeita a janela inicio/fim mesmo em mês fechado", () => {
     const fixas = [fixa({ valor: 45000, inicio: "2026-08" })];
     expect(contribuicaoFixasMes(fixas, "2026-07", "2026-08")).toBe(0);

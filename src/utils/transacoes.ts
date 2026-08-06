@@ -29,6 +29,7 @@ import type {
   YearMonth,
 } from "../types";
 import { mesDe } from "./calculos";
+import { fixaEfetivamentePaga } from "./fatura";
 import { mesesDaParcela, valorDaParcela } from "./parcelas";
 
 export type OrigemTransacao =
@@ -69,7 +70,14 @@ function diaDoMes(ym: YearMonth, dia?: number): IsoDate {
   return `${ym}-${String(Math.min(Math.max(dia, 1), ultimo)).padStart(2, "0")}`;
 }
 
-export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transacao[] {
+export function transacoesDoMes(
+  dados: DadosTransacoes,
+  ym: YearMonth,
+  /** Mês de hoje. Só serve para as fixas em débito automático, que contam como
+   *  pagas sem ninguém as marcar (ver `fixaEfetivamentePaga`). Opcional: sem
+   *  ele, só o que está marcado à mão entra — o comportamento de sempre. */
+  mesReferencia?: YearMonth,
+): Transacao[] {
   const itens: Transacao[] = [];
 
   for (const r of dados.receitas) {
@@ -104,10 +112,11 @@ export function transacoesDoMes(dados: DadosTransacoes, ym: YearMonth): Transaca
     });
   }
 
-  // Fixas (gerais e do veículo) só entram no mês em que foram marcadas pagas.
+  // Fixas (gerais e do veículo) só entram no mês em que foram pagas — marcadas
+  // à mão, ou em débito automático no cartão, que não precisa de marcação.
   const todasFixas = [...dados.despesasFixas, ...dados.veiculo.despesasFixas];
   for (const f of todasFixas) {
-    if (!f.pagoPorMes?.[ym]) continue;
+    if (!fixaEfetivamentePaga(f, ym, mesReferencia)) continue;
     itens.push({
       chave: `fixa-${f.id}-${ym}`,
       refId: f.id,

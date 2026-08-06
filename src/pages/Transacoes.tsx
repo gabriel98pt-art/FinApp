@@ -22,7 +22,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { rotuloMes } from "../utils/calculos";
+import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { dadosDespesaDaCarga } from "../utils/veiculo";
 import { transacoesDoMes, type DadosTransacoes, type Transacao } from "../utils/transacoes";
@@ -80,7 +80,7 @@ export default function Transacoes() {
   const carregado =
     receitasOk && despesasOk && fixasOk && parcelasOk && transferenciasOk && veiculoOk;
 
-  const itens = transacoesDoMes(dados, mes);
+  const itens = transacoesDoMes(dados, mes, mesAtual());
   const entradas = itens.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
   const saidas = itens.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
 

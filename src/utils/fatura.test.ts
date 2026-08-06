@@ -12,6 +12,7 @@ import {
   calcularFatura,
   calcularFaturaAutomatica,
   cicloDaFatura,
+  fixaEfetivamentePaga,
   pagamentosDaFatura,
   type DadosFatura,
 } from "./fatura";
@@ -357,5 +358,61 @@ describe("BUG 1/2 (não reproduzir): destino único de cada lançamento nos tota
     const compra = dc({ valor: 1500 });
     const ajuste = dc({ valor: 500000, origem: "recon", categoria: "Ajuste" });
     expect(despesasNosTotais([compra, ajuste])).toEqual([compra]);
+  });
+});
+
+describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém marca", () => {
+  function fixa(extra: Partial<DespesaFixa> = {}): DespesaFixa {
+    return {
+      id: "f1",
+      descricao: "Seguro",
+      valor: 4500,
+      categoria: "Seguro",
+      pagoPorMes: {},
+      ...extra,
+    };
+  }
+
+  test("marcada à mão conta sempre, com ou sem mês de referência", () => {
+    const f = fixa({ pagoPorMes: { "2026-07": true } });
+    expect(fixaEfetivamentePaga(f, "2026-07")).toBe(true);
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-08")).toBe(true);
+    expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(false);
+  });
+
+  test("no cartão em débito automático conta sem marcação, até ao mês de referência", () => {
+    const f = fixa({ contaCartao: CARTAO, autoDebit: true, inicio: "2026-01" });
+    expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(true);
+    expect(fixaEfetivamentePaga(f, "2026-08", "2026-08")).toBe(true);
+    // Mês que ainda não chegou: não saiu dinheiro nenhum.
+    expect(fixaEfetivamentePaga(f, "2026-09", "2026-08")).toBe(false);
+  });
+
+  test("sem mês de referência nada muda — só o que está marcado", () => {
+    const f = fixa({ contaCartao: CARTAO, autoDebit: true, inicio: "2026-01" });
+    expect(fixaEfetivamentePaga(f, "2026-06")).toBe(false);
+  });
+
+  test("sem conta/cartão o autoDebit não vale — não há de onde sair sozinho", () => {
+    const f = fixa({ autoDebit: true, inicio: "2026-01" });
+    expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(false);
+  });
+
+  test("no cartão mas sem autoDebit continua a precisar da marcação", () => {
+    const f = fixa({ contaCartao: CARTAO, inicio: "2026-01" });
+    expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(false);
+  });
+
+  // Quem chama nem sempre filtra pelo plano antes (o extrato percorre todas).
+  test("fora do plano da fixa não conta, mesmo em débito automático", () => {
+    const f = fixa({ contaCartao: CARTAO, autoDebit: true, inicio: "2026-05", fim: "2026-07" });
+    expect(fixaEfetivamentePaga(f, "2026-04", "2026-08")).toBe(false);
+    expect(fixaEfetivamentePaga(f, "2026-05", "2026-08")).toBe(true);
+    expect(fixaEfetivamentePaga(f, "2026-08", "2026-08")).toBe(false);
+  });
+
+  test("pagoPorMes ausente (o RTDB apaga objeto vazio) não rebenta", () => {
+    const f = { ...fixa(), pagoPorMes: undefined } as unknown as DespesaFixa;
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-08")).toBe(false);
   });
 });

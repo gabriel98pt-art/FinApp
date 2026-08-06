@@ -62,6 +62,13 @@ describe("contribuicaoFixasVeiculoMes — corrente parcial vs fechado total", ()
     expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07")).toBe(4500);
   });
 
+  test("mês corrente: fixa do veículo em débito automático conta sem marcação", () => {
+    const v = veiculo({
+      despesasFixas: [fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true })],
+    });
+    expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07")).toBe(4500);
+  });
+
   test("mês fechado (passado): conta o total cheio, pago ou não", () => {
     const v = veiculo({
       despesasFixas: [
