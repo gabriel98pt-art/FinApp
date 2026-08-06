@@ -89,6 +89,12 @@ export default function Veiculo() {
       ? naSemana(dados.cargas, semanaAtual)
       : dados.cargas.filter((c) => mesDe(c.data) === mes);
 
+  // Na aba Carregamentos com "Semana" escolhida, o KPI de cargas acompanha a
+  // lista em vez de continuar preso ao mês. Os outros três não têm filtro de
+  // semana próprio e ficam mensais.
+  const cargasPorSemana = aba === "cargas" && visaoCargas === "semana" && semanaAtual !== undefined;
+  const totalCargasVisiveis = cargasVisiveis.reduce((s, c) => s + c.custo, 0);
+
   // Todas as abas mostram só o mês do seletor no topo — inclusive Km: o
   // registo de km é incremental (o KPI "Km no mês" SOMA os do mês), não uma
   // leitura de odômetro acumulada, então é uma entrada do mês como qualquer
@@ -441,7 +447,11 @@ export default function Veiculo() {
           valor={formatMoney(gastoDoMes, cfg.currency)}
           tom="vermelho"
         />
-        <KpiCard rotulo="Carregamentos" valor={formatMoney(cargasDoMes, cfg.currency)} />
+        <KpiCard
+          rotulo="Carregamentos"
+          valor={formatMoney(cargasPorSemana ? totalCargasVisiveis : cargasDoMes, cfg.currency)}
+          sub={cargasPorSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
+        />
         <KpiCard rotulo="Despesas" valor={formatMoney(despesasDoMes, cfg.currency)} />
         <KpiCard rotulo="Km no mês" valor={kmDoMes ? kmDoMes.toLocaleString("pt-PT") : "0"} />
       </Kpis>

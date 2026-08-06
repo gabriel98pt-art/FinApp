@@ -102,6 +102,16 @@ export default function Despesas() {
   const doPeriodo =
     visao === "semana" && semanaAtual ? naSemana(itens, semanaAtual) : doMes(itens, mes);
 
+  // Com "Semana" escolhida, os dois primeiros KPIs passam a falar da semana —
+  // o mesmo total que o rodapé da lista já mostrava lá em baixo. Só na aba
+  // Correntes: é lá que vive o alternador Mês/Semana, e os KPIs agora ficam
+  // fora das abas. "Maior categoria" continua sempre mensal — uma semana é
+  // amostra pequena demais para essa pergunta.
+  const porSemana = aba === "correntes" && visao === "semana" && semanaAtual !== undefined;
+  const contadasDoPeriodo = despesasNosTotais(doPeriodo);
+  const totalKpi = porSemana ? total(contadasDoPeriodo) : totalDoMesComVeiculo;
+  const contagemKpi = porSemana ? contadasDoPeriodo.length : doMes(contadas, mes).length;
+
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
     if (item?.origem === "fat") {
@@ -210,11 +220,15 @@ export default function Despesas() {
           de Veiculo e Tvde: KPIs primeiro, abas depois. */}
       <Kpis pagina="despesas">
         <KpiCard
-          rotulo="Total do mês"
-          valor={formatMoney(totalDoMesComVeiculo, moeda)}
+          rotulo={porSemana ? "Total da semana" : "Total do mês"}
+          valor={formatMoney(totalKpi, moeda)}
+          sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
           tom="vermelho"
         />
-        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+        <KpiCard
+          rotulo={porSemana ? "Lançamentos (semana)" : "Lançamentos (mês)"}
+          valor={String(contagemKpi)}
+        />
         <KpiCard
           rotulo="Maior categoria"
           valor={maiorCategoria ? maiorCategoria.categoria : "—"}
