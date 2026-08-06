@@ -1061,12 +1061,13 @@ describe("pagamento da fatura do cartão", () => {
     vi.mocked(pagarFatura).mockClear();
   });
 
-  test("a linha traz cartão, mês, conta e o valor sempre positivo", () => {
+  test("a linha traz cartão, mês, conta, o valor sempre positivo e a data", () => {
     expect(pagamentoDaLinha(linha())).toEqual({
       cartao: "AB Gold (C)",
       de: "Conta Principal",
       mes: "2026-07",
       valor: 22041,
+      data: "2026-08-02",
     });
   });
 
@@ -1083,6 +1084,7 @@ describe("pagamento da fatura do cartão", () => {
       mes: "2026-07",
       valor: 22041,
       de: "Conta Principal",
+      data: "2026-08-02",
       pagamentosAtuais: [],
       devido: 0,
       parcelas: [],
@@ -1091,6 +1093,16 @@ describe("pagamento da fatura do cartão", () => {
     // origem "fat" — fora dos totais de despesa, porque a compra já contou.
     expect(update).not.toHaveBeenCalled();
     expect(n).toBe(1);
+  });
+
+  // O extrato costuma ser importado dias depois do pagamento acontecer. Se a
+  // data do banco se perdesse pelo caminho, o pagamento ficava gravado com a de
+  // hoje — e a importação seguinte já não o reconhecia como o mesmo, porque a
+  // procura por duplicatas só olha para datas próximas.
+  test("a data do pagamento é a do extrato, não a de hoje", async () => {
+    await confirmarImportacao("u1", [linha({ data: "2026-07-21" })], contexto);
+
+    expect(vi.mocked(pagarFatura).mock.calls[0][1].data).toBe("2026-07-21");
   });
 
   test("o devido e os pagamentos já feitos vêm do contexto da tela", async () => {

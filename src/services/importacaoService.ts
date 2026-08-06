@@ -182,7 +182,7 @@ export function pagamentoDaLinha(linha: LinhaAnalisada) {
   const de = linha.contaOrigem.trim();
   const mes = linha.fatMesEscolhido.trim();
   if (!cartao || !de || !mes) return null;
-  return { cartao, de, mes, valor: Math.abs(linha.valor) };
+  return { cartao, de, mes, valor: Math.abs(linha.valor), data: linha.data };
 }
 
 /** Tudo o que o serviço precisa para registar um pagamento de fatura e que não
@@ -281,6 +281,7 @@ export async function confirmarImportacao(
       mes: p.mes,
       valor: p.valor,
       de: p.de,
+      data: p.data,
       pagamentosAtuais: pagamentosDaFatura(ctx.faturasPagas?.[p.cartao]?.[p.mes]),
       devido: calcularFaturaAutomatica(p.cartao, p.mes, ctx.dados),
       parcelas: ctx.parcelas,
