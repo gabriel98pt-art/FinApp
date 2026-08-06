@@ -64,10 +64,12 @@
   overflow: hidden;
 }
 
+/* Informação, repetida por categoria — o vermelho do `.preenchidoEstourado` é
+   que tem de saltar à vista aqui, e antes competia com o acento. */
 .preenchido {
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--blu);
+  background: var(--mut);
   /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
      o custo de layout de uma barra sem conteúdo é irrelevante. */
   transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */

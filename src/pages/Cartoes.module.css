@@ -141,10 +141,12 @@
   padding: 7px 14px;
 }
 
+/* Secundárias ("Ajustar valor", "Reabrir", "Ajustar saldo"): acompanham o
+   `.acaoPrimaria`, que é o "Pagar" e esse sim fica com o acento. */
 .acao {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--blu);
+  color: var(--txt);
   background: var(--s2);
   border-radius: var(--r-sm);
   padding: 7px 10px;
@@ -231,9 +233,11 @@
   min-width: 120px;
 }
 
+/* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
+   de acento sempre presente. A ação principal da tela é a de cima. */
 .gerirBotao {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--s3);
+  color: var(--txt);
   font-weight: 700;
   font-size: 0.85rem;
   border-radius: var(--r-sm);

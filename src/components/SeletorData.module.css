@@ -125,8 +125,10 @@
   background: transparent;
 }
 
+/* "Hoje" é referência, o dia ESCOLHIDO é que é a resposta do campo — em acento
+   os dois competiam na mesma grelha. */
 .diaHoje {
-  outline: 1px solid var(--blu);
+  outline: 1px solid var(--mut);
   outline-offset: -1px;
 }
 

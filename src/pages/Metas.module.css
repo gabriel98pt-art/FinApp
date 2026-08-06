@@ -235,10 +235,11 @@
   color: var(--mut);
 }
 
+/* Um por meta, portanto repetido na lista — ver a mesma nota em Parcelas. */
 .contribuirBotao {
   width: 100%;
   background: var(--s2);
-  color: var(--blu);
+  color: var(--txt);
   font-weight: 700;
   font-size: 0.85rem;
   border-radius: var(--r-sm);

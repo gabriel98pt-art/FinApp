@@ -118,10 +118,11 @@
   background: var(--s3);
 }
 
-/* O mês corrente ganha só um contorno; o escolhido é que fica preenchido. */
+/* O mês corrente ganha só um contorno; o escolhido é que fica preenchido — e o
+   acento fica todo para ele (mesma razão do `.diaHoje` em SeletorData). */
 .mesHoje {
   box-shadow: inset 0 0 0 1px var(--brd);
-  color: var(--blu);
+  color: var(--mut);
 }
 
 .mesEscolhido {

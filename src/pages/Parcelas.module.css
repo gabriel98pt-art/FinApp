@@ -114,11 +114,15 @@
   font-size: 0.78rem;
 }
 
+/* Contador e barra são INFORMAÇÃO, e repetem-se em cada linha da lista: em
+   acento, N parcelas enchiam a tela de cor e tiravam força ao "+ Nova parcela",
+   que é a ação da tela. O verde do `.quitada` continua — aí quer mesmo dizer
+   "esta acabou". */
 .progresso {
   font-weight: 800;
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
-  color: var(--blu);
+  color: var(--mut);
   white-space: nowrap;
 }
 
@@ -137,7 +141,7 @@
 .preenchido {
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--blu);
+  background: var(--mut);
   /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
      o custo de layout de uma barra sem conteúdo é irrelevante. */
   transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
@@ -154,10 +158,12 @@
   gap: 6px;
 }
 
+/* "Pagar" e "Quitar" aparecem em TODA a parcela da lista — ações repetidas, não
+   a ação da tela. O aviso de confirmação é que segura o "Quitar", não a cor. */
 .acao {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--blu);
+  color: var(--txt);
   background: var(--s2);
   border-radius: var(--r-sm);
   padding: 7px 10px;
@@ -316,9 +322,11 @@
   min-width: 120px;
 }
 
+/* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
+   de acento sempre presente. A ação principal da tela é a de cima. */
 .gerirBotao {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--s3);
+  color: var(--txt);
   font-weight: 700;
   font-size: 0.85rem;
   border-radius: var(--r-sm);
