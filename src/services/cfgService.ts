@@ -217,6 +217,16 @@ export async function definirOrcamento(uid: string, categoria: string, valor: Ce
   else await set(r, valor);
 }
 
+/** Saldo inicial da conta/cartão de débito — a base de onde o saldo atual soma
+ *  e subtrai os movimentos. 0 remove a chave: é o mesmo efeito, já é o valor
+ *  assumido quando não há nada guardado. */
+export async function definirSaldoInicial(uid: string, conta: string, valor: Cents) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, `/saldosIniciais/${conta}`));
+  if (valor === 0) await remove(r);
+  else await set(r, valor);
+}
+
 /** Override manual da fatura (seção 4.1) — `null` volta ao cálculo automático. */
 export async function definirFaturaManual(
   uid: string,

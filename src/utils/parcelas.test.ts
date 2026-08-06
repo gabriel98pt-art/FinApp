@@ -6,10 +6,12 @@ import {
   estaEfetivamentePaga,
   mesesDaParcela,
   mesesNaoPagos,
+  pagoNoMes,
   parcelaQuitada,
   progressoDaParcela,
   totalDaCompra,
   totalParcelasGeral,
+  totalParcelasNoMes,
   valorDaParcela,
   valorQuitacao,
 } from "./parcelas";
@@ -106,6 +108,49 @@ describe("contribuicaoParcelasMes — mesma regra das fixas (mês corrente vs. f
 
   test("lista vazia dá 0", () => {
     expect(contribuicaoParcelasMes([], "2026-07", "2026-07")).toBe(0);
+  });
+});
+
+// Os dois KPIs da tela Parcelas: o mês inteiro, e a fatia dele já resolvida.
+// Ao contrário de contribuicaoParcelasMes, o "total" aqui não muda de regra no
+// mês corrente — é sempre tudo o que vence no mês.
+describe("totalParcelasNoMes / pagoNoMes — os KPIs da tela Parcelas", () => {
+  test("o total soma paga e não paga do mesmo mês; o pago só conta a paga", () => {
+    const paga = parcela({ id: "p1", pagoPorMes: { "2026-07": true } });
+    const pendente = parcela({ id: "p2", pagoPorMes: {} });
+    expect(totalParcelasNoMes([paga, pendente], "2026-07")).toBe(1866 + 1866);
+    expect(pagoNoMes([paga, pendente], "2026-07", "2026-07")).toBe(1866);
+  });
+
+  test("no mês corrente o total continua cheio (a diferença para contribuicaoParcelasMes)", () => {
+    const pendente = parcela({ pagoPorMes: {} });
+    expect(totalParcelasNoMes([pendente], "2026-07")).toBe(1866);
+    expect(contribuicaoParcelasMes([pendente], "2026-07", "2026-07")).toBe(0);
+  });
+
+  test("mês fora do plano não entra em nenhuma das duas", () => {
+    const p = parcela();
+    expect(totalParcelasNoMes([p], "2027-01")).toBe(0);
+    expect(pagoNoMes([p], "2027-01", "2027-01")).toBe(0);
+  });
+
+  test("débito automático no cartão conta como pago sem marcação, até ao mês de referência", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
+    expect(pagoNoMes([p], "2026-07", "2026-08")).toBe(1866);
+    expect(pagoNoMes([p], "2026-07", "2026-07")).toBe(1866);
+    // Mês ainda por vir: a cobrança nem entrou no cartão.
+    expect(pagoNoMes([p], "2026-08", "2026-07")).toBe(0);
+  });
+
+  test("ajuste manual do mês vale nas duas", () => {
+    const p = parcela({ overridePorMes: { "2026-07": 2000 }, pagoPorMes: { "2026-07": true } });
+    expect(totalParcelasNoMes([p], "2026-07")).toBe(2000);
+    expect(pagoNoMes([p], "2026-07", "2026-07")).toBe(2000);
+  });
+
+  test("lista vazia dá 0 nas duas", () => {
+    expect(totalParcelasNoMes([], "2026-07")).toBe(0);
+    expect(pagoNoMes([], "2026-07", "2026-07")).toBe(0);
   });
 });
 

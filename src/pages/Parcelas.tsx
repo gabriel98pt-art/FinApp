@@ -27,11 +27,12 @@ import type { Cents, Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import {
-  contribuicaoParcelasMes,
   mesesNaoPagos,
   diaVencimentoEfetivo,
+  pagoNoMes,
   parcelaQuitada,
   progressoDaParcela,
+  totalParcelasNoMes,
   valorDaParcela,
   valorQuitacao,
 } from "../utils/parcelas";
@@ -407,18 +408,22 @@ export default function Parcelas() {
   // que diz até onde uma parcela em débito automático já está resolvida.
   const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef));
   const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef));
-  // O mesmo cálculo que leva as parcelas aos totais do mês (resumoMensal,
-  // copiloto): conta o plano inteiro que cobre `mesRef`, não só as ativas.
-  const totalDoMes = contribuicaoParcelasMes(parcelas, mesRef, mesAtual());
-  const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
+  // Os três KPIs são a mesma conta partida em dois: tudo o que vence no mês
+  // exibido, e dentro disso o que já está resolvido e o que ainda falta. Por
+  // isso "Falta pagar" + "Como está hoje" dá sempre o "Total do mês" — nenhum
+  // deles olha para outros meses.
+  const totalDoMes = totalParcelasNoMes(parcelas, mesRef);
+  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual());
+  const faltaPagar = totalDoMes - pagoEsteMes;
 
   const visiveis = parcelasVisiveis(parcelas, ordem, apenasQuitadas, mesRef);
 
   return (
     <Pagina titulo="Parcelas">
       <Kpis pagina="parcelas">
-        <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="vermelho" />
-        <KpiCard rotulo="Em aberto" valor={formatMoney(faltaPagar, moeda)} tom="amarelo" />
+        <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="acento" />
+        <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
+        <KpiCard rotulo="Como está hoje" valor={formatMoney(pagoEsteMes, moeda)} tom="verde" />
       </Kpis>
 
       <div className={styles.cabecalho}>

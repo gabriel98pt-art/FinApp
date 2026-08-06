@@ -52,6 +52,25 @@ export function contribuicaoParcelasMes(
   return noPrazo.reduce((s, p) => s + valorDaParcela(p, ym), 0);
 }
 
+/** Soma de TODAS as parcelas cujo plano cobre `ym`, pagas ou não — o valor
+ *  cheio do mês. Ao contrário de `contribuicaoParcelasMes`, não faz a exceção
+ *  de "só pagas" no mês corrente: aqui é sempre o total, que é o que o KPI
+ *  "Total do mês" da tela Parcelas mostra. */
+export function totalParcelasNoMes(parcelas: Parcela[], ym: YearMonth): Cents {
+  return parcelas
+    .filter((p) => mesesDaParcela(p).includes(ym))
+    .reduce((s, p) => s + valorDaParcela(p, ym), 0);
+}
+
+/** Do total de `ym` (ver `totalParcelasNoMes`), quanto já está resolvido —
+ *  mesma regra de `estaEfetivamentePaga`, que conta também o débito automático
+ *  já lançado no cartão, mesmo antes de a fatura vencer. */
+export function pagoNoMes(parcelas: Parcela[], ym: YearMonth, mesReferencia: YearMonth): Cents {
+  return parcelas
+    .filter((p) => mesesDaParcela(p).includes(ym) && estaEfetivamentePaga(p, ym, mesReferencia))
+    .reduce((s, p) => s + valorDaParcela(p, ym), 0);
+}
+
 /** Total acumulado de todos os tempos: cada parcela conta os meses marcados
  *  pagos — mesma filosofia de totalFixasGeral/totalVeiculoGeral, e o mesmo
  *  valor que os lançamentos espelho somavam antes de saírem dos totais. */

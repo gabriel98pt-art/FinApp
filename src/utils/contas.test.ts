@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ConfigConta } from "../types";
-import { resumoDaConta, resumosDasContas, type DadosContas } from "./contas";
+import { resumoDaConta, resumosDasContas, saldoInicialParaAlvo, type DadosContas } from "./contas";
 
 const cfg: ConfigConta = {
   ...CONFIG_PADRAO,
@@ -178,5 +178,31 @@ describe("carga e despesa do veículo no resumo da conta", () => {
 
   it("sem os campos novos, o resumo é o mesmo de antes", () => {
     expect(resumoDaConta("Gold", dados, cfg, "2026-07")).toEqual(semVeiculo);
+  });
+});
+
+describe("saldoInicialParaAlvo — acertar a conta pelo extrato do banco", () => {
+  // O usuário nunca digita o saldo inicial: digita o que a conta tem hoje.
+  const resumo = (saldoAtual: number) => ({
+    ...resumoDaConta("Conta", dados, cfg, "2026-07"),
+    saldoAtual,
+  });
+
+  it("sem saldo inicial, o inicial que falta é a diferença exata até ao alvo", () => {
+    expect(saldoInicialParaAlvo(resumo(30000), 0, 50000)).toBe(20000);
+    expect(saldoInicialParaAlvo(resumo(30000), 0, 10000)).toBe(-20000);
+  });
+
+  it("com saldo inicial já definido, os movimentos é que se mantêm", () => {
+    // Movimentos = 130000 - 100000 = 30000. Para chegar a 50000 é preciso 20000.
+    expect(saldoInicialParaAlvo(resumo(130000), 100000, 50000)).toBe(20000);
+  });
+
+  it("alvo igual ao saldo atual não mexe no inicial", () => {
+    expect(saldoInicialParaAlvo(resumo(130000), 100000, 130000)).toBe(100000);
+  });
+
+  it("aceita alvo negativo — a conta pode estar no vermelho", () => {
+    expect(saldoInicialParaAlvo(resumo(5000), 20000, -3000)).toBe(12000);
   });
 });

@@ -129,6 +129,21 @@ export function resumoDaConta(
   };
 }
 
+/** Saldo inicial necessário para que o saldo atual calculado bata com `alvo`,
+ *  mantendo os mesmos movimentos já lançados.
+ *
+ *  É assim que o usuário acerta a conta pelo extrato do banco: ele diz quanto
+ *  tem AGORA e o app descobre de onde tinha de ter partido. Editar o saldo
+ *  inicial à mão obrigava-o a fazer esta subtração de cabeça. */
+export function saldoInicialParaAlvo(
+  resumo: ResumoConta,
+  saldoInicialAtual: Cents,
+  alvo: Cents,
+): Cents {
+  const movimentos = resumo.saldoAtual - saldoInicialAtual;
+  return alvo - movimentos;
+}
+
 export function resumosDasContas(
   dados: DadosContas,
   cfg: ConfigConta,

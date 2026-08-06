@@ -11,6 +11,7 @@ import SeletorData from "../components/SeletorData";
 import {
   adicionarCartao,
   definirFaturaManual,
+  definirSaldoInicial,
   definirDiaVencimentoFatura,
   removerCartao,
   renomearCartao,
@@ -42,7 +43,12 @@ import {
   pagamentosDaFatura,
   type DadosFatura,
 } from "../utils/fatura";
-import { resumosDasContas, type DadosContas } from "../utils/contas";
+import {
+  resumosDasContas,
+  saldoInicialParaAlvo,
+  type DadosContas,
+  type ResumoConta,
+} from "../utils/contas";
 import { formatMoney } from "../utils/money";
 import styles from "./Cartoes.module.css";
 
@@ -193,6 +199,14 @@ export default function Cartoes() {
   const [contaAberta, setContaAberta] = useState<string | null>(null);
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
+  // Ajuste do saldo de uma conta de débito. Guarda o resumo COMO ESTAVA quando
+  // a folha abriu, junto com o saldo inicial de então: é sobre esses números
+  // que a conta inversa é feita, e não sobre um resumo que entretanto mudou
+  // (a folha da conta já fechou quando esta abre).
+  const [ajustandoSaldo, setAjustandoSaldo] = useState<{
+    resumo: ResumoConta;
+    saldoInicial: Cents;
+  } | null>(null);
   const [novoNome, setNovoNome] = useState("");
   const [novoTipo, setNovoTipo] = useState<TipoCartao>("credit");
   const [valorTexto, setValorTexto] = useState<Cents | null>(null);
@@ -395,6 +409,27 @@ export default function Cartoes() {
     }
   }
 
+  async function submeterSaldo(e: FormEvent) {
+    e.preventDefault();
+    if (!ajustandoSaldo) return;
+    const alvo = valorTexto;
+    if (alvo === null) return mostrarToast("Informe o saldo da conta.");
+    const { resumo, saldoInicial } = ajustandoSaldo;
+    try {
+      // O usuário diz quanto a conta tem hoje; o que se guarda é de onde ela
+      // teve de partir para lá chegar com os movimentos já lançados.
+      await definirSaldoInicial(
+        uid!,
+        resumo.conta,
+        saldoInicialParaAlvo(resumo, saldoInicial, alvo),
+      );
+      mostrarToast("✓ Saldo ajustado");
+      setAjustandoSaldo(null);
+    } catch {
+      mostrarToast("Não foi possível ajustar.");
+    }
+  }
+
   return (
     <Pagina titulo="Cartões">
       <Kpis pagina="cartoes">
@@ -575,6 +610,27 @@ export default function Cartoes() {
               <strong>{resumoAberto.receitasMes}</strong>
             </div>
 
+            {/* Débito não tem fatura para ajustar, mas tem o saldo — e era o
+                único número da tela que não havia como corrigir sem ir mexer
+                nos lançamentos um a um. */}
+            {resumoAberto.tipo !== "credit" && (
+              <div className={styles.acoes}>
+                <button
+                  className={styles.acao}
+                  onClick={() => {
+                    setValorTexto(resumoAberto.saldoAtual);
+                    setContaAberta(null);
+                    setAjustandoSaldo({
+                      resumo: resumoAberto,
+                      saldoInicial: cfg.saldosIniciais?.[resumoAberto.conta] ?? 0,
+                    });
+                  }}
+                >
+                  Ajustar saldo
+                </button>
+              </div>
+            )}
+
             {faturaAberta && (
               <ControlesFatura
                 fatura={faturaAberta}
@@ -638,6 +694,33 @@ export default function Cartoes() {
               Valor manual (€) — vazio volta ao automático
               <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} placeholder="automático" />
             </label>
+            <button type="submit" className={styles.salvar}>
+              Salvar
+            </button>
+          </form>
+        )}
+      </BottomSheet>
+
+      <BottomSheet
+        aberta={ajustandoSaldo !== null}
+        aoFechar={() => setAjustandoSaldo(null)}
+        titulo={ajustandoSaldo ? `Saldo — ${ajustandoSaldo.resumo.conta}` : ""}
+      >
+        {ajustandoSaldo && (
+          <form className={styles.form} onSubmit={submeterSaldo}>
+            <p className={styles.resumoPagar}>
+              Calculado agora: {formatMoney(ajustandoSaldo.resumo.saldoAtual, cfg.currency)}
+            </p>
+            <label className={styles.campo}>
+              Saldo que a conta tem hoje (€)
+              <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} required />
+            </label>
+            {/* Nota, não aviso: nada aqui corre mal, só se explica o que a
+                gravação faz por baixo. */}
+            <p className={styles.resumoPagar}>
+              Os lançamentos não mudam — o que se acerta é o ponto de partida da conta, para o saldo
+              bater com o do banco.
+            </p>
             <button type="submit" className={styles.salvar}>
               Salvar
             </button>
