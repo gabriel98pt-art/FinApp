@@ -52,7 +52,9 @@ export default function Transacoes() {
   const confirmar = useConfirmar();
   const [detalhe, setDetalhe] = useState<Transacao | null>(null);
   // Correção de recarga: `null` = a folha ainda não abriu o formulário; string
-  // = está aberto, com a categoria escolhida até agora ("" = nenhuma ainda).
+  // = está aberto, com a categoria escolhida até agora. Começa em "Outros", o
+  // mesmo destino que a importação dá ao que não sabe classificar — e nunca em
+  // vazio, senão a lista mostrava dois "Outros" (o de limpar e o de verdade).
   const [categoriaMover, setCategoriaMover] = useState<string | null>(null);
   const [movendo, setMovendo] = useState(false);
 
@@ -216,7 +218,7 @@ export default function Transacoes() {
             </button>
             {detalhe.origem === "carga" &&
               (categoriaMover === null ? (
-                <button className={styles.mover} onClick={() => setCategoriaMover("")}>
+                <button className={styles.mover} onClick={() => setCategoriaMover("Outros")}>
                   Não foi uma recarga — mover para despesas
                 </button>
               ) : (
@@ -227,7 +229,6 @@ export default function Transacoes() {
                     valor={categoriaMover}
                     opcoes={cfg.categoriasCorrentes}
                     aoMudar={setCategoriaMover}
-                    rotuloVazio="Outros"
                     nivel={2}
                   />
                   <button
