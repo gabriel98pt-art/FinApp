@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { CargaEletrica, DadosVeiculo, DespesaFixa, DespesaVeiculo } from "../types";
 import {
   contribuicaoFixasVeiculoMes,
+  dadosDespesaDaCarga,
   totalCargasMes,
   totalDespesasVeiculoMes,
   totalVeiculoGeral,
@@ -110,5 +111,44 @@ describe("totalVeiculoGeral — acumulado de todos os tempos", () => {
 
   test("veículo vazio dá zero", () => {
     expect(totalVeiculoGeral(veiculo())).toBe(0);
+  });
+});
+
+describe("dadosDespesaDaCarga — recarga que afinal não era recarga", () => {
+  test("leva dinheiro, data, local e como se pagou", () => {
+    const c = carga({
+      data: "2026-08-03",
+      custo: 4287,
+      local: "Continente",
+      contaCartao: "AB Gold (C)",
+      nota: "Compras da semana",
+    });
+    expect(dadosDespesaDaCarga(c, "Supermercado")).toEqual({
+      descricao: "Continente",
+      valor: 4287,
+      data: "2026-08-03",
+      categoria: "Supermercado",
+      contaCartao: "AB Gold (C)",
+      nota: "Compras da semana",
+    });
+  });
+
+  test("sem categoria escolhida cai em Outros", () => {
+    expect(dadosDespesaDaCarga(carga(), "").categoria).toBe("Outros");
+    expect(dadosDespesaDaCarga(carga(), "  ").categoria).toBe("Outros");
+  });
+
+  // O kWh e o preço/kWh ficam pelo caminho de propósito: a compra nunca teve
+  // nenhum dos dois, foram invenção do reconhecimento automático.
+  test("não leva kwh nem preço por kWh", () => {
+    const d = dadosDespesaDaCarga(carga({ kwh: 40, precoKwh: 25 }), "Supermercado");
+    expect(d).not.toHaveProperty("kwh");
+    expect(d).not.toHaveProperty("precoKwh");
+  });
+
+  test("carga sem conta nem nota não inventa campos", () => {
+    const d = dadosDespesaDaCarga(carga({ contaCartao: undefined, nota: undefined }), "Outros");
+    expect(d.contaCartao).toBeUndefined();
+    expect(d.nota).toBeUndefined();
   });
 });

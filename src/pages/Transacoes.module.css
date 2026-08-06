@@ -102,3 +102,43 @@
 .irPara:hover {
   background: var(--s3);
 }
+
+/* Correção de uma recarga classificada por engano — ação secundária, discreta:
+   quase sempre a folha é só para consultar. */
+.mover {
+  margin-top: 8px;
+  color: var(--mut);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.mover:hover {
+  color: var(--txt);
+  background: var(--s2);
+}
+
+.formMover {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--brd);
+}
+
+.confirmarMover {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: var(--r-sm);
+  padding: 12px;
+}
+
+.confirmarMover:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

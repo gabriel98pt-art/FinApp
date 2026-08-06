@@ -2,7 +2,7 @@
 // Portado do financas.html: totVeh(ym) = cargas + despesas variáveis + fixas
 // ativas do veículo, somado dentro do total geral de despesas do app.
 
-import type { Cents, DadosVeiculo, YearMonth } from "../types";
+import type { CargaEletrica, Cents, DadosVeiculo, DespesaCorrente, YearMonth } from "../types";
 import { doMes, mesDe, totalDoMes } from "./calculos";
 import { fixaAtivaNoMes } from "./fatura";
 
@@ -55,6 +55,30 @@ export function totalVeiculoGeral(veiculo: DadosVeiculo): Cents {
     return s + f.valor * mesesPagos;
   }, 0);
   return cargas + despesas + fixas;
+}
+
+/** A despesa comum que nasce de uma recarga classificada por engano.
+ *
+ *  Acontece porque o reconhecimento do extrato só tem o texto: um supermercado
+ *  que também é local de carregamento (o Continente, aqui) aparece igual nos
+ *  dois casos, e não dá para acertar sempre no palpite. Daí a saída depois de
+ *  gravado — o kWh e o preço/kWh ficam pelo caminho porque a compra nunca teve
+ *  nenhum dos dois; o que se salva é dinheiro, data, onde e como se pagou.
+ *
+ *  Pura de propósito (mesmo molde de `dadosDaCarga`/`dadosDaTransferencia` na
+ *  importação): quem grava é a tela. */
+export function dadosDespesaDaCarga(
+  carga: CargaEletrica,
+  categoria: string,
+): Omit<DespesaCorrente, "id"> {
+  return {
+    descricao: carga.local,
+    valor: carga.custo,
+    data: carga.data,
+    categoria: categoria.trim() || "Outros",
+    contaCartao: carga.contaCartao,
+    nota: carga.nota,
+  };
 }
 
 export function lancamentosDoMesVeiculo(veiculo: DadosVeiculo, ym: YearMonth) {

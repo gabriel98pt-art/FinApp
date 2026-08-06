@@ -5,6 +5,11 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CategoriaBolha from "../components/CategoriaBolha";
+import SeletorCategoria from "../components/SeletorCategoria";
+import { useConfirmar } from "../hooks/useConfirmar";
+import { criarDespesa } from "../services/lancamentosService";
+import { removerCarga } from "../services/veiculoService";
+import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -14,10 +19,12 @@ import {
 } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
+import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { dadosDespesaDaCarga } from "../utils/veiculo";
 import { transacoesDoMes, type DadosTransacoes, type Transacao } from "../utils/transacoes";
 import styles from "./Transacoes.module.css";
 
@@ -41,7 +48,13 @@ export default function Transacoes() {
   const mes = useMesVisivelStore((s) => s.mes);
   const navegar = useNavigate();
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const uid = useAuthStore((s) => s.sessao?.uid);
+  const confirmar = useConfirmar();
   const [detalhe, setDetalhe] = useState<Transacao | null>(null);
+  // Correção de recarga: `null` = a folha ainda não abriu o formulário; string
+  // = está aberto, com a categoria escolhida até agora ("" = nenhuma ainda).
+  const [categoriaMover, setCategoriaMover] = useState<string | null>(null);
+  const [movendo, setMovendo] = useState(false);
 
   const dados: DadosTransacoes = {
     receitas: useReceitasStore((s) => s.itens),
@@ -74,7 +87,42 @@ export default function Transacoes() {
       abrirRegistro(t.origem, t.refId);
       return;
     }
+    setCategoriaMover(null);
     setDetalhe(t);
+  }
+
+  function fecharDetalhe() {
+    setDetalhe(null);
+    setCategoriaMover(null);
+  }
+
+  /** Recarga que afinal não era recarga: o reconhecimento do extrato bate pelo
+   *  texto, e um supermercado que também tem posto de carregamento (o
+   *  Continente) aparece igual nos dois casos. Como o palpite não tem como
+   *  acertar sempre, a saída é aqui, depois de gravado. */
+  async function moverParaDespesas() {
+    if (!detalhe || !uid || categoriaMover === null) return;
+    const carga = dados.veiculo.cargas.find((c) => c.id === detalhe.refId);
+    if (!carga) {
+      mostrarToast("Este carregamento já não existe.");
+      fecharDetalhe();
+      return;
+    }
+    if (!(await confirmar(`Mover "${detalhe.titulo}" para despesas comuns?`))) return;
+
+    setMovendo(true);
+    try {
+      // Cria primeiro, apaga depois: se o apagar falhar fica um registo a mais,
+      // que dá para corrigir à mão — na ordem inversa, o dinheiro sumia.
+      await criarDespesa(uid, dadosDespesaDaCarga(carga, categoriaMover));
+      await removerCarga(uid, carga.id);
+      mostrarToast("✓ Movida para despesas");
+      fecharDetalhe();
+    } catch {
+      mostrarToast("Não foi possível concluir. Tente de novo.");
+    } finally {
+      setMovendo(false);
+    }
   }
 
   return (
@@ -120,7 +168,7 @@ export default function Transacoes() {
 
       <BottomSheet
         aberta={detalhe !== null}
-        aoFechar={() => setDetalhe(null)}
+        aoFechar={fecharDetalhe}
         titulo={detalhe?.titulo ?? ""}
       >
         {detalhe && (
@@ -160,12 +208,37 @@ export default function Transacoes() {
               className={styles.irPara}
               onClick={() => {
                 const destino = TELA_DO_TIPO[detalhe.origem];
-                setDetalhe(null);
+                fecharDetalhe();
                 navegar(destino.rota);
               }}
             >
               Abrir em {TELA_DO_TIPO[detalhe.origem].nome}
             </button>
+            {detalhe.origem === "carga" &&
+              (categoriaMover === null ? (
+                <button className={styles.mover} onClick={() => setCategoriaMover("")}>
+                  Não foi uma recarga — mover para despesas
+                </button>
+              ) : (
+                // Inline, na mesma folha: a escolha da categoria é o único
+                // passo que falta, não vale abrir outra folha por cima.
+                <div className={styles.formMover}>
+                  <SeletorCategoria
+                    valor={categoriaMover}
+                    opcoes={cfg.categoriasCorrentes}
+                    aoMudar={setCategoriaMover}
+                    rotuloVazio="Outros"
+                    nivel={2}
+                  />
+                  <button
+                    className={styles.confirmarMover}
+                    onClick={moverParaDespesas}
+                    disabled={movendo}
+                  >
+                    Mover para despesas
+                  </button>
+                </div>
+              ))}
           </div>
         )}
       </BottomSheet>
