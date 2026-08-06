@@ -357,6 +357,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Entre o valor grande e a nota: pesa mais do que a contagem de transações,
+   menos do que o gasto do mês. */
+.quadroEstado {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--txt);
+  opacity: 0.72;
+  font-variant-numeric: tabular-nums;
+}
+
 .quadroNota {
   font-size: 0.72rem;
   color: var(--mut);

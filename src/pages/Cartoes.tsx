@@ -459,6 +459,18 @@ export default function Cartoes() {
                 </span>
               </span>
               <span className={styles.quadroValor}>{formatMoney(r.gastoMes, cfg.currency)}</span>
+              {/* O gasto do mês diz o que se moveu; isto diz onde a conta está
+                  agora. Débito tem saldo em caixa, crédito não — lá o "agora" é
+                  o que falta pagar da fatura do mês. Mais pequeno de propósito:
+                  é uma segunda leitura, não compete com o valor de cima. */}
+              <span className={styles.quadroEstado}>
+                {r.tipo === "credit"
+                  ? `Em aberto: ${formatMoney(
+                      faturas.find((f) => f.cartao === r.conta)?.restante ?? 0,
+                      cfg.currency,
+                    )}`
+                  : `Saldo: ${formatMoney(r.saldoAtual, cfg.currency)}`}
+              </span>
               <span className={styles.quadroNota}>
                 {r.transacoesMes} {r.transacoesMes === 1 ? "transação" : "transações"} em{" "}
                 {rotuloMes(mes)}
