@@ -67,7 +67,11 @@
   text-align: center;
 }
 
+/* Mesmo cinza do rótulo, em todos os cards: a cor da categoria vive só na luz
+   do topo. O tamanho e o peso é que mantêm o valor como o elemento mais forte
+   do card — não precisava da cor para isso. */
 .valor {
+  color: var(--mut);
   font-size: var(--kpi-valor-fs, 1.25rem);
   text-align: center;
   /* sem isto o valor pode ficar mais largo que o card (o card tem
@@ -79,27 +83,6 @@
   font-weight: 800;
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
-}
-
-.acento {
-  color: var(--blu);
-}
-
-.verde {
-  color: var(--grn);
-}
-
-.vermelho {
-  color: var(--red);
-}
-
-.amarelo {
-  color: var(--ylw);
-}
-
-/* Só a aba TVDE usa este tom. */
-.laranja {
-  color: var(--lrj);
 }
 
 /* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual do card

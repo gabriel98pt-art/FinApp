@@ -3,16 +3,10 @@ import styles from "./KpiCard.module.css";
 
 export type TomKpi = "neutro" | "acento" | "verde" | "vermelho" | "amarelo" | "laranja";
 
-const TOM_CLASSE: Record<TomKpi, string> = {
-  neutro: "",
-  acento: styles.acento,
-  verde: styles.verde,
-  vermelho: styles.vermelho,
-  amarelo: styles.amarelo,
-  laranja: styles.laranja,
-};
-
-/* Cor da "aura" do card (hairline no topo + wash de gradiente), via --_a */
+/* Cor da "aura" do card (hairline no topo + wash de gradiente), via --_a.
+   É a ÚNICA pista de cor do card: o valor em si fica sempre no mesmo cinza
+   apagado, seja qual for o tom — quem separa um card do outro é a luz em cima,
+   não o número. */
 const TOM_COR: Record<TomKpi, string> = {
   neutro: "var(--mut)",
   acento: "var(--blu)",
@@ -47,7 +41,7 @@ export default function KpiCard({
   const conteudo = (
     <>
       <p className={styles.rotulo}>{rotulo}</p>
-      <p className={`${styles.valor} ${TOM_CLASSE[tom]} ${discreto ? "discreto" : ""}`}>{valor}</p>
+      <p className={`${styles.valor} ${discreto ? "discreto" : ""}`}>{valor}</p>
       {sub && <p className={`${styles.sub} ${discreto ? "discreto" : ""}`}>{sub}</p>}
     </>
   );
