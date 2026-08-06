@@ -2,7 +2,7 @@
 // das fixas do veículo (utils/veiculo.ts), domínio próprio e independente.
 
 import type { Cents, DespesaFixa, YearMonth } from "../types";
-import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 /** Contribuição das despesas fixas gerais no mês. Mesma regra do veículo
  *  (contribuicaoFixasVeiculoMes, seção "Parte A"):
@@ -23,11 +23,19 @@ export function contribuicaoFixasMes(
   return ativas.reduce((s, f) => s + f.valor, 0);
 }
 
-/** Total acumulado de todos os tempos: cada fixa conta o valor × quantos
- *  meses foram marcados pagos — mesma filosofia de totalVeiculoGeral. */
-export function totalFixasGeral(fixas: DespesaFixa[]): Cents {
+/** Total acumulado de todos os tempos: cada fixa conta o valor × quantos meses
+ *  já saíram — mesma filosofia de totalVeiculoGeral.
+ *
+ *  "Já saíram" são os meses marcados à mão MAIS, com `mesReferencia`, os meses
+ *  em que a fixa saiu sozinha do cartão (ver `mesesPagosComoAutoDebit`), sem
+ *  contar duas vezes um mês que esteja nos dois. Sem `mesReferencia` conta só o
+ *  marcado, como sempre contou. */
+export function totalFixasGeral(fixas: DespesaFixa[], mesReferencia?: YearMonth): Cents {
   return fixas.reduce((s, f) => {
-    const mesesPagos = Object.values(f.pagoPorMes).filter(Boolean).length;
-    return s + f.valor * mesesPagos;
+    const marcados = Object.entries(f.pagoPorMes ?? {})
+      .filter(([, pago]) => pago)
+      .map(([mes]) => mes as YearMonth);
+    const automaticos = mesReferencia ? mesesPagosComoAutoDebit(f, mesReferencia) : [];
+    return s + f.valor * new Set([...marcados, ...automaticos]).size;
   }, 0);
 }

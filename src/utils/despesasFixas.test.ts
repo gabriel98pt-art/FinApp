@@ -63,3 +63,64 @@ describe("totalFixasGeral — acumulado de todos os tempos", () => {
     expect(totalFixasGeral([])).toBe(0);
   });
 });
+
+describe("totalFixasGeral com fixa em débito automático", () => {
+  const CARTAO = "AB Gold (C)";
+
+  test("conta todos os meses do plano até hoje, sem marcação nenhuma", () => {
+    const f = fixa({ valor: 4500, contaCartao: CARTAO, autoDebit: true, inicio: "2026-05" });
+    // maio, junho, julho, agosto = 4 meses
+    expect(totalFixasGeral([f], "2026-08")).toBe(4500 * 4);
+  });
+
+  test("para no `fim` quando ele já passou", () => {
+    const f = fixa({
+      valor: 4500,
+      contaCartao: CARTAO,
+      autoDebit: true,
+      inicio: "2026-05",
+      fim: "2026-06",
+    });
+    expect(totalFixasGeral([f], "2026-08")).toBe(4500 * 2);
+  });
+
+  test("mês marcado à mão que também é automático não conta duas vezes", () => {
+    const f = fixa({
+      valor: 4500,
+      contaCartao: CARTAO,
+      autoDebit: true,
+      inicio: "2026-07",
+      pagoPorMes: { "2026-07": true },
+    });
+    // julho e agosto, não julho duas vezes
+    expect(totalFixasGeral([f], "2026-08")).toBe(4500 * 2);
+  });
+
+  test("sem `inicio` não há por onde começar — fica só o marcado à mão", () => {
+    const f = fixa({
+      valor: 4500,
+      contaCartao: CARTAO,
+      autoDebit: true,
+      pagoPorMes: { "2026-07": true },
+    });
+    expect(totalFixasGeral([f], "2026-08")).toBe(4500);
+  });
+
+  test("sem mês de referência nada muda em relação ao cálculo antigo", () => {
+    const f = fixa({
+      valor: 4500,
+      contaCartao: CARTAO,
+      autoDebit: true,
+      inicio: "2026-05",
+      pagoPorMes: { "2026-07": true },
+    });
+    expect(totalFixasGeral([f])).toBe(4500);
+  });
+
+  test("sem cartão, ou sem autoDebit, continua a valer só a marcação", () => {
+    const semCartao = fixa({ valor: 4500, autoDebit: true, inicio: "2026-05" });
+    const semAuto = fixa({ valor: 4500, contaCartao: CARTAO, inicio: "2026-05" });
+    expect(totalFixasGeral([semCartao], "2026-08")).toBe(0);
+    expect(totalFixasGeral([semAuto], "2026-08")).toBe(0);
+  });
+});

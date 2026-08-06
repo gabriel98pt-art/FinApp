@@ -65,6 +65,21 @@ export function fixaEfetivamentePaga(
   return fixaAtivaNoMes(f, mes);
 }
 
+/** Todos os meses em que a fixa já saiu sozinha do cartão, do início até hoje
+ *  — a versão "toda a vida da fixa" de `fixaEfetivamentePaga`, para os totais
+ *  acumulados.
+ *
+ *  Devolve vazio quando não há `inicio`: sem ele não há como saber até onde
+ *  recuar, e inventar um ponto de partida mexia num total que o usuário já vê.
+ *  Essas continuam a contar só os meses marcados à mão. */
+export function mesesPagosComoAutoDebit(f: DespesaFixa, mesReferencia: YearMonth): YearMonth[] {
+  if (!f.autoDebit || !f.contaCartao || !f.inicio) return [];
+  const ultimo = f.fim && f.fim < mesReferencia ? f.fim : mesReferencia;
+  const meses: YearMonth[] = [];
+  for (let m = f.inicio; m <= ultimo; m = somarMeses(m, 1)) meses.push(m);
+  return meses;
+}
+
 export interface DadosFatura {
   despesasFixas: DespesaFixa[];
   despesasFixasVeiculo: DespesaFixa[];
