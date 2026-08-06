@@ -51,3 +51,11 @@
   background: var(--s3);
   color: var(--blu);
 }
+
+/* Num par, a seta e o visto ficam juntos à direita. */
+.direcao {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}

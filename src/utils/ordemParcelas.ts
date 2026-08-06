@@ -9,7 +9,7 @@
 // compra cara-por-mês da compra apenas grande no total.
 
 import type { Parcela, YearMonth } from "../types";
-import { compararPorOrdem, ORDENS, ROTULOS_ORDEM, type Ordem } from "./ordem";
+import { compararPorOrdem, ORDENS, ROTULOS_ORDEM, type LinhaOrdem, type Ordem } from "./ordem";
 import {
   debitoMensalDaParcela,
   parcelaQuitada,
@@ -35,6 +35,19 @@ export const ROTULOS_ORDEM_PARCELA: Record<OrdemParcela, string> = {
   maiorValorParcela: "Maior valor da parcela",
   menorValorParcela: "Menor valor da parcela",
 };
+
+/** As 8 ordens em 5 linhas: três delas são pares de direção oposta do mesmo
+ *  critério, que a folha mostra numa linha só com uma seta a alternar. Nada
+ *  disto muda a comparação — os valores continuam a ser os 8. */
+export type LinhaOrdemParcela = LinhaOrdem<OrdemParcela>;
+
+export const LINHAS_ORDEM_PARCELA: LinhaOrdemParcela[] = [
+  { tipo: "par", rotulo: "Data de criação", desc: "recentes", asc: "antigas" },
+  { tipo: "par", rotulo: "Valor", desc: "maiorValor", asc: "menorValor" },
+  { tipo: "simples", valor: "proximoVencimento", rotulo: "Próximo vencimento" },
+  { tipo: "simples", valor: "valorRestante", rotulo: "Valor restante" },
+  { tipo: "par", rotulo: "Valor da parcela", desc: "maiorValorParcela", asc: "menorValorParcela" },
+];
 
 /** Comparador da lista de parcelas. As 4 ordens genéricas caem em
  *  `compararPorOrdem`, com `data` = mês da primeira parcela e `valor` = total

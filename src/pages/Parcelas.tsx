@@ -8,12 +8,7 @@ import CampoMoeda from "../components/CampoMoeda";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
-import {
-  ORDENS_PARCELA,
-  parcelasVisiveis,
-  ROTULOS_ORDEM_PARCELA,
-  type OrdemParcela,
-} from "../utils/ordemParcelas";
+import { LINHAS_ORDEM_PARCELA, parcelasVisiveis, type OrdemParcela } from "../utils/ordemParcelas";
 import {
   criarParcela,
   excluirParcela,
@@ -364,7 +359,8 @@ export default function Parcelas() {
   const [folhaAberta, setFolhaAberta] = useState(false);
   const [editando, setEditando] = useState<Parcela | null>(null);
   // Ordem da lista (item 14) — não persiste entre visitas. Esta tela tem 8
-  // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts).
+  // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts); a folha
+  // mostra-as em 5 linhas, juntando cada par de direções opostas.
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
   // Isolar as já pagas para rever o histórico de compras fechadas: escolha da
   // visita, não uma preferência guardada — um toque volta a mostrar tudo.
@@ -429,12 +425,7 @@ export default function Parcelas() {
         <h3 className={styles.subtitulo}>Compras parceladas ({ativas.length})</h3>
         <div className={styles.acoesCabecalho}>
           {parcelas.length > 1 && (
-            <SeletorOrdemFolha
-              valor={ordem}
-              opcoes={ORDENS_PARCELA}
-              rotulos={ROTULOS_ORDEM_PARCELA}
-              aoMudar={setOrdem}
-            />
+            <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
           <button className={styles.adicionar} onClick={abrirNova}>
             + Nova parcela
