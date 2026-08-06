@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
 import { criarEvento, removerEvento } from "../services/eventosService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
@@ -35,7 +36,8 @@ import {
   proximosEventos,
 } from "../utils/calendario";
 import { hojeIso, rotuloMes } from "../utils/calculos";
-import { formatMoney, parseMoney } from "../utils/money";
+import { formatMoney } from "../utils/money";
+import type { Cents } from "../types";
 import styles from "./Calendario.module.css";
 
 export default function Calendario() {
@@ -58,7 +60,7 @@ export default function Calendario() {
   const [titulo, setTitulo] = useState("");
   const [dataNovo, setDataNovo] = useState(hojeIso());
   const [nota, setNota] = useState("");
-  const [valorTexto, setValorTexto] = useState("");
+  const [valorTexto, setValorTexto] = useState<Cents | null>(null);
 
   // Trocar de mês no topo fecha o detalhe do dia — senão a folha continua
   // aberta mostrando um dia que já não está no mês exibido.
@@ -101,19 +103,15 @@ export default function Calendario() {
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
     if (!titulo.trim()) return mostrarToast("Título obrigatório.");
-    let valor: number | undefined;
-    if (valorTexto.trim()) {
-      const v = parseMoney(valorTexto);
-      if (v === null) return mostrarToast("Valor inválido.");
-      valor = v;
-    }
+    // Campo opcional: vazio grava sem valor, como sempre.
+    const valor = valorTexto ?? undefined;
     try {
       await criarEvento(uid!, { titulo, data: dataNovo, descricao: nota || undefined, valor });
       mostrarToast("✓ Evento adicionado");
       setNovoAberto(false);
       setTitulo("");
       setNota("");
-      setValorTexto("");
+      setValorTexto(null);
     } catch {
       mostrarToast("Não foi possível salvar.");
     }
@@ -289,12 +287,7 @@ export default function Calendario() {
           </label>
           <label className={styles.campo}>
             Valor (opcional)
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={valorTexto}
-              onChange={(e) => setValorTexto(e.target.value)}
-            />
+            <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} />
           </label>
           <label className={styles.campo}>
             Nota (opcional)

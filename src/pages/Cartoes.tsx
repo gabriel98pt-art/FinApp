@@ -3,6 +3,7 @@ import { ArrowLeftRight, CreditCard, Pencil, Plus, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
@@ -33,7 +34,7 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { FaturaCalculada, Id, TipoCartao, Transferencia } from "../types";
+import type { Cents, FaturaCalculada, Id, TipoCartao, Transferencia } from "../types";
 import { doMes, hojeIso, ordenarPorDataDesc, rotuloMes } from "../utils/calculos";
 import {
   calcularFatura,
@@ -42,7 +43,7 @@ import {
   type DadosFatura,
 } from "../utils/fatura";
 import { resumosDasContas, type DadosContas } from "../utils/contas";
-import { formatCents, formatMoney, parseMoney } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import styles from "./Cartoes.module.css";
 
 /** Controles de fatura do cartão de crédito — agora vivem DENTRO da folha de
@@ -194,7 +195,7 @@ export default function Cartoes() {
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
   const [novoNome, setNovoNome] = useState("");
   const [novoTipo, setNovoTipo] = useState<TipoCartao>("credit");
-  const [valorTexto, setValorTexto] = useState("");
+  const [valorTexto, setValorTexto] = useState<Cents | null>(null);
   const [pagarDe, setPagarDe] = useState("");
   // Dia em que a fatura foi mesmo paga. Começa em hoje — quem regista no
   // próprio dia não mexe nisto —, mas quem está a acertar pagamentos passados
@@ -211,7 +212,7 @@ export default function Cartoes() {
   const [tfData, setTfData] = useState(hojeIso());
   const [tfDe, setTfDe] = useState("");
   const [tfPara, setTfPara] = useState("");
-  const [tfValor, setTfValor] = useState("");
+  const [tfValor, setTfValor] = useState<Cents | null>(null);
   const [tfDescricao, setTfDescricao] = useState("");
   const [tfNota, setTfNota] = useState("");
 
@@ -293,7 +294,7 @@ export default function Cartoes() {
     setTfData(hojeIso());
     setTfDe("");
     setTfPara("");
-    setTfValor("");
+    setTfValor(null);
     setTfDescricao("");
     setTfNota("");
     setTfAberta(true);
@@ -304,7 +305,7 @@ export default function Cartoes() {
     setTfData(t.data);
     setTfDe(t.de);
     setTfPara(t.para);
-    setTfValor((t.valor / 100).toFixed(2).replace(".", ","));
+    setTfValor(t.valor);
     setTfDescricao(t.descricao ?? "");
     setTfNota(t.nota ?? "");
     setTfAberta(true);
@@ -312,7 +313,7 @@ export default function Cartoes() {
 
   async function salvarTransferencia(e: FormEvent) {
     e.preventDefault();
-    const valor = parseMoney(tfValor);
+    const valor = tfValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!tfDe || !tfPara) return mostrarToast("Escolha origem e destino.");
     if (tfDe === tfPara) return mostrarToast("Origem e destino não podem ser iguais.");
@@ -354,7 +355,7 @@ export default function Cartoes() {
   async function submeterPagamento(e: FormEvent) {
     e.preventDefault();
     if (!pagando) return;
-    const valor = parseMoney(valorTexto);
+    const valor = valorTexto;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!pagarDe) return mostrarToast("Escolha de onde sai o dinheiro.");
     try {
@@ -379,9 +380,8 @@ export default function Cartoes() {
   async function submeterAjuste(e: FormEvent) {
     e.preventDefault();
     if (!ajustando) return;
-    const texto = valorTexto.trim();
-    const valor = texto === "" ? null : parseMoney(texto);
-    if (texto !== "" && (valor === null || valor < 0)) return mostrarToast("Valor inválido.");
+    // Vazio repõe o cálculo automático — é o que este campo quer dizer.
+    const valor = valorTexto;
     try {
       await definirFaturaManual(uid!, ajustando.cartao, ajustando.mes, valor);
       mostrarToast(
@@ -579,18 +579,14 @@ export default function Cartoes() {
               <ControlesFatura
                 fatura={faturaAberta}
                 aoPagar={() => {
-                  setValorTexto(formatCents(faturaAberta.restante));
+                  setValorTexto(faturaAberta.restante);
                   setPagarDe(contasDebito[0] ?? "");
                   setPagarData(hojeIso());
                   setContaAberta(null);
                   setPagando(faturaAberta);
                 }}
                 aoAjustar={() => {
-                  setValorTexto(
-                    faturaAberta.overrideManual !== null
-                      ? formatCents(faturaAberta.overrideManual)
-                      : "",
-                  );
+                  setValorTexto(faturaAberta.overrideManual);
                   setContaAberta(null);
                   setAjustando(faturaAberta);
                 }}
@@ -614,12 +610,7 @@ export default function Cartoes() {
             </p>
             <label className={styles.campo}>
               Valor (€) — pode ser parcial
-              <input
-                inputMode="decimal"
-                value={valorTexto}
-                onChange={(e) => setValorTexto(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} required />
             </label>
             <SeletorData valor={pagarData} aoMudar={setPagarData} />
             <Seletor rotulo="Sai de" valor={pagarDe} opcoes={contasDebito} aoMudar={setPagarDe} />
@@ -645,12 +636,7 @@ export default function Cartoes() {
             </p>
             <label className={styles.campo}>
               Valor manual (€) — vazio volta ao automático
-              <input
-                inputMode="decimal"
-                value={valorTexto}
-                onChange={(e) => setValorTexto(e.target.value)}
-                placeholder="automático"
-              />
+              <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} placeholder="automático" />
             </label>
             <button type="submit" className={styles.salvar}>
               Salvar
@@ -676,13 +662,7 @@ export default function Cartoes() {
         <form className={styles.form} onSubmit={salvarTransferencia}>
           <label className={styles.campo}>
             Valor
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={tfValor}
-              onChange={(e) => setTfValor(e.target.value)}
-              required
-            />
+            <CampoMoeda valor={tfValor} aoMudar={setTfValor} required />
           </label>
           <SeletorData valor={tfData} aoMudar={setTfData} />
           <div className={styles.linhaDupla}>

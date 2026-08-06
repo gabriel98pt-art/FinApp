@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
+import type { Cents } from "../types";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
@@ -25,7 +27,7 @@ import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { hojeIso, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
 import { totalDaCompra } from "../utils/parcelas";
-import { formatCents, parseMoney } from "../utils/money";
+
 import styles from "./RegistroRapido.module.css";
 
 /** Três escolhas de primeiro nível. "Veículo" não é um `TipoRegistro`: é o
@@ -73,7 +75,7 @@ export default function RegistroRapido() {
 
   const [descricao, setDescricao] = useState("");
   const [nota, setNota] = useState("");
-  const [valorTexto, setValorTexto] = useState("");
+  const [valorTexto, setValorTexto] = useState<Cents | null>(null);
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
@@ -130,14 +132,14 @@ export default function RegistroRapido() {
       if (editando) {
         setDescricao(editando.descricao);
         setNota(editando.nota ?? "");
-        setValorTexto(formatCents(editando.valor));
+        setValorTexto(editando.valor);
         setData(editando.data);
         setEtiqueta("fonte" in editando ? editando.fonte : editando.categoria);
         setConta(("fonte" in editando ? editando.conta : editando.contaCartao) ?? "");
       } else {
         setDescricao("");
         setNota("");
-        setValorTexto("");
+        setValorTexto(null);
         setData(hojeIso());
         setEtiqueta("");
         setConta("");
@@ -176,7 +178,7 @@ export default function RegistroRapido() {
     e.preventDefault();
     if (!uid) return;
 
-    const valor = parseMoney(valorTexto);
+    const valor = valorTexto;
     if (valor === null || valor <= 0) {
       setErro("Valor inválido — use por exemplo 12,50.");
       return;
@@ -459,14 +461,7 @@ export default function RegistroRapido() {
           {!ehParcelada && (
             <label className={styles.campo}>
               {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="0,00"
-                value={valorTexto}
-                onChange={(e) => setValorTexto(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} required />
             </label>
           )}
 
@@ -635,13 +630,7 @@ export default function RegistroRapido() {
 
           <label className={styles.campo}>
             {modoValorParcela === "parcela" ? "Valor parcela (€)" : "Valor total (€)"}
-            <input
-              type="text"
-              inputMode="decimal"
-              placeholder="0,00"
-              value={valorTexto}
-              onChange={(e) => setValorTexto(e.target.value)}
-            />
+            <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} />
           </label>
 
           <div className={styles.campo}>

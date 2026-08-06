@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
 import KpiCard from "../components/KpiCard";
 import RenomearFolha from "../components/RenomearFolha";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -39,11 +40,11 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
-import { formatMoney, parseMoney } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import { fixaAtivaNoMes } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "../utils/veiculo";
-import type { CargaEletrica, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
+import type { CargaEletrica, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import styles from "./Veiculo.module.css";
 
 type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
@@ -52,11 +53,6 @@ function agir(acao: () => Promise<unknown>, ok: string) {
   return acao()
     .then(() => mostrarToast(ok))
     .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
-}
-
-/** Centavos → texto editável ("1234" → "12,34"). */
-function paraTexto(centavos: number): string {
-  return (centavos / 100).toFixed(2).replace(".", ",");
 }
 
 export default function Veiculo() {
@@ -151,8 +147,8 @@ export default function Veiculo() {
   const [cgEditandoId, setCgEditandoId] = useState<Id | null>(null);
   const [modoCusto, setModoCusto] = useState<"total" | "kwh">("total");
   const [cgKwh, setCgKwh] = useState("");
-  const [cgCustoTotal, setCgCustoTotal] = useState("");
-  const [cgPrecoKwh, setCgPrecoKwh] = useState("");
+  const [cgCustoTotal, setCgCustoTotal] = useState<Cents | null>(null);
+  const [cgPrecoKwh, setCgPrecoKwh] = useState<Cents | null>(null);
   const [cgLocal, setCgLocal] = useState("");
   const [cgConta, setCgConta] = useState("");
   const [cgSessao, setCgSessao] = useState("");
@@ -163,8 +159,8 @@ export default function Veiculo() {
     setCgEditandoId(null);
     setModoCusto("total");
     setCgKwh("");
-    setCgCustoTotal("");
-    setCgPrecoKwh("");
+    setCgCustoTotal(null);
+    setCgPrecoKwh(null);
     setCgLocal("");
     setCgConta("");
     setCgSessao("");
@@ -177,8 +173,8 @@ export default function Veiculo() {
     setCgEditandoId(c.id);
     setModoCusto("total");
     setCgKwh(String(c.kwh).replace(".", ","));
-    setCgCustoTotal(paraTexto(c.custo));
-    setCgPrecoKwh(paraTexto(c.precoKwh));
+    setCgCustoTotal(c.custo);
+    setCgPrecoKwh(c.precoKwh);
     setCgLocal(c.local);
     setCgConta(c.contaCartao ?? "");
     setCgSessao(c.sessao ?? "");
@@ -194,12 +190,12 @@ export default function Veiculo() {
     let custo: number;
     let precoKwh: number;
     if (modoCusto === "total") {
-      const c = parseMoney(cgCustoTotal);
+      const c = cgCustoTotal;
       if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
       custo = c;
       precoKwh = Math.round(c / kwh);
     } else {
-      const p = parseMoney(cgPrecoKwh);
+      const p = cgPrecoKwh;
       if (p === null || p <= 0) return mostrarToast("Preço/kWh inválido.");
       precoKwh = p;
       custo = Math.round(kwh * p);
@@ -313,7 +309,7 @@ export default function Veiculo() {
   // ---- caixa de despesa variável do veículo (criar/editar) ----
   const [dvAberta, setDvAberta] = useState(false);
   const [dvEditandoId, setDvEditandoId] = useState<Id | null>(null);
-  const [dvValor, setDvValor] = useState("");
+  const [dvValor, setDvValor] = useState<Cents | null>(null);
   const [dvCategoria, setDvCategoria] = useState("");
   const [dvConta, setDvConta] = useState("");
   const [dvData, setDvData] = useState(hojeIso());
@@ -321,7 +317,7 @@ export default function Veiculo() {
 
   function abrirNovaDespesa() {
     setDvEditandoId(null);
-    setDvValor("");
+    setDvValor(null);
     setDvCategoria(cfg.categoriasVeiculo[0] ?? "");
     setDvConta("");
     setDvData(hojeIso());
@@ -331,7 +327,7 @@ export default function Veiculo() {
 
   function abrirEdicaoDespesa(d: DespesaVeiculo) {
     setDvEditandoId(d.id);
-    setDvValor(paraTexto(d.valor));
+    setDvValor(d.valor);
     setDvCategoria(d.categoria);
     setDvConta(d.contaCartao ?? "");
     setDvData(d.data);
@@ -341,7 +337,7 @@ export default function Veiculo() {
 
   async function salvarDespesa(e: FormEvent) {
     e.preventDefault();
-    const valor = parseMoney(dvValor);
+    const valor = dvValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     const dados_ = {
       data: dvData,
@@ -374,7 +370,7 @@ export default function Veiculo() {
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
   const [dfDescricao, setDfDescricao] = useState("");
   const [dfNota, setDfNota] = useState("");
-  const [dfValor, setDfValor] = useState("");
+  const [dfValor, setDfValor] = useState<Cents | null>(null);
   const [dfCategoria, setDfCategoria] = useState("");
   const [dfDia, setDfDia] = useState("");
 
@@ -382,7 +378,7 @@ export default function Veiculo() {
     setDfEditandoId(null);
     setDfDescricao("");
     setDfNota("");
-    setDfValor("");
+    setDfValor(null);
     setDfCategoria(cfg.categoriasVeiculo[0] ?? "");
     setDfDia("");
     setDfAberta(true);
@@ -392,7 +388,7 @@ export default function Veiculo() {
     setDfEditandoId(f.id);
     setDfDescricao(f.descricao);
     setDfNota(f.nota ?? "");
-    setDfValor(paraTexto(f.valor));
+    setDfValor(f.valor);
     setDfCategoria(f.categoria);
     setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
     setDfAberta(true);
@@ -400,7 +396,7 @@ export default function Veiculo() {
 
   async function salvarFixa(e: FormEvent) {
     e.preventDefault();
-    const valor = parseMoney(dfValor);
+    const valor = dfValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!dfDescricao.trim()) return mostrarToast("Nome obrigatório.");
     const dia = dfDia.trim() === "" ? undefined : Number(dfDia);
@@ -838,24 +834,12 @@ export default function Veiculo() {
           {modoCusto === "total" ? (
             <label className={styles.campo}>
               Custo total
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={cgCustoTotal}
-                onChange={(e) => setCgCustoTotal(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={cgCustoTotal} aoMudar={setCgCustoTotal} required />
             </label>
           ) : (
             <label className={styles.campo}>
               Preço por kWh
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={cgPrecoKwh}
-                onChange={(e) => setCgPrecoKwh(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={cgPrecoKwh} aoMudar={setCgPrecoKwh} required />
             </label>
           )}
           <SeletorLocal valor={cgLocal} opcoes={cfg.locaisCarregamento} aoMudar={setCgLocal} />
@@ -894,13 +878,7 @@ export default function Veiculo() {
         <form className={styles.formFolha} onSubmit={salvarDespesa}>
           <label className={styles.campo}>
             Valor
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={dvValor}
-              onChange={(e) => setDvValor(e.target.value)}
-              required
-            />
+            <CampoMoeda valor={dvValor} aoMudar={setDvValor} required />
           </label>
           <SeletorData valor={dvData} aoMudar={setDvData} />
           <SeletorCategoria
@@ -948,13 +926,7 @@ export default function Veiculo() {
           <div className={styles.linhaDupla}>
             <label className={styles.campo}>
               Valor mensal
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={dfValor}
-                onChange={(e) => setDfValor(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={dfValor} aoMudar={setDfValor} required />
             </label>
             <label className={styles.campo}>
               Dia do vencimento

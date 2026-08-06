@@ -4,6 +4,8 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
+import type { Cents } from "../types";
 import ResumoAnual from "../components/ResumoAnual";
 import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosService";
 import { useConfirmar } from "../hooks/useConfirmar";
@@ -21,7 +23,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesesRecentes, rotuloMes } from "../utils/calculos";
 import { calcularMetaMensal, poupancaMeses, totalFundos } from "../utils/metas";
-import { formatMoney, parseMoney } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import styles from "./Metas.module.css";
 
 export default function Metas() {
@@ -70,14 +72,14 @@ export default function Metas() {
 
   const [novoAberto, setNovoAberto] = useState(false);
   const [nome, setNome] = useState("");
-  const [alvo, setAlvo] = useState("");
+  const [alvo, setAlvo] = useState<Cents | null>(null);
   const [prazo, setPrazo] = useState("");
   const [contribuindo, setContribuindo] = useState<string | null>(null);
-  const [contribValor, setContribValor] = useState("");
+  const [contribValor, setContribValor] = useState<Cents | null>(null);
 
   async function salvarFundo(e: FormEvent) {
     e.preventDefault();
-    const valorAlvo = parseMoney(alvo);
+    const valorAlvo = alvo;
     if (!nome.trim()) return mostrarToast("Nome obrigatório.");
     if (valorAlvo === null || valorAlvo <= 0) return mostrarToast("Meta inválida.");
     try {
@@ -85,7 +87,7 @@ export default function Metas() {
       mostrarToast("✓ Fundo criado");
       setNovoAberto(false);
       setNome("");
-      setAlvo("");
+      setAlvo(null);
       setPrazo("");
     } catch {
       mostrarToast("Não foi possível criar.");
@@ -96,13 +98,13 @@ export default function Metas() {
     e.preventDefault();
     const fundo = fundos.find((f) => f.id === contribuindo);
     if (!fundo) return;
-    const valor = parseMoney(contribValor);
+    const valor = contribValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     try {
       await contribuirFundo(uid!, fundo, valor);
       mostrarToast(`✓ ${formatMoney(valor, cfg.currency)} adicionado(s) a ${fundo.nome}`);
       setContribuindo(null);
-      setContribValor("");
+      setContribValor(null);
     } catch {
       mostrarToast("Não foi possível contribuir.");
     }
@@ -268,7 +270,7 @@ export default function Metas() {
                 <button
                   className={styles.contribuirBotao}
                   onClick={() => {
-                    setContribValor("");
+                    setContribValor(null);
                     setContribuindo(f.id);
                   }}
                 >
@@ -290,13 +292,7 @@ export default function Metas() {
           </label>
           <label className={styles.campo}>
             Meta
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={alvo}
-              onChange={(e) => setAlvo(e.target.value)}
-              required
-            />
+            <CampoMoeda valor={alvo} aoMudar={setAlvo} required />
           </label>
           <label className={styles.campo}>
             Prazo (opcional)
@@ -316,13 +312,7 @@ export default function Metas() {
         <form className={styles.form} onSubmit={submeterContribuicao}>
           <label className={styles.campo}>
             Valor
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={contribValor}
-              onChange={(e) => setContribValor(e.target.value)}
-              required
-            />
+            <CampoMoeda valor={contribValor} aoMudar={setContribValor} required />
           </label>
           <button type="submit" className={styles.salvar}>
             Contribuir

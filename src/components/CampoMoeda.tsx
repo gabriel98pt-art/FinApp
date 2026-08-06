@@ -20,6 +20,9 @@ export default function CampoMoeda({
   id,
   placeholder = "0,00",
   required,
+  disabled,
+  className,
+  aoSairDoCampo,
   "aria-label": ariaLabel,
 }: {
   /** `null` = campo vazio. Só onde ficar por preencher significa algo (o
@@ -30,6 +33,10 @@ export default function CampoMoeda({
   id?: string;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
+  className?: string;
+  /** Para quem grava ao sair do campo, em vez de num botão. */
+  aoSairDoCampo?: () => void;
   "aria-label"?: string;
 }) {
   function aoTeclar(e: KeyboardEvent<HTMLInputElement>) {
@@ -58,9 +65,12 @@ export default function CampoMoeda({
       value={valor === null ? "" : formatCents(valor)}
       placeholder={placeholder}
       required={required}
+      disabled={disabled}
+      className={className}
       aria-label={ariaLabel}
       onKeyDown={aoTeclar}
       onPaste={aoColar}
+      onBlur={aoSairDoCampo}
       // O valor só muda por tecla; o React exige um onChange num campo
       // controlado, mesmo não havendo nada a fazer aqui.
       onChange={() => {}}

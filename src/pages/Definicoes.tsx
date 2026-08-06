@@ -40,9 +40,9 @@ import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
+import CampoMoeda from "../components/CampoMoeda";
 import type { Cents, ConfigConta, Currency } from "../types";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
-import { formatCents, parseMoney } from "../utils/money";
 import styles from "./Definicoes.module.css";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
@@ -337,17 +337,13 @@ function LinhaOrcamento({
   tetoAtual: Cents | undefined;
   uid: string;
 }) {
-  const [texto, setTexto] = useState(tetoAtual ? formatCents(tetoAtual) : "");
+  const [texto, setTexto] = useState<Cents | null>(tetoAtual ?? null);
   const [salvando, setSalvando] = useState(false);
 
   async function salvar() {
-    const t = texto.trim();
-    const valor = t === "" ? null : parseMoney(t);
-    if (t !== "" && (valor === null || valor < 0)) {
-      mostrarToast("Valor inválido.");
-      setTexto(tetoAtual ? formatCents(tetoAtual) : "");
-      return;
-    }
+    // Vazio = sem teto, que é uma escolha válida aqui. Negativo não existe:
+    // o campo só constrói valores positivos.
+    const valor = texto;
     setSalvando(true);
     try {
       await definirOrcamento(uid, categoria, valor);
@@ -361,14 +357,13 @@ function LinhaOrcamento({
   return (
     <div className={styles.linhaOrcamento}>
       <span className={styles.orcamentoCategoria}>{categoria}</span>
-      <input
-        className={styles.inputPequeno}
-        inputMode="decimal"
+      <CampoMoeda
+        valor={texto}
+        aoMudar={setTexto}
         placeholder="sem teto"
-        value={texto}
+        className={styles.inputPequeno}
         disabled={salvando}
-        onChange={(e) => setTexto(e.target.value)}
-        onBlur={salvar}
+        aoSairDoCampo={salvar}
       />
     </div>
   );

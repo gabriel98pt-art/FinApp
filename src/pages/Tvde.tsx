@@ -5,6 +5,7 @@ import AbaTransicao from "../components/AbaTransicao";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
 import {
   criarDespesaTvde,
   definirSegMes,
@@ -20,9 +21,8 @@ import { useTvdeStore } from "../stores/tvdeStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { SemanaTvde } from "../types";
+import type { Cents, SemanaTvde } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
-import { parseMoney } from "../utils/money";
 import {
   calcularSemana,
   dadosPorMes,
@@ -72,7 +72,7 @@ function FormSemana({
   // Sugestão de "Recarga própria" vinda das Cargas do veículo (item 9).
   const recargaAuto = n !== null ? recargaPropriaDaSemana(cargas, dados.cfg.inicioSemana1, n) : 0;
 
-  const [valores, setValores] = useState<Record<string, string>>({});
+  const [valores, setValores] = useState<Record<string, Cents | null>>({});
   const [horas, setHoras] = useState("");
   const [viag, setViag] = useState("");
   const [pct, setPct] = useState("");
@@ -82,11 +82,11 @@ function FormSemana({
   // reinicia quando abre para outra semana (ajuste durante o render)
   if (n !== null && n !== chave) {
     setChave(n);
-    const v: Record<string, string> = {};
+    const v: Record<string, Cents | null> = {};
     for (const [k] of CAMPOS_DINHEIRO) {
       const c =
         existente?.[k] ?? (k === "alu" ? dados.cfg.aluguel : k === "recP" ? recargaAuto : 0);
-      v[k] = c ? (c / 100).toFixed(2).replace(".", ",") : "";
+      v[k] = c || null;
     }
     setValores(v);
     setHoras(existente?.horas ? String(existente.horas) : "");
@@ -112,15 +112,11 @@ function FormSemana({
       pct: parseFloat(pct.replace(",", ".")) || 0,
       teste,
     };
+    // Campo vazio fica em 0, como estava; o campo já não deixa escrever nada
+    // que não seja um valor, portanto não há mais "valor inválido" aqui.
     for (const [k] of CAMPOS_DINHEIRO) {
-      const texto = (valores[k] ?? "").trim();
-      if (texto === "") continue;
-      const c = parseMoney(texto);
-      if (c === null) {
-        mostrarToast(`Valor inválido em ${CAMPOS_DINHEIRO.find(([ck]) => ck === k)?.[1]}.`);
-        return;
-      }
-      semana[k] = c;
+      const c = valores[k];
+      if (c != null) semana[k] = c;
     }
     try {
       await salvarSemana(uid, n, semana);
@@ -150,11 +146,9 @@ function FormSemana({
                 <span className={styles.dicaAuto}> · cargas da semana: {eur(recargaAuto)}</span>
               )}
             </span>
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={valores[k] ?? ""}
-              onChange={(e) => setValores({ ...valores, [k]: e.target.value })}
+            <CampoMoeda
+              valor={valores[k] ?? null}
+              aoMudar={(v) => setValores({ ...valores, [k]: v })}
             />
           </label>
         ))}
@@ -218,9 +212,9 @@ export default function Tvde() {
   const [aba, setAba] = useState<"semanas" | "meses" | "periodos" | "extras">("semanas");
   const [segMes, setSegMes] = useState(mesAtual());
   const mesVisivel = useMesVisivelStore((s) => s.mes);
-  const [segValor, setSegValor] = useState("");
+  const [segValor, setSegValor] = useState<Cents | null>(null);
   const [despDescricao, setDespDescricao] = useState("");
-  const [despValor, setDespValor] = useState("");
+  const [despValor, setDespValor] = useState<Cents | null>(null);
 
   const { cfg, semanas, segPorMes, lancamentos, despesas } = dados;
   const numeros = numerosDasSemanas(semanas);
@@ -462,13 +456,13 @@ export default function Tvde() {
               className={styles.blocoExtra}
               onSubmit={(e) => {
                 e.preventDefault();
-                const v = parseMoney(segValor);
-                if (v === null || v < 0) return mostrarToast("Valor inválido.");
+                // Zero remove o registo do mês; vazio não faz nada.
+                const v = segValor ?? 0;
                 void agir(
                   () => definirSegMes(uid!, segMes, v === 0 ? null : v),
                   v === 0 ? "Seg. Social removida" : "✓ Seg. Social registrada",
                 );
-                setSegValor("");
+                setSegValor(null);
               }}
             >
               <p className={styles.blocoTitulo}>Segurança Social (por mês de pagamento)</p>
@@ -477,13 +471,7 @@ export default function Tvde() {
               </p>
               <div className={styles.linhaDupla}>
                 <input type="month" value={segMes} onChange={(e) => setSegMes(e.target.value)} />
-                <input
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={segValor}
-                  onChange={(e) => setSegValor(e.target.value)}
-                  required
-                />
+                <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
                 <button type="submit" className={styles.botaoMini}>
                   Salvar
                 </button>
@@ -506,7 +494,7 @@ export default function Tvde() {
               className={styles.blocoExtra}
               onSubmit={(e) => {
                 e.preventDefault();
-                const v = parseMoney(despValor);
+                const v = despValor;
                 if (v === null || v <= 0) return mostrarToast("Valor inválido.");
                 void agir(
                   () =>
@@ -514,7 +502,7 @@ export default function Tvde() {
                   "✓ Despesa TVDE adicionada",
                 );
                 setDespDescricao("");
-                setDespValor("");
+                setDespValor(null);
               }}
             >
               <p className={styles.blocoTitulo}>Despesas do TVDE</p>
@@ -528,13 +516,7 @@ export default function Tvde() {
                   onChange={(e) => setDespDescricao(e.target.value)}
                   required
                 />
-                <input
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={despValor}
-                  onChange={(e) => setDespValor(e.target.value)}
-                  required
-                />
+                <CampoMoeda valor={despValor} aoMudar={setDespValor} required />
                 <button type="submit" className={styles.botaoMini}>
                   Adicionar
                 </button>

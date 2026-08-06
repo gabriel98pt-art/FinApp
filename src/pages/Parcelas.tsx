@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
+import CampoMoeda from "../components/CampoMoeda";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
@@ -27,9 +28,9 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { Currency, Parcela, YearMonth } from "../types";
+import type { Cents, Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
-import { formatMoney, parseMoney } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import {
   debitoMensalDaParcela,
   mesesNaoPagos,
@@ -163,7 +164,7 @@ function FormParcela({
   const cfg = useCfgStore((s) => s.cfg);
   const [descricao, setDescricao] = useState("");
   const [nota, setNota] = useState("");
-  const [totalTexto, setTotalTexto] = useState("");
+  const [totalTexto, setTotalTexto] = useState<Cents | null>(null);
   const [num, setNum] = useState("3");
   const [primeiroMes, setPrimeiroMes] = useState(mesAtual());
   const [dia, setDia] = useState("");
@@ -183,7 +184,7 @@ function FormParcela({
     setSemeadoPara(chave);
     setDescricao(editando?.descricao ?? "");
     setNota(editando?.nota ?? "");
-    setTotalTexto(editando ? (editando.total / 100).toFixed(2).replace(".", ",") : "");
+    setTotalTexto(editando ? editando.total : null);
     setNum(String(editando?.numParcelas ?? 3));
     setPrimeiroMes(editando?.primeiroMes ?? mesAtual());
     setDia(editando?.diaVencimento ? String(editando.diaVencimento) : "");
@@ -196,7 +197,7 @@ function FormParcela({
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    const total = parseMoney(totalTexto);
+    const total = totalTexto;
     const numParcelas = parseInt(num, 10);
     if (total === null || total <= 0) return setErro("Valor total inválido.");
     if (!Number.isFinite(numParcelas) || numParcelas < 1)
@@ -270,13 +271,7 @@ function FormParcela({
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
             Total (€)
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={totalTexto}
-              onChange={(e) => setTotalTexto(e.target.value)}
-              required
-            />
+            <CampoMoeda valor={totalTexto} aoMudar={setTotalTexto} required />
           </label>
           <label className={styles.campo}>
             Nº parcelas

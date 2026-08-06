@@ -5,6 +5,7 @@ import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
+import CampoMoeda from "../components/CampoMoeda";
 import ListaLancamentos from "../components/ListaLancamentos";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -31,8 +32,8 @@ import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from ".
 import { fixaAtivaNoMes } from "../utils/fatura";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
-import { formatMoney, parseMoney } from "../utils/money";
-import type { DespesaFixa, Id } from "../types";
+import { formatMoney } from "../utils/money";
+import type { Cents, DespesaFixa, Id } from "../types";
 import styles from "./Despesas.module.css";
 
 type Aba = "correntes" | "fixas";
@@ -119,7 +120,7 @@ export default function Despesas() {
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
   const [dfDescricao, setDfDescricao] = useState("");
   const [dfNota, setDfNota] = useState("");
-  const [dfValor, setDfValor] = useState("");
+  const [dfValor, setDfValor] = useState<Cents | null>(null);
   const [dfCategoria, setDfCategoria] = useState("");
   const [dfContaCartao, setDfContaCartao] = useState("");
   const [dfDia, setDfDia] = useState("");
@@ -131,7 +132,7 @@ export default function Despesas() {
     setDfEditandoId(null);
     setDfDescricao("");
     setDfNota("");
-    setDfValor("");
+    setDfValor(null);
     setDfCategoria(cfg.categoriasFixas[0] ?? "");
     setDfContaCartao("");
     setDfDia("");
@@ -145,7 +146,7 @@ export default function Despesas() {
     setDfEditandoId(f.id);
     setDfDescricao(f.descricao);
     setDfNota(f.nota ?? "");
-    setDfValor((f.valor / 100).toFixed(2).replace(".", ","));
+    setDfValor(f.valor);
     setDfCategoria(f.categoria);
     setDfContaCartao(f.contaCartao ?? "");
     setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
@@ -157,7 +158,7 @@ export default function Despesas() {
 
   async function salvarFixa(e: FormEvent) {
     e.preventDefault();
-    const valor = parseMoney(dfValor);
+    const valor = dfValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!dfDescricao.trim()) return mostrarToast("Nome obrigatório.");
     const dia = dfDia.trim() === "" ? undefined : Number(dfDia);
@@ -384,13 +385,7 @@ export default function Despesas() {
           <div className={styles.linhaDupla}>
             <label className={styles.campo}>
               Valor mensal
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={dfValor}
-                onChange={(e) => setDfValor(e.target.value)}
-                required
-              />
+              <CampoMoeda valor={dfValor} aoMudar={setDfValor} required />
             </label>
             <label className={styles.campo}>
               Dia do vencimento
