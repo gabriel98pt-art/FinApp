@@ -67,11 +67,13 @@
   text-align: center;
 }
 
-/* Mesmo cinza do rótulo, em todos os cards: a cor da categoria vive só na luz
-   do topo. O tamanho e o peso é que mantêm o valor como o elemento mais forte
-   do card — não precisava da cor para isso. */
+/* Sem cor por tom em card nenhum: a categoria vive só na luz do topo. O branco
+   do texto normal, desbotado — o `--mut` do rótulo puxava a azul e deixava o
+   valor com ar de secundário, que não é o caso. O tamanho e o peso é que o
+   mantêm como o elemento mais forte do card. */
 .valor {
-  color: var(--mut);
+  color: var(--txt);
+  opacity: 0.62;
   font-size: var(--kpi-valor-fs, 1.25rem);
   text-align: center;
   /* sem isto o valor pode ficar mais largo que o card (o card tem
