@@ -24,13 +24,11 @@
   flex-direction: column;
 }
 
-/* A partir daqui a barra lateral (Sidebar.module.css, mesmo breakpoint) marca
-   qual página está aberta — o título repetia essa informação. Fica no DOM,
-   só sai da vista. */
-@media (min-width: 768px) {
-  .titulo {
-    display: none;
-  }
+/* O título repetia o que a navegação já diz — a barra lateral no desktop, a
+   barra de baixo no telemóvel. Fica no DOM, só sai da vista, em qualquer
+   largura. */
+.titulo {
+  display: none;
 }
 
 @media (max-width: 767px) {
