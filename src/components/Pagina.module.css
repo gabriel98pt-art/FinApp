@@ -24,6 +24,15 @@
   flex-direction: column;
 }
 
+/* A partir daqui a barra lateral (Sidebar.module.css, mesmo breakpoint) marca
+   qual página está aberta — o título repetia essa informação. Fica no DOM,
+   só sai da vista. */
+@media (min-width: 768px) {
+  .titulo {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   /* Sem paginador (≤2 cartões na tela, ex. Calendário): ainda força os 2 na
      mesma linha em vez de deixar o auto-fit empilhar num ecrã estreito. */

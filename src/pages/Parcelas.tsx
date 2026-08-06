@@ -32,7 +32,7 @@ import type { Cents, Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import {
-  debitoMensalDaParcela,
+  contribuicaoParcelasMes,
   mesesNaoPagos,
   diaVencimentoEfetivo,
   parcelaQuitada,
@@ -411,7 +411,9 @@ export default function Parcelas() {
   // que diz até onde uma parcela em débito automático já está resolvida.
   const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef));
   const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef));
-  const debitoMensal = ativas.reduce((s, p) => s + debitoMensalDaParcela(p, mesRef), 0);
+  // O mesmo cálculo que leva as parcelas aos totais do mês (resumoMensal,
+  // copiloto): conta o plano inteiro que cobre `mesRef`, não só as ativas.
+  const totalDoMes = contribuicaoParcelasMes(parcelas, mesRef, mesAtual());
   const faltaPagar = ativas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
   const visiveis = parcelasVisiveis(parcelas, ordem, apenasQuitadas, mesRef);
@@ -419,13 +421,12 @@ export default function Parcelas() {
   return (
     <Pagina titulo="Parcelas">
       <Kpis pagina="parcelas">
-        <KpiCard rotulo="Em andamento" valor={String(ativas.length)} />
-        <KpiCard rotulo="Débito mensal" valor={formatMoney(debitoMensal, moeda)} tom="vermelho" />
-        <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="amarelo" />
+        <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="vermelho" />
+        <KpiCard rotulo="Em aberto" valor={formatMoney(faltaPagar, moeda)} tom="amarelo" />
       </Kpis>
 
       <div className={styles.cabecalho}>
-        <h3 className={styles.subtitulo}>Compras parceladas</h3>
+        <h3 className={styles.subtitulo}>Compras parceladas ({ativas.length})</h3>
         <div className={styles.acoesCabecalho}>
           {parcelas.length > 1 && (
             <SeletorOrdemFolha
