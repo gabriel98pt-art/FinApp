@@ -204,10 +204,28 @@ export default function Despesas() {
 
   return (
     <Pagina titulo="Despesas">
+      {/* Fora das abas: os três já contam fixas, parcelas e veículo (ver o
+          cálculo de `totalDoMesComVeiculo`), portanto valem tanto numa aba
+          como na outra — e desapareciam ao passar para "Fixas". Mesma ordem
+          de Veiculo e Tvde: KPIs primeiro, abas depois. */}
+      <Kpis pagina="despesas">
+        <KpiCard
+          rotulo="Total do mês"
+          valor={formatMoney(totalDoMesComVeiculo, moeda)}
+          tom="vermelho"
+        />
+        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+        <KpiCard
+          rotulo="Maior categoria"
+          valor={maiorCategoria ? maiorCategoria.categoria : "—"}
+          sub={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : undefined}
+        />
+      </Kpis>
+
       <div className={styles.abas} role="tablist">
         {(
           [
-            ["correntes", "Despesas"],
+            ["correntes", "Correntes"],
             ["fixas", "Fixas"],
           ] as const
         ).map(([id, nome]) => (
@@ -226,20 +244,6 @@ export default function Despesas() {
       <AbaTransicao aba={aba}>
         {aba === "correntes" && (
           <>
-            <Kpis pagina="despesas">
-              <KpiCard
-                rotulo="Total do mês"
-                valor={formatMoney(totalDoMesComVeiculo, moeda)}
-                tom="vermelho"
-              />
-              <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
-              <KpiCard
-                rotulo="Maior categoria"
-                valor={maiorCategoria ? maiorCategoria.categoria : "—"}
-                sub={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : undefined}
-              />
-            </Kpis>
-
             <div className={styles.linhaVisao}>
               <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
                 {(
