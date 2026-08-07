@@ -1,5 +1,6 @@
 import { Moon, Redo2, Sun, Undo2 } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
 import { useHistoricoStore } from "../stores/historicoStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -75,6 +76,7 @@ export default function Header() {
         >
           {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
+        <NotificacoesSino />
       </div>
     </header>
   );

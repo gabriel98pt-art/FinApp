@@ -85,6 +85,16 @@ export function somarDias(data: IsoDate, n: number): IsoDate {
   return dt.toISOString().slice(0, 10);
 }
 
+/** Dias inteiros de `de` até `ate` — negativo quando `ate` é anterior. Mesmo
+ *  meio-dia UTC de `somarDias`, pelo mesmo motivo (DST). */
+export function diasEntre(de: IsoDate, ate: IsoDate): number {
+  const emUtc = (d: IsoDate) => {
+    const [y, m, dia] = d.split("-").map(Number);
+    return Date.UTC(y, m - 1, dia, 12);
+  };
+  return Math.round((emUtc(ate) - emUtc(de)) / 86400000);
+}
+
 const MESES_PT = [
   "janeiro",
   "fevereiro",

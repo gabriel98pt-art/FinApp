@@ -1,0 +1,94 @@
+/* O botão em si herda `.acao` do Header — aqui só o que é do sino. */
+.envolvente {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* Encostado ao canto do ÍCONE e puxado para fora dele: o ícone tem 17px e o
+   badge 14px, portanto centrá-lo no canto tapava o sino inteiro. O botão tem
+   30px, logo há folga de sobra para ele sair sem ser cortado. */
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: var(--r-pill);
+  background: var(--red);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  /* Recorta o fundo do header por baixo do badge, para ele não encostar no
+     ícone e ficar ilegível. */
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  padding: 11px 14px;
+  color: var(--txt);
+  text-align: left;
+}
+
+.linha:hover {
+  background: var(--s2);
+}
+
+.icone {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+  color: var(--red);
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.titulo {
+  font-weight: 700;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detalhe {
+  color: var(--mut);
+  font-size: 0.75rem;
+}
+
+.valor {
+  flex: none;
+  font-weight: 800;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--red);
+}
