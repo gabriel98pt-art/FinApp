@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2px;
+  gap: 1px;
   /* O ícone tem folga dentro do seu quadrado; puxar o grupo aproxima-o
      opticamente da borda sem mexer no padding do header (que mantém o logo
      alinhado com o conteúdo das páginas). */
@@ -58,8 +58,10 @@
 .acao {
   display: grid;
   place-items: center;
-  width: 35px;
-  height: 35px;
+  /* Apertados para caber cinco botões (o sino entrou) sem empurrar o mês
+     no meio do header. */
+  width: 30px;
+  height: 30px;
   border-radius: var(--r-sm);
   color: var(--mut);
   transition:

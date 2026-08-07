@@ -57,7 +57,7 @@ export default function Header() {
           aria-label="Desfazer"
           title="Desfazer"
         >
-          <Undo2 size={19} />
+          <Undo2 size={17} />
         </button>
         <button
           className={styles.acao}
@@ -66,14 +66,14 @@ export default function Header() {
           aria-label="Refazer"
           title="Refazer"
         >
-          <Redo2 size={19} />
+          <Redo2 size={17} />
         </button>
         <button
           className={styles.acao}
           onClick={alternarTema}
           aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
         >
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
       </div>
     </header>
