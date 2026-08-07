@@ -3,11 +3,12 @@ import { createPortal } from "react-dom";
 import { useDragToClose } from "../hooks/useDragToClose";
 import styles from "./BottomSheet.module.css";
 
-/** Bottom sheet genérica. Transição simples de opacidade+slide por padrão.
- *  `arrastavel` liga o drag-to-close com física de mola real (seção 6) —
- *  hoje só o Registro Rápido usa; modais/toast/menu "Mais" continuam com a
- *  transição CSS simples. Nunca display:none: abre/fecha por opacidade +
- *  pointer-events.
+/** Bottom sheet genérica, com drag-to-close de mola real (seção 6) a partir do
+ *  cabeçalho — pegador e título. Ligado por padrão: era o gesto que o Registro
+ *  Rápido tinha e as outras 18 folhas do app não, sem razão nenhuma para a
+ *  diferença. `arrastavel={false}` desliga numa folha específica.
+ *
+ *  Nunca display:none: abre/fecha por opacidade + pointer-events.
  *
  *  Renderiza num portal no `<body>`: `.folha` tem `transform`, o que ancora
  *  qualquer `position: fixed` descendente nela em vez de na janela — é o que
@@ -19,7 +20,7 @@ export default function BottomSheet({
   aoFechar,
   titulo,
   children,
-  arrastavel = false,
+  arrastavel = true,
   nivel = 0,
   tamanho = "padrao",
 }: {
