@@ -9,7 +9,7 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mesAtual, rotuloMes } from "../utils/calculos";
-import { coresDasCategorias } from "../utils/coresCategoria";
+import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { despesaPorCategoriaMes, paradasDonut } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import styles from "./DonutCategoriaCard.module.css";
@@ -50,7 +50,6 @@ export default function DonutCategoriaCard() {
     mes,
     mesAtual(),
   );
-  const cores = coresDasCategorias(fatias.map((f) => f.categoria));
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 
@@ -67,14 +66,17 @@ export default function DonutCategoriaCard() {
     );
   }
 
-  const paradas = paradasDonut(fatias, cores);
+  // A cor sai do NOME da categoria, portanto ordenar a lista não mexe nela e
+  // a legenda bate sempre com o donut.
+  const comCor = fatias.map((f) => ({ ...f, cor: corDaCategoriaVisual(cfg, f.categoria) }));
+
+  const paradas = paradasDonut(
+    fatias,
+    comCor.map((f) => f.cor),
+  );
   const descricaoDonut = `Despesas de ${rotuloMes(mes)} por categoria: ${fatias
     .map((f) => `${f.categoria} ${f.pct}%`)
     .join(", ")}`;
-
-  // A cor vem da posição na lista original — ordenar a lista não pode
-  // trocar a cor de ninguém, senão a legenda deixa de bater com o donut.
-  const comCor = fatias.map((f, i) => ({ ...f, cor: cores[i] }));
   const ordenadas = [...comCor].sort((a, b) => {
     if (ordem === "nome") return a.categoria.localeCompare(b.categoria, "pt");
     if (ordem === "menorValor") return a.valor - b.valor;

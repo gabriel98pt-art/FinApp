@@ -60,8 +60,8 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
   return COR_SEMANTICA[categoria];
 }
 
-/** Paleta de reserva pra categorias personalizadas, ciclada por ordem de
- *  aparição (maior fatia primeiro). */
+/** Paleta de reserva pra categorias personalizadas — a escolha dentro dela é
+ *  pelo NOME (ver `corFallbackDaCategoria`). */
 export const PALETA_FALLBACK = [
   "#ef4444",
   "#eab308",
@@ -77,22 +77,21 @@ export const PALETA_FALLBACK = [
   "#f5a623",
 ];
 
-/** Cor da categoria. `ordemFallback` é a posição dela entre as categorias SEM
- *  cor semântica (0, 1, 2…), pra duas personalizadas nunca saírem iguais. */
-export function corDaCategoria(categoria: string, ordemFallback = 0): string {
-  return (
-    COR_SEMANTICA[categoria] ??
-    PALETA_FALLBACK[
-      ((ordemFallback % PALETA_FALLBACK.length) + PALETA_FALLBACK.length) % PALETA_FALLBACK.length
-    ]
-  );
+/** Índice estável na paleta, pelo nome — duas categorias sem cor escolhida
+ *  ficam quase sempre distintas, e a MESMA categoria sai sempre com a mesma
+ *  cor em qualquer tela, ao contrário de depender da posição numa lista. */
+function hashCategoria(nome: string): number {
+  let h = 0;
+  for (let i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) | 0;
+  return Math.abs(h);
 }
 
-/** Atribui cor a uma lista de categorias já ordenada, contando a ordem de
- *  aparição só das que caem no fallback. */
-export function coresDasCategorias(categorias: string[]): string[] {
-  let proxima = 0;
-  return categorias.map((c) =>
-    COR_SEMANTICA[c] !== undefined ? COR_SEMANTICA[c] : corDaCategoria(c, proxima++),
-  );
+/** Cor de reserva de uma categoria sem nome semântico nem escolha do usuário —
+ *  determinística, não depende de posição em lista nenhuma.
+ *
+ *  Não é chamada diretamente por tela nenhuma: quem decide cor de categoria é
+ *  sempre `corDaCategoriaVisual` (utils/categoriaVisual.ts), que respeita
+ *  primeiro a escolha do usuário. */
+export function corFallbackDaCategoria(categoria: string): string {
+  return PALETA_FALLBACK[hashCategoria(categoria) % PALETA_FALLBACK.length];
 }

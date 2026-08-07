@@ -1,36 +1,44 @@
 import { describe, expect, test } from "vitest";
 import { CATEGORIAS_DESPESA_PADRAO } from "../constants/categorias";
-import { PALETA_FALLBACK, coresDasCategorias, corDaCategoria } from "./coresCategoria";
+import { PALETA_FALLBACK, corFallbackDaCategoria, corSemanticaDaCategoria } from "./coresCategoria";
 
-describe("corDaCategoria", () => {
-  test("categoria conhecida tem cor fixa, independente da ordem", () => {
-    expect(corDaCategoria("Alimentação", 0)).toBe("#f97316");
-    expect(corDaCategoria("Alimentação", 7)).toBe("#f97316");
+describe("corSemanticaDaCategoria", () => {
+  test("categoria conhecida tem cor fixa", () => {
+    expect(corSemanticaDaCategoria("Alimentação")).toBe("#f97316");
   });
 
   test("toda categoria padrão do FinApp (+ Veículo) tem cor semântica", () => {
     for (const c of [...CATEGORIAS_DESPESA_PADRAO, "Veículo"]) {
-      expect(corDaCategoria(c, 0)).not.toBe(PALETA_FALLBACK[0]);
+      expect(corSemanticaDaCategoria(c)).toBeDefined();
     }
   });
 
-  test("categoria personalizada cicla a paleta de reserva", () => {
-    expect(corDaCategoria("Fidelidade", 0)).toBe(PALETA_FALLBACK[0]);
-    expect(corDaCategoria("Fidelidade", 1)).toBe(PALETA_FALLBACK[1]);
-    expect(corDaCategoria("Fidelidade", PALETA_FALLBACK.length)).toBe(PALETA_FALLBACK[0]);
+  test("categoria personalizada não tem — é aí que entra o fallback", () => {
+    expect(corSemanticaDaCategoria("Fidelidade")).toBeUndefined();
   });
 });
 
-describe("coresDasCategorias", () => {
-  test("as personalizadas não repetem cor entre si", () => {
-    const cores = coresDasCategorias(["Alimentação", "Ginásio", "Casa", "Dentista"]);
-    expect(cores[0]).toBe("#f97316");
-    expect(cores[2]).toBe("#a78bfa");
-    expect(cores[1]).toBe(PALETA_FALLBACK[0]);
-    expect(cores[3]).toBe(PALETA_FALLBACK[1]);
+describe("corFallbackDaCategoria — pelo nome, não pela posição", () => {
+  test("o mesmo nome dá sempre a mesma cor", () => {
+    expect(corFallbackDaCategoria("Fidelidade")).toBe(corFallbackDaCategoria("Fidelidade"));
   });
 
-  test("lista vazia dá lista vazia", () => {
-    expect(coresDasCategorias([])).toEqual([]);
+  // O problema que isto resolve: antes a cor vinha da posição na lista, e a
+  // mesma categoria saía de uma cor no donut e de outra noutra tela.
+  test("a ordem em que as categorias aparecem não muda a cor de nenhuma", () => {
+    const nomes = ["Ginásio", "Dentista", "Fidelidade"];
+    const cores = nomes.map(corFallbackDaCategoria);
+    const invertidas = [...nomes].reverse().map(corFallbackDaCategoria);
+    expect(invertidas).toEqual([...cores].reverse());
+  });
+
+  test("nomes diferentes tendem a cores diferentes", () => {
+    expect(corFallbackDaCategoria("Ginásio")).not.toBe(corFallbackDaCategoria("Dentista"));
+  });
+
+  test("a cor sai sempre da paleta", () => {
+    for (const nome of ["Ginásio", "Dentista", "Fidelidade", "", "x"]) {
+      expect(PALETA_FALLBACK).toContain(corFallbackDaCategoria(nome));
+    }
   });
 });

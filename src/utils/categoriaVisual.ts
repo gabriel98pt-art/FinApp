@@ -6,10 +6,7 @@
 // neutro em vez de quebrar a tela.
 
 import type { ConfigConta } from "../types";
-import { corSemanticaDaCategoria } from "./coresCategoria";
-
-/** Cinza neutro do fallback — mesmo tom que "Outros" já usa no donut. */
-export const COR_CATEGORIA_NEUTRA = "#94a3b8";
+import { corFallbackDaCategoria, corSemanticaDaCategoria } from "./coresCategoria";
 
 /** Cores do ícone dentro da bolha: branco em fundo escuro, quase-preto em
  *  fundo claro. O quase-preto (em vez de #000) evita o contraste duro em
@@ -19,11 +16,18 @@ export const ICONE_SOBRE_CLARO = "#0f172a";
 
 type CfgVisual = Pick<ConfigConta, "categoriaIcone" | "categoriaCor">;
 
-/** Cor da categoria: escolha do usuário → cor semântica do nome → cinza. */
+/** Cor da categoria: escolha do usuário → cor semântica do nome → paleta pelo
+ *  nome. A ÚNICA fonte de cor de categoria do app.
+ *
+ *  Havia dois sistemas: este, que respeitava a escolha em Definições mas
+ *  mandava toda categoria personalizada para o mesmo cinza; e um do donut, que
+ *  dava cores distintas mas pela posição na lista, ignorando a escolha do
+ *  usuário — daí o gráfico não obedecer às Definições e a mesma categoria
+ *  mudar de cor entre telas. */
 export function corDaCategoriaVisual(cfg: CfgVisual | undefined, categoria: string): string {
   const escolhida = cfg?.categoriaCor?.[categoria];
   if (escolhida) return escolhida;
-  return corSemanticaDaCategoria(categoria) ?? COR_CATEGORIA_NEUTRA;
+  return corSemanticaDaCategoria(categoria) ?? corFallbackDaCategoria(categoria);
 }
 
 /** Id do ícone da categoria, ou string vazia quando nunca foi escolhido. */

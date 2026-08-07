@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  COR_CATEGORIA_NEUTRA,
   ICONE_SOBRE_CLARO,
   ICONE_SOBRE_ESCURO,
   corDaCategoriaVisual,
@@ -9,6 +8,7 @@ import {
   luminanciaRelativa,
 } from "./categoriaVisual";
 import { CORES_CATEGORIA, iconePorId } from "../constants/aparenciaCategoria";
+import { corFallbackDaCategoria } from "./coresCategoria";
 
 const cfg = {
   categoriaIcone: { Casa: "home" },
@@ -26,15 +26,19 @@ describe("corDaCategoriaVisual", () => {
     );
   });
 
-  it("cai no cinza neutro para categoria desconhecida", () => {
-    expect(corDaCategoriaVisual({ categoriaIcone: {}, categoriaCor: {} }, "Zzz")).toBe(
-      COR_CATEGORIA_NEUTRA,
-    );
+  // Antes toda categoria personalizada caía no MESMO cinza — duas diferentes
+  // ficavam idênticas na tela.
+  it("cai na paleta pelo nome para categoria desconhecida", () => {
+    const vazia = { categoriaIcone: {}, categoriaCor: {} };
+    expect(corDaCategoriaVisual(vazia, "Zzz")).toBe(corFallbackDaCategoria("Zzz"));
+    expect(corDaCategoriaVisual(vazia, "Zzz")).not.toBe(corDaCategoriaVisual(vazia, "Ginásio"));
   });
 
   it("não quebra com config ausente ou campos faltando (RTDB omite objeto vazio)", () => {
     expect(corDaCategoriaVisual(undefined, "Casa")).toBe("#a78bfa");
-    expect(corDaCategoriaVisual({} as unknown as typeof cfg, "Zzz")).toBe(COR_CATEGORIA_NEUTRA);
+    expect(corDaCategoriaVisual({} as unknown as typeof cfg, "Zzz")).toBe(
+      corFallbackDaCategoria("Zzz"),
+    );
   });
 });
 
