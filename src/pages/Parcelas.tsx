@@ -97,9 +97,13 @@ function LinhaParcela({
           <span className={styles.preenchido} style={{ width: `${(pagas / total) * 100}%` }} />
         </span>
 
+        {/* "X de Y em Z": o que sai a seguir, quanto ainda falta ao todo e
+            quando. O `mesRef` no restante é o que trata como já resolvido o mês
+            que saiu sozinho do cartão em débito automático. */}
         {!quitada && proximo !== undefined && (
           <span className={styles.proxima}>
-            Próxima: {formatMoney(valorDaParcela(p, proximo), moeda)} em {rotuloMes(proximo)}
+            {formatMoney(valorDaParcela(p, proximo), moeda)} de{" "}
+            {formatMoney(valorQuitacao(p, mesRef), moeda)} em {rotuloMes(proximo)}
           </span>
         )}
       </button>
