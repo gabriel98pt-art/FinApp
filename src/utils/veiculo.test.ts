@@ -121,6 +121,55 @@ describe("totalVeiculoGeral — acumulado de todos os tempos", () => {
   test("veículo vazio dá zero", () => {
     expect(totalVeiculoGeral(veiculo())).toBe(0);
   });
+
+  // Ninguém marca uma fixa em débito automático — mesmo tratamento de
+  // totalFixasGeral (utils/despesasFixas.ts).
+  test("sem mesReferencia, débito automático não conta — comportamento antigo", () => {
+    const v = veiculo({
+      despesasFixas: [fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true })],
+    });
+    expect(totalVeiculoGeral(v)).toBe(0);
+  });
+
+  test("com mesReferencia, débito automático conta todos os meses ativos até lá", () => {
+    const v = veiculo({
+      despesasFixas: [
+        fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true, inicio: "2026-06" }),
+      ],
+    });
+    // junho, julho, agosto = 3 meses
+    expect(totalVeiculoGeral(v, "2026-08")).toBe(4500 * 3);
+  });
+
+  test("mês marcado à mão que também é automático não conta duas vezes", () => {
+    const v = veiculo({
+      despesasFixas: [
+        fixa({
+          valor: 4500,
+          contaCartao: "AB Gold (C)",
+          autoDebit: true,
+          inicio: "2026-07",
+          pagoPorMes: { "2026-07": true },
+        }),
+      ],
+    });
+    // julho e agosto, não julho duas vezes
+    expect(totalVeiculoGeral(v, "2026-08")).toBe(4500 * 2);
+  });
+
+  test("sem inicio não há por onde começar — fica só o marcado à mão", () => {
+    const v = veiculo({
+      despesasFixas: [
+        fixa({
+          valor: 4500,
+          contaCartao: "AB Gold (C)",
+          autoDebit: true,
+          pagoPorMes: { "2026-07": true },
+        }),
+      ],
+    });
+    expect(totalVeiculoGeral(v, "2026-08")).toBe(4500);
+  });
 });
 
 describe("dadosDespesaDaCarga — recarga que afinal não era recarga", () => {

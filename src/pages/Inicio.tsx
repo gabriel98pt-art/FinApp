@@ -55,7 +55,7 @@ export default function Inicio() {
     saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
     totalFixasGeral(despesasFixas, mesReal) -
     totalParcelasGeral(parcelas, mesReal) -
-    totalVeiculoGeral(veiculo);
+    totalVeiculoGeral(veiculo, mesReal);
 
   return (
     <Pagina titulo="Início">

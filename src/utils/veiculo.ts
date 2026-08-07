@@ -4,7 +4,7 @@
 
 import type { CargaEletrica, Cents, DadosVeiculo, DespesaCorrente, YearMonth } from "../types";
 import { doMes, mesDe, totalDoMes } from "./calculos";
-import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
   return veiculo.cargas.filter((c) => mesDe(c.data) === ym).reduce((s, c) => s + c.custo, 0);
@@ -47,14 +47,22 @@ export function totalVeiculoMes(veiculo: DadosVeiculo, ym: YearMonth, mesReal: Y
 
 /** Total acumulado de todos os tempos (para KPIs "geral"/"poupança"): cargas
  *  e despesas contam sempre (sempre realizadas); cada fixa conta o valor ×
- *  quantos meses foram marcados pagos — mesma filosofia "só o que foi
- *  realmente pago" aplicada ao histórico inteiro, não só ao mês corrente. */
-export function totalVeiculoGeral(veiculo: DadosVeiculo): Cents {
+ *  quantos meses já saíram — mesma filosofia "só o que foi realmente pago"
+ *  aplicada ao histórico inteiro, não só ao mês corrente.
+ *
+ *  Mesmo tratamento de `totalFixasGeral` (utils/despesasFixas.ts): com
+ *  `mesReferencia`, os meses em débito automático contam mesmo sem marcação
+ *  manual, sem contar duas vezes um mês que esteja também marcado à mão. Sem
+ *  `mesReferencia`, só o marcado, como sempre contou. */
+export function totalVeiculoGeral(veiculo: DadosVeiculo, mesReferencia?: YearMonth): Cents {
   const cargas = veiculo.cargas.reduce((s, c) => s + c.custo, 0);
   const despesas = veiculo.despesas.reduce((s, d) => s + d.valor, 0);
   const fixas = veiculo.despesasFixas.reduce((s, f) => {
-    const mesesPagos = Object.values(f.pagoPorMes).filter(Boolean).length;
-    return s + f.valor * mesesPagos;
+    const marcados = Object.entries(f.pagoPorMes ?? {})
+      .filter(([, pago]) => pago)
+      .map(([mes]) => mes as YearMonth);
+    const automaticos = mesReferencia ? mesesPagosComoAutoDebit(f, mesReferencia) : [];
+    return s + f.valor * new Set([...marcados, ...automaticos]).size;
   }, 0);
   return cargas + despesas + fixas;
 }
