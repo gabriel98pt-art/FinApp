@@ -127,7 +127,9 @@ function LinhaParcela({
             className={styles.acao}
             onClick={() => {
               void (async () => {
-                const totalQuit = valorQuitacao(p);
+                // O mesmo `mesRef` da linha acima e do que o serviço grava: o
+                // número que se confirma aqui tem de ser o que sai da conta.
+                const totalQuit = valorQuitacao(p, mesRef);
                 if (
                   !(await confirmar(
                     `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)}\n\nUma única despesa de quitação será criada hoje.`,
@@ -135,7 +137,7 @@ function LinhaParcela({
                 )
                   return;
                 await agir(
-                  () => quitarParcela(uid!, p),
+                  () => quitarParcela(uid!, p, mesRef),
                   `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
                 );
               })();

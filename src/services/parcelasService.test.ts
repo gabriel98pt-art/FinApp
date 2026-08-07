@@ -195,6 +195,56 @@ describe("quitarParcela", () => {
     await s.quitarParcela(UID, parcela);
     expect(snapshot).toHaveBeenCalledTimes(1);
   });
+
+  // O mês de referência decide o que já está resolvido. Sem ele, uma parcela em
+  // DÉBITO AUTOMÁTICO cobrava segunda vez tudo o que já tinha saído pela
+  // fatura: ela nunca é marcada à mão (o botão "Pagar mês" nem lhe aparece),
+  // portanto "sem marcação" era lido como "em aberto" desde o primeiro mês.
+  describe("parcela em débito automático", () => {
+    /** 1.200,00 € em 12× de 100,00 €, a começar em fevereiro. */
+    const auto: Parcela = {
+      ...parcela,
+      total: 120000,
+      numParcelas: 12,
+      primeiroMes: "2026-02",
+      autoDebit: true,
+    };
+
+    test("cobra só os meses que ainda não saíram do cartão", async () => {
+      // Em agosto: fevereiro a agosto já saíram; faltam setembro a janeiro.
+      await s.quitarParcela(UID, auto, "2026-08");
+      expect(lancamentoCriado().valor).toBe(50000);
+    });
+
+    test("não marca como paga a fatura que o cartão já cobrou", async () => {
+      await s.quitarParcela(UID, auto, "2026-08");
+      const m = updates[0].mudancas;
+      expect(m["parcelas/p1/pagoPorMes/2026-02"]).toBeUndefined();
+      expect(m["parcelas/p1/pagoPorMes/2026-08"]).toBeUndefined();
+      expect(m["parcelas/p1/pagoPorMes/2026-09"]).toBe(true);
+      expect(m["parcelas/p1/pagoPorMes/2027-01"]).toBe(true);
+    });
+
+    test("a nota conta as parcelas que a quitação cobre, não o plano inteiro", async () => {
+      await s.quitarParcela(UID, auto, "2026-08");
+      expect(lancamentoCriado().nota).toBe("Quitação antecipada — 5 parcela(s)");
+    });
+
+    test("depois do último mês não há nada a quitar", async () => {
+      await s.quitarParcela(UID, auto, "2027-01");
+      expect(updates).toHaveLength(0);
+    });
+
+    // Sem débito automático o mês de referência é indiferente — é o caso da
+    // esmagadora maioria das parcelas, e nelas nada muda.
+    test("parcela normal cobra o mesmo com ou sem mês de referência", async () => {
+      await s.quitarParcela(UID, parcela, "2026-08");
+      const comRef = lancamentoCriado().valor;
+      updates = [];
+      await s.quitarParcela(UID, parcela);
+      expect(lancamentoCriado().valor).toBe(comRef);
+    });
+  });
 });
 
 describe("excluirParcela", () => {

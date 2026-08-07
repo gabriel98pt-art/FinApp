@@ -6,7 +6,7 @@ import { db } from "./firebase";
 import { criarParcela as criarParcelaBase, semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
 import type { DespesaCorrente, Parcela, YearMonth } from "../types";
-import { hojeIso } from "../utils/calculos";
+import { hojeIso, mesAtual } from "../utils/calculos";
 import { mesesDaParcela, mesesNaoPagos, valorDaParcela, valorQuitacao } from "../utils/parcelas";
 
 const raiz = (uid: string) => `users/${uid}/fin_v5`;
@@ -60,12 +60,18 @@ export async function estornarMesParcela(
 
 /** Quitação antecipada (seção 4.3): soma as parcelas em aberto, marca todas
  *  pagas (`true` — some do débito automático de faturas futuras) e cria UM
- *  único lançamento de quitação. Pagamento direto — sem contaCartao. */
-export async function quitarParcela(uid: string, p: Parcela) {
-  const abertos = mesesNaoPagos(p);
+ *  único lançamento de quitação. Pagamento direto — sem contaCartao.
+ *
+ *  O `mesReferencia` decide o que já está resolvido, e é o que impede a
+ *  quitação de uma parcela em DÉBITO AUTOMÁTICO de cobrar segunda vez os meses
+ *  que já saíram pela fatura do cartão: sem ele, `mesesNaoPagos` conta todos os
+ *  meses sem marcação manual — e uma parcela em débito automático nunca é
+ *  marcada à mão, porque o botão "Pagar mês" nem lhe aparece. */
+export async function quitarParcela(uid: string, p: Parcela, mesReferencia = mesAtual()) {
+  const abertos = mesesNaoPagos(p, mesReferencia);
   if (abertos.length === 0) return;
   snapshotHistorico();
-  const total = valorQuitacao(p);
+  const total = valorQuitacao(p, mesReferencia);
   const lancamento: Omit<DespesaCorrente, "id"> = {
     descricao: `${p.descricao} (quitação)`,
     valor: total,
