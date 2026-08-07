@@ -54,7 +54,7 @@ export default function Inicio() {
   const acumulado =
     saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
     totalFixasGeral(despesasFixas, mesReal) -
-    totalParcelasGeral(parcelas) -
+    totalParcelasGeral(parcelas, mesReal) -
     totalVeiculoGeral(veiculo);
 
   return (

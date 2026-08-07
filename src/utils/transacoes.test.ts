@@ -205,6 +205,34 @@ describe("transacoesDoMes", () => {
       expect(t).toHaveLength(0);
     });
 
+    // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
+    // aparece para ela. Sem o mesReferencia, ela nunca entrava no extrato,
+    // mesmo já tendo saído sozinha do cartão.
+    it("em débito automático entra sem marcação, dado o mês de referência", () => {
+      const auto: Parcela = {
+        ...sofa,
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        pagoPorMes: {},
+      };
+      const t = transacoesDoMes({ ...vazio, parcelas: [auto] }, "2026-08", "2026-08");
+      expect(t).toHaveLength(1);
+      expect(t[0].valor).toBe(10000);
+      // Sem lançamento real, cai no dia do vencimento (dado incoerente).
+      expect(t[0].data).toBe("2026-08-20");
+    });
+
+    it("em débito automático, sem mesReferencia, comportamento antigo — não entra", () => {
+      const auto: Parcela = {
+        ...sofa,
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        pagoPorMes: {},
+      };
+      const t = transacoesDoMes({ ...vazio, parcelas: [auto] }, "2026-08");
+      expect(t).toHaveLength(0);
+    });
+
     it("mês pago usa a data do lançamento, não o dia do vencimento", () => {
       const t = transacoesDoMes(
         {

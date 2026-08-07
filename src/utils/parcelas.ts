@@ -34,7 +34,8 @@ export function valorDaParcela(p: Parcela, ym: YearMonth): Cents {
 
 /** Contribuição das parcelas no mês. Mesma regra das despesas fixas
  *  (contribuicaoFixasMes, utils/despesasFixas.ts):
- *  - mês CORRENTE (ym === mesReal): só conta as marcadas pagas naquele mês;
+ *  - mês CORRENTE (ym === mesReal): só conta as efetivamente pagas (marcadas
+ *    à mão, ou em débito automático — `estaEfetivamentePaga` trata as duas);
  *  - qualquer outro mês (passado ou futuro): conta o valor cheio de todas as
  *    parcelas cujo plano cobre o mês, pagas ou não.
  *  É por AQUI que a parcela entra nos totais — não pelo lançamento espelho
@@ -47,7 +48,9 @@ export function contribuicaoParcelasMes(
 ): Cents {
   const noPrazo = parcelas.filter((p) => mesesDaParcela(p).includes(ym));
   if (ym === mesReal) {
-    return noPrazo.filter((p) => p.pagoPorMes[ym]).reduce((s, p) => s + valorDaParcela(p, ym), 0);
+    return noPrazo
+      .filter((p) => estaEfetivamentePaga(p, ym, mesReal))
+      .reduce((s, p) => s + valorDaParcela(p, ym), 0);
   }
   return noPrazo.reduce((s, p) => s + valorDaParcela(p, ym), 0);
 }
@@ -71,14 +74,23 @@ export function pagoNoMes(parcelas: Parcela[], ym: YearMonth, mesReferencia: Yea
     .reduce((s, p) => s + valorDaParcela(p, ym), 0);
 }
 
-/** Total acumulado de todos os tempos: cada parcela conta os meses marcados
- *  pagos — mesma filosofia de totalFixasGeral/totalVeiculoGeral, e o mesmo
- *  valor que os lançamentos espelho somavam antes de saírem dos totais. */
-export function totalParcelasGeral(parcelas: Parcela[]): Cents {
+/** Total acumulado de todos os tempos: cada parcela conta os meses já
+ *  resolvidos — mesma filosofia de totalFixasGeral/totalVeiculoGeral, e o
+ *  mesmo valor que os lançamentos espelho somavam antes de saírem dos totais.
+ *
+ *  Com `mesReferencia`, um mês em débito automático conta mesmo sem marcação
+ *  manual (`estaEfetivamentePaga`) — sem ele, só o marcado à mão, como sempre
+ *  contou (o plano da parcela é sempre finito, ao contrário da fixa em aberto,
+ *  então aqui não há o problema de "não saber até onde recuar" que
+ *  `totalFixasGeral` tem). */
+export function totalParcelasGeral(parcelas: Parcela[], mesReferencia?: YearMonth): Cents {
   return parcelas.reduce(
     (s, p) =>
       s +
-      mesesDaParcela(p).reduce((sp, m) => (p.pagoPorMes[m] ? sp + valorDaParcela(p, m) : sp), 0),
+      mesesDaParcela(p).reduce(
+        (sp, m) => (estaEfetivamentePaga(p, m, mesReferencia) ? sp + valorDaParcela(p, m) : sp),
+        0,
+      ),
     0,
   );
 }

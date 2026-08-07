@@ -12,10 +12,12 @@
 //     DOIS lados: não é uma transação real, é uma correção de saldo (mesma
 //     regra de `despesasNosTotais`/`receitasNosTotais`, `utils/calculos.ts`).
 //
-// Fixa e parcela só entram no mês que já foi marcado pago. A fixa não tem data
-// exata: cai no `diaVencimento` quando existe, senão no dia 1 do mês — só pra
-// ter um lugar na ordenação. A parcela usa a data do lançamento real que o
-// pagamento criou, e só cai no `diaVencimento` se esse lançamento faltar.
+// Fixa e parcela só entram no mês em que já estão resolvidas — marcadas à mão,
+// ou em débito automático no cartão (fixaEfetivamentePaga/estaEfetivamentePaga
+// tratam isso sem precisar de marcação nenhuma). A fixa não tem data exata:
+// cai no `diaVencimento` quando existe, senão no dia 1 do mês — só pra ter um
+// lugar na ordenação. A parcela usa a data do lançamento real que o pagamento
+// criou, e só cai no `diaVencimento` se esse lançamento faltar.
 
 import type {
   Cents,
@@ -30,7 +32,7 @@ import type {
 } from "../types";
 import { mesDe } from "./calculos";
 import { fixaEfetivamentePaga } from "./fatura";
-import { mesesDaParcela, valorDaParcela } from "./parcelas";
+import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 
 export type OrigemTransacao =
   "receita" | "despesa" | "fixa" | "parcela" | "transferencia" | "carga" | "despesaVeiculo";
@@ -143,7 +145,7 @@ export function transacoesDoMes(
   // para dados incoerentes (mês marcado pago sem lançamento nenhum).
   for (const p of dados.parcelas) {
     if (!mesesDaParcela(p).includes(ym)) continue;
-    if (!p.pagoPorMes[ym]) continue;
+    if (!estaEfetivamentePaga(p, ym, mesReferencia)) continue;
     const idx = mesesDaParcela(p).indexOf(ym);
     // "quit" é a quitação antecipada: UM lançamento que varreu vários meses de
     // uma vez. Todos eles herdam essa data — é o dia real em que se pagou,

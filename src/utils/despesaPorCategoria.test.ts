@@ -97,6 +97,27 @@ describe("despesaPorCategoriaMes", () => {
     expect(despesaPorCategoriaMes([], [], p, SEM_VEICULO, "2026-07", "2026-07")).toEqual([]);
   });
 
+  // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
+  // aparece para ela. Sem tratar isso, ela sumia do donut no mês corrente.
+  test("mês corrente: parcela em débito automático entra sem marcação", () => {
+    const p: Parcela[] = [
+      {
+        id: "p1",
+        descricao: "Sofá",
+        total: 30000,
+        numParcelas: 3,
+        primeiroMes: "2026-06",
+        categoria: "Casa",
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        pagoPorMes: {},
+      },
+    ];
+    expect(despesaPorCategoriaMes([], [], p, SEM_VEICULO, "2026-07", "2026-07")).toEqual([
+      { categoria: "Casa", valor: 10000, pct: 100 },
+    ]);
+  });
+
   test("fixa ativa entra pelo valor cheio mesmo pendente; fora da janela não entra", () => {
     const fixas = [
       fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: {} }),

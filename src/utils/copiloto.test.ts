@@ -100,6 +100,28 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/8\d%/); // 15000/18000 ≈ 83%
   });
 
+  // categoriasDoMes (uso interno do Copiloto) reimplementa a mesma soma de
+  // despesaPorCategoriaMes — e tinha o mesmo furo: parcela em débito
+  // automático não contava sem marcação manual.
+  test("categoria específica soma a parcela em débito automático sem marcação", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 5000,
+      numParcelas: 1,
+      primeiroMes: "2026-07",
+      categoria: "Alimentação",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      pagoPorMes: {},
+    };
+    const resp = responderPergunta(
+      "quanto gastei em alimentação?",
+      ctx({ despesas, receitas, parcelas: [parcela] }),
+    );
+    expect(resp).toContain("200,00"); // 150,00 das despesas + 50,00 da parcela
+  });
+
   test("orçamento: dentro de todas as categorias", () => {
     const resp = responderPergunta(
       "estou dentro do orçamento?",
@@ -138,6 +160,60 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     const resp = responderPergunta("quanto falta pagar da tv nova", ctx({ parcelas: [parcela] }));
     expect(resp).toContain("TV Nova");
     expect(resp).toMatch(/2/); // 2 parcelas restantes
+  });
+
+  // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
+  // aparece para ela. Sem tratar isso, o Copiloto contava o mês corrente como
+  // "em aberto" mesmo já tendo saído sozinho do cartão.
+  test("parcela específica em débito automático não conta o mês já saído pelo cartão", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      pagoPorMes: {},
+    };
+    // mesReal = "2026-07": junho e julho já saíram pelo cartão, só agosto falta.
+    const resp = responderPergunta("quanto falta pagar da tv nova", ctx({ parcelas: [parcela] }));
+    expect(resp).toContain("TV Nova");
+    expect(resp).toMatch(/Faltam <b>1<\/b> parcela/);
+  });
+
+  test("parcelas agregado não conta o mês em débito automático já saído pelo cartão", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      pagoPorMes: {},
+    };
+    const resp = responderPergunta(
+      "quantas parcelas tenho em aberto",
+      ctx({ parcelas: [parcela] }),
+    );
+    expect(resp).toMatch(/<b>1<\/b> parcela/);
+  });
+
+  test("pendentes não conta a parcela em débito automático já saída pelo cartão", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      pagoPorMes: {},
+    };
+    // Julho já saiu pelo cartão (mesReal = 2026-07) — não é pendência.
+    const resp = responderPergunta("o que tenho pendente?", ctx({ parcelas: [parcela] }));
+    expect(resp).toMatch(/Não há pendentes/);
   });
 
   test("resumo do ano soma todos os meses, não só o mês corrente", () => {

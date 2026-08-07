@@ -95,6 +95,13 @@ describe("contribuicaoParcelasMes — mesma regra das fixas (mês corrente vs. f
     expect(contribuicaoParcelasMes([p], "2026-07", "2026-07")).toBe(1866);
   });
 
+  // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
+  // aparece para ela. Sem isto, o mês corrente ficava sempre de fora do total.
+  test("mês corrente: parcela em débito automático conta sem marcação", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
+    expect(contribuicaoParcelasMes([p], "2026-07", "2026-07")).toBe(1866);
+  });
+
   test("parcela fora do prazo não entra em nenhum dos dois casos", () => {
     const p = parcela();
     expect(contribuicaoParcelasMes([p], "2027-01", "2027-01")).toBe(0);
@@ -162,6 +169,37 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
 
   test("nada pago → 0", () => {
     expect(totalParcelasGeral([parcela()])).toBe(0);
+  });
+
+  test("sem mesReferencia, débito automático não conta — comportamento antigo", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
+    expect(totalParcelasGeral([p])).toBe(0);
+  });
+
+  // O plano da parcela é sempre finito (ao contrário da fixa em aberto), então
+  // não há o problema de "não saber até onde recuar": com mesReferencia, todo
+  // mês do plano até lá conta, mesmo sem marcação nenhuma.
+  test("com mesReferencia, débito automático conta todos os meses do plano até lá", () => {
+    const p = parcela({
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      primeiroMes: "2026-06",
+      numParcelas: 3,
+      pagoPorMes: {},
+    });
+    // junho + julho, agosto ainda não chegou
+    expect(totalParcelasGeral([p], "2026-07")).toBe(1867 + 1866);
+  });
+
+  test("mês marcado à mão que também é automático não conta duas vezes", () => {
+    const p = parcela({
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      primeiroMes: "2026-06",
+      numParcelas: 3,
+      pagoPorMes: { "2026-06": true },
+    });
+    expect(totalParcelasGeral([p], "2026-07")).toBe(1867 + 1866);
   });
 });
 

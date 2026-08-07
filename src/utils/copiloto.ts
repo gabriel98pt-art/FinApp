@@ -18,9 +18,15 @@ import type {
 } from "../types";
 import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
 import { proximosEventos } from "./calendario";
-import { calcularFatura, fixaAtivaNoMes, type DadosFatura } from "./fatura";
+import { calcularFatura, fixaAtivaNoMes, fixaEfetivamentePaga, type DadosFatura } from "./fatura";
 import { contribuicaoFixasMes } from "./despesasFixas";
-import { contribuicaoParcelasMes, mesesDaParcela, mesesNaoPagos, valorDaParcela } from "./parcelas";
+import {
+  contribuicaoParcelasMes,
+  estaEfetivamentePaga,
+  mesesDaParcela,
+  mesesNaoPagos,
+  valorDaParcela,
+} from "./parcelas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
 
@@ -226,11 +232,11 @@ function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, C
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
   for (const f of ctx.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym))) {
-    if (ym === ctx.mesReal && !f.pagoPorMes[ym]) continue;
+    if (ym === ctx.mesReal && !fixaEfetivamentePaga(f, ym, ctx.mesReal)) continue;
     ct[f.categoria] = (ct[f.categoria] || 0) + f.valor;
   }
   for (const p of ctx.parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === ctx.mesReal && !p.pagoPorMes[ym]) continue;
+    if (ym === ctx.mesReal && !estaEfetivamentePaga(p, ym, ctx.mesReal)) continue;
     const cat = p.categoria ?? "Parcelas";
     ct[cat] = (ct[cat] || 0) + valorDaParcela(p, ym);
   }
@@ -336,7 +342,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       );
       const p = ctx.parcelas.find((x) => x.descricao === nome);
       if (!p) return null;
-      const abertos = mesesNaoPagos(p);
+      const abertos = mesesNaoPagos(p, ctx.mesReal);
       if (!abertos.length) return `A parcela ${b(p.descricao)} já está totalmente paga.`;
       const restante = abertos.reduce((s, m) => s + valorDaParcela(p, m), 0);
       return `Faltam ${b(String(abertos.length))} parcela(s) de ${b(p.descricao)}, no total de ${b(formatMoney(restante, ctx.cfg.currency))}. Próxima em ${b(rotuloMes(abertos[0]))}.`;
@@ -349,7 +355,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       let total = 0;
       let n = 0;
       for (const p of ctx.parcelas) {
-        for (const m of mesesNaoPagos(p)) {
+        for (const m of mesesNaoPagos(p, ctx.mesReal)) {
           total += valorDaParcela(p, m);
           n++;
         }
@@ -431,7 +437,9 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   {
     test: (q) => q.includes("pendente"),
     run: (_q, ref, ctx) => {
-      const parcelasPendentes = ctx.parcelas.filter((p) => mesesNaoPagos(p).includes(ref.ym));
+      const parcelasPendentes = ctx.parcelas.filter((p) =>
+        mesesNaoPagos(p, ctx.mesReal).includes(ref.ym),
+      );
       const cartoesCredito = ctx.cfg.contasCartoes.filter(
         (c) => ctx.cfg.tipoCartao[c] === "credit",
       );

@@ -13,7 +13,7 @@ import type {
 } from "../types";
 import { despesasNosTotais, doMes } from "./calculos";
 import { fixaAtivaNoMes } from "./fatura";
-import { mesesDaParcela, valorDaParcela } from "./parcelas";
+import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
 
 export interface FatiaCategoria {
@@ -48,9 +48,10 @@ export function despesaPorCategoriaMes(
     somar(d.categoria, d.valor);
   }
   // Parcelas entram pelo plano (não pelo lançamento espelho, que
-  // `despesasNosTotais` já tirou), com a mesma regra mês corrente/mês fechado.
+  // `despesasNosTotais` já tirou), com a mesma regra mês corrente/mês fechado
+  // — e em débito automático conta mesmo sem marcação (estaEfetivamentePaga).
   for (const p of parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === mesReal && !p.pagoPorMes[ym]) continue;
+    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal)) continue;
     somar(p.categoria ?? "Parcelas", valorDaParcela(p, ym));
   }
   somar("Veículo", totalVeiculoMes(veiculo, ym, mesReal));

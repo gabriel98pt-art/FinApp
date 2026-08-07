@@ -107,6 +107,25 @@ describe("statusOrcamentoMes — seção 4.8", () => {
     expect(statusOrcamentoMes([], p, { Casa: 20000 }, "2026-07", "2026-07")[0].gasto).toBe(0);
   });
 
+  // Ninguém marca uma parcela em débito automático — sem tratar isso, ela
+  // nunca contava contra o orçamento no mês corrente.
+  test("mês corrente: parcela em débito automático conta sem marcação", () => {
+    const p: Parcela[] = [
+      {
+        id: "p1",
+        descricao: "Sofá",
+        total: 30000,
+        numParcelas: 3,
+        primeiroMes: "2026-06",
+        categoria: "Casa",
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        pagoPorMes: {},
+      },
+    ];
+    expect(statusOrcamentoMes([], p, { Casa: 20000 }, "2026-07", "2026-07")[0].gasto).toBe(10000);
+  });
+
   test("ordena pelo mais estourado primeiro", () => {
     const status = statusOrcamentoMes(
       despesas,
