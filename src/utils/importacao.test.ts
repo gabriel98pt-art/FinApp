@@ -870,11 +870,27 @@ describe("aplicarContaATodas", () => {
     expect(r.contaEscolhida).toBe("");
   });
 
-  test("a conta de destino da transferência nunca é tocada", () => {
+  test("a conta de destino da transferência nunca é tocada, numa saída (débito)", () => {
     // É outra conta por definição — a que recebeu, não a que mandou.
     const origem = { ...comDestino("transferencia_cartao"), contaDestino: "Poupança" };
     const [r] = aplicarContaATodas([origem], "Millennium");
     expect(r.contaDestino).toBe("Poupança");
+  });
+
+  // O bug: uma transferência RECEBIDA (crédito) já reconhecida pelo histórico
+  // (`transferenciaAprendida`) tinha as duas contas certas — e "conta de
+  // todas" escrevia sempre em contaOrigem, sobrescrevendo a origem aprendida
+  // com a própria conta (as duas pontas ficavam iguais, sem sentido nenhum).
+  test("numa entrada (crédito), a conta de todas vai para contaDestino — a origem aprendida fica intacta", () => {
+    const entrada: LinhaAnalisada = {
+      ...comDestino("transferencia_cartao"),
+      valor: 1326,
+      contaOrigem: "Revolut",
+      contaDestino: "",
+    };
+    const [r] = aplicarContaATodas([entrada], "ActivoBank");
+    expect(r.contaOrigem).toBe("Revolut");
+    expect(r.contaDestino).toBe("ActivoBank");
   });
 
   test("recarga fica intacta — hoje não grava conta nenhuma", () => {

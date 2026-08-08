@@ -892,20 +892,28 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
  *  trabalho repetido da página de importação.
  *
  *  Cada destino guarda a conta no seu campo: o lançamento normal em
- *  `contaEscolhida`, o pagamento de fatura e a transferência para cartão em
- *  `contaOrigem` — a conta de onde o dinheiro saiu. Ficam de fora a recarga,
- *  que hoje não grava conta nenhuma, e a `contaDestino` de uma transferência,
- *  que é por definição outra conta que não esta.
+ *  `contaEscolhida`; o pagamento de fatura em `contaOrigem` (de onde saiu).
+ *
+ *  A transferência é a única com duas contas, e só se sabe QUAL desta linha é
+ *  "esta conta" pelo sinal: numa saída (débito) é a origem; numa entrada
+ *  (crédito), é o destino — a outra ponta é sempre a OUTRA conta, nunca esta.
+ *  Só mexe no lado que é "esta conta"; o outro lado fica como estava —
+ *  crucial quando `transferenciaAprendida` já resolveu as duas contas de uma
+ *  transferência recorrente (utils/importacao.ts): sobrescrever aqui também
+ *  apagava a contraparte certa e deixava as duas pontas na mesma conta.
+ *
+ *  Fica de fora a recarga, que hoje não grava conta nenhuma.
  *
  *  Sobrescreve o que já lá estava, como o "marcar tudo" faz com a ação, e mexe
  *  em todas as linhas e não só nas marcadas para importar — assim uma linha que
  *  volte a ser marcada depois já vem com a conta certa. */
 export function aplicarContaATodas(linhas: LinhaAnalisada[], conta: string): LinhaAnalisada[] {
-  return linhas.map((l) =>
-    l.destino === "lancamento"
-      ? { ...l, contaEscolhida: conta }
-      : l.destino === "transferencia_cartao" || l.destino === "pagamento_fatura"
-        ? { ...l, contaOrigem: conta }
-        : l,
-  );
+  return linhas.map((l) => {
+    if (l.destino === "lancamento") return { ...l, contaEscolhida: conta };
+    if (l.destino === "pagamento_fatura") return { ...l, contaOrigem: conta };
+    if (l.destino === "transferencia_cartao") {
+      return l.valor >= 0 ? { ...l, contaDestino: conta } : { ...l, contaOrigem: conta };
+    }
+    return l;
+  });
 }
