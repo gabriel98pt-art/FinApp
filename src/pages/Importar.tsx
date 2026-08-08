@@ -37,6 +37,7 @@ import type {
   ExistenteParaDedup,
   LinhaAnalisada,
   LinhaExtrato,
+  OrigemExistente,
 } from "../types";
 import styles from "./Importar.module.css";
 
@@ -45,6 +46,17 @@ const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
   nova: "Nova",
   duplicata_provavel: "Provável duplicata",
   revisao: "Revisão",
+};
+
+/** Onde um registo já existente mora, em português — usado no "ver detalhes"
+ *  de um possível cruzamento (duplicata ou outra ponta de transferência). */
+const ROTULO_ORIGEM: Record<OrigemExistente, string> = {
+  receita: "Receitas",
+  despesa: "Despesas",
+  carga: "Veículo — carga elétrica",
+  despesaVeiculo: "Veículo — despesa",
+  transferencia: "Transferências",
+  despesaFixa: "Despesas fixas",
 };
 
 /** Tipo do registo de cada linha na revisão. "Lançamento simples" é o que
@@ -150,6 +162,10 @@ export default function Importar() {
   /** Ids das linhas cujo registo antigo o usuário mandou apagar. Desligado por
    *  omissão: apagar é sempre escolha dele, nunca automático. */
   const [marcadasParaApagar, setMarcadasParaApagar] = useState<Set<number>>(new Set());
+  /** Linhas cujo aviso "outra ponta da transferência" está expandido, mostrando
+   *  data/valor/onde está do registo que bateu — fechado por omissão, pra não
+   *  poluir a lista quando não interessa. */
+  const [outraPontaAberta, setOutraPontaAberta] = useState<Set<number>>(new Set());
   const arquivoRef = useRef<HTMLInputElement>(null);
 
   const categoriasConfiguradas = [...cfg.categoriasFixas, ...cfg.categoriasCorrentes];
@@ -746,13 +762,53 @@ export default function Importar() {
                   {/* A outra ponta da mesma transferência, já lançada do
                           lado contrário. Fica em tom próprio: não é "isto já
                           foi importado", é "este dinheiro já está no app pelo
-                          outro lado". */}
+                          outro lado". Mesmo formato do aviso de duplicata
+                          logo abaixo (descrição + motivos), pra não faltar
+                          justamente a pista mais concreta — a proximidade de
+                          data —, e com "ver detalhes" pra conferir sem sair
+                          da lista. */}
                   {l.outraPonta?.correspondencia && (
-                    <p className={styles.outraPonta}>
-                      Isto pode ser a mesma transferência que já tens registada como "
-                      {descricaoExistente(l.outraPonta.correspondencia, cfg.currency)}", do outro
-                      lado — vê se não vale a pena deixar de fora.
-                    </p>
+                    <div className={styles.outraPonta}>
+                      <p>
+                        O outro lado desta transferência já pode estar registado como "
+                        {descricaoExistente(l.outraPonta.correspondencia, cfg.currency)}" —{" "}
+                        {l.outraPonta.motivos.join(", ")}. Se for a mesma, desmarque esta linha para
+                        não contar o dinheiro duas vezes.
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.outraPontaAcao}
+                        onClick={() =>
+                          setOutraPontaAberta((atual) => {
+                            const novo = new Set(atual);
+                            if (novo.has(l.id)) novo.delete(l.id);
+                            else novo.add(l.id);
+                            return novo;
+                          })
+                        }
+                      >
+                        {outraPontaAberta.has(l.id) ? "Ocultar detalhes" : "Ver detalhes"}
+                      </button>
+                      {outraPontaAberta.has(l.id) && (
+                        <dl className={styles.outraPontaDetalhes}>
+                          <dt>Data</dt>
+                          <dd>
+                            {l.outraPonta.correspondencia.data.slice(8, 10)}/
+                            {l.outraPonta.correspondencia.data.slice(5, 7)}/
+                            {l.outraPonta.correspondencia.data.slice(0, 4)}
+                          </dd>
+                          <dt>Valor</dt>
+                          <dd>
+                            {formatMoney(
+                              Math.abs(l.outraPonta.correspondencia.valor),
+                              cfg.currency,
+                            )}
+                          </dd>
+                          <dt>Onde está</dt>
+                          <dd>{ROTULO_ORIGEM[l.outraPonta.correspondencia.origem]}</dd>
+                        </dl>
+                      )}
+                    </div>
                   )}
                   {l.duplicata.status !== "new" && l.duplicata.correspondencia && (
                     <p className={styles.motivoDup}>

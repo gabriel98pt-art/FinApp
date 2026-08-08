@@ -396,4 +396,38 @@
 .outraPonta {
   color: var(--blu);
   font-size: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.outraPontaAcao {
+  color: var(--blu);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.outraPontaDetalhes {
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 0.72rem;
+  color: var(--mut);
+}
+
+.outraPontaDetalhes dt {
+  font-weight: 700;
+  color: var(--txt);
+}
+
+.outraPontaDetalhes dd {
+  margin: 0;
 }
