@@ -112,6 +112,28 @@ describe("despesaRealizadaMes — o total do app tem que incluir fixas gerais e 
     ];
     expect(despesaRealizadaMes([], [], p, veiculo(), "2026-10", "2026-12")).toBe(0);
   });
+
+  // O bug relatado: uma parcela em débito automático que vence dia 27 já
+  // contava como despesa realizada no dia 8. `hoje` dá precisão de dia.
+  test("com `hoje`, débito automático só conta como realizada depois do dia de vencimento", () => {
+    const p: Parcela[] = [
+      {
+        id: "p1",
+        descricao: "iPhone",
+        total: 30000,
+        numParcelas: 3,
+        primeiroMes: "2026-07",
+        diaVencimento: 27,
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        pagoPorMes: {},
+      },
+    ];
+    expect(despesaRealizadaMes([], [], p, veiculo(), "2026-07", "2026-07", "2026-07-08")).toBe(0);
+    expect(despesaRealizadaMes([], [], p, veiculo(), "2026-07", "2026-07", "2026-07-27")).toBe(
+      10000,
+    );
+  });
 });
 
 test("resumoMesCompleto: saldo = receitas − (despesas correntes + fixas gerais + veículo)", () => {

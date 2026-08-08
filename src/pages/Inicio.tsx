@@ -13,7 +13,13 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { despesasNosTotais, mesAtual, receitasNosTotais, saldoTotal } from "../utils/calculos";
+import {
+  despesasNosTotais,
+  hojeIso,
+  mesAtual,
+  receitasNosTotais,
+  saldoTotal,
+} from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { totalParcelasGeral } from "../utils/parcelas";
 import { resumoMesCompleto } from "../utils/resumoMensal";
@@ -45,6 +51,7 @@ export default function Inicio() {
     veiculo,
     mes,
     mesReal,
+    hojeIso(),
   );
   // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
   // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o

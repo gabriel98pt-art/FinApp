@@ -77,6 +77,43 @@ test("progresso conta pagas/total", () => {
   expect(progressoDaParcela(p)).toEqual({ pagas: 1, total: 3 });
 });
 
+// O bug: uma parcela em débito automático que vence dia 27 aparecia como paga
+// já no dia 1 do mês, só porque o mês tinha começado — datada no futuro no
+// extrato de Transações. `hoje` dá precisão de dia ao mês corrente.
+describe("estaEfetivamentePaga — precisão de dia no mês corrente (com `hoje`)", () => {
+  test("sem `hoje`, mês inteiro conta desde o dia 1 — comportamento antigo", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07")).toBe(true);
+  });
+
+  test("com `hoje`, não conta antes do dia de vencimento", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-08")).toBe(false);
+  });
+
+  test("com `hoje`, conta assim que o dia de vencimento chega ou passa", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-27")).toBe(true);
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-28")).toBe(true);
+  });
+
+  test("mês inteiramente fechado conta mesmo com `hoje` cedo no mês seguinte", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-08", "2026-08-01")).toBe(true);
+  });
+
+  test("sem diaVencimento, espera o fim do mês em vez de supor o dia 1", () => {
+    const p = parcela({ cartao: "AB Gold (C)", autoDebit: true });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-15")).toBe(false);
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-31")).toBe(true);
+  });
+
+  test("marcada à mão conta sempre, `hoje` ou não", () => {
+    const p = parcela({ pagoPorMes: { "2026-07": true } });
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-01")).toBe(true);
+  });
+});
+
 describe("contribuicaoParcelasMes — mesma regra das fixas (mês corrente vs. fechado)", () => {
   test("mês fechado: conta o valor cheio de todas no prazo, pagas ou não", () => {
     const paga = parcela({ id: "p1", pagoPorMes: { "2026-07": true } });
@@ -100,6 +137,17 @@ describe("contribuicaoParcelasMes — mesma regra das fixas (mês corrente vs. f
   test("mês corrente: parcela em débito automático conta sem marcação", () => {
     const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
     expect(contribuicaoParcelasMes([p], "2026-07", "2026-07")).toBe(1866);
+  });
+
+  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+    const p = parcela({
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 27,
+      pagoPorMes: {},
+    });
+    expect(contribuicaoParcelasMes([p], "2026-07", "2026-07", "2026-07-08")).toBe(0);
+    expect(contribuicaoParcelasMes([p], "2026-07", "2026-07", "2026-07-27")).toBe(1866);
   });
 
   test("parcela fora do prazo não entra em nenhum dos dois casos", () => {

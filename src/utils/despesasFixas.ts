@@ -1,23 +1,25 @@
 // Despesas fixas gerais (aluguel, assinaturas, seguro etc.) — mesmo padrão
 // das fixas do veículo (utils/veiculo.ts), domínio próprio e independente.
 
-import type { Cents, DespesaFixa, YearMonth } from "../types";
+import type { Cents, DespesaFixa, IsoDate, YearMonth } from "../types";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 /** Contribuição das despesas fixas gerais no mês. Mesma regra do veículo
  *  (contribuicaoFixasVeiculoMes, seção "Parte A"):
  *  - mês CORRENTE (ym === mesReal): só conta as marcadas pagas naquele mês;
  *  - qualquer outro mês (passado ou futuro): conta o valor cheio de todas as
- *    ativas. */
+ *    ativas.
+ *  Com `hoje`, o mês corrente ganha precisão de dia — ver `fixaEfetivamentePaga`. */
 export function contribuicaoFixasMes(
   fixas: DespesaFixa[],
   ym: YearMonth,
   mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   const ativas = fixas.filter((f) => fixaAtivaNoMes(f, ym));
   if (ym === mesReal) {
     return ativas
-      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal))
+      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))
       .reduce((s, f) => s + f.valor, 0);
   }
   return ativas.reduce((s, f) => s + f.valor, 0);

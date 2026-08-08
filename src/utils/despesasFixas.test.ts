@@ -40,6 +40,16 @@ describe("contribuicaoFixasMes — corrente parcial vs fechado total", () => {
     expect(contribuicaoFixasMes(fixas, "2026-07", "2026-07")).toBe(45000);
   });
 
+  // O bug: uma fixa que vence dia 27 contava já no dia 1 — `hoje` dá precisão
+  // de dia ao mês corrente.
+  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+    const fixas = [
+      fixa({ valor: 45000, contaCartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 }),
+    ];
+    expect(contribuicaoFixasMes(fixas, "2026-07", "2026-07", "2026-07-08")).toBe(0);
+    expect(contribuicaoFixasMes(fixas, "2026-07", "2026-07", "2026-07-27")).toBe(45000);
+  });
+
   test("respeita a janela inicio/fim mesmo em mês fechado", () => {
     const fixas = [fixa({ valor: 45000, inicio: "2026-08" })];
     expect(contribuicaoFixasMes(fixas, "2026-07", "2026-08")).toBe(0);

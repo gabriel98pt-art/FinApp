@@ -1,9 +1,9 @@
 // Funções puras de parcelas (seção 4.3) — comportamento portado do app de
 // referência, sem dependência de Firebase/DOM.
 
-import type { Cents, YearMonth } from "../types";
+import type { Cents, IsoDate, YearMonth } from "../types";
 import type { Parcela } from "../types";
-import { somarMeses } from "./calculos";
+import { diaDoMes, somarMeses } from "./calculos";
 
 /** Todos os meses do plano, do primeiro ao último. */
 export function mesesDaParcela(p: Parcela): YearMonth[] {
@@ -45,11 +45,12 @@ export function contribuicaoParcelasMes(
   parcelas: Parcela[],
   ym: YearMonth,
   mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   const noPrazo = parcelas.filter((p) => mesesDaParcela(p).includes(ym));
   if (ym === mesReal) {
     return noPrazo
-      .filter((p) => estaEfetivamentePaga(p, ym, mesReal))
+      .filter((p) => estaEfetivamentePaga(p, ym, mesReal, hoje))
       .reduce((s, p) => s + valorDaParcela(p, ym), 0);
   }
   return noPrazo.reduce((s, p) => s + valorDaParcela(p, ym), 0);
@@ -105,14 +106,28 @@ export function totalParcelasGeral(parcelas: Parcela[], mesReferencia?: YearMont
  *  dinheiro que já não está em jogo.
  *
  *  Sem `mesReferencia` conta só o que está marcado — o comportamento de
- *  sempre, que é o que o Copiloto e o resto do app continuam a ver. */
+ *  sempre, que é o que o Copiloto e o resto do app continuam a ver.
+ *
+ *  Com `hoje`, o MÊS corrente ganha precisão de DIA: uma parcela que vence dia
+ *  27 não conta como paga no dia 8 só porque o mês já começou — dizer isso ao
+ *  Registro Rápido e ao extrato de Transações fazia uma compra do dia 27
+ *  aparecer como já feita no dia 8, com a data dela no futuro. Mês inteiramente
+ *  fechado (`mes < mesReferencia`) continua a contar sem olhar o dia — não há
+ *  dúvida nenhuma de que esse já passou por inteiro. Sem `hoje`, quem chama não
+ *  se importa com o dia — o comportamento de sempre, o mês inteiro de uma vez. */
 export function estaEfetivamentePaga(
   p: Parcela,
   mes: YearMonth,
   mesReferencia?: YearMonth,
+  hoje?: IsoDate,
 ): boolean {
   if (p.pagoPorMes[mes]) return true;
-  return !!mesReferencia && !!p.cartao && !!p.autoDebit && mes <= mesReferencia;
+  if (!mesReferencia || !p.cartao || !p.autoDebit || mes > mesReferencia) return false;
+  if (mes < mesReferencia || !hoje) return true;
+  // Sem diaVencimento não há como saber o dia certo — mais seguro esperar o
+  // fim do mês (dia 31, que diaDoMes prende ao último dia real) do que supor
+  // logo o dia 1, que é o padrão de diaDoMes para "sem dia nenhum".
+  return diaDoMes(mes, p.diaVencimento ?? 31) <= hoje;
 }
 
 /** Dia em que a parcela vence de facto. Paga por cartão em débito automático,

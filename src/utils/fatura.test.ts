@@ -415,4 +415,35 @@ describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém ma
     const f = { ...fixa(), pagoPorMes: undefined } as unknown as DespesaFixa;
     expect(fixaEfetivamentePaga(f, "2026-07", "2026-08")).toBe(false);
   });
+
+  // O bug: uma fixa que vence dia 27 aparecia como paga já no dia 1 do mês —
+  // datada no futuro no extrato de Transações. `hoje` dá precisão de dia.
+  describe("com `hoje`, precisão de dia no mês corrente", () => {
+    test("não conta antes do dia de vencimento", () => {
+      const f = fixa({ contaCartao: CARTAO, autoDebit: true, diaVencimento: 27 });
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-08")).toBe(false);
+    });
+
+    test("conta assim que o dia chega ou passa", () => {
+      const f = fixa({ contaCartao: CARTAO, autoDebit: true, diaVencimento: 27 });
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-27")).toBe(true);
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-28")).toBe(true);
+    });
+
+    test("mês inteiramente fechado conta mesmo cedo no mês seguinte", () => {
+      const f = fixa({ contaCartao: CARTAO, autoDebit: true, diaVencimento: 27 });
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-08", "2026-08-01")).toBe(true);
+    });
+
+    test("sem diaVencimento, espera o fim do mês em vez de supor o dia 1", () => {
+      const f = fixa({ contaCartao: CARTAO, autoDebit: true });
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-15")).toBe(false);
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-31")).toBe(true);
+    });
+
+    test("sem `hoje`, mês inteiro conta desde o dia 1 — comportamento antigo", () => {
+      const f = fixa({ contaCartao: CARTAO, autoDebit: true, diaVencimento: 27 });
+      expect(fixaEfetivamentePaga(f, "2026-07", "2026-07")).toBe(true);
+    });
+  });
 });

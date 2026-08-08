@@ -9,8 +9,15 @@
 //     fatura em `cicloDaFatura`.
 
 import type { Cents, DespesaFixa, IsoDate, Parcela, YearMonth } from "../types";
+import { diaDoMes } from "./calculos";
 import { fixaAtivaNoMes } from "./fatura";
 import { diaVencimentoEfetivo, mesesDaParcela, valorDaParcela } from "./parcelas";
+
+// `diaDoMes` mora em utils/calculos.ts (módulo sem dependências), pra dar pra
+// usar também de utils/parcelas.ts e utils/fatura.ts sem import circular —
+// mas continua exportado daqui, que é de onde a importação e as notificações
+// já o importam.
+export { diaDoMes };
 
 export type TipoVencimento = "fixa" | "parcela" | "fatura";
 
@@ -20,19 +27,6 @@ export interface Vencimento {
   titulo: string;
   detalhe?: string;
   valor: Cents;
-}
-
-/** Dia do mês limitado ao último dia real — dia 31 em fevereiro vira 28/29
- *  em vez de virar uma data inválida. */
-/** Data do dia `dia` nesse mês, com o dia preso ao que o mês tem: um
- *  vencimento a 31 cai no dia 28 em fevereiro, em vez de escorregar para
- *  março. Usado também pela dedup da importação, que precisa de uma data para
- *  comparar com a linha do banco. */
-export function diaDoMes(ym: YearMonth, dia: number): IsoDate {
-  const [y, m] = ym.split("-").map(Number);
-  const ultimo = new Date(y, m, 0).getDate();
-  const d = Math.min(Math.max(dia, 1), ultimo);
-  return `${ym}-${String(d).padStart(2, "0")}`;
 }
 
 /** Fixas ativas no mês que têm dia de vencimento. */

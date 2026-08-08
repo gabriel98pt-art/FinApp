@@ -118,6 +118,18 @@ export function diaDe(data: IsoDate): number {
   return Number(data.slice(8, 10));
 }
 
+/** Data do dia `dia` nesse mês, presa ao que o mês tem: um vencimento a 31
+ *  cai no dia 28 em fevereiro, em vez de escorregar pra março. Sem `dia` (ou
+ *  0), cai no dia 1 — só pra ter um lugar na ordenação. Vive aqui (módulo sem
+ *  dependência de parcela/fixa/fatura) pra dar pra usar de qualquer um deles
+ *  sem import circular. */
+export function diaDoMes(ym: YearMonth, dia?: number): IsoDate {
+  const [y, m] = ym.split("-").map(Number);
+  const ultimo = new Date(y, m, 0).getDate();
+  const d = Math.min(Math.max(dia || 1, 1), ultimo);
+  return `${ym}-${String(d).padStart(2, "0")}`;
+}
+
 /** '2026-07' → 'julho 2026'. */
 export function rotuloMes(ym: YearMonth): string {
   const [y, m] = ym.split("-").map(Number);

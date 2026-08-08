@@ -14,10 +14,13 @@
 //
 // Fixa e parcela só entram no mês em que já estão resolvidas — marcadas à mão,
 // ou em débito automático no cartão (fixaEfetivamentePaga/estaEfetivamentePaga
-// tratam isso sem precisar de marcação nenhuma). A fixa não tem data exata:
-// cai no `diaVencimento` quando existe, senão no dia 1 do mês — só pra ter um
-// lugar na ordenação. A parcela usa a data do lançamento real que o pagamento
-// criou, e só cai no `diaVencimento` se esse lançamento faltar.
+// tratam isso sem precisar de marcação nenhuma). Com `hoje`, isso tem precisão
+// de DIA no mês corrente: uma cobrança do dia 27 não aparece como já feita no
+// dia 8 — sem `hoje`, é o mês inteiro de uma vez, contado desde o dia 1. A fixa
+// não tem data exata: cai no `diaVencimento` quando existe, senão no dia 1 do
+// mês — só pra ter um lugar na ordenação. A parcela usa a data do lançamento
+// real que o pagamento criou, e só cai no `diaVencimento` se esse lançamento
+// faltar.
 
 import type {
   Cents,
@@ -30,7 +33,7 @@ import type {
   Transferencia,
   YearMonth,
 } from "../types";
-import { mesDe } from "./calculos";
+import { diaDoMes, mesDe } from "./calculos";
 import { fixaEfetivamentePaga } from "./fatura";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 
@@ -65,20 +68,18 @@ export interface DadosTransacoes {
   veiculo: DadosVeiculo;
 }
 
-function diaDoMes(ym: YearMonth, dia?: number): IsoDate {
-  if (!dia) return `${ym}-01`;
-  const [y, m] = ym.split("-").map(Number);
-  const ultimo = new Date(y, m, 0).getDate();
-  return `${ym}-${String(Math.min(Math.max(dia, 1), ultimo)).padStart(2, "0")}`;
-}
-
 export function transacoesDoMes(
   dados: DadosTransacoes,
   ym: YearMonth,
-  /** Mês de hoje. Só serve para as fixas em débito automático, que contam como
-   *  pagas sem ninguém as marcar (ver `fixaEfetivamentePaga`). Opcional: sem
-   *  ele, só o que está marcado à mão entra — o comportamento de sempre. */
+  /** Mês de hoje. Só serve para as fixas/parcelas em débito automático, que
+   *  contam como pagas sem ninguém as marcar (ver `fixaEfetivamentePaga`).
+   *  Opcional: sem ele, só o que está marcado à mão entra — o comportamento
+   *  de sempre. */
   mesReferencia?: YearMonth,
+  /** Dia de hoje. Dá precisão de DIA ao mês corrente: uma fixa/parcela em
+   *  débito automático que vence dia 27 não aparece no extrato antes do dia
+   *  27 — sem isto, ela aparecia já no dia 1, com a data dela no futuro. */
+  hoje?: IsoDate,
 ): Transacao[] {
   const itens: Transacao[] = [];
 
@@ -118,7 +119,7 @@ export function transacoesDoMes(
   // à mão, ou em débito automático no cartão, que não precisa de marcação.
   const todasFixas = [...dados.despesasFixas, ...dados.veiculo.despesasFixas];
   for (const f of todasFixas) {
-    if (!fixaEfetivamentePaga(f, ym, mesReferencia)) continue;
+    if (!fixaEfetivamentePaga(f, ym, mesReferencia, hoje)) continue;
     itens.push({
       chave: `fixa-${f.id}-${ym}`,
       refId: f.id,
@@ -145,7 +146,7 @@ export function transacoesDoMes(
   // para dados incoerentes (mês marcado pago sem lançamento nenhum).
   for (const p of dados.parcelas) {
     if (!mesesDaParcela(p).includes(ym)) continue;
-    if (!estaEfetivamentePaga(p, ym, mesReferencia)) continue;
+    if (!estaEfetivamentePaga(p, ym, mesReferencia, hoje)) continue;
     const idx = mesesDaParcela(p).indexOf(ym);
     // "quit" é a quitação antecipada: UM lançamento que varreu vários meses de
     // uma vez. Todos eles herdam essa data — é o dia real em que se pagou,

@@ -73,7 +73,7 @@ export default function Veiculo() {
   const mes = useMesVisivelStore((s) => s.mes);
   const real = mesAtual();
 
-  const gastoDoMes = totalVeiculoMes(dados, mes, real);
+  const gastoDoMes = totalVeiculoMes(dados, mes, real, hojeIso());
   const cargasDoMes = totalCargasMes(dados, mes);
   const despesasDoMes = totalDespesasVeiculoMes(dados, mes);
   const kmDoMes = dados.quilometragem

@@ -2,7 +2,14 @@
 // Portado do financas.html: totVeh(ym) = cargas + despesas variáveis + fixas
 // ativas do veículo, somado dentro do total geral de despesas do app.
 
-import type { CargaEletrica, Cents, DadosVeiculo, DespesaCorrente, YearMonth } from "../types";
+import type {
+  CargaEletrica,
+  Cents,
+  DadosVeiculo,
+  DespesaCorrente,
+  IsoDate,
+  YearMonth,
+} from "../types";
 import { doMes, mesDe, totalDoMes } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
@@ -26,22 +33,28 @@ export function contribuicaoFixasVeiculoMes(
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   const ativas = veiculo.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym));
   if (ym === mesReal) {
     return ativas
-      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal))
+      .filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))
       .reduce((s, f) => s + f.valor, 0);
   }
   return ativas.reduce((s, f) => s + f.valor, 0);
 }
 
 /** Total do veículo no mês — cargas + despesas variáveis + fixas (seção 3). */
-export function totalVeiculoMes(veiculo: DadosVeiculo, ym: YearMonth, mesReal: YearMonth): Cents {
+export function totalVeiculoMes(
+  veiculo: DadosVeiculo,
+  ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   return (
     totalCargasMes(veiculo, ym) +
     totalDespesasVeiculoMes(veiculo, ym) +
-    contribuicaoFixasVeiculoMes(veiculo, ym, mesReal)
+    contribuicaoFixasVeiculoMes(veiculo, ym, mesReal, hoje)
   );
 }
 

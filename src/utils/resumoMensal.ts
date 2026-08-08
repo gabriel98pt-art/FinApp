@@ -7,6 +7,7 @@ import type {
   DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
+  IsoDate,
   Parcela,
   Receita,
   YearMonth,
@@ -36,12 +37,16 @@ export function despesaRealizadaMes(
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
+  /** Dia de hoje — dá precisão de dia ao mês corrente (ver `estaEfetivamentePaga`/
+   *  `fixaEfetivamentePaga`): uma cobrança do dia 27 não conta como despesa
+   *  realizada no dia 8. Opcional, mesmo mês inteiro de sempre sem ele. */
+  hoje?: IsoDate,
 ): Cents {
   return (
     totalDoMes(despesasNosTotais(despesasCorrentes), ym) +
-    contribuicaoFixasMes(despesasFixas, ym, mesReal) +
-    contribuicaoParcelasMes(parcelas, ym, mesReal) +
-    totalVeiculoMes(veiculo, ym, mesReal)
+    contribuicaoFixasMes(despesasFixas, ym, mesReal, hoje) +
+    contribuicaoParcelasMes(parcelas, ym, mesReal, hoje) +
+    totalVeiculoMes(veiculo, ym, mesReal, hoje)
   );
 }
 
@@ -53,9 +58,18 @@ export function resumoMesCompleto(
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
+  hoje?: IsoDate,
 ): ResumoMesCompleto {
   const r = totalDoMes(receitasNosTotais(receitas), ym);
-  const d = despesaRealizadaMes(despesasCorrentes, despesasFixas, parcelas, veiculo, ym, mesReal);
+  const d = despesaRealizadaMes(
+    despesasCorrentes,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    ym,
+    mesReal,
+    hoje,
+  );
   return { receitas: r, despesas: d, saldo: r - d };
 }
 

@@ -16,12 +16,13 @@ import type {
   DespesaFixa,
   DespesaVeiculo,
   FaturaCalculada,
+  IsoDate,
   PagamentoFatura,
   Parcela,
   Transferencia,
   YearMonth,
 } from "../types";
-import { mesDe, somarMeses } from "./calculos";
+import { diaDoMes, mesDe, somarMeses } from "./calculos";
 import { mesesDaParcela, valorDaParcela } from "./parcelas";
 import { toCents } from "./money";
 
@@ -50,11 +51,20 @@ export function fixaAtivaNoMes(d: DespesaFixa, ym: YearMonth): boolean {
  *  totais do mês corrente, apesar de o cálculo da fatura já a cobrar.
  *
  *  Sem `mesReferencia` conta só o que está marcado — o comportamento de
- *  sempre, para quem chama sem se importar com o mês de hoje. */
+ *  sempre, para quem chama sem se importar com o mês de hoje.
+ *
+ *  Com `hoje`, o MÊS corrente ganha precisão de DIA — mesma razão de
+ *  `estaEfetivamentePaga` (utils/parcelas.ts): uma fixa que vence dia 27 não
+ *  pode contar como paga no dia 8 só porque agosto já começou, senão o
+ *  extrato de Transações mostra uma cobrança do dia 27 como já feita no dia 8,
+ *  com data no futuro. Sem `hoje`, quem chama não se importa com o dia — o
+ *  mês inteiro de uma vez, como sempre (ex. as notificações do sino, que
+ *  tratam débito automático como nunca sendo pendência, dia nenhum importa). */
 export function fixaEfetivamentePaga(
   f: DespesaFixa,
   mes: YearMonth,
   mesReferencia?: YearMonth,
+  hoje?: IsoDate,
 ): boolean {
   // `pagoPorMes` pode vir indefinido: o RTDB apaga objetos vazios.
   if (f.pagoPorMes?.[mes]) return true;
@@ -62,7 +72,11 @@ export function fixaEfetivamentePaga(
   // O mês tem de estar dentro do plano da fixa — quem chama nem sempre filtra
   // por isso antes (o extrato de Transações percorre todas), e sem esta linha
   // uma fixa passava a "paga" em meses anteriores ao seu início.
-  return fixaAtivaNoMes(f, mes);
+  if (!fixaAtivaNoMes(f, mes)) return false;
+  if (mes < mesReferencia || !hoje) return true;
+  // Sem diaVencimento não há como saber o dia certo — mais seguro esperar o
+  // fim do mês do que supor logo o dia 1 (o padrão de diaDoMes sem dia).
+  return diaDoMes(mes, f.diaVencimento ?? 31) <= hoje;
 }
 
 /** Todos os meses em que a fixa já saiu sozinha do cartão, do início até hoje

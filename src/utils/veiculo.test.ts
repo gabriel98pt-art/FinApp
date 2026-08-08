@@ -71,6 +71,16 @@ describe("contribuicaoFixasVeiculoMes — corrente parcial vs fechado total", ()
     expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07")).toBe(4500);
   });
 
+  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+    const v = veiculo({
+      despesasFixas: [
+        fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 }),
+      ],
+    });
+    expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07", "2026-07-08")).toBe(0);
+    expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07", "2026-07-27")).toBe(4500);
+  });
+
   test("mês fechado (passado): conta o total cheio, pago ou não", () => {
     const v = veiculo({
       despesasFixas: [

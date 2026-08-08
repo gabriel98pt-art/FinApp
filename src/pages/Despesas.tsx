@@ -81,6 +81,7 @@ export default function Despesas() {
     veiculo,
     mes,
     mesReal,
+    hojeIso(),
   );
   // Card "Maior categoria": a maior fatia do mês fora veículo e aluguel — as
   // duas lideram quase sempre e não dizem nada de novo (ver o util).

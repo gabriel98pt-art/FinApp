@@ -175,6 +175,26 @@ describe("transacoesDoMes", () => {
     expect(transacoesDoMes(dados, "2026-07")).toHaveLength(0);
   });
 
+  // O bug relatado: MEO vence dia 27 e aparecia no extrato já no dia 1 de
+  // agosto, com data no futuro. `hoje` dá precisão de dia ao mês corrente.
+  it("com `hoje`, fixa em débito automático só entra no extrato depois do dia de vencimento", () => {
+    const fixa = {
+      id: "f3",
+      descricao: "MEO",
+      valor: 1500,
+      categoria: "Telemóvel",
+      diaVencimento: 27,
+      contaCartao: "ActivoBank",
+      autoDebit: true,
+      pagoPorMes: {},
+    };
+    const dados = { ...vazio, despesasFixas: [fixa] };
+    expect(transacoesDoMes(dados, "2026-08", "2026-08", "2026-08-08")).toHaveLength(0);
+    const depois = transacoesDoMes(dados, "2026-08", "2026-08", "2026-08-27");
+    expect(depois).toHaveLength(1);
+    expect(depois[0].data).toBe("2026-08-27");
+  });
+
   describe("parcela: só o mês pago entra, e com a data em que se pagou mesmo", () => {
     const sofa: Parcela = {
       id: "p1",
@@ -231,6 +251,35 @@ describe("transacoesDoMes", () => {
       };
       const t = transacoesDoMes({ ...vazio, parcelas: [auto] }, "2026-08");
       expect(t).toHaveLength(0);
+    });
+
+    // O bug relatado: uma parcela em débito automático que vence dia 27
+    // aparecia no extrato já no dia 1, com data no futuro (27/08 antes de o
+    // dia chegar). `hoje` dá precisão de dia ao mês corrente.
+    it("com `hoje`, débito automático só entra no extrato depois do dia de vencimento", () => {
+      const auto: Parcela = {
+        ...sofa,
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+        diaVencimento: 27,
+        pagoPorMes: {},
+      };
+      const antes = transacoesDoMes(
+        { ...vazio, parcelas: [auto] },
+        "2026-08",
+        "2026-08",
+        "2026-08-08",
+      );
+      expect(antes).toHaveLength(0);
+
+      const depois = transacoesDoMes(
+        { ...vazio, parcelas: [auto] },
+        "2026-08",
+        "2026-08",
+        "2026-08-27",
+      );
+      expect(depois).toHaveLength(1);
+      expect(depois[0].data).toBe("2026-08-27");
     });
 
     it("mês pago usa a data do lançamento, não o dia do vencimento", () => {
