@@ -664,6 +664,106 @@ describe("categorização aprendida do histórico", () => {
   });
 });
 
+describe("transferência aprendida do histórico — as duas contas sem escolher de novo", () => {
+  const base = {
+    parcelas: [],
+    categoriasConfiguradas: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
+  };
+
+  test("descrição parecida com uma transferência já confirmada herda as duas contas", () => {
+    const c = classificarLancamento(
+      { data: "2026-08-07", descricao: "TRF. P/O Gabriel Nascimento", valor: 1326 },
+      {
+        ...base,
+        transferenciasHistorico: [
+          { descricao: "TRF. P/O Gabriel Nascimento", de: "Revolut", para: "ActivoBank" },
+        ],
+      },
+    );
+    expect(c.tipo).toBe("transferencia");
+    expect(c.incerto).toBe(false);
+    expect(c.confianca).toBe("high");
+    expect(c.contaOrigemSugerida).toBe("Revolut");
+    expect(c.contaDestinoSugerida).toBe("ActivoBank");
+    expect(c.motivo).toMatch(/aprendido/);
+  });
+
+  test("sem histórico de transferências, cai na regra genérica de sempre (receita)", () => {
+    // Mesma descrição, mas sem `transferenciasHistorico`: comportamento antigo.
+    const c = classificarLancamento(
+      { data: "2026-08-07", descricao: "TRF. P/O Gabriel Nascimento", valor: 1326 },
+      base,
+    );
+    expect(c.tipo).toBe("receita");
+    expect(c.contaOrigemSugerida).toBeUndefined();
+  });
+
+  test("análise completa: linha vira auto-classificada com as contas prontas", () => {
+    const linha = analisarLinha(
+      { data: "2026-08-07", descricao: "TRF. P/O Gabriel Nascimento", valor: 1326 },
+      1,
+      {
+        ...base,
+        transferenciasHistorico: [
+          { descricao: "TRF. P/O Gabriel Nascimento", de: "Revolut", para: "ActivoBank" },
+        ],
+        existentes: [],
+        locaisCarregamento: [],
+        cargasHistorico: [],
+      },
+    );
+    expect(linha.decisao).toBe("auto_classificada");
+    expect(linha.destino).toBe("transferencia_cartao");
+    expect(linha.contaOrigem).toBe("Revolut");
+    expect(linha.contaDestino).toBe("ActivoBank");
+  });
+
+  test("as duas pontas não se confundem: a descrição de quem envia não aprende com a de quem recebe", () => {
+    // "TRF. P/O" (recebido) e "To Gabriel..." (enviado) são frases distintas
+    // do banco para o mesmo movimento — parecidas o bastante pra virar aviso
+    // de duplicata (ver dedup), mas não o bastante pra herdar a conta errada.
+    const c = classificarLancamento(
+      { data: "2026-08-07", descricao: "To Gabriel Castilho do Nascimento", valor: -1326 },
+      {
+        ...base,
+        transferenciasHistorico: [
+          { descricao: "TRF. P/O Gabriel Nascimento", de: "Revolut", para: "ActivoBank" },
+        ],
+      },
+    );
+    expect(c.contaOrigemSugerida).toBeUndefined();
+  });
+
+  // O bug real: antes de existir `transferenciaAprendida`, "TRF. P/O <nome>"
+  // caía sempre na regra genérica de receita — e confirmar a importação sem
+  // corrigir deixava um rasto de receitas fonte "Importado" no histórico,
+  // que o passo de categoria aprendida usava pra reforçar o mesmo erro pra
+  // sempre. A transferência aprendida tem de ganhar dessa poluição antiga.
+  test("uma receita 'Importado' antiga (rasto do bug antigo) não pode vencer a transferência real", () => {
+    const c = classificarLancamento(
+      { data: "2026-08-07", descricao: "TRF. P/O Gabriel Castilho do Nascimento", valor: 1326 },
+      {
+        ...base,
+        receitasHistorico: [
+          { descricao: "TRF. P/O Gabriel Castilho do Nascimento", fonte: "Importado" },
+        ],
+        transferenciasHistorico: [
+          {
+            descricao: "TRF. P/O Gabriel Castilho do Nascimento",
+            de: "Revolut",
+            para: "ActivoBank",
+          },
+        ],
+      },
+    );
+    expect(c.tipo).toBe("transferencia");
+    expect(c.contaOrigemSugerida).toBe("Revolut");
+    expect(c.contaDestinoSugerida).toBe("ActivoBank");
+  });
+});
+
 describe("a outra ponta da transferência já registada", () => {
   const base = {
     parcelas: [],

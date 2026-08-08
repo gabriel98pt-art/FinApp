@@ -25,6 +25,11 @@ export interface Classificacao {
   /** Explicação legível de por que essa classificação foi escolhida. */
   motivo: string;
   cartaoSugerido?: string | null;
+  /** Só quando `tipo === "transferencia"` e veio de uma transferência
+   *  parecida já registada: as duas contas já resolvidas, prontas pra usar
+   *  sem o usuário escolher de novo. */
+  contaOrigemSugerida?: string;
+  contaDestinoSugerida?: string;
 }
 
 export type StatusDuplicata = "exact_duplicate" | "duplicate" | "possible" | "new";

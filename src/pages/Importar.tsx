@@ -184,6 +184,7 @@ export default function Importar() {
         // categorizou antes vale mais do que qualquer regra genérica.
         despesasHistorico: despesas,
         receitasHistorico: receitas,
+        transferenciasHistorico: transferencias,
         existentes,
         locaisCarregamento: cfg.locaisCarregamento,
         cargasHistorico: veiculo.cargas,

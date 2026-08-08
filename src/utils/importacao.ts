@@ -290,6 +290,12 @@ export interface ContextoClassificacao {
   despesasHistorico: { descricao: string; categoria: string }[];
   /** O mesmo para as receitas, onde o papel da categoria é da fonte. */
   receitasHistorico: { descricao: string; fonte: string }[];
+  /** Transferências entre contas próprias já confirmadas antes — a mesma
+   *  ideia de `despesasHistorico`/`receitasHistorico`, mas pras duas contas
+   *  de uma transferência em vez de uma categoria. Opcional só para não
+   *  obrigar quem já monta este contexto (e não passa transferências) a
+   *  mudar: sem ele, ninguém aprende, como sempre foi. */
+  transferenciasHistorico?: { descricao?: string; de: string; para: string }[];
 }
 
 function escaparRegex(s: string): string {
@@ -384,6 +390,49 @@ function categoriaAprendida(tx: LinhaExtrato, ctx: ContextoClassificacao): Class
   };
 }
 
+/** O que o usuário já fez com uma transferência de descrição parecida — mesma
+ *  ideia de `categoriaAprendida`, mas para transferências entre contas
+ *  próprias em vez de despesa/receita.
+ *
+ *  Sem isto, "TRF. P/O <nome>" (como a maioria dos bancos rotula QUALQUER
+ *  transferência recebida, mesmo entre contas do próprio usuário) caía
+ *  sempre na regra genérica de receita, e uma transferência recorrente entre
+ *  as mesmas duas contas exigia escolher "Transferência interna" e as duas
+ *  contas de novo em TODO extrato novo — mesmo já tendo sido feito antes.
+ *
+ *  As duas pontas de uma transferência têm descrições diferentes por
+ *  natureza (o lado que envia e o lado que recebe são frases distintas do
+ *  banco), o que já protege sozinho contra aprender a direção errada: o saldo
+ *  de "de"/"para" só se aplica de volta quando a NOVA linha tem uma descrição
+ *  parecida com a QUE FOI GRAVADA, e as duas pontas nunca se parecem entre si
+ *  o bastante pra passar do limiar. */
+function transferenciaAprendida(
+  tx: LinhaExtrato,
+  ctx: ContextoClassificacao,
+): Classificacao | null {
+  let melhor: { descricao?: string; de: string; para: string } | null = null;
+  let melhorSim = 0;
+  for (const t of ctx.transferenciasHistorico ?? []) {
+    if (!t.descricao) continue;
+    const sim = similaridadeDescricoes(t.descricao, tx.descricao);
+    if (sim >= SIM_APRENDIDA && sim > melhorSim) {
+      melhorSim = sim;
+      melhor = t;
+    }
+  }
+  if (!melhor) return null;
+
+  return {
+    tipo: "transferencia",
+    categoria: "Transferência",
+    incerto: false,
+    confianca: "high",
+    motivo: `aprendido: ${melhor.descricao}`,
+    contaOrigemSugerida: melhor.de,
+    contaDestinoSugerida: melhor.para,
+  };
+}
+
 /** Classificação em cascata (_impClassify): parcela → despesa fixa (não
  *  aplicável — sem domínio próprio ainda) → categoria configurada → palavras-
  *  chave → fallback. Para na primeira que bater. */
@@ -434,7 +483,20 @@ export function classificarLancamento(tx: LinhaExtrato, ctx: ContextoClassificac
   // como comentário-âncora pra quando esse domínio existir (a ordem da
   // cascata importa: fixas vêm ANTES das categorias configuradas genéricas).
 
-  // 2.5. O que o próprio usuário já fez com uma descrição parecida.
+  // 2.5. Transferência entre contas próprias já vista antes — ver
+  // `transferenciaAprendida`. Vem ANTES da 2.6 (receita/despesa aprendida) de
+  // propósito: antes deste sinal existir, "TRF. P/O <nome>" caía sempre na
+  // regra genérica de receita, e quem confirmava a importação sem corrigir
+  // deixava um rasto de receitas "Importado" no histórico — descrições que
+  // são na verdade a mesma transferência recorrente. Com a ordem trocada,
+  // esse rasto antigo poderia continuar a "ganhar" da conta certa pra sempre
+  // (a receita mal classificada ensinando a próxima receita mal classificada).
+  // A transferência entra primeiro porque é o sinal mais concreto dos dois:
+  // aponta pra duas contas de verdade, não só pra uma categoria/fonte.
+  const transferenciaConhecida = transferenciaAprendida(tx, ctx);
+  if (transferenciaConhecida) return transferenciaConhecida;
+
+  // 2.6. O que o próprio usuário já fez com uma descrição parecida.
   //
   // Vem antes das categorias configuradas e das regras genéricas porque é o
   // sinal mais forte que existe: não é uma palavra que calhou aparecer no
@@ -814,8 +876,11 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     notaEscolhida: "",
     localCarga: carga.local,
     kwhCarga: carga.ehCarga ? estimarKwh(Math.abs(tx.valor), carga.local, ctx.cargasHistorico) : "",
-    contaOrigem: "",
-    contaDestino: "",
+    // Só vêm preenchidas quando `transferenciaAprendida` reconheceu — as duas
+    // contas de uma transferência já vista antes, sem o usuário escolher de
+    // novo. Continuam editáveis: é sugestão, não imposição.
+    contaOrigem: classificacao.contaOrigemSugerida ?? "",
+    contaDestino: classificacao.contaDestinoSugerida ?? "",
     fatCartaoEscolhido: "",
     fatMesEscolhido: mesDe(tx.data),
     outraPonta,
