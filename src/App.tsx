@@ -9,6 +9,7 @@ import { useAplicarTema } from "./hooks/useAplicarTema";
 import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
 import { useAplicarCoresPersonalizadas } from "./hooks/useAplicarCoresPersonalizadas";
 import { usePwaUpdate } from "./hooks/usePwaUpdate";
+import { useRecarregarChunkFalho } from "./hooks/useRecarregarChunkFalho";
 import { useIgnorarArquivoSolto } from "./hooks/useIgnorarArquivoSolto";
 import { useCapturarErros } from "./hooks/useCapturarErros";
 
@@ -44,6 +45,8 @@ export default function App() {
   // Fora do gate de sessão de propósito: procurar versão nova não depende de
   // estar logado, e a tela de login também precisa de se atualizar.
   usePwaUpdate();
+  // Também fora do gate: um chunk stale pode falhar até na tela de login.
+  useRecarregarChunkFalho();
   // Também fora do gate de sessão: largar um ficheiro ao lado da zona certa
   // não pode deitar o app fora, seja em que tela for.
   useIgnorarArquivoSolto();
