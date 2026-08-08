@@ -414,13 +414,14 @@ export default function Parcelas() {
   // que diz até onde uma parcela em débito automático já está resolvida.
   const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef));
   const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef));
-  // Os três KPIs são a mesma conta partida em dois: tudo o que vence no mês
-  // exibido, e dentro disso o que já está resolvido e o que ainda falta. Por
-  // isso "Falta pagar" + "Como está hoje" dá sempre o "Total do mês" — nenhum
-  // deles olha para outros meses.
+  // "Total do mês" e "Falta pagar" são a mesma conta partida em dois, os dois
+  // olhando só para o mês exibido. "Restante" já é outra coisa: a dívida de
+  // TODAS as compras parceladas, de todos os meses — o que ainda falta pagar
+  // no total, não só neste mês.
   const totalDoMes = totalParcelasNoMes(parcelas, mesRef);
   const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual());
   const faltaPagar = totalDoMes - pagoEsteMes;
+  const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
   const visiveis = parcelasVisiveis(parcelas, ordem, apenasQuitadas, mesRef);
 
@@ -429,7 +430,7 @@ export default function Parcelas() {
       <Kpis pagina="parcelas">
         <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="acento" />
         <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
-        <KpiCard rotulo="Como está hoje" valor={formatMoney(pagoEsteMes, moeda)} tom="verde" />
+        <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
       </Kpis>
 
       <div className={styles.cabecalho}>
