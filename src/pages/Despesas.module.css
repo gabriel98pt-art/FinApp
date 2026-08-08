@@ -302,6 +302,20 @@
   flex-wrap: wrap;
 }
 
+.botaoAdicionarTopo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
 .alternadorVisao {
   display: flex;
   gap: 4px;

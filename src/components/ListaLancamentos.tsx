@@ -44,7 +44,10 @@ export default function ListaLancamentos({
   total,
   erro = false,
 }: {
-  titulo: string;
+  /** Sem título, o cartão nasce sem cabeçalho — quem chama já mostrou o
+   *  contexto em cima (ex. a aba "Correntes" de Despesas) e põe o próprio
+   *  botão de adicionar noutro lugar. */
+  titulo?: string;
   itens: ItemLista[];
   carregado: boolean;
   tom: "verde" | "vermelho";
@@ -80,12 +83,14 @@ export default function ListaLancamentos({
 
   return (
     <div className={styles.cartao}>
-      <div className={styles.cabecalho}>
-        <h3 className={styles.titulo}>{titulo}</h3>
-        <button className={styles.adicionar} onClick={aoAdicionar}>
-          <Plus size={15} aria-hidden /> Adicionar
-        </button>
-      </div>
+      {titulo && (
+        <div className={styles.cabecalho}>
+          <h3 className={styles.titulo}>{titulo}</h3>
+          <button className={styles.adicionar} onClick={aoAdicionar}>
+            <Plus size={15} aria-hidden /> Adicionar
+          </button>
+        </div>
+      )}
 
       {erro && itens.length > 0 && <ErroSincronizacao compacto />}
 

@@ -281,6 +281,14 @@ export default function Despesas() {
               {visao === "semana" && (
                 <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
               )}
+              {/* Já se está na aba "Correntes" — o título "Despesas correntes"
+                  do cartão de baixo era redundante. O botão sobe pra cá. */}
+              <button
+                className={styles.botaoAdicionarTopo}
+                onClick={() => abrirRegistro("despesa")}
+              >
+                <Plus size={15} aria-hidden /> Adicionar
+              </button>
             </div>
 
             <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
@@ -288,7 +296,6 @@ export default function Despesas() {
             <ListaLancamentos
               /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
               key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
-              titulo="Despesas correntes"
               itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => ({
                 id: d.id,
                 descricao: d.descricao,
