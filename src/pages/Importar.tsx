@@ -308,6 +308,7 @@ export default function Importar() {
         // O serviço não vai buscar dados a lado nenhum: o que ele precisa para
         // registar um pagamento de fatura sai daqui, onde já está carregado.
         faturasPagas: cfg.faturasPagas,
+        diaFechamentoFatura: cfg.diaFechamentoFatura,
         parcelas,
         dados: {
           despesasFixas,

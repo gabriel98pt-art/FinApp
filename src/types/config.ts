@@ -35,6 +35,12 @@ export interface ConfigConta {
    *  se paga — e é também o vencimento das parcelas em débito automático
    *  nesse cartão, que saem com a fatura e não em data própria. */
   diaVencimentoFatura: Record<string, number>;
+  /** Dia do mês em que a fatura de cada cartão de crédito FECHA (1-31). Sem
+   *  entrada, o ciclo é o mês civil inteiro (último dia do mês) — o
+   *  comportamento de sempre. Só compras feitas DEPOIS deste dia entram no
+   *  ciclo do mês seguinte; até ele (inclusive), ficam no mês em que
+   *  aconteceram. */
+  diaFechamentoFatura: Record<string, number>;
   /** Categorias de despesa do veículo (antigo `vcat`). */
   categoriasVeiculo: string[];
 

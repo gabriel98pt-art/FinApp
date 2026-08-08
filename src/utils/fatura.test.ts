@@ -13,6 +13,7 @@ import {
   calcularFaturaAutomatica,
   cicloDaFatura,
   fixaEfetivamentePaga,
+  mesDoCiclo,
   pagamentosDaFatura,
   type DadosFatura,
 } from "./fatura";
@@ -66,6 +67,28 @@ const vazio: DadosFatura = {
 test("ciclo da fatura é o mês civil anterior (fatura de julho = gastos de junho)", () => {
   expect(cicloDaFatura("2026-07")).toBe("2026-06");
   expect(cicloDaFatura("2026-01")).toBe("2025-12");
+});
+
+describe("mesDoCiclo — em que ciclo cai uma data, dado o dia de fechamento", () => {
+  test("sem fechamento, o ciclo é o mês civil da data — comportamento de sempre", () => {
+    expect(mesDoCiclo("2026-06-01")).toBe("2026-06");
+    expect(mesDoCiclo("2026-06-30")).toBe("2026-06");
+  });
+
+  test("com fechamento, compra até o dia (inclusive) fica no mês em que aconteceu", () => {
+    expect(mesDoCiclo("2026-06-05", 5)).toBe("2026-06");
+    expect(mesDoCiclo("2026-06-01", 5)).toBe("2026-06");
+  });
+
+  test("com fechamento, compra depois do dia entra no ciclo do mês seguinte", () => {
+    expect(mesDoCiclo("2026-06-06", 5)).toBe("2026-07");
+    expect(mesDoCiclo("2026-06-30", 5)).toBe("2026-07");
+  });
+
+  test("fechamento além do fim do mês prende no último dia real (fevereiro)", () => {
+    expect(mesDoCiclo("2026-02-28", 31)).toBe("2026-02");
+    expect(mesDoCiclo("2026-03-01", 31)).toBe("2026-03");
+  });
 });
 
 describe("calcularFaturaAutomatica (seção 4.1)", () => {
@@ -233,6 +256,31 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
     };
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500 + 2500 + 8900);
   });
+
+  // Cartão que fecha dia 5 (não no fim do mês): uma compra de 6/06 já cai no
+  // ciclo de julho, não no de junho — desloca-a pra fatura de setembro
+  // (ciclo julho = mesFatura - 1 = agosto → fatura de setembro), não a de
+  // agosto (que cobriria o ciclo de julho normal, sem fechamento antecipado).
+  test("com dia de fechamento, compra depois dele entra no ciclo do mês seguinte", () => {
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [
+        dc({ valor: 1000, data: "2026-07-05" }), // no fechamento: fica em julho
+        dc({ valor: 2000, data: "2026-07-06" }), // depois: passa pro ciclo de agosto
+      ],
+    };
+    // ciclo de julho → fatura de agosto: só a primeira compra
+    expect(calcularFaturaAutomatica(CARTAO, "2026-08", dados, 5)).toBe(1000);
+    // ciclo de agosto → fatura de setembro: só a segunda
+    expect(calcularFaturaAutomatica(CARTAO, "2026-09", dados, 5)).toBe(2000);
+  });
+
+  test("sem dia de fechamento, nada muda em relação ao comportamento antigo", () => {
+    const dados: DadosFatura = { ...vazio, despesasCorrentes: [dc({ valor: 1000 })] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(
+      calcularFaturaAutomatica(CARTAO, "2026-07", dados, undefined),
+    );
+  });
 });
 
 describe("parcelas autoDebit vs estado de pagamento (double-charge do app antigo)", () => {
@@ -298,6 +346,19 @@ describe("override manual e pagamento parcial", () => {
       },
     });
     expect(pagoAMais.restante).toBe(0);
+  });
+
+  test("resolve o dia de fechamento do cfg pelo nome do cartão", () => {
+    const dadosFechamento: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [dc({ valor: 2000, data: "2026-07-06" })], // depois do fechamento (5)
+    };
+    const cfg = { diaFechamentoFatura: { [CARTAO]: 5 } };
+    // sem fechamento, a compra de 6/07 entraria na fatura de agosto (ciclo julho)
+    expect(calcularFatura(CARTAO, "2026-08", dadosFechamento, {}).devidoAutomatico).toBe(2000);
+    // com fechamento dia 5, ela passa pro ciclo de agosto → fatura de setembro
+    expect(calcularFatura(CARTAO, "2026-08", dadosFechamento, cfg).devidoAutomatico).toBe(0);
+    expect(calcularFatura(CARTAO, "2026-09", dadosFechamento, cfg).devidoAutomatico).toBe(2000);
   });
 
   test("compat retroativa: registro legado de pagamento único vira lista de 1", () => {

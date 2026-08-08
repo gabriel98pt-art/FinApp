@@ -34,6 +34,21 @@ export function cicloDaFatura(mesFatura: YearMonth): YearMonth {
   return somarMeses(mesFatura, -1);
 }
 
+/** A que ciclo (mês civil) uma DATA pertence, dado o dia de fechamento do
+ *  cartão. Sem `diaFechamento`, o ciclo é o mês civil da própria data — o
+ *  cartão fecha sempre no último dia do mês, comportamento de sempre.
+ *
+ *  Com `diaFechamento`, uma compra feita DEPOIS dele já pertence ao ciclo do
+ *  mês seguinte (ex.: fechamento dia 5 — uma compra no dia 6 de junho entra
+ *  no ciclo de julho, não no de junho). Até ao dia de fechamento (inclusive),
+ *  fica no mês em que aconteceu. */
+export function mesDoCiclo(data: IsoDate, diaFechamento?: number): YearMonth {
+  const ym = mesDe(data);
+  if (!diaFechamento) return ym;
+  const fechamento = diaDoMes(ym, diaFechamento);
+  return data > fechamento ? somarMeses(ym, 1) : ym;
+}
+
 /** Uma despesa fixa está ativa num mês se o mês cai dentro de [inicio, fim]. */
 export function fixaAtivaNoMes(d: DespesaFixa, ym: YearMonth): boolean {
   if (d.inicio && ym < d.inicio) return false;
@@ -128,6 +143,10 @@ export function calcularFaturaAutomatica(
   cartao: string,
   mesFatura: YearMonth,
   dados: DadosFatura,
+  /** Dia de fechamento do cartão — ver `mesDoCiclo`. Sem ele, o ciclo é o mês
+   *  civil inteiro (comportamento de sempre). Fixas e parcelas ficam de fora:
+   *  já são bucketed por YearMonth, independente da data exata. */
+  diaFechamento?: number,
 ): Cents {
   const ciclo = cicloDaFatura(mesFatura);
   const fixas = dados.despesasFixas
@@ -137,17 +156,22 @@ export function calcularFaturaAutomatica(
     .filter((d) => d.contaCartao === cartao && fixaAtivaNoMes(d, ciclo))
     .reduce((s, d) => s + d.valor, 0);
   const correntes = dados.despesasCorrentes
-    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ciclo && d.origem !== "fat")
+    .filter(
+      (d) =>
+        d.contaCartao === cartao &&
+        mesDoCiclo(d.data, diaFechamento) === ciclo &&
+        d.origem !== "fat",
+    )
     .reduce((s, d) => s + d.valor, 0);
   const parcelas = debitoAutomaticoParcelas(cartao, ciclo, dados.parcelas);
   const transferencias = dados.transferencias
-    .filter((t) => t.de === cartao && mesDe(t.data) === ciclo)
+    .filter((t) => t.de === cartao && mesDoCiclo(t.data, diaFechamento) === ciclo)
     .reduce((s, t) => s + t.valor, 0);
   const cargas = (dados.cargas ?? [])
-    .filter((c) => c.contaCartao === cartao && mesDe(c.data) === ciclo)
+    .filter((c) => c.contaCartao === cartao && mesDoCiclo(c.data, diaFechamento) === ciclo)
     .reduce((s, c) => s + c.custo, 0);
   const veiculo = (dados.despesasVeiculo ?? [])
-    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ciclo)
+    .filter((d) => d.contaCartao === cartao && mesDoCiclo(d.data, diaFechamento) === ciclo)
     .reduce((s, d) => s + d.valor, 0);
   return fixas + fixasVeiculo + correntes + parcelas + transferencias + cargas + veiculo;
 }
@@ -196,6 +220,8 @@ export interface ConfigFatura {
   /** Override manual por cartão/mês — prevalece sobre o automático. */
   faturaManual?: Record<string, Record<YearMonth, Cents>>;
   faturasPagas?: Record<string, Record<YearMonth, EntradaPagamentosLegada>>;
+  /** Dia de fechamento por cartão — ver `mesDoCiclo`. */
+  diaFechamentoFatura?: Record<string, number>;
 }
 
 /** Visão completa da fatura de um cartão num mês — sempre derivada, nunca
@@ -206,7 +232,12 @@ export function calcularFatura(
   dados: DadosFatura,
   cfg: ConfigFatura,
 ): FaturaCalculada {
-  const devidoAutomatico = calcularFaturaAutomatica(cartao, mesFatura, dados);
+  const devidoAutomatico = calcularFaturaAutomatica(
+    cartao,
+    mesFatura,
+    dados,
+    cfg.diaFechamentoFatura?.[cartao],
+  );
   const overrideManual = cfg.faturaManual?.[cartao]?.[mesFatura] ?? null;
   const devido = overrideManual ?? devidoAutomatico;
   const pagamentos = pagamentosDaFatura(cfg.faturasPagas?.[cartao]?.[mesFatura]);

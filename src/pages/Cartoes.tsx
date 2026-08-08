@@ -12,6 +12,7 @@ import {
   adicionarCartao,
   definirFaturaManual,
   definirSaldoInicial,
+  definirDiaFechamentoFatura,
   definirDiaVencimentoFatura,
   removerCartao,
   renomearCartao,
@@ -493,22 +494,40 @@ export default function Cartoes() {
                 {/* Só o cartão de crédito tem fatura, e é o dia dela que
                     manda também nas parcelas em débito automático. */}
                 {cfg.tipoCartao[c] === "credit" && (
-                  <label className={styles.chipDia}>
-                    vence dia
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={cfg.diaVencimentoFatura?.[c] ?? ""}
-                      placeholder="—"
-                      aria-label={`Dia de vencimento da fatura de ${c}`}
-                      onChange={(e) => {
-                        const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                        void definirDiaVencimentoFatura(uid!, c, Number.isFinite(n) ? n : null)
-                          .then(() => mostrarToast("Dia de vencimento guardado"))
-                          .catch(() => mostrarToast("Não foi possível guardar."));
-                      }}
-                    />
-                  </label>
+                  <>
+                    <label className={styles.chipDia}>
+                      fecha dia
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={cfg.diaFechamentoFatura?.[c] ?? ""}
+                        placeholder="fim do mês"
+                        aria-label={`Dia de fechamento da fatura de ${c} — vazio é o último dia do mês`}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
+                          void definirDiaFechamentoFatura(uid!, c, Number.isFinite(n) ? n : null)
+                            .then(() => mostrarToast("Dia de fechamento guardado"))
+                            .catch(() => mostrarToast("Não foi possível guardar."));
+                        }}
+                      />
+                    </label>
+                    <label className={styles.chipDia}>
+                      vence dia
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={cfg.diaVencimentoFatura?.[c] ?? ""}
+                        placeholder="—"
+                        aria-label={`Dia de vencimento da fatura de ${c}`}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
+                          void definirDiaVencimentoFatura(uid!, c, Number.isFinite(n) ? n : null)
+                            .then(() => mostrarToast("Dia de vencimento guardado"))
+                            .catch(() => mostrarToast("Não foi possível guardar."));
+                        }}
+                      />
+                    </label>
+                  </>
                 )}
                 <button
                   type="button"

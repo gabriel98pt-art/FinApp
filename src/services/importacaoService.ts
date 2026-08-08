@@ -191,6 +191,7 @@ export function pagamentoDaLinha(linha: LinhaAnalisada) {
  *  depender das stores. */
 export interface ContextoFaturas {
   faturasPagas: ConfigConta["faturasPagas"];
+  diaFechamentoFatura?: ConfigConta["diaFechamentoFatura"];
   parcelas: Parcela[];
   dados: DadosFatura;
 }
@@ -283,7 +284,12 @@ export async function confirmarImportacao(
       de: p.de,
       data: p.data,
       pagamentosAtuais: pagamentosDaFatura(ctx.faturasPagas?.[p.cartao]?.[p.mes]),
-      devido: calcularFaturaAutomatica(p.cartao, p.mes, ctx.dados),
+      devido: calcularFaturaAutomatica(
+        p.cartao,
+        p.mes,
+        ctx.dados,
+        ctx.diaFechamentoFatura?.[p.cartao],
+      ),
       parcelas: ctx.parcelas,
     });
   }
