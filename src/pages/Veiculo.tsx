@@ -80,9 +80,11 @@ export default function Veiculo() {
     .filter((k) => mesDe(k.data) === mes)
     .reduce((s, k) => s + k.km, 0);
 
-  // Visão Mês / Semana da aba Carregamentos (item 10).
+  // Visão Mês / Semana da aba Carregamentos (item 10). Já nasce na semana de
+  // hoje, igual ao mês — sem isto, a primeira vez que se troca para "Semana"
+  // abria sempre na primeira do mês em vez da atual.
   const [visaoCargas, setVisaoCargas] = useState<"mes" | "semana">("mes");
-  const [semanaIdx, setSemanaIdx] = useState(0);
+  const [semanaIdx, setSemanaIdx] = useState(() => indiceDaSemana(semanasDoMes(mes), hojeIso()));
   const semanas = semanasDoMes(mes);
   const [mesDaSemana, setMesDaSemana] = useState(mes);
   if (mesDaSemana !== mes) {

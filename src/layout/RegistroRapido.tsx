@@ -22,11 +22,13 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { hojeIso, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
 import { totalDaCompra } from "../utils/parcelas";
+import { kwhPeloCusto, precoKwhDoLocal } from "../utils/veiculo";
 
 import styles from "./RegistroRapido.module.css";
 
@@ -72,6 +74,7 @@ export default function RegistroRapido() {
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
+  const veiculo = useVeiculoStore((s) => s.dados);
 
   const [descricao, setDescricao] = useState("");
   const [nota, setNota] = useState("");
@@ -80,6 +83,11 @@ export default function RegistroRapido() {
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
   const [kwh, setKwh] = useState(""); // só carga elétrica
+  // O kWh preenche-se sozinho a partir do custo e do histórico daquele local
+  // (mesmo palpite da tela Veículo — ver `palpitarKwh` em pages/Veiculo.tsx),
+  // mas some assim que o usuário toca no campo: o palpite não pode apagar o
+  // que ele escreveu à mão. Volta a valer ao trocar de local.
+  const [kwhTocado, setKwhTocado] = useState(false);
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
@@ -144,6 +152,7 @@ export default function RegistroRapido() {
         setEtiqueta("");
         setConta("");
         setKwh("");
+        setKwhTocado(false);
         setParcelada(false);
         setNumParcelas("3");
         setFolhaParcelamento(false);
@@ -155,10 +164,21 @@ export default function RegistroRapido() {
       // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
       setKwh("");
+      setKwhTocado(false);
       setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
     }
+  }
+
+  /** Refaz o palpite de kWh a partir do custo e do local que valerem agora,
+   *  usando o preço/kWh da carga mais recente naquele local — mesma conta da
+   *  tela Veículo (`palpitarKwh` em pages/Veiculo.tsx). Sem histórico naquele
+   *  local não há preço de referência: fica vazio para escrever à mão. */
+  function palpitarKwh(custo: Cents | null, local: string) {
+    if (custo === null || custo <= 0) return;
+    const preco = precoKwhDoLocal(veiculo.cargas, local);
+    if (preco !== undefined) setKwh(kwhPeloCusto(custo, preco));
   }
 
   // Sugestão de débito automático: crédito entra na fatura, débito não. Vale
@@ -427,7 +447,16 @@ export default function RegistroRapido() {
             no modelo de dados (só categoria + nota), então ali a Nota ocupa a
             linha inteira. */}
         {tipo === "carga" && (
-          <SeletorLocal valor={descricao} opcoes={cfg.locaisCarregamento} aoMudar={setDescricao} />
+          <SeletorLocal
+            valor={descricao}
+            opcoes={cfg.locaisCarregamento}
+            aoMudar={(v) => {
+              setDescricao(v);
+              // Outro local, outro preço: o palpite volta a valer.
+              setKwhTocado(false);
+              palpitarKwh(valorTexto, v);
+            }}
+          />
         )}
 
         <div className={styles.linhaDupla}>
@@ -461,7 +490,14 @@ export default function RegistroRapido() {
           {!ehParcelada && (
             <label className={styles.campo}>
               {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
-              <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} required />
+              <CampoMoeda
+                valor={valorTexto}
+                aoMudar={(v) => {
+                  setValorTexto(v);
+                  if (tipo === "carga" && !kwhTocado) palpitarKwh(v, descricao);
+                }}
+                required
+              />
             </label>
           )}
 
@@ -472,7 +508,10 @@ export default function RegistroRapido() {
                 type="text"
                 inputMode="decimal"
                 value={kwh}
-                onChange={(e) => setKwh(e.target.value)}
+                onChange={(e) => {
+                  setKwhTocado(true);
+                  setKwh(e.target.value);
+                }}
                 required
               />
             </label>

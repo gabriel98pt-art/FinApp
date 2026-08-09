@@ -31,8 +31,14 @@ describe("indiceDaSemana", () => {
     expect(indiceDaSemana(s, "2026-07-01")).toBe(0);
   });
 
-  it("cai na primeira semana quando o dia está fora do mês", () => {
-    expect(indiceDaSemana(s, "2026-12-25")).toBe(0);
+  // O caso comum: header ainda num mês antigo, hoje já passou dele — "abrir a
+  // semana atual" quer dizer a última do mês exibido, a mais perto de hoje.
+  it("cai na última semana quando o dia é depois do mês (mês antigo no header)", () => {
+    expect(indiceDaSemana(s, "2026-12-25")).toBe(s.length - 1);
+  });
+
+  it("cai na primeira semana quando o dia é antes do mês (mês no futuro)", () => {
+    expect(indiceDaSemana(s, "2026-01-05")).toBe(0);
   });
 });
 

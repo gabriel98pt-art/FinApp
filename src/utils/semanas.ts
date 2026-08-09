@@ -23,11 +23,16 @@ export function semanasDoMes(ym: YearMonth): Semana[] {
   return semanas;
 }
 
-/** Índice da semana que contém `dia`, ou 0 quando o dia está fora do mês —
- *  serve pra abrir a visão já na semana de hoje quando faz sentido. */
+/** Índice da semana que contém `dia` — serve pra abrir a visão já na semana
+ *  de hoje quando faz sentido. Quando `dia` está fora do mês, cai na ponta
+ *  mais perto dele: a ÚLTIMA semana se `dia` já passou do mês (o caso comum —
+ *  header ainda num mês antigo, "abrir a semana atual" quer dizer a mais
+ *  recente dali), a PRIMEIRA se `dia` ainda não chegou lá (mês no futuro). */
 export function indiceDaSemana(semanas: Semana[], dia: IsoDate): number {
   const i = semanas.findIndex((s) => dia >= s.inicio && dia <= s.fim);
-  return i === -1 ? 0 : i;
+  if (i !== -1) return i;
+  const ultima = semanas[semanas.length - 1];
+  return ultima && dia > ultima.fim ? semanas.length - 1 : 0;
 }
 
 /** "02/07 – 08/07" */

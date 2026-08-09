@@ -63,12 +63,14 @@ export default function Despesas() {
   const [ordem, setOrdem] = useState<Ordem>("recentes");
   // Visão Mês / Semana da lista de correntes (item 10).
   const [visao, setVisao] = useState<"mes" | "semana">("mes");
-  const [semanaIdx, setSemanaIdx] = useState(0);
 
   // Mês exibido é compartilhado entre as telas (stores/mesVisivelStore.ts) e
   // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
   const mes = useMesVisivelStore((s) => s.mes);
   const mesReal = mesAtual();
+  // Já nasce na semana de hoje, igual ao mês — sem isto, a primeira vez que
+  // se troca para "Semana" abria sempre na primeira do mês em vez da atual.
+  const [semanaIdx, setSemanaIdx] = useState(() => indiceDaSemana(semanasDoMes(mes), hojeIso()));
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
@@ -89,8 +91,8 @@ export default function Despesas() {
     despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal),
   );
 
-  // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje
-  // (ou na primeira, quando hoje está fora do mês).
+  // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
+  // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
   const semanas = semanasDoMes(mes);
   const idxPadrao = indiceDaSemana(semanas, hojeIso());
   const [mesDaSemana, setMesDaSemana] = useState(mes);
