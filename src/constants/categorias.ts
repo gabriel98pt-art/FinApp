@@ -3,6 +3,9 @@
 
 export const FONTES_RECEITA_PADRAO = ["Salário", "TVDE", "Extra", "Outros"];
 
+/** Uma lista só para despesa fixa e corrente (ver `categoriasDespesa` em
+ *  types/config.ts) — antes eram duas listas separadas, e "Assinaturas"
+ *  vinha só na dos fixos. */
 export const CATEGORIAS_DESPESA_PADRAO = [
   "Alimentação",
   "Casa",
@@ -10,5 +13,6 @@ export const CATEGORIAS_DESPESA_PADRAO = [
   "Saúde",
   "Lazer",
   "Compras",
+  "Assinaturas",
   "Outros",
 ];

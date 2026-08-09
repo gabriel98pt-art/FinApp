@@ -126,11 +126,11 @@ export function patchRenomearCartao(
   return patch;
 }
 
-/** Qual das 3 listas de categoria está a ser renomeada. */
-export type ListaCategoria = "categoriasFixas" | "categoriasCorrentes" | "categoriasVeiculo";
+/** Qual das 2 listas de categoria está a ser renomeada. */
+export type ListaCategoria = "categoriasDespesa" | "categoriasVeiculo";
 
 /** Categoria: a lista escolhida, o visual (ícone/cor — namespace compartilhado
- *  entre as 3 listas e as fontes, ver types/config.ts), o teto de orçamento, e
+ *  entre as 2 listas e as fontes, ver types/config.ts), o teto de orçamento, e
  *  a categoria de cada lançamento. */
 export function patchRenomearCategoria(
   cfg: ConfigConta,

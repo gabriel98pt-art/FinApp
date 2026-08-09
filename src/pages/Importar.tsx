@@ -168,7 +168,7 @@ export default function Importar() {
   const [outraPontaAberta, setOutraPontaAberta] = useState<Set<number>>(new Set());
   const arquivoRef = useRef<HTMLInputElement>(null);
 
-  const categoriasConfiguradas = [...cfg.categoriasFixas, ...cfg.categoriasCorrentes];
+  const categoriasConfiguradas = cfg.categoriasDespesa;
   const opcoesCategoria = [
     ...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"]),
   ];

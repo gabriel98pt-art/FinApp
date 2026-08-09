@@ -151,16 +151,14 @@ export async function removerCartao(uid: string, cfg: ConfigConta, nome: string)
 }
 
 type ListaDeCategorias =
-  | "categoriasFixas"
-  | "categoriasCorrentes"
+  | "categoriasDespesa"
   | "categoriasVeiculo"
   | "fontesReceita"
   | "locaisCarregamento"
   | "intermediadoresParcelamento";
 
-/** Adiciona um item a uma das 3 listas configuráveis (categorias de despesa
- *  fixa/corrente, fontes de receita) — usadas no Registro Rápido, Cartões e
- *  Parcelas. */
+/** Adiciona um item a uma das listas configuráveis (categorias de despesa,
+ *  fontes de receita) — usadas no Registro Rápido, Cartões e Parcelas. */
 export async function adicionarItemLista(
   uid: string,
   cfg: ConfigConta,
@@ -174,7 +172,7 @@ export async function adicionarItemLista(
   await update(ref(db, caminho(uid)), { [lista]: [...cfg[lista], nome] });
 }
 
-/** Remove um item de uma das 3 listas configuráveis. Não apaga lançamentos
+/** Remove um item de uma das listas configuráveis. Não apaga lançamentos
  *  que já usam essa categoria — eles continuam mostrando o nome antigo. */
 export async function removerItemLista(
   uid: string,

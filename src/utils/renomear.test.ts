@@ -191,8 +191,7 @@ describe("renomear conta/cartão", () => {
 
 describe("renomear categoria", () => {
   const cfg = cfgCom({
-    categoriasCorrentes: ["Alimentação", "Transporte"],
-    categoriasFixas: ["Alimentação"],
+    categoriasDespesa: ["Alimentação", "Transporte"],
     categoriaIcone: { Alimentação: "utensils" },
     categoriaCor: { Alimentação: "#ff0000" },
     orcamentos: { Alimentação: 30000 },
@@ -222,11 +221,10 @@ describe("renomear categoria", () => {
     ],
   };
 
-  const patch = patchRenomearCategoria(cfg, dados, "categoriasCorrentes", "Alimentação", "Comida");
+  const patch = patchRenomearCategoria(cfg, dados, "categoriasDespesa", "Alimentação", "Comida");
 
-  test("troca só na lista escolhida — a lista de fixas com o mesmo nome não muda", () => {
-    expect(patch["cfg/categoriasCorrentes"]).toEqual(["Comida", "Transporte"]);
-    expect(patch["cfg/categoriasFixas"]).toBeUndefined();
+  test("troca na lista de categorias de despesa", () => {
+    expect(patch["cfg/categoriasDespesa"]).toEqual(["Comida", "Transporte"]);
   });
 
   test("leva junto ícone, cor e orçamento", () => {

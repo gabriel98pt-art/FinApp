@@ -409,9 +409,9 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   },
   // categoria de despesa específica
   {
-    test: (q, ctx) => !!encontrarNaLista(q, ctx.cfg.categoriasCorrentes),
+    test: (q, ctx) => !!encontrarNaLista(q, ctx.cfg.categoriasDespesa),
     run: (q, ref, ctx) => {
-      const cat = encontrarNaLista(q, ctx.cfg.categoriasCorrentes)!;
+      const cat = encontrarNaLista(q, ctx.cfg.categoriasDespesa)!;
       const ct = categoriasDoMes(ctx, ref.ym);
       const val = ct[cat] || 0;
       if (!val) return `Não há gastos em ${b(cat)} em ${ref.label}.`;

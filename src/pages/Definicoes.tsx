@@ -61,7 +61,7 @@ function EditorLista({
 }: {
   titulo: string;
   itens: string[];
-  lista: "categoriasFixas" | "categoriasCorrentes" | "fontesReceita";
+  lista: "categoriasDespesa" | "fontesReceita";
   cfg: ConfigConta;
   uid: string;
 }) {
@@ -575,16 +575,9 @@ export default function Definicoes() {
       </div>
 
       <EditorLista
-        titulo="Categorias de despesa fixa"
-        itens={cfg.categoriasFixas}
-        lista="categoriasFixas"
-        cfg={cfg}
-        uid={uid}
-      />
-      <EditorLista
-        titulo="Categorias de despesa corrente"
-        itens={cfg.categoriasCorrentes}
-        lista="categoriasCorrentes"
+        titulo="Categorias de despesa"
+        itens={cfg.categoriasDespesa}
+        lista="categoriasDespesa"
         cfg={cfg}
         uid={uid}
       />
@@ -604,7 +597,7 @@ export default function Definicoes() {
         <p className={styles.grupoTitulo}>Orçamento por categoria</p>
         <p className={styles.nota}>Teto mensal de despesa — deixe em branco pra não ter teto.</p>
         <div className={styles.listaOrcamento}>
-          {cfg.categoriasCorrentes.map((c) => (
+          {cfg.categoriasDespesa.map((c) => (
             <LinhaOrcamento key={c} categoria={c} tetoAtual={cfg.orcamentos[c]} uid={uid} />
           ))}
         </div>

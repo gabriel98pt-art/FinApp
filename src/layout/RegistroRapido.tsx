@@ -172,7 +172,7 @@ export default function RegistroRapido() {
       ? cfg.fontesReceita
       : lado === "despesaVeiculo"
         ? cfg.categoriasVeiculo
-        : cfg.categoriasCorrentes;
+        : cfg.categoriasDespesa;
 
   async function salvar(e: FormEvent) {
     e.preventDefault();

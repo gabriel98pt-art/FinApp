@@ -309,7 +309,7 @@ function FormParcela({
         </div>
         <SeletorCategoria
           valor={categoria}
-          opcoes={cfg.categoriasCorrentes}
+          opcoes={cfg.categoriasDespesa}
           aoMudar={setCategoria}
           rotuloVazio="Parcelas"
         />

@@ -22,10 +22,11 @@ export interface ConfigConta {
 
   /** Fontes de receita (antigo `src`). */
   fontesReceita: string[];
-  /** Categorias de despesa fixa (antigo `fcat`). */
-  categoriasFixas: string[];
-  /** Categorias de despesa corrente (antigo `ccat`). */
-  categoriasCorrentes: string[];
+  /** Categorias de despesa — fixa e corrente juntas numa lista só (antes
+   *  eram duas, `fcat`/`ccat` — a mesma categoria por nome já compartilhava
+   *  ícone, cor e orçamento entre as duas, então a separação só duplicava a
+   *  mesma categoria na tela de Definições sem separar nada de verdade). */
+  categoriasDespesa: string[];
   /** Contas/cartões de pagamento, ex. 'AB Gold (C)' (antigo `pay`). */
   contasCartoes: string[];
   /** Tipo de cada cartão (crédito entra no fluxo de fatura, seção 4.1). */

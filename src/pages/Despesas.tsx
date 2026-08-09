@@ -144,7 +144,7 @@ export default function Despesas() {
     setDfDescricao("");
     setDfNota("");
     setDfValor(null);
-    setDfCategoria(cfg.categoriasFixas[0] ?? "");
+    setDfCategoria(cfg.categoriasDespesa[0] ?? "");
     setDfContaCartao("");
     setDfDia("");
     setDfInicio("");
@@ -179,7 +179,7 @@ export default function Despesas() {
       descricao: dfDescricao,
       nota: dfNota.trim() || undefined,
       valor,
-      categoria: dfCategoria || cfg.categoriasFixas[0] || "Outros",
+      categoria: dfCategoria || cfg.categoriasDespesa[0] || "Outros",
       contaCartao: dfContaCartao || undefined,
       diaVencimento: dia,
       inicio: dfInicio || undefined,
@@ -425,7 +425,7 @@ export default function Despesas() {
           </div>
           <SeletorCategoria
             valor={dfCategoria}
-            opcoes={cfg.categoriasFixas}
+            opcoes={cfg.categoriasDespesa}
             aoMudar={setDfCategoria}
           />
           <Seletor

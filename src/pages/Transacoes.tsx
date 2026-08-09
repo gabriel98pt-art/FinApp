@@ -227,7 +227,7 @@ export default function Transacoes() {
                 <div className={styles.formMover}>
                   <SeletorCategoria
                     valor={categoriaMover}
-                    opcoes={cfg.categoriasCorrentes}
+                    opcoes={cfg.categoriasDespesa}
                     aoMudar={setCategoriaMover}
                     nivel={2}
                   />
