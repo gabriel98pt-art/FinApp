@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   CarTaxiFront,
+  ChevronDown,
   Copy,
   Download,
   EyeOff,
@@ -393,14 +394,21 @@ function quando(ts: number): string {
   });
 }
 
-/** Os últimos erros que o app apanhou, para poderem ser copiados e enviados
- *  sem depender de descrever de memória o que aconteceu. A pilha não é
- *  mostrada (ilegível na tela), mas vai inteira no "Copiar".
+/** Os últimos erros que o app apanhou (últimos 14 dias, e no máximo 30 — ver
+ *  erroService.ts), para poderem ser copiados e enviados sem depender de
+ *  descrever de memória o que aconteceu. A pilha não é mostrada (ilegível na
+ *  tela), mas vai inteira no "Copiar".
+ *
+ *  A seção inteira some quando não há nada registado — sem isto ocupava
+ *  espaço numa tela de preferências mesmo vazia. Havendo erro, a lista
+ *  começa fechada atrás de um botão: é texto técnico, não algo pra saltar
+ *  aos olhos de quem só veio trocar a moeda.
  *
  *  Leitura local com useState/useEffect: é a única tela que lê isto, não
  *  justifica uma store global. */
 function ErrosRecentes({ uid }: { uid: string }) {
   const [erros, setErros] = useState<ErroRegistado[]>([]);
+  const [aberta, setAberta] = useState(false);
 
   useEffect(() => observarErros(uid, setErros), [uid]);
 
@@ -425,16 +433,28 @@ function ErrosRecentes({ uid }: { uid: string }) {
     }
   }
 
+  if (erros.length === 0) return null;
+
   return (
     <div className={styles.grupo}>
-      <p className={styles.grupoTitulo}>Erros recentes</p>
-      <p className={styles.nota}>
-        {erros.length === 0
-          ? "Nada registado — o app não falhou desde a última limpeza."
-          : "Se algo correu mal, copie o erro e envie — evita ter de o descrever de memória."}
-      </p>
-      {erros.length > 0 && (
+      <button
+        type="button"
+        className={styles.toggleErros}
+        onClick={() => setAberta((a) => !a)}
+        aria-expanded={aberta}
+      >
+        <span>Erros recentes ({erros.length})</span>
+        <ChevronDown
+          size={16}
+          className={`${styles.toggleErrosSeta} ${aberta ? styles.toggleErrosAberto : ""}`}
+          aria-hidden
+        />
+      </button>
+      {aberta && (
         <>
+          <p className={styles.nota}>
+            Se algo correu mal, copie o erro e envie — evita ter de o descrever de memória.
+          </p>
           <div className={styles.listaErros}>
             {erros.map((e) => (
               <div key={e.id} className={styles.linhaErro}>

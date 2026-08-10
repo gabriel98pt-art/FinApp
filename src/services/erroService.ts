@@ -26,9 +26,15 @@ export interface ErroRegistado {
  *  sessão e não cresce para sempre. */
 const MAX_REGISTOS = 30;
 
+/** Um erro de duas semanas atrás já não ajuda a diagnosticar nada — passado
+ *  isto, poda sozinho. "Erros recentes" quer dizer recentes mesmo, não um
+ *  histórico permanente que só cresce e nunca mais é revisto. */
+const IDADE_MAXIMA_MS = 14 * 24 * 60 * 60 * 1000;
+
 const caminho = (uid: string) => `users/${uid}/erros_app`;
 
-/** Grava um erro e poda os mais antigos acima do teto.
+/** Grava um erro e poda os antigos: acima do teto de quantidade, e qualquer
+ *  um além da idade máxima.
  *
  *  Nunca lança: isto corre no caminho de erro do app, e falhar aqui (sem
  *  rede, regra recusada) não pode virar um segundo erro por cima do primeiro. */
@@ -49,13 +55,16 @@ export async function registrarErro(
     });
 
     const snap = await get(ref(db, caminho(uid)));
-    const todos = (snap.val() ?? {}) as Record<string, unknown>;
-    const chaves = Object.keys(todos);
-    if (chaves.length <= MAX_REGISTOS) return;
-    // As chaves do push() são ordenáveis por ordem de criação — as primeiras
-    // são as mais antigas.
-    const aRemover = chaves.sort().slice(0, chaves.length - MAX_REGISTOS);
-    await update(ref(db, caminho(uid)), Object.fromEntries(aRemover.map((k) => [k, null])));
+    const todos = (snap.val() ?? {}) as Record<string, { timestamp?: number }>;
+    const chaves = Object.keys(todos).sort(); // chaves do push() são ordenáveis por criação
+    const limite = Date.now() - IDADE_MAXIMA_MS;
+    const vencidas = chaves.filter((k) => (todos[k].timestamp ?? 0) < limite);
+    const excedentes =
+      chaves.length > MAX_REGISTOS ? chaves.slice(0, chaves.length - MAX_REGISTOS) : [];
+    const aRemover = new Set([...vencidas, ...excedentes]);
+    if (aRemover.size > 0) {
+      await update(ref(db, caminho(uid)), Object.fromEntries([...aRemover].map((k) => [k, null])));
+    }
   } catch {
     // Sem rede ou sem permissão: o erro original já foi tratado por quem
     // chamou (fallback do ErrorBoundary, console). Aqui não há mais nada a
@@ -63,13 +72,19 @@ export async function registrarErro(
   }
 }
 
-/** Observa os erros da conta, do mais recente para o mais antigo. */
+/** Observa os erros da conta, do mais recente para o mais antigo — já sem os
+ *  que passaram da idade máxima. A poda de `registrarErro` só roda quando um
+ *  erro NOVO acontece; sem isto, uma conta que não crasha há semanas
+ *  continuaria mostrando erros velhos indefinidamente. */
 export function observarErros(uid: string, cb: (erros: ErroRegistado[]) => void): () => void {
   return onValue(
     ref(db, caminho(uid)),
     (snap) => {
       const val = (snap.val() ?? {}) as Record<string, Omit<ErroRegistado, "id">>;
-      const lista = Object.entries(val).map(([id, dados]) => ({ ...dados, id }));
+      const limite = Date.now() - IDADE_MAXIMA_MS;
+      const lista = Object.entries(val)
+        .map(([id, dados]) => ({ ...dados, id }))
+        .filter((e) => e.timestamp >= limite);
       lista.sort((a, b) => b.timestamp - a.timestamp);
       cb(lista);
     },

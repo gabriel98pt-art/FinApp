@@ -264,7 +264,33 @@
 }
 
 /* Erros recentes — mesma silhueta da lista de categorias, mas cada linha tem
-   duas alturas de texto (quando + mensagem) em vez de um nome só. */
+   duas alturas de texto (quando + mensagem) em vez de um nome só. A seção
+   inteira só existe quando há erro nenhum (ver Definicoes.tsx); a lista em si
+   fica atrás deste botão — texto técnico não precisa estar sempre à vista. */
+
+.toggleErros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+}
+
+.toggleErros:hover {
+  background: var(--s2);
+}
+
+.toggleErrosSeta {
+  color: var(--mut);
+  transition: transform 0.15s ease;
+}
+
+.toggleErrosAberto {
+  transform: rotate(180deg);
+}
 
 .listaErros {
   display: flex;

@@ -3,7 +3,7 @@
 // FORA da árvore fin_v5, a lista não crescer para sempre, e uma falha de rede
 // no registo nunca virar um segundo erro por cima do primeiro.
 
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 /** Conteúdo do nó erros_app, em memória. */
 let no: Record<string, Record<string, unknown>> = {};
@@ -45,7 +45,13 @@ const { limparErros, observarErros, registrarErro } = await import("./erroServic
 const UID = "u1";
 const CAMINHO = `users/${UID}/erros_app`;
 
-const erro = (mensagem: string, ts = 1_000) => ({
+/** "Agora" fixo do relógio falso — os timestamps de teste são sempre
+ *  relativos a isto, nunca a `Date.now()` de verdade, senão o teste começa a
+ *  falhar sozinho semanas depois de escrito. */
+const AGORA = new Date("2026-08-10T12:00:00Z").getTime();
+const DIA_MS = 24 * 60 * 60 * 1000;
+
+const erro = (mensagem: string, ts = AGORA) => ({
   mensagem,
   url: "https://finapp/definicoes",
   timestamp: ts,
@@ -56,6 +62,12 @@ beforeEach(() => {
   escritas = [];
   contador = 0;
   semRede = false;
+  vi.useFakeTimers();
+  vi.setSystemTime(AGORA);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("registrarErro", () => {
@@ -66,12 +78,12 @@ describe("registrarErro", () => {
   });
 
   test("guarda mensagem, url e timestamp", async () => {
-    await registrarErro(UID, { ...erro("boom", 1234), pilha: "linha 1" });
+    await registrarErro(UID, { ...erro("boom", AGORA), pilha: "linha 1" });
     expect(Object.values(no)[0]).toEqual({
       mensagem: "boom",
       pilha: "linha 1",
       url: "https://finapp/definicoes",
-      timestamp: 1234,
+      timestamp: AGORA,
     });
   });
 
@@ -81,13 +93,24 @@ describe("registrarErro", () => {
   });
 
   test("mantém só os últimos 30, apagando os mais antigos", async () => {
-    for (let i = 1; i <= 35; i++) await registrarErro(UID, erro(`erro ${i}`, i));
+    // Todos dentro da janela de 14 dias — só a poda por quantidade entra aqui.
+    for (let i = 1; i <= 35; i++) await registrarErro(UID, erro(`erro ${i}`, AGORA + i * 1000));
     expect(Object.keys(no)).toHaveLength(30);
     const mensagens = Object.values(no).map((r) => r.mensagem);
     expect(mensagens).toContain("erro 35");
     expect(mensagens).not.toContain("erro 1");
     expect(mensagens).not.toContain("erro 5");
     expect(mensagens).toContain("erro 6");
+  });
+
+  test("poda sozinho os que já passaram de 14 dias, mesmo abaixo do teto de 30", async () => {
+    await registrarErro(UID, erro("velho", AGORA - 15 * DIA_MS));
+    await registrarErro(UID, erro("na borda", AGORA - 14 * DIA_MS - 1));
+    await registrarErro(UID, erro("recente", AGORA - 1 * DIA_MS));
+    const mensagens = Object.values(no).map((r) => r.mensagem);
+    expect(mensagens).not.toContain("velho");
+    expect(mensagens).not.toContain("na borda");
+    expect(mensagens).toContain("recente");
   });
 
   test("não lança se a gravação falhar — é o caminho de erro do app", async () => {
@@ -98,14 +121,27 @@ describe("registrarErro", () => {
 
 describe("observarErros", () => {
   test("lê do mesmo caminho e devolve do mais recente para o mais antigo", async () => {
-    await registrarErro(UID, erro("antigo", 100));
-    await registrarErro(UID, erro("recente", 900));
+    await registrarErro(UID, erro("antigo", AGORA - 2 * DIA_MS));
+    await registrarErro(UID, erro("recente", AGORA - 1 * DIA_MS));
 
     const recebidos: { mensagem: string }[][] = [];
     observarErros(UID, (l) => recebidos.push(l));
 
     expect(escritas).toContain(CAMINHO);
     expect(recebidos[0].map((e) => e.mensagem)).toEqual(["recente", "antigo"]);
+  });
+
+  // A poda de `registrarErro` só roda quando um erro NOVO acontece — sem este
+  // filtro na leitura, uma conta que não crasha há semanas continuaria
+  // mostrando os erros velhos indefinidamente.
+  test("não devolve erros vencidos, mesmo sem gravação nova pra disparar a poda", async () => {
+    no["e001"] = { mensagem: "velho", url: "x", timestamp: AGORA - 20 * DIA_MS };
+    no["e002"] = { mensagem: "recente", url: "x", timestamp: AGORA - 1 * DIA_MS };
+
+    let lista: { mensagem: string }[] = [];
+    observarErros(UID, (l) => (lista = l));
+
+    expect(lista.map((e) => e.mensagem)).toEqual(["recente"]);
   });
 
   test("cada registo vem com o id da chave", async () => {
