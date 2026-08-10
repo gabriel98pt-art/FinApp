@@ -2,9 +2,10 @@
 // e de Veículo → Carregamentos.
 //
 // As semanas são exatamente as linhas do grid do Calendário (`diasDoGrid`):
-// blocos de 7 dias começando no domingo, cobrindo o mês inteiro. Assim a
-// semana que o usuário vê aqui é a mesma que ele vê no Calendário — e as
-// pontas podem cair no mês vizinho, que é o que "7 dias" significa.
+// blocos de 7 dias começando no dia escolhido em Definições
+// (`cfg.diaInicioSemana`), cobrindo o mês inteiro. Assim a semana que o
+// usuário vê aqui é a mesma que ele vê no Calendário — e as pontas podem cair
+// no mês vizinho, que é o que "7 dias" significa.
 
 import type { IsoDate, YearMonth } from "../types";
 import { diasDoGrid } from "./calendario";
@@ -14,8 +15,10 @@ export interface Semana {
   fim: IsoDate;
 }
 
-export function semanasDoMes(ym: YearMonth): Semana[] {
-  const celulas = diasDoGrid(ym);
+/** `inicioSemana` (0=domingo…6=sábado) vem de `cfg.diaInicioSemana` — sem
+ *  padrão de propósito, ver `diasDoGrid`. */
+export function semanasDoMes(ym: YearMonth, inicioSemana: number): Semana[] {
+  const celulas = diasDoGrid(ym, inicioSemana);
   const semanas: Semana[] = [];
   for (let i = 0; i < celulas.length; i += 7) {
     semanas.push({ inicio: celulas[i].data, fim: celulas[i + 6].data });

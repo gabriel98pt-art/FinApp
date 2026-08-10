@@ -19,6 +19,11 @@ export interface ConfigConta {
   /** Blur visual em elementos sensíveis (poupança, orçamento, resumo anual,
    *  breakdown por categoria) — seção 4.6. Não esconde o resto da navegação. */
   modoDiscreto: boolean;
+  /** Dia em que a semana começa nas grades de calendário e na visão "Semana"
+   *  de Despesas/Veículo (0=domingo…6=sábado, como `Date#getDay()`). Um valor
+   *  só, usado em todo canto que desenha semana — sem isto cada tela podia
+   *  escolher um dia diferente por conta própria. */
+  diaInicioSemana: number;
 
   /** Fontes de receita (antigo `src`). */
   fontesReceita: string[];

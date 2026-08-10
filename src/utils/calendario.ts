@@ -4,8 +4,15 @@
 import type { EventoCalendario, IsoDate, YearMonth } from "../types";
 import { mesDe, somarDias } from "./calculos";
 
-/** Rótulos das colunas do grid — domingo primeiro, como `Date#getDay()`. */
+/** Rótulos das colunas do grid — domingo primeiro, como `Date#getDay()`. Serve
+ *  de referência fixa para `rotulosDiasSemana` girar. */
 export const DIAS_SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+/** As colunas do grid, começando no dia escolhido em Definições (0=domingo…
+ *  6=sábado) — mesmo `DIAS_SEMANA` girado, pra bater com `diasDoGrid`. */
+export function rotulosDiasSemana(inicioSemana: number): string[] {
+  return [...DIAS_SEMANA.slice(inicioSemana), ...DIAS_SEMANA.slice(0, inicioSemana)];
+}
 
 function isoDeDate(d: Date): IsoDate {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -13,10 +20,21 @@ function isoDeDate(d: Date): IsoDate {
 
 /** Células do grid mensal: os dias do mês mais o preenchimento das semanas
  *  incompletas nas pontas. Usado pela tela do Calendário e pelo calendário do
- *  `SeletorData` — o mesmo desenho nos dois lugares. */
-export function diasDoGrid(ym: YearMonth): { data: IsoDate; foraDoMes: boolean }[] {
+ *  `SeletorData` — o mesmo desenho nos dois lugares — e por `semanasDoMes`
+ *  (utils/semanas.ts), que fatia estas células em blocos de 7.
+ *
+ *  `inicioSemana` (0=domingo…6=sábado) é o dia escolhido em Definições
+ *  (`cfg.diaInicioSemana`) — sem valor padrão de propósito: cada chamador tem
+ *  de vir da configuração de verdade, nunca de um domingo cravado, senão a
+ *  mesma inconsistência que motivou isto (Veículo começando diferente do
+ *  resto) volta a acontecer num sítio esquecido. */
+export function diasDoGrid(
+  ym: YearMonth,
+  inicioSemana: number,
+): { data: IsoDate; foraDoMes: boolean }[] {
   const [y, m] = ym.split("-").map(Number);
-  const offset = new Date(y, m - 1, 1).getDay(); // 0=domingo
+  const diaDaSemana1 = new Date(y, m - 1, 1).getDay(); // 0=domingo
+  const offset = (diaDaSemana1 - inicioSemana + 7) % 7;
   const ultimoDiaMes = new Date(y, m, 0).getDate();
 
   const celulas: { data: IsoDate; foraDoMes: boolean }[] = [];

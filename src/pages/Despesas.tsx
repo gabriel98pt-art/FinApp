@@ -70,7 +70,9 @@ export default function Despesas() {
   const mesReal = mesAtual();
   // Já nasce na semana de hoje, igual ao mês — sem isto, a primeira vez que
   // se troca para "Semana" abria sempre na primeira do mês em vez da atual.
-  const [semanaIdx, setSemanaIdx] = useState(() => indiceDaSemana(semanasDoMes(mes), hojeIso()));
+  const [semanaIdx, setSemanaIdx] = useState(() =>
+    indiceDaSemana(semanasDoMes(mes, cfg.diaInicioSemana), hojeIso()),
+  );
   // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
   // a LISTA mostra tudo, com a nota indicando a origem.
   const contadas = despesasNosTotais(itens);
@@ -93,7 +95,7 @@ export default function Despesas() {
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
   // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
-  const semanas = semanasDoMes(mes);
+  const semanas = semanasDoMes(mes, cfg.diaInicioSemana);
   const idxPadrao = indiceDaSemana(semanas, hojeIso());
   const [mesDaSemana, setMesDaSemana] = useState(mes);
   if (mesDaSemana !== mes) {

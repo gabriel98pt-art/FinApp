@@ -8,6 +8,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   currency: "EUR",
   showTvde: false,
   modoDiscreto: false,
+  diaInicioSemana: 1, // segunda-feira
   fontesReceita: FONTES_RECEITA_PADRAO,
   categoriasDespesa: CATEGORIAS_DESPESA_PADRAO,
   contasCartoes: [],

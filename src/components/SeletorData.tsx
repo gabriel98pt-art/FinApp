@@ -2,7 +2,8 @@ import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import BottomSheet from "./BottomSheet";
 import { hojeIso, mesDe, somarDias, somarMeses } from "../utils/calculos";
-import { DIAS_SEMANA, diasDoGrid } from "../utils/calendario";
+import { diasDoGrid, rotulosDiasSemana } from "../utils/calendario";
+import { useCfgStore } from "../stores/cfgStore";
 import type { IsoDate } from "../types";
 import styles from "./SeletorData.module.css";
 
@@ -45,6 +46,7 @@ export default function SeletorData({
   /** O seletor quase sempre vive dentro de uma folha. */
   nivel?: number;
 }) {
+  const diaInicioSemana = useCfgStore((s) => s.cfg.diaInicioSemana);
   const hoje = hojeIso();
   const ontem = somarDias(hoje, -1);
   const [aberta, setAberta] = useState(false);
@@ -116,12 +118,12 @@ export default function SeletorData({
         </div>
 
         <div className={styles.cabecalhoSemana}>
-          {DIAS_SEMANA.map((d, i) => (
+          {rotulosDiasSemana(diaInicioSemana).map((d, i) => (
             <span key={i}>{d}</span>
           ))}
         </div>
         <div className={styles.diasGrid}>
-          {diasDoGrid(mesGrid).map(({ data, foraDoMes }) => (
+          {diasDoGrid(mesGrid, diaInicioSemana).map(({ data, foraDoMes }) => (
             <button
               key={data}
               type="button"

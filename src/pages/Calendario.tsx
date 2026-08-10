@@ -28,12 +28,12 @@ import {
   type Vencimento,
 } from "../utils/vencimentos";
 import {
-  DIAS_SEMANA,
   diasComEventoNoMes,
   diasDoGrid,
   eventosDoDia,
   eventosDoMes,
   proximosEventos,
+  rotulosDiasSemana,
 } from "../utils/calendario";
 import { hojeIso, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
@@ -71,7 +71,7 @@ export default function Calendario() {
   }
 
   const hoje = hojeIso();
-  const grid = diasDoGrid(mes);
+  const grid = diasDoGrid(mes, cfg.diaInicioSemana);
   const diasComEvento = diasComEventoNoMes(eventos, mes);
   const doMesAtual = eventosDoMes(eventos, mes);
   const proximos7 = proximosEventos(eventos, hoje, 7);
@@ -132,7 +132,7 @@ export default function Calendario() {
 
       <div className={styles.grid}>
         <div className={styles.cabecalhoSemana}>
-          {DIAS_SEMANA.map((d, i) => (
+          {rotulosDiasSemana(cfg.diaInicioSemana).map((d, i) => (
             <span key={i}>{d}</span>
           ))}
         </div>

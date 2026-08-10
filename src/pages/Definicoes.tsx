@@ -52,6 +52,19 @@ const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "GBP", rotulo: "Libra (£)" },
 ];
 
+/** Nomes por extenso, na ordem de `Date#getDay()` (0=domingo) — o índice vira
+ *  string porque `Seletor` só aceita opções de texto. */
+const DIAS_SEMANA_NOMES = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
+const OPCOES_INICIO_SEMANA = DIAS_SEMANA_NOMES.map((_, i) => String(i));
+
 function EditorLista({
   titulo,
   itens,
@@ -491,6 +504,16 @@ export default function Definicoes() {
     }
   }
 
+  async function mudarInicioSemana(valor: string) {
+    if (!uid) return;
+    try {
+      await atualizarConfig(uid, { diaInicioSemana: Number(valor) });
+      mostrarToast("✓ Início da semana atualizado");
+    } catch {
+      mostrarToast("Não foi possível alterar.");
+    }
+  }
+
   async function exportar() {
     if (!uid) return;
     try {
@@ -571,6 +594,25 @@ export default function Definicoes() {
         </div>
         <p className={styles.nota}>
           Só o símbolo muda — a formatação de milhar/decimal é a mesma para todas.
+        </p>
+      </div>
+
+      <div className={styles.grupo}>
+        <div className={styles.linhaSelect}>
+          <span>Início da semana</span>
+          <Seletor
+            variante="inline"
+            rotulo="Início da semana"
+            nivel={0}
+            valor={String(cfg.diaInicioSemana)}
+            opcoes={OPCOES_INICIO_SEMANA}
+            rotuloOpcao={(v) => DIAS_SEMANA_NOMES[Number(v)]}
+            aoMudar={(v) => void mudarInicioSemana(v)}
+          />
+        </div>
+        <p className={styles.nota}>
+          Vale para o Calendário, o seletor de data e a visão "Semana" de Despesas e Veículo — todos
+          seguem o mesmo dia.
         </p>
       </div>
 

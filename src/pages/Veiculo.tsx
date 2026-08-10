@@ -84,8 +84,10 @@ export default function Veiculo() {
   // hoje, igual ao mês — sem isto, a primeira vez que se troca para "Semana"
   // abria sempre na primeira do mês em vez da atual.
   const [visaoCargas, setVisaoCargas] = useState<"mes" | "semana">("mes");
-  const [semanaIdx, setSemanaIdx] = useState(() => indiceDaSemana(semanasDoMes(mes), hojeIso()));
-  const semanas = semanasDoMes(mes);
+  const [semanaIdx, setSemanaIdx] = useState(() =>
+    indiceDaSemana(semanasDoMes(mes, cfg.diaInicioSemana), hojeIso()),
+  );
+  const semanas = semanasDoMes(mes, cfg.diaInicioSemana);
   const [mesDaSemana, setMesDaSemana] = useState(mes);
   if (mesDaSemana !== mes) {
     setMesDaSemana(mes);
