@@ -82,6 +82,44 @@ describe("proximoVencimento — mais cedo primeiro, quitada no fim", () => {
     const b = parcela({ id: "b", pagoPorMes: { ...pagos } });
     expect(ordenar([a, b], "proximoVencimento")).toEqual(["a", "b"]);
   });
+
+  // O bug relatado: duas parcelas no mesmo mês empatavam (mesmo YearMonth) e a
+  // ordem "por dia" nunca existia de facto — só parecia existir porque o sort
+  // é estável e a lista costumava já vir mais ou menos em ordem.
+  describe("dentro do MESMO mês, desempata pelo dia de vencimento", () => {
+    const mesmoMes = { primeiroMes: "2026-08" } as const;
+
+    test("dia menor primeiro", () => {
+      const dia20 = parcela({ id: "dia20", ...mesmoMes, diaVencimento: 20 });
+      const dia5 = parcela({ id: "dia5", ...mesmoMes, diaVencimento: 5 });
+      expect(ordenar([dia20, dia5], "proximoVencimento")).toEqual(["dia5", "dia20"]);
+    });
+
+    test("sem dia dos dois, empate (mantém a ordem)", () => {
+      const a = parcela({ id: "a", ...mesmoMes });
+      const b = parcela({ id: "b", ...mesmoMes });
+      expect(ordenar([a, b], "proximoVencimento")).toEqual(["a", "b"]);
+    });
+
+    test("sem dia só de um, essa vai depois de quem tem dia certo", () => {
+      const semDia = parcela({ id: "semDia", ...mesmoMes });
+      const comDia = parcela({ id: "comDia", ...mesmoMes, diaVencimento: 15 });
+      expect(ordenar([semDia, comDia], "proximoVencimento")).toEqual(["comDia", "semDia"]);
+    });
+
+    test("em débito automático, usa o dia da fatura do cartão, não o diaVencimento cru", () => {
+      const auto = parcela({
+        id: "auto",
+        ...mesmoMes,
+        diaVencimento: 28, // ignorado — a fatura manda
+        cartao: "AB Gold (C)",
+        autoDebit: true,
+      });
+      const manual = parcela({ id: "manual", ...mesmoMes, diaVencimento: 10 });
+      const comparar = compararParcelas("proximoVencimento", undefined, { "AB Gold (C)": 5 });
+      expect([...[auto, manual]].sort(comparar).map((p) => p.id)).toEqual(["auto", "manual"]);
+    });
+  });
 });
 
 describe("valorRestante — maior primeiro", () => {

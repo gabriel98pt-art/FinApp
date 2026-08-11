@@ -246,6 +246,26 @@
   padding: 4px 0 16px;
 }
 
+/* Única saída visível da folha — sem isto só dava pra fechar arrastando,
+   gesto que nem todo mundo descobre sozinho. */
+.confirmarSub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin: -4px 0 -4px -8px;
+  padding: 6px 8px;
+  color: var(--mut);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+}
+
+.confirmarSub:hover {
+  color: var(--txt);
+  background: var(--s2);
+}
+
 /* Rótulos bem mais longos que os do resto ("Sei o valor da parcela") — sem
    isto quebram em duas linhas e desalinham os dois lados. O segmentado ocupa a
    largura toda aqui, ao contrário da sub-escolha do Veículo, que é curta. */

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Square, SquareCheck } from "lucide-react";
+import { Check, Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import type { Cents } from "../types";
@@ -95,6 +95,10 @@ export default function RegistroRapido() {
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
+  // Sem isto, uma parcela criada por aqui nunca tinha dia de vencimento — nem
+  // aparecia no detalhe da lista, nem entrava na ordem "Próximo vencimento"
+  // (tela Parcelas), só o formulário completo daquela tela perguntava.
+  const [diaVencimentoParcela, setDiaVencimentoParcela] = useState("");
   const [intermediador, setIntermediador] = useState("");
   // Folha aninhada do parcelamento (os campos dela ficavam dentro desta folha
   // e forçavam rolagem, já que a altura agora é fixa).
@@ -159,6 +163,7 @@ export default function RegistroRapido() {
         setKwhTocado(false);
         setParcelada(false);
         setNumParcelas("3");
+        setDiaVencimentoParcela("");
         setFolhaParcelamento(false);
         setModoValorParcela("total");
         setAutoDebitEscolhido(null);
@@ -271,11 +276,19 @@ export default function RegistroRapido() {
           setSalvando(false);
           return;
         }
+        const diaNum =
+          diaVencimentoParcela.trim() === "" ? undefined : Number(diaVencimentoParcela);
+        if (diaNum !== undefined && (!Number.isInteger(diaNum) || diaNum < 1 || diaNum > 31)) {
+          setErro("Dia do vencimento deve ser entre 1 e 31.");
+          setSalvando(false);
+          return;
+        }
         await criarParcela(uid, {
           descricao,
           total: totalDaCompra(valor, n, modoValorParcela),
           numParcelas: n,
           primeiroMes: mesDe(data),
+          diaVencimento: diaNum,
           categoria: etiquetaFinal,
           cartao: conta || null,
           autoDebit,
@@ -639,8 +652,9 @@ export default function RegistroRapido() {
       </form>
 
       {/* Folha do parcelamento — empilhada sobre a do Registro Rápido, como o
-          calendário do SeletorData. Não tem botão de confirmar: os campos estão
-          ligados ao mesmo estado do formulário, então fechar não perde nada. */}
+          calendário do SeletorData. Os campos estão ligados ao mesmo estado do
+          formulário, então "Confirmar" não grava nada por si — só fecha a
+          folha e volta pro resumo, já com o que foi preenchido aqui. */}
       <BottomSheet
         aberta={folhaParcelamento}
         aoFechar={() => setFolhaParcelamento(false)}
@@ -648,6 +662,14 @@ export default function RegistroRapido() {
         nivel={1}
       >
         <div className={styles.folhaParcelamento}>
+          <button
+            type="button"
+            className={styles.confirmarSub}
+            onClick={() => setFolhaParcelamento(false)}
+          >
+            <Check size={16} aria-hidden /> Confirmar
+          </button>
+
           <button
             type="button"
             role="checkbox"
@@ -733,6 +755,16 @@ export default function RegistroRapido() {
           </div>
 
           <SeletorData valor={data} aoMudar={setData} rotulo="Data 1º pagamento" nivel={2} />
+
+          <label className={styles.campo}>
+            Dia do vencimento (opcional)
+            <input
+              inputMode="numeric"
+              placeholder="1-31"
+              value={diaVencimentoParcela}
+              onChange={(e) => setDiaVencimentoParcela(e.target.value)}
+            />
+          </label>
         </div>
       </BottomSheet>
     </BottomSheet>

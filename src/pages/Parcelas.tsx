@@ -423,7 +423,13 @@ export default function Parcelas() {
   const faltaPagar = totalDoMes - pagoEsteMes;
   const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
-  const visiveis = parcelasVisiveis(parcelas, ordem, apenasQuitadas, mesRef);
+  const visiveis = parcelasVisiveis(
+    parcelas,
+    ordem,
+    apenasQuitadas,
+    mesRef,
+    cfg.diaVencimentoFatura,
+  );
 
   return (
     <Pagina titulo="Parcelas">
