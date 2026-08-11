@@ -431,6 +431,7 @@ export default function Parcelas() {
         <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="acento" />
         <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
         <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
+        <KpiCard rotulo="Parcelas ativas" valor={String(ativas.length)} />
       </Kpis>
 
       <div className={styles.cabecalho}>

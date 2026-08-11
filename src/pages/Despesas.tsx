@@ -29,8 +29,11 @@ import { useUiStore } from "../stores/uiStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from "../utils/calculos";
+import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes } from "../utils/fatura";
+import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
+import { totalVeiculoGeral } from "../utils/veiculo";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import type { Cents, DespesaFixa, Id } from "../types";
@@ -92,6 +95,14 @@ export default function Despesas() {
   const maiorCategoria = maiorCategoriaRelevante(
     despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal),
   );
+  // "Total geral": mesmas quatro parcelas do "Total do mês" (correntes + fixas
+  // + parcelas + veículo), só que sem filtro de mês — histórico completo. É a
+  // mesma soma que a Poupança do Início subtrai das receitas (ver Inicio.tsx).
+  const totalGeral =
+    total(despesasNosTotais(itens)) +
+    totalFixasGeral(despesasFixas, mesReal) +
+    totalParcelasGeral(parcelas, mesReal) +
+    totalVeiculoGeral(veiculo, mesReal);
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
   // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
@@ -226,12 +237,14 @@ export default function Despesas() {
       <Kpis pagina="despesas">
         <KpiCard
           rotulo={porSemana ? "Total da semana" : "Total do mês"}
+          chave="Total do mês"
           valor={formatMoney(totalKpi, moeda)}
           sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
           tom="vermelho"
         />
         <KpiCard
           rotulo={porSemana ? "Lançamentos (semana)" : "Lançamentos (mês)"}
+          chave="Lançamentos (mês)"
           valor={String(contagemKpi)}
         />
         <KpiCard
@@ -239,6 +252,7 @@ export default function Despesas() {
           valor={maiorCategoria ? maiorCategoria.categoria : "—"}
           sub={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : undefined}
         />
+        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeral, moeda)} tom="laranja" />
       </Kpis>
 
       <div className={styles.abas} role="tablist">

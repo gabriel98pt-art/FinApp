@@ -32,6 +32,9 @@ export default function Receitas() {
   const contadas = receitasNosTotais(itens);
   const doMesExibido = doMes(itens, mes);
   const maiorFonte = maiorFonteMes(itens, mes);
+  // "Total geral": histórico completo, sem filtro de mês — pra quem quer ver
+  // o acumulado de sempre, não só o mês exibido.
+  const totalGeral = total(contadas);
 
   return (
     <Pagina titulo="Receitas">
@@ -47,6 +50,7 @@ export default function Receitas() {
           valor={maiorFonte ? maiorFonte.fonte : "—"}
           sub={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : undefined}
         />
+        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeral, moeda)} tom="laranja" />
       </Kpis>
 
       <ListaLancamentos

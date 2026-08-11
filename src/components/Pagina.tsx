@@ -35,15 +35,18 @@ export function Kpis({
   const mobile = useMediaQuery(MOBILE);
   const escolhidos = useCfgStore((s) => (pagina ? s.cfg.kpisMobile?.[pagina] : undefined));
 
-  const itens = Children.toArray(children) as ReactElement<{ rotulo?: string }>[];
+  const itens = Children.toArray(children) as ReactElement<{ rotulo?: string; chave?: string }>[];
   if (!mobile || denso || itens.length <= NO_MOBILE) {
     return <div className={`${styles.kpis} ${denso ? styles.kpisDenso : ""}`}>{children}</div>;
   }
 
-  // A escolha é casada pelo rótulo do KpiCard; se um rótulo foi renomeado na
-  // tela e não casa mais, a página cai nos 2 primeiros em vez de ficar vazia.
+  // A escolha é casada por `chave` (ou, na falta dela, pelo próprio rótulo) —
+  // `chave` existe justamente nos KpiCard cujo rótulo muda de texto conforme
+  // o estado da tela (Mês/Semana), pra a escolha salva continuar batendo. Se
+  // nada casar (rótulo renomeado na tela sem atualizar KPIS_POR_PAGINA), a
+  // página cai nos 2 primeiros em vez de ficar vazia.
   const porEscolha = escolhidos
-    ? itens.filter((i) => escolhidos.includes(i.props?.rotulo ?? ""))
+    ? itens.filter((i) => escolhidos.includes(i.props?.chave ?? i.props?.rotulo ?? ""))
     : [];
   const visiveis = porEscolha.length === NO_MOBILE ? porEscolha : itens.slice(0, NO_MOBILE);
 

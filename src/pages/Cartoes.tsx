@@ -263,6 +263,11 @@ export default function Cartoes() {
   const totalDevido = faturas.reduce((s, f) => s + f.devido, 0);
   const totalPago = faturas.reduce((s, f) => s + f.pago, 0);
   const totalRestante = faturas.reduce((s, f) => s + f.restante, 0);
+  // Soma do saldo de caixa das contas de débito — cartões de crédito não têm
+  // saldo próprio, só fatura (já coberta por Devido/Pago/Restante acima).
+  const saldoEmContas = resumos
+    .filter((r) => r.tipo !== "credit")
+    .reduce((s, r) => s + r.saldoAtual, 0);
 
   async function adicionar(e: FormEvent) {
     e.preventDefault();
@@ -441,6 +446,11 @@ export default function Cartoes() {
         />
         <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
         <KpiCard rotulo="Restante" valor={formatMoney(totalRestante, cfg.currency)} tom="amarelo" />
+        <KpiCard
+          rotulo="Saldo em contas"
+          valor={formatMoney(saldoEmContas, cfg.currency)}
+          tom="laranja"
+        />
       </Kpis>
 
       {cfgCarregada && cfg.contasCartoes.length === 0 ? (

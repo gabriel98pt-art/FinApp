@@ -18,6 +18,7 @@ const TOM_COR: Record<TomKpi, string> = {
 
 export default function KpiCard({
   rotulo,
+  chave,
   valor,
   sub,
   tom = "neutro",
@@ -25,6 +26,12 @@ export default function KpiCard({
   aoClicar,
 }: {
   rotulo: string;
+  /** Identidade do card para a escolha de KPIs em Definições (item 8), só
+   *  necessária quando `rotulo` muda de texto conforme o estado da tela (ex.
+   *  "Total do mês" → "Total da semana"). Sem isto, `Pagina.tsx` casa pelo
+   *  próprio `rotulo` — e uma escolha salva deixa de bater assim que o texto
+   *  muda de variante, mesmo sem o usuário ter renomeado nada. */
+  chave?: string;
   valor: string;
   /** Linha pequena por baixo do valor — para quando o valor principal é um
    *  nome e o número é o detalhe (ex. "Alimentação" / "€ 42,30"). */
@@ -48,14 +55,19 @@ export default function KpiCard({
 
   if (aoClicar) {
     return (
-      <button className={`${styles.card} ${styles.clicavel}`} style={estilo} onClick={aoClicar}>
+      <button
+        className={`${styles.card} ${styles.clicavel}`}
+        style={estilo}
+        onClick={aoClicar}
+        data-chave={chave}
+      >
         {conteudo}
       </button>
     );
   }
 
   return (
-    <div className={styles.card} style={estilo}>
+    <div className={styles.card} style={estilo} data-chave={chave}>
       {conteudo}
     </div>
   );

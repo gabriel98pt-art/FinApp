@@ -20,20 +20,28 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
   {
     id: "receitas",
     titulo: "Receitas",
-    rotulos: ["Total do mês", "Lançamentos (mês)", "Total geral"],
+    rotulos: ["Total do mês", "Lançamentos (mês)", "Maior fonte", "Total geral"],
   },
   {
     id: "despesas",
     titulo: "Despesas",
-    rotulos: ["Total do mês", "Lançamentos (mês)", "Total geral"],
+    rotulos: ["Total do mês", "Lançamentos (mês)", "Maior categoria", "Total geral"],
   },
-  { id: "cartoes", titulo: "Cartões", rotulos: ["Devido no mês", "Pago", "Restante"] },
+  {
+    id: "cartoes",
+    titulo: "Cartões",
+    rotulos: ["Devido no mês", "Pago", "Restante", "Saldo em contas"],
+  },
   {
     id: "veiculo",
     titulo: "Veículo",
     rotulos: ["Gasto do mês", "Carregamentos", "Despesas", "Km no mês"],
   },
-  { id: "parcelas", titulo: "Parcelas", rotulos: ["Em andamento", "Débito mensal", "Falta pagar"] },
+  {
+    id: "parcelas",
+    titulo: "Parcelas",
+    rotulos: ["Total do mês", "Falta pagar", "Restante", "Parcelas ativas"],
+  },
   {
     id: "metas",
     titulo: "Metas",
