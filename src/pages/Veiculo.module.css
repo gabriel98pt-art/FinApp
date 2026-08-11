@@ -284,22 +284,24 @@
   box-shadow: var(--sh-sm);
 }
 
-/* Gestão dos locais de carregamento — mesmo desenho do bloco de contas em
-   Cartões, para a lista ficar junto de quem a usa e não em Definições. */
+/* Gestão dos locais/categorias — mesmo desenho do bloco de contas em Cartões
+   na origem, mas aqui é manutenção rara (renomear/apagar um local), não
+   conteúdo da página: sem sombra de card e com o título discreto, pra não
+   competir com a lista de carregamentos/despesas logo acima. */
 .gerir {
-  background: var(--s1);
-  border: 1px solid var(--brd);
+  background: transparent;
+  border: 1px dashed var(--brd);
   border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
-  padding: 14px 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .gerirTitulo {
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--mut);
 }
 
 .chips {
@@ -315,10 +317,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--s2);
+  background: transparent;
+  border: 1px solid var(--brd);
+  color: var(--mut);
   border-radius: var(--r-pill);
-  padding: 5px 12px;
-  font-size: 0.8rem;
+  padding: 4px 10px;
+  font-size: 0.76rem;
   font-weight: 600;
 }
 
@@ -349,12 +353,12 @@
 }
 
 .gerirLinha input {
-  background: var(--s2);
+  background: transparent;
   border: 1px solid var(--brd);
   border-radius: var(--r-sm);
-  padding: 9px 12px;
+  padding: 7px 10px;
   color: var(--txt);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   flex: 1;
   min-width: 120px;
 }
@@ -362,10 +366,11 @@
 /* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
    de acento sempre presente. A ação principal da tela é a de cima. */
 .gerirBotao {
-  background: var(--s3);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid var(--brd);
+  color: var(--mut);
+  font-weight: 600;
+  font-size: 0.78rem;
   border-radius: var(--r-sm);
-  padding: 9px 14px;
+  padding: 7px 12px;
 }
