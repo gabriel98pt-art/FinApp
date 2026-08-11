@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Pagina, { Kpis } from "../components/Pagina";
+import AvisoOrcamento from "../components/AvisoOrcamento";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
 import DonutCategoriaCard from "../components/DonutCategoriaCard";
@@ -91,6 +92,7 @@ export default function Inicio() {
           discreto={modoDiscreto}
         />
       </Kpis>
+      <AvisoOrcamento />
       <DonutCategoriaCard />
       <ResumoAnual meses={6} titulo="Resumo Anual" ate={mes} />
       <CopilotoCard />

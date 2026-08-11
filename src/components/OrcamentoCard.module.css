@@ -6,6 +6,13 @@
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
@@ -14,67 +21,165 @@
   font-size: 0.9rem;
 }
 
-.vazio {
-  color: var(--mut);
-  font-size: 0.82rem;
+.botaoAdicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.78rem;
+  border-radius: var(--r-sm);
+  padding: 7px 12px;
+  white-space: nowrap;
 }
 
-.link {
-  color: var(--blu);
-  font-weight: 600;
+.vazio {
+  color: var(--mut);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .lista {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
+  /* Compensa o padding das linhas pra elas se alinharem com o cabeçalho. */
+  margin: 0 -8px;
 }
 
 .linha {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-exit);
+}
+
+.linha:hover {
+  background: var(--s2);
 }
 
 .linhaTopo {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 0.82rem;
+  gap: 10px;
 }
 
-.categoria {
+.categoriaNome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
+  font-size: 0.88rem;
+  min-width: 0;
 }
 
-.dentro {
-  color: var(--mut);
-  font-variant-numeric: tabular-nums;
-}
-
-.estourado {
-  color: var(--red);
+.valores {
+  font-size: 0.85rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.valoresTeto {
+  font-weight: 500;
+  color: var(--mut);
 }
 
 .barra {
-  height: 7px;
+  height: 8px;
   border-radius: var(--r-pill);
   background: var(--s2);
   overflow: hidden;
 }
 
-/* Informação, repetida por categoria — o vermelho do `.preenchidoEstourado` é
-   que tem de saltar à vista aqui, e antes competia com o acento. */
 .preenchido {
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--mut);
-  /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
-     o custo de layout de uma barra sem conteúdo é irrelevante. */
+  /* scaleX distorceria o raio de cápsula das pontas numa barra fina, e o
+     custo de layout de uma barra sem conteúdo é irrelevante. */
   transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
 }
 
-.preenchidoEstourado {
-  background: var(--red);
+.linhaBase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pct {
+  color: var(--mut);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.selo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+}
+
+.seloPerto {
+  color: var(--ylw);
+  background: color-mix(in srgb, var(--ylw) 16%, transparent);
+}
+
+.seloEstourado {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 16%, transparent);
+}
+
+/* Folha de criar/editar teto */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.campo input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+}
+
+.campo input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.remover {
+  color: var(--red);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 6px;
+  align-self: center;
 }

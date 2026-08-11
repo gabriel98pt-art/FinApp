@@ -31,7 +31,6 @@ import {
   atualizarConfig,
   definirCorCategoria,
   definirIconeCategoria,
-  definirOrcamento,
   removerItemLista,
   renomearCategoria,
   renomearFonte,
@@ -41,8 +40,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
-import CampoMoeda from "../components/CampoMoeda";
-import type { Cents, ConfigConta, Currency } from "../types";
+import type { ConfigConta, Currency } from "../types";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import styles from "./Definicoes.module.css";
 
@@ -342,47 +340,6 @@ function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
   );
 }
 
-function LinhaOrcamento({
-  categoria,
-  tetoAtual,
-  uid,
-}: {
-  categoria: string;
-  tetoAtual: Cents | undefined;
-  uid: string;
-}) {
-  const [texto, setTexto] = useState<Cents | null>(tetoAtual ?? null);
-  const [salvando, setSalvando] = useState(false);
-
-  async function salvar() {
-    // Vazio = sem teto, que é uma escolha válida aqui. Negativo não existe:
-    // o campo só constrói valores positivos.
-    const valor = texto;
-    setSalvando(true);
-    try {
-      await definirOrcamento(uid, categoria, valor);
-    } catch {
-      mostrarToast("Não foi possível salvar o teto.");
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  return (
-    <div className={styles.linhaOrcamento}>
-      <span className={styles.orcamentoCategoria}>{categoria}</span>
-      <CampoMoeda
-        valor={texto}
-        aoMudar={setTexto}
-        placeholder="sem teto"
-        className={styles.inputPequeno}
-        disabled={salvando}
-        aoSairDoCampo={salvar}
-      />
-    </div>
-  );
-}
-
 /** Data legível para quem vai reportar o erro ("quinta às 14h32", não um
  *  timestamp). */
 function quando(ts: number): string {
@@ -654,16 +611,6 @@ export default function Definicoes() {
       <CorBotaoFlutuante cfg={cfg} uid={uid} />
 
       <EscolhaKpis cfg={cfg} uid={uid} />
-
-      <div className={styles.grupo}>
-        <p className={styles.grupoTitulo}>Orçamento por categoria</p>
-        <p className={styles.nota}>Teto mensal de despesa — deixe em branco pra não ter teto.</p>
-        <div className={styles.listaOrcamento}>
-          {cfg.categoriasDespesa.map((c) => (
-            <LinhaOrcamento key={c} categoria={c} tetoAtual={cfg.orcamentos[c]} uid={uid} />
-          ))}
-        </div>
-      </div>
 
       <div className={styles.grupo}>
         <p className={styles.grupoTitulo}>Backup</p>

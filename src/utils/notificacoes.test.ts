@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
-import type { ConfigConta, DespesaFixa, Parcela } from "../types";
+import type { ConfigConta, DespesaCorrente, DespesaFixa, Parcela } from "../types";
 import type { DadosFatura } from "./fatura";
 import {
   notificacoesDeFaturas,
   notificacoesDeFixas,
+  notificacoesDeOrcamento,
   notificacoesDeParcelas,
   todasNotificacoes,
 } from "./notificacoes";
@@ -193,5 +194,52 @@ describe("todasNotificacoes", () => {
 
   test("nada em atraso dá lista vazia", () => {
     expect(todasNotificacoes(HOJE, MES, semDados, cfg, [], [])).toEqual([]);
+  });
+
+  test("categorias estouradas entram depois das pendências vencidas", () => {
+    const dados: DadosFatura = {
+      ...semDados,
+      despesasCorrentes: [
+        {
+          id: "d1",
+          descricao: "Continente",
+          valor: 15000,
+          data: "2026-08-05",
+          categoria: "Mercado",
+        },
+      ],
+    };
+    const cfgComOrcamento: ConfigConta = { ...cfg, orcamentos: { Mercado: 10000 } };
+    const n = todasNotificacoes(
+      HOJE,
+      MES,
+      dados,
+      cfgComOrcamento,
+      [],
+      [fixa({ diaVencimento: 2 })], // vencida, entra primeiro
+    );
+    expect(n.map((x) => x.tipo)).toEqual(["fixa", "orcamento"]);
+    expect(n[1]).toMatchObject({ refId: "Mercado", valor: 5000, pct: 150 });
+  });
+});
+
+describe("notificacoesDeOrcamento", () => {
+  const despesas: DespesaCorrente[] = [
+    { id: "d1", descricao: "Continente", valor: 15000, data: "2026-08-05", categoria: "Mercado" },
+    { id: "d2", descricao: "Farmácia", valor: 3000, data: "2026-08-06", categoria: "Saúde" },
+  ];
+
+  test("só entra quem estourou — dentro do teto fica de fora", () => {
+    const n = notificacoesDeOrcamento(despesas, [], { Mercado: 10000, Saúde: 5000 }, MES);
+    expect(n.map((x) => x.refId)).toEqual(["Mercado"]);
+  });
+
+  test("valor é o excedente (gasto - teto), não o gasto total", () => {
+    const n = notificacoesDeOrcamento(despesas, [], { Mercado: 10000 }, MES);
+    expect(n[0]).toMatchObject({ tipo: "orcamento", valor: 5000, pct: 150 });
+  });
+
+  test("sem teto nenhum, lista vazia", () => {
+    expect(notificacoesDeOrcamento(despesas, [], {}, MES)).toEqual([]);
   });
 });

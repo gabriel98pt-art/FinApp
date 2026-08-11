@@ -31,6 +31,7 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes } from "../utils/fatura";
+import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
@@ -95,6 +96,20 @@ export default function Despesas() {
   const maiorCategoria = maiorCategoriaRelevante(
     despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal),
   );
+  // Teto da maior categoria (seção 4.8), se houver um configurado — mesma
+  // base de cálculo do orçamento (correntes + parcelas, sem fixas/veículo:
+  // ver orcamento.ts), por isso só o estado (perto/estourou) entra no cartão,
+  // nunca a % — o valor já mostrado no cartão é o total mais amplo do resumo
+  // por categoria, os dois números não são a mesma coisa.
+  const statusMaiorCategoria = maiorCategoria
+    ? statusOrcamentoMes(itens, parcelas, cfg.orcamentos, mes, mesReal).find(
+        (s) => s.categoria === maiorCategoria.categoria,
+      )
+    : undefined;
+  const pertoMaiorCategoria =
+    !!statusMaiorCategoria &&
+    !statusMaiorCategoria.estourado &&
+    statusMaiorCategoria.pct >= LIMIAR_PERTO_ORCAMENTO;
   // "Total geral": mesmas quatro parcelas do "Total do mês" (correntes + fixas
   // + parcelas + veículo), só que sem filtro de mês — histórico completo. É a
   // mesma soma que a Poupança do Início subtrai das receitas (ver Inicio.tsx).
@@ -250,7 +265,24 @@ export default function Despesas() {
         <KpiCard
           rotulo="Maior categoria"
           valor={maiorCategoria ? maiorCategoria.categoria : "—"}
-          sub={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : undefined}
+          sub={
+            maiorCategoria
+              ? `${formatMoney(maiorCategoria.valor, moeda)}${
+                  statusMaiorCategoria?.estourado
+                    ? " — estourou o teto"
+                    : pertoMaiorCategoria
+                      ? " — perto do teto"
+                      : ""
+                }`
+              : undefined
+          }
+          tom={
+            statusMaiorCategoria?.estourado
+              ? "vermelho"
+              : pertoMaiorCategoria
+                ? "amarelo"
+                : "neutro"
+          }
         />
         <KpiCard rotulo="Total geral" valor={formatMoney(totalGeral, moeda)} tom="laranja" />
       </Kpis>

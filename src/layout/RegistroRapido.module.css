@@ -119,6 +119,29 @@
   text-align: center;
 }
 
+/* Aviso de teto (seção 4.8): mesma linguagem de "tira" tintada da faixa de
+   sincronização — neutro por padrão, vira cor de alerta perto/acima do
+   limite. */
+.avisoTeto {
+  font-size: 0.82rem;
+  color: var(--mut);
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--s2);
+}
+
+.avisoTetoAlerta {
+  color: var(--ylw);
+  background: color-mix(in srgb, var(--ylw) 12%, var(--s2));
+}
+
+.avisoTetoEstourado {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 12%, var(--s2));
+  font-weight: 600;
+}
+
 /* No telemóvel a folha tem altura fixa: os campos ficam ancorados no topo e as
    ações descem para o rodapé, para a silhueta ser a mesma em qualquer tipo.
    A partir de 768px a folha acompanha o conteúdo e não sobra espaço para

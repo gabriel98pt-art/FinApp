@@ -1,0 +1,41 @@
+/* Mesma silhueta da faixa de sincronização (ErroSincronizacao.module.css,
+   variante .tira), só que como link de verdade — leva pra Planejamento em
+   vez de repetir uma ação no lugar. */
+
+.tira {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.83rem;
+  font-weight: 700;
+  transition: background var(--dur-fast) var(--ease-exit);
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+  color: var(--txt);
+  font-weight: 600;
+}
+
+.perto {
+  background: color-mix(in srgb, var(--ylw) 12%, var(--s1));
+  border: 1px solid color-mix(in srgb, var(--ylw) 30%, transparent);
+  color: var(--ylw);
+}
+
+.perto:hover {
+  background: color-mix(in srgb, var(--ylw) 18%, var(--s1));
+}
+
+.estourado {
+  background: color-mix(in srgb, var(--red) 12%, var(--s1));
+  border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
+  color: var(--red);
+}
+
+.estourado:hover {
+  background: color-mix(in srgb, var(--red) 18%, var(--s1));
+}

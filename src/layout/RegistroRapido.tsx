@@ -22,11 +22,14 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
+import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
-import { hojeIso, mesDe } from "../utils/calculos";
+import { hojeIso, mesAtual, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
+import { formatMoney } from "../utils/money";
+import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalDaCompra } from "../utils/parcelas";
 import { kwhPeloCusto, precoKwhDoLocal } from "../utils/veiculo";
 
@@ -73,6 +76,7 @@ export default function RegistroRapido() {
   const mobile = useMediaQuery(MOBILE);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
+  const parcelas = useParcelasStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
   const veiculo = useVeiculoStore((s) => s.dados);
 
@@ -193,6 +197,17 @@ export default function RegistroRapido() {
       : lado === "despesaVeiculo"
         ? cfg.categoriasVeiculo
         : cfg.categoriasDespesa;
+
+  // Aviso de teto (seção 4.8): só despesa corrente não parcelada tem
+  // categoria com orçamento configurável — fixas, parcelas e veículo vivem
+  // fora do que este teto mede. Segue o mês da data escolhida (não sempre
+  // "hoje"), pra um lançamento retroativo mostrar o teto do mês certo.
+  const statusTeto =
+    tipo === "despesa" && !ehParcelada && etiqueta && cfg.orcamentos[etiqueta]
+      ? statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mesDe(data), mesAtual()).find(
+          (s) => s.categoria === etiqueta,
+        )
+      : undefined;
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -530,6 +545,26 @@ export default function RegistroRapido() {
             opcoes={opcoes}
             aoMudar={setEtiqueta}
           />
+        )}
+
+        {statusTeto && (
+          <p
+            className={`${styles.avisoTeto} ${
+              statusTeto.estourado
+                ? styles.avisoTetoEstourado
+                : statusTeto.pct >= LIMIAR_PERTO_ORCAMENTO
+                  ? styles.avisoTetoAlerta
+                  : ""
+            }`}
+          >
+            Já gastou {formatMoney(statusTeto.gasto, cfg.currency)} de{" "}
+            {formatMoney(statusTeto.teto, cfg.currency)} em {etiqueta} este mês
+            {statusTeto.estourado
+              ? " — orçamento estourado."
+              : statusTeto.pct >= LIMIAR_PERTO_ORCAMENTO
+                ? " — perto do limite."
+                : "."}
+          </p>
         )}
 
         {cfg.contasCartoes.length > 0 && (

@@ -191,32 +191,6 @@
   display: none;
 }
 
-.listaOrcamento {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 4px 8px 8px;
-}
-
-.linhaOrcamento {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.orcamentoCategoria {
-  font-size: 0.85rem;
-  font-weight: 600;
-  flex: 1;
-}
-
-.linhaOrcamento .inputPequeno {
-  flex: 0 0 110px;
-  min-width: 0;
-  text-align: right;
-}
-
 /* Escolha dos 2 KPIs por página no mobile (item 8) */
 .grupoKpis {
   padding: 2px 8px 6px;

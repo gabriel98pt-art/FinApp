@@ -13,6 +13,12 @@ export interface StatusOrcamento {
   estourado: boolean;
 }
 
+/** % do teto a partir do qual uma categoria conta como "perto do limite" —
+ *  ainda não estourou, mas já merece aviso. Fonte única: Registro Rápido,
+ *  o card "Maior categoria" de Despesas e o resumo do Início usam o mesmo
+ *  número, pra não haver um "perto" diferente em cada tela. */
+export const LIMIAR_PERTO_ORCAMENTO = 80;
+
 /** Gasto real vs. teto configurado, só para categorias com teto > 0
  *  (cfg.orcamentos). Ordenado por % gasto decrescente — o mais estourado
  *  primeiro. As parcelas entram pelo plano (não pelo lançamento espelho), na

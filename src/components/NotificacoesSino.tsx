@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellOff, CreditCard, Layers, Repeat } from "lucide-react";
+import { Bell, BellOff, CreditCard, Layers, PiggyBank, Repeat } from "lucide-react";
 import BottomSheet from "./BottomSheet";
 import { EstadoVazio } from "./Pagina";
 import { useNotificacoes } from "../hooks/useNotificacoes";
@@ -15,6 +15,7 @@ const POR_TIPO: Record<TipoNotificacao, { rota: string; Icone: typeof Bell }> = 
   parcela: { rota: "/parcelas", Icone: Layers },
   fixa: { rota: "/despesas", Icone: Repeat },
   fatura: { rota: "/cartoes", Icone: CreditCard },
+  orcamento: { rota: "/planejamento", Icone: PiggyBank },
 };
 
 /** Sino do header: quanto está vencido e por pagar, agora.
@@ -40,8 +41,8 @@ export default function NotificacoesSino() {
         onClick={() => setAberta(true)}
         aria-label={
           notificacoes.length === 0
-            ? "Lembretes — nada em atraso"
-            : `Lembretes — ${notificacoes.length} em atraso`
+            ? "Lembretes — nada pendente"
+            : `Lembretes — ${notificacoes.length} pendência(s)`
         }
       >
         <span className={styles.envolvente}>
@@ -59,7 +60,7 @@ export default function NotificacoesSino() {
           <EstadoVazio
             Icone={BellOff}
             mensagem="Tudo em dia"
-            sub="Parcelas, despesas fixas e faturas vencidas aparecem aqui."
+            sub="Parcelas, fixas e faturas vencidas, e categorias que estouraram o orçamento, aparecem aqui."
           />
         ) : (
           <div className={styles.lista}>
@@ -73,11 +74,18 @@ export default function NotificacoesSino() {
                   <span className={styles.texto}>
                     <span className={styles.titulo}>{n.titulo}</span>
                     <span className={styles.detalhe}>
-                      {n.diasAtraso === 1 ? "há 1 dia" : `há ${n.diasAtraso} dias`}
+                      {n.tipo === "orcamento"
+                        ? `${n.pct}% do teto`
+                        : n.diasAtraso === 1
+                          ? "há 1 dia"
+                          : `há ${n.diasAtraso} dias`}
                       {n.detalhe ? ` · ${n.detalhe}` : ""}
                     </span>
                   </span>
-                  <span className={styles.valor}>{formatMoney(n.valor, moeda)}</span>
+                  <span className={styles.valor}>
+                    {n.tipo === "orcamento" ? "+" : ""}
+                    {formatMoney(n.valor, moeda)}
+                  </span>
                 </button>
               );
             })}

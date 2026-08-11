@@ -12,25 +12,38 @@
 // atrasado deixaria de ser avisado —, e o "há N dias" já diz o tamanho do
 // atraso sem precisar de somar meses.
 
-import type { Cents, ConfigConta, DespesaFixa, IsoDate, Parcela, YearMonth } from "../types";
+import type {
+  Cents,
+  ConfigConta,
+  DespesaCorrente,
+  DespesaFixa,
+  IsoDate,
+  Parcela,
+  YearMonth,
+} from "../types";
 import { diasEntre } from "./calculos";
 import { calcularFatura, fixaAtivaNoMes, fixaEfetivamentePaga, type DadosFatura } from "./fatura";
 import { diaVencimentoEfetivo, proximoMesEmAberto, valorDaParcela } from "./parcelas";
+import { statusOrcamentoMes } from "./orcamento";
 import { diaDoMes } from "./vencimentos";
 
-export type TipoNotificacao = "parcela" | "fixa" | "fatura";
+export type TipoNotificacao = "parcela" | "fixa" | "fatura" | "orcamento";
 
 export interface Notificacao {
   id: string;
   tipo: TipoNotificacao;
-  /** Id da parcela/fixa, ou o nome do cartão na fatura. */
+  /** Id da parcela/fixa, o nome do cartão na fatura, ou a categoria no
+   *  orçamento. */
   refId: string;
   titulo: string;
   detalhe?: string;
   valor: Cents;
-  /** Dia do vencimento — já passado, por construção. */
-  dia: IsoDate;
-  diasAtraso: number;
+  /** Dia do vencimento — já passado, por construção. Ausente em "orcamento":
+   *  estourar um teto não tem "dia", é um estado do mês inteiro. */
+  dia?: IsoDate;
+  diasAtraso?: number;
+  /** Só em "orcamento": % do teto já gasto (sempre > 100, por construção). */
+  pct?: number;
 }
 
 /** Dia do mês em que a fatura do cartão vence. Sem nada definido, o dia 1 — a
@@ -136,7 +149,30 @@ export function notificacoesDeFaturas(
   return notificacoes;
 }
 
-/** As três fontes juntas, o mais atrasado primeiro. */
+/** Categorias com teto estourado no mês corrente. Sempre o mês de hoje —
+ *  igual às outras três fontes —, nunca o do seletor do header: um teto
+ *  estourado não deixa de o estar por se olhar outro mês no resto do app. */
+export function notificacoesDeOrcamento(
+  despesasCorrentes: DespesaCorrente[],
+  parcelas: Parcela[],
+  orcamentos: Record<string, Cents>,
+  mes: YearMonth,
+): Notificacao[] {
+  return statusOrcamentoMes(despesasCorrentes, parcelas, orcamentos, mes, mes)
+    .filter((s) => s.estourado)
+    .map((s) => ({
+      id: `orcamento-${s.categoria}`,
+      tipo: "orcamento" as const,
+      refId: s.categoria,
+      titulo: s.categoria,
+      valor: s.gasto - s.teto,
+      pct: s.pct,
+    }));
+}
+
+/** As quatro fontes juntas: pendências vencidas primeiro (a mais atrasada no
+ *  topo), tetos estourados depois (o mais estourado primeiro) — atraso real
+ *  de pagamento pesa mais que estourar uma categoria. */
 export function todasNotificacoes(
   hoje: IsoDate,
   mes: YearMonth,
@@ -145,9 +181,16 @@ export function todasNotificacoes(
   parcelas: Parcela[],
   fixas: DespesaFixa[],
 ): Notificacao[] {
-  return [
+  const vencidas = [
     ...notificacoesDeParcelas(parcelas, hoje, mes, cfg.diaVencimentoFatura),
     ...notificacoesDeFixas(fixas, hoje, mes),
     ...notificacoesDeFaturas(hoje, mes, dados, cfg),
-  ].sort((a, b) => b.diasAtraso - a.diasAtraso);
+  ].sort((a, b) => (b.diasAtraso ?? 0) - (a.diasAtraso ?? 0));
+  const estouradas = notificacoesDeOrcamento(
+    dados.despesasCorrentes,
+    parcelas,
+    cfg.orcamentos,
+    mes,
+  ).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
+  return [...vencidas, ...estouradas];
 }
