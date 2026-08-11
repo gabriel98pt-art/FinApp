@@ -85,8 +85,9 @@ export function paradasDonut(fatias: FatiaCategoria[], cores: string[]): string[
 }
 
 /** Nomes que valem como "aluguel" — os mesmos sinónimos que
- *  `coresCategoria.ts` já trata como a mesma coisa. */
-const FAMILIA_ALUGUEL = ["casa", "habitacao", "renda", "aluguer"];
+ *  `coresCategoria.ts` já trata como a mesma coisa, mais a grafia pt-BR
+ *  ("aluguel"), que faltava aqui e por isso não era excluída. */
+const FAMILIA_ALUGUEL = ["casa", "habitacao", "renda", "aluguer", "aluguel"];
 
 /** Sem acento e em minúsculas, para comparar nomes escritos de várias formas. */
 function normalizar(nome: string): string {

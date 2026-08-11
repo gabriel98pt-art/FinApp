@@ -197,7 +197,16 @@ describe("maiorCategoriaRelevante — o que o card de Despesas mostra", () => {
   });
 
   test("os sinónimos de aluguel saem todos, com ou sem acento", () => {
-    for (const nome of ["Casa", "Habitação", "habitacao", "Renda", "Aluguer", "ALUGUER"]) {
+    for (const nome of [
+      "Casa",
+      "Habitação",
+      "habitacao",
+      "Renda",
+      "Aluguer",
+      "ALUGUER",
+      "Aluguel", // grafia pt-BR — faltava na lista, categoria real ficava de fora
+      "aluguel",
+    ]) {
       expect(maiorCategoriaRelevante([fatia(nome, 90000), fatia("Lazer", 100)])?.categoria).toBe(
         "Lazer",
       );
