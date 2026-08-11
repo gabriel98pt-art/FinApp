@@ -5,6 +5,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CategoriaBolha from "../components/CategoriaBolha";
+import FiltroTransacoes from "../components/FiltroTransacoes";
 import SeletorCategoria from "../components/SeletorCategoria";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { criarDespesa } from "../services/lancamentosService";
@@ -25,7 +26,12 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { dadosDespesaDaCarga } from "../utils/veiculo";
-import { transacoesDoMes, type DadosTransacoes, type Transacao } from "../utils/transacoes";
+import {
+  filtrarTransacoes,
+  transacoesDoMes,
+  type DadosTransacoes,
+  type Transacao,
+} from "../utils/transacoes";
 import styles from "./Transacoes.module.css";
 
 /** Onde cada tipo é gerenciado — usado pelo botão da folha de detalhe. */
@@ -57,6 +63,9 @@ export default function Transacoes() {
   // vazio, senão a lista mostrava dois "Outros" (o de limpar e o de verdade).
   const [categoriaMover, setCategoriaMover] = useState<string | null>(null);
   const [movendo, setMovendo] = useState(false);
+  // Filtro de categoria/conta (item novo) — "" em cada um é "sem filtro".
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroConta, setFiltroConta] = useState("");
 
   const dados: DadosTransacoes = {
     receitas: useReceitasStore((s) => s.itens),
@@ -81,8 +90,12 @@ export default function Transacoes() {
     receitasOk && despesasOk && fixasOk && parcelasOk && transferenciasOk && veiculoOk;
 
   const itens = transacoesDoMes(dados, mes, mesAtual(), hojeIso());
-  const entradas = itens.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
-  const saidas = itens.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
+  // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
+  // refletem só o que está visível, não o mês inteiro por baixo dele.
+  const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
+  const entradas = itensFiltrados.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
+  const saidas = itensFiltrados.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
+  const filtroAtivo = filtroCategoria !== "" || filtroConta !== "";
 
   function abrir(t: Transacao) {
     if (t.origem === "receita" || t.origem === "despesa") {
@@ -134,10 +147,28 @@ export default function Transacoes() {
         <KpiCard rotulo="Saídas" valor={formatMoney(saidas, cfg.currency)} tom="vermelho" />
         <KpiCard
           rotulo="Movimentações"
-          valor={String(itens.length)}
+          valor={String(itensFiltrados.length)}
           tom={entradas - saidas >= 0 ? "acento" : "amarelo"}
         />
       </Kpis>
+
+      {itens.length > 0 && (
+        <div className={styles.cabecalho}>
+          <span className={styles.contagem}>
+            {filtroAtivo
+              ? `${itensFiltrados.length} de ${itens.length} transações`
+              : `${itens.length} transações`}
+          </span>
+          <FiltroTransacoes
+            categorias={cfg.categoriasDespesa}
+            contas={cfg.contasCartoes}
+            filtroCategoria={filtroCategoria}
+            aoMudarCategoria={setFiltroCategoria}
+            filtroConta={filtroConta}
+            aoMudarConta={setFiltroConta}
+          />
+        </div>
+      )}
 
       {carregado && itens.length === 0 ? (
         <EstadoVazio
@@ -145,9 +176,15 @@ export default function Transacoes() {
           mensagem={`Nada movimentado em ${rotuloMes(mes)}`}
           sub="Receitas, despesas, parcelas, transferências e o veículo aparecem aqui juntos."
         />
+      ) : carregado && itensFiltrados.length === 0 ? (
+        <EstadoVazio
+          Icone={ListTree}
+          mensagem="Nenhuma transação com esse filtro"
+          sub="Tente outra categoria ou conta, ou limpe o filtro no ícone acima."
+        />
       ) : (
         <div className={styles.lista}>
-          {itens.map((t) => (
+          {itensFiltrados.map((t) => (
             <button key={t.chave} className={styles.linha} onClick={() => abrir(t)}>
               <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
               <span className={styles.texto}>

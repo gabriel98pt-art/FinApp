@@ -223,3 +223,45 @@ export function transacoesDoMes(
     a.data === b.data ? a.chave.localeCompare(b.chave) : a.data < b.data ? 1 : -1,
   );
 }
+
+// Filtro de transações (Transações → filtrar por categoria/conta).
+//
+// O filtro de categoria é um valor só, com quatro formas possíveis:
+//   - vazio: sem filtro, tudo passa;
+//   - "Receita"/"Despesa"/"Transferência interna": casa pelo TIPO;
+//   - qualquer outro texto: o nome de uma categoria de despesa. Despesa
+//     corrente, fixa e parcela usam a mesma lista `cfg.categoriasDespesa`
+//     (ver SeletorCategoria nas três telas), por isso "Despesa" cobre as três
+//     origens, e uma categoria específica também — só mais estreito.
+// Veículo (carga/despesaVeiculo) fica fora dos dois filtros: usa outra lista
+// de categorias (`cfg.categoriasVeiculo`) e não foi pedido aqui.
+
+export const FILTRO_RECEITA = "Receita";
+export const FILTRO_DESPESA = "Despesa";
+export const FILTRO_TRANSFERENCIA = "Transferência interna";
+
+const ORIGENS_DESPESA = new Set<OrigemTransacao>(["despesa", "fixa", "parcela"]);
+
+export function passaFiltroCategoria(t: Transacao, filtro: string): boolean {
+  if (!filtro) return true;
+  if (filtro === FILTRO_RECEITA) return t.origem === "receita";
+  if (filtro === FILTRO_TRANSFERENCIA) return t.origem === "transferencia";
+  if (filtro === FILTRO_DESPESA) return ORIGENS_DESPESA.has(t.origem);
+  return ORIGENS_DESPESA.has(t.origem) && t.categoria === filtro;
+}
+
+/** Filtro de conta/cartão: vazio deixa tudo passar, senão bate com `t.conta`
+ *  (só as origens que guardam conta a preenchem — ver `transacoesDoMes`). */
+export function passaFiltroConta(t: Transacao, filtro: string): boolean {
+  return !filtro || t.conta === filtro;
+}
+
+export function filtrarTransacoes(
+  itens: Transacao[],
+  filtroCategoria: string,
+  filtroConta: string,
+): Transacao[] {
+  return itens.filter(
+    (t) => passaFiltroCategoria(t, filtroCategoria) && passaFiltroConta(t, filtroConta),
+  );
+}

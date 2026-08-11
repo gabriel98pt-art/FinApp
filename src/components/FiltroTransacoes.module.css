@@ -1,0 +1,114 @@
+/* Mesmo botão redondo do SeletorOrdemFolha — família dos ícones-botão do
+   Header e de Definições — com um badge de contagem quando há filtro ativo. */
+
+.botao {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--mut);
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  transition:
+    background var(--dur-fast) var(--ease-exit),
+    color var(--dur-fast) var(--ease-exit);
+}
+
+.botao:hover {
+  color: var(--txt);
+  background: var(--s3);
+}
+
+.botaoAtivo {
+  color: var(--blu);
+  border-color: color-mix(in srgb, var(--blu) 40%, var(--brd));
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: var(--r-pill);
+  background: var(--blu);
+  color: var(--bg);
+  font-size: 0.58rem;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
+}
+
+.secao + .secao {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--brd);
+}
+
+.secaoTitulo {
+  padding: 4px 12px 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--mut);
+  text-align: left;
+}
+
+.opcaoNome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.opcao:hover {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.ativa {
+  background: var(--s3);
+  color: var(--blu);
+}
+
+.limpar {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  color: var(--red);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: var(--r-sm);
+}
+
+.limpar:hover {
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}

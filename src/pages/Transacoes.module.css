@@ -1,3 +1,15 @@
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.contagem {
+  font-size: 0.82rem;
+  color: var(--mut);
+}
+
 .lista {
   display: flex;
   flex-direction: column;

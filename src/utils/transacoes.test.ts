@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { VEICULO_VAZIO } from "../services/veiculoService";
 import type { DespesaCorrente, Parcela } from "../types";
-import { transacoesDoMes, type DadosTransacoes } from "./transacoes";
+import {
+  filtrarTransacoes,
+  passaFiltroCategoria,
+  passaFiltroConta,
+  transacoesDoMes,
+  type DadosTransacoes,
+  type Transacao,
+} from "./transacoes";
 
 const vazio: DadosTransacoes = {
   receitas: [],
@@ -430,5 +437,99 @@ describe("transacoesDoMes", () => {
       "2026-07",
     );
     expect(t[0].data).toBe("2026-07-01");
+  });
+});
+
+function transacao(extra: Partial<Transacao> = {}): Transacao {
+  return {
+    chave: "x",
+    refId: "1",
+    origem: "despesa",
+    data: "2026-07-01",
+    titulo: "Item",
+    valor: 1000,
+    entrada: false,
+    ...extra,
+  };
+}
+
+describe("passaFiltroCategoria", () => {
+  it("sem filtro, tudo passa", () => {
+    expect(passaFiltroCategoria(transacao(), "")).toBe(true);
+  });
+
+  it("'Receita' só casa a origem receita", () => {
+    expect(passaFiltroCategoria(transacao({ origem: "receita" }), "Receita")).toBe(true);
+    expect(passaFiltroCategoria(transacao({ origem: "despesa" }), "Receita")).toBe(false);
+  });
+
+  it("'Transferência interna' só casa a origem transferencia", () => {
+    expect(
+      passaFiltroCategoria(transacao({ origem: "transferencia" }), "Transferência interna"),
+    ).toBe(true);
+    expect(passaFiltroCategoria(transacao({ origem: "despesa" }), "Transferência interna")).toBe(
+      false,
+    );
+  });
+
+  it("'Despesa' casa despesa, fixa e parcela — qualquer categoria", () => {
+    for (const origem of ["despesa", "fixa", "parcela"] as const) {
+      expect(passaFiltroCategoria(transacao({ origem, categoria: "Mercado" }), "Despesa")).toBe(
+        true,
+      );
+    }
+    expect(passaFiltroCategoria(transacao({ origem: "carga" }), "Despesa")).toBe(false);
+    expect(passaFiltroCategoria(transacao({ origem: "receita" }), "Despesa")).toBe(false);
+  });
+
+  it("nome de categoria casa só despesa/fixa/parcela NAQUELA categoria", () => {
+    expect(
+      passaFiltroCategoria(transacao({ origem: "despesa", categoria: "Mercado" }), "Mercado"),
+    ).toBe(true);
+    expect(
+      passaFiltroCategoria(transacao({ origem: "fixa", categoria: "Mercado" }), "Mercado"),
+    ).toBe(true);
+    expect(
+      passaFiltroCategoria(transacao({ origem: "despesa", categoria: "Lazer" }), "Mercado"),
+    ).toBe(false);
+  });
+
+  it("categoria de veículo (carga/despesaVeiculo) nunca casa filtro de categoria de despesa", () => {
+    expect(
+      passaFiltroCategoria(transacao({ origem: "carga", categoria: "Carga Elétrica" }), "Mercado"),
+    ).toBe(false);
+    expect(
+      passaFiltroCategoria(
+        transacao({ origem: "despesaVeiculo", categoria: "Manutenção" }),
+        "Manutenção",
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("passaFiltroConta", () => {
+  it("sem filtro, tudo passa", () => {
+    expect(passaFiltroConta(transacao({ conta: "Revolut" }), "")).toBe(true);
+    expect(passaFiltroConta(transacao({ conta: undefined }), "")).toBe(true);
+  });
+
+  it("com filtro, só a mesma conta passa", () => {
+    expect(passaFiltroConta(transacao({ conta: "Revolut" }), "Revolut")).toBe(true);
+    expect(passaFiltroConta(transacao({ conta: "Wise" }), "Revolut")).toBe(false);
+    expect(passaFiltroConta(transacao({ conta: undefined }), "Revolut")).toBe(false);
+  });
+});
+
+describe("filtrarTransacoes", () => {
+  it("combina categoria e conta — as duas têm que passar (E lógico)", () => {
+    const itens = [
+      transacao({ chave: "a", origem: "despesa", categoria: "Mercado", conta: "Revolut" }),
+      transacao({ chave: "b", origem: "despesa", categoria: "Mercado", conta: "Wise" }),
+      transacao({ chave: "c", origem: "despesa", categoria: "Lazer", conta: "Revolut" }),
+    ];
+    expect(filtrarTransacoes(itens, "Mercado", "Revolut").map((t) => t.chave)).toEqual(["a"]);
+    expect(filtrarTransacoes(itens, "Mercado", "").map((t) => t.chave)).toEqual(["a", "b"]);
+    expect(filtrarTransacoes(itens, "", "Revolut").map((t) => t.chave)).toEqual(["a", "c"]);
+    expect(filtrarTransacoes(itens, "", "")).toHaveLength(3);
   });
 });
