@@ -41,7 +41,7 @@ import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
-import { fixaAtivaNoMes } from "../utils/fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
   kwhPeloCusto,
@@ -768,7 +768,12 @@ export default function Veiculo() {
                 <p className={styles.vazio}>Nenhuma despesa fixa do veículo em {rotuloMes(mes)}.</p>
               ) : (
                 fixasVisiveis.map((f) => {
-                  const paga = !!f.pagoPorMes[mes];
+                  // Mesma regra do resto do app (ver Despesas fixas gerais):
+                  // débito automático paga sozinha a partir do vencimento, e
+                  // por isso não vira ação — não há hoje campo na folha pra
+                  // ligar autoDebit numa fixa do veículo, mas o tipo é
+                  // partilhado e o cálculo (`fixaEfetivamentePaga`) já cobre.
+                  const paga = fixaEfetivamentePaga(f, mes, mesAtual(), hojeIso());
                   return (
                     <div key={f.id} className={styles.item}>
                       <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
@@ -783,17 +788,25 @@ export default function Veiculo() {
                           {formatMoney(f.valor, cfg.currency)}
                         </span>
                       </button>
-                      <button
-                        className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                        onClick={() =>
-                          void agir(
-                            () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
-                            paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
-                          )
-                        }
-                      >
-                        {paga ? "Pago" : "Pendente"}
-                      </button>
+                      {f.autoDebit ? (
+                        <span
+                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                        >
+                          {paga ? "Pago" : "Pendente"}
+                        </span>
+                      ) : (
+                        <button
+                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          onClick={() =>
+                            void agir(
+                              () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
+                              paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
+                            )
+                          }
+                        >
+                          {paga ? "Pago" : "Pendente"}
+                        </button>
+                      )}
                     </div>
                   );
                 })

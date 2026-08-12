@@ -172,15 +172,21 @@
       box-shadow var(--dur-fast) var(--ease-exit);
   }
 
-  .badgePago:hover {
+  .badgePago:not(.badgeAuto):hover {
     background: color-mix(in srgb, var(--grn) 28%, transparent);
     box-shadow: 0 1px 6px -1px color-mix(in srgb, var(--grn) 40%, transparent);
   }
 
-  .badgePendente:hover {
+  .badgePendente:not(.badgeAuto):hover {
     background: color-mix(in srgb, var(--ylw) 28%, transparent);
     box-shadow: 0 1px 6px -1px color-mix(in srgb, var(--ylw) 40%, transparent);
   }
+}
+
+/* Débito automático: o selo aqui é status, não ação — sem o brilho de hover
+   que prometeria um toque que não faz nada. */
+.badgeAuto {
+  cursor: default;
 }
 
 /* Marca o "débito automático" na linha de detalhe. O roxo é o mesmo que o
