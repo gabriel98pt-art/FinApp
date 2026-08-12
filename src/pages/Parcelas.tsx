@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, Layers } from "lucide-react";
+import { Eye, EyeOff, History, Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -8,7 +8,12 @@ import CampoMoeda from "../components/CampoMoeda";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
-import { LINHAS_ORDEM_PARCELA, parcelasVisiveis, type OrdemParcela } from "../utils/ordemParcelas";
+import {
+  LINHAS_ORDEM_PARCELA,
+  parcelasVisiveis,
+  type FiltroQuitadas,
+  type OrdemParcela,
+} from "../utils/ordemParcelas";
 import {
   criarParcela,
   excluirParcela,
@@ -369,9 +374,10 @@ export default function Parcelas() {
   // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts); a folha
   // mostra-as em 5 linhas, juntando cada par de direções opostas.
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
-  // Isolar as já pagas para rever o histórico de compras fechadas: escolha da
-  // visita, não uma preferência guardada — um toque volta a mostrar tudo.
-  const [apenasQuitadas, setApenasQuitadas] = useState(false);
+  // Três estados no rodapé — mostrar tudo (padrão), esconder as quitadas, ou
+  // isolar só elas para rever o histórico: escolha da visita, não uma
+  // preferência guardada — reabrir a tela volta ao padrão.
+  const [filtroQuitadas, setFiltroQuitadas] = useState<FiltroQuitadas>("todas");
   const [novoIntermediador, setNovoIntermediador] = useState("");
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
@@ -426,7 +432,7 @@ export default function Parcelas() {
   const visiveis = parcelasVisiveis(
     parcelas,
     ordem,
-    apenasQuitadas,
+    filtroQuitadas,
     mesRef,
     cfg.diaVencimentoFatura,
   );
@@ -512,28 +518,45 @@ export default function Parcelas() {
         </div>
       </form>
 
-      {/* Rodapé discreto: isolar as quitadas é para rever o histórico de vez em
+      {/* Rodapé discreto: mexer na visibilidade das quitadas é para vez em
           quando, não uma ação do dia a dia — por isso saiu do cabeçalho, onde
-          disputava espaço com "Nova parcela". O olho aberto é o estado normal
-          (nada fora da vista); fechado, são as em aberto que ficam de fora. */}
+          disputava espaço com "Nova parcela". Um toque cicla os 3 estados:
+          tudo → esconder quitadas → só quitadas → tudo de novo. */}
       {quitadas.length > 0 && (
         <div className={styles.rodape}>
           <button
-            className={`${styles.filtroRodape} ${apenasQuitadas ? styles.filtroRodapeAtivo : ""}`}
-            aria-pressed={apenasQuitadas}
+            className={`${styles.filtroRodape} ${filtroQuitadas !== "todas" ? styles.filtroRodapeAtivo : ""}`}
             aria-label={
-              apenasQuitadas
-                ? "A mostrar só as quitadas — toque para ver todas"
-                : "Mostrar só as quitadas"
+              filtroQuitadas === "todas"
+                ? "Mostrando todas — toque para esconder as quitadas"
+                : filtroQuitadas === "ocultar"
+                  ? "Quitadas escondidas — toque para ver só as quitadas"
+                  : "A mostrar só as quitadas — toque para ver todas"
             }
             title={
-              apenasQuitadas
-                ? "A mostrar só as quitadas — toque para ver todas"
-                : "Mostrar só as quitadas"
+              filtroQuitadas === "todas"
+                ? "Esconder as quitadas"
+                : filtroQuitadas === "ocultar"
+                  ? "Mostrar só as quitadas"
+                  : "Mostrar todas"
             }
-            onClick={() => setApenasQuitadas(!apenasQuitadas)}
+            onClick={() =>
+              setFiltroQuitadas(
+                filtroQuitadas === "todas"
+                  ? "ocultar"
+                  : filtroQuitadas === "ocultar"
+                    ? "apenas"
+                    : "todas",
+              )
+            }
           >
-            {apenasQuitadas ? <EyeOff size={18} /> : <Eye size={18} />}
+            {filtroQuitadas === "todas" ? (
+              <Eye size={18} />
+            ) : filtroQuitadas === "ocultar" ? (
+              <EyeOff size={18} />
+            ) : (
+              <History size={18} />
+            )}
           </button>
         </div>
       )}

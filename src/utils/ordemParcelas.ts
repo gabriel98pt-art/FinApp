@@ -108,21 +108,26 @@ export function compararParcelas(
     generico({ data: a.primeiroMes, valor: a.total }, { data: b.primeiroMes, valor: b.total });
 }
 
+/** Três estados do rodapé: "todas" (padrão) mistura as em aberto com as
+ *  quitadas no fim; "ocultar" tira as quitadas da lista inteiramente; "apenas"
+ *  isola só as quitadas, para rever o histórico de compras já pagas. */
+export type FiltroQuitadas = "todas" | "ocultar" | "apenas";
+
 /** A lista como a tela a mostra: as que ainda têm mês em aberto SEMPRE antes
- *  das quitadas (a ordem escolhida manda dentro de cada grupo).
- *
- *  Com `apenasQuitadas` ligado é o contrário: só as quitadas, para rever o
- *  histórico de compras já pagas. Desligado — o padrão — mostra tudo. */
+ *  das quitadas (a ordem escolhida manda dentro de cada grupo), exceto em
+ *  "ocultar" e "apenas", que mexem em quais delas aparecem. */
 export function parcelasVisiveis(
   parcelas: Parcela[],
   ordem: OrdemParcela,
-  apenasQuitadas = false,
+  filtroQuitadas: FiltroQuitadas = "todas",
   mesReferencia?: YearMonth,
   diaVencimentoFatura?: Record<string, Cents>,
 ): Parcela[] {
   const comparar = compararParcelas(ordem, mesReferencia, diaVencimentoFatura);
   const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
-  if (apenasQuitadas) return ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)));
+  if (filtroQuitadas === "apenas")
+    return ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)));
   const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p, mesReferencia)));
+  if (filtroQuitadas === "ocultar") return ativas;
   return [...ativas, ...ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)))];
 }

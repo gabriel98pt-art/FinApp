@@ -240,13 +240,18 @@ describe("parcelasVisiveis — a lista como a tela a mostra", () => {
     expect(ids.slice(4)).toEqual(["quitadaVelha", "quitadaNova"]);
   });
 
-  test("com o filtro ligado, mostra SÓ as quitadas — as em aberto é que ficam fora", () => {
-    const comFiltro = parcelasVisiveis(todas, "proximoVencimento", true).map((p) => p.id);
+  test('"apenas" mostra SÓ as quitadas — as em aberto é que ficam fora', () => {
+    const comFiltro = parcelasVisiveis(todas, "proximoVencimento", "apenas").map((p) => p.id);
     expect(comFiltro).toEqual(["quitadaNova", "quitadaVelha"]);
   });
 
-  test("desligado (o padrão) mostra tudo, em aberto primeiro", () => {
-    const semFiltro = parcelasVisiveis(todas, "proximoVencimento", false).map((p) => p.id);
+  test('"ocultar" tira as quitadas da lista, mantendo só as em aberto', () => {
+    const oculto = parcelasVisiveis(todas, "proximoVencimento", "ocultar").map((p) => p.id);
+    expect(oculto).toEqual(["atrasada", "buraco", "emCurso", "futura"]);
+  });
+
+  test('"todas" (o padrão) mostra tudo, em aberto primeiro', () => {
+    const semFiltro = parcelasVisiveis(todas, "proximoVencimento", "todas").map((p) => p.id);
     expect(semFiltro).toEqual(parcelasVisiveis(todas, "proximoVencimento").map((p) => p.id));
     expect(semFiltro).toHaveLength(6);
   });
