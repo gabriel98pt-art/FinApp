@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ChevronDown, Layers } from "lucide-react";
+import { History, Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -369,9 +369,8 @@ export default function Parcelas() {
   // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts); a folha
   // mostra-as em 5 linhas, juntando cada par de direções opostas.
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
-  // Quitadas ficam numa secção à parte, colapsada por padrão (item pedido):
-  // não somem, só saem da vista até alguém querer rever o histórico. Escolha
-  // da visita, não uma preferência guardada — reabrir a tela volta a esconder.
+  // Quitadas ficam sempre fora da lista: só aparecem numa folha à parte, para
+  // rever o histórico sem misturar com o dia a dia nem rolar a página toda.
   const [quitadasAbertas, setQuitadasAbertas] = useState(false);
   const [novoIntermediador, setNovoIntermediador] = useState("");
   const uid = useAuthStore((s) => s.sessao?.uid);
@@ -471,7 +470,7 @@ export default function Parcelas() {
           sub="Crie uma parcela para acompanhar o progresso mês a mês."
         />
       ) : ativasVisiveis.length === 0 && quitadas.length > 0 ? (
-        <p className={styles.tudoQuitado}>Tudo quitado — veja o histórico abaixo.</p>
+        <p className={styles.tudoQuitado}>Tudo quitado — toque em "Quitadas" abaixo para rever.</p>
       ) : (
         <div className={styles.lista}>
           {ativasVisiveis.map((p) => (
@@ -487,35 +486,38 @@ export default function Parcelas() {
         </div>
       )}
 
-      {/* Quitadas ficam à parte, colapsadas: a lista de cima é a que se olha
-          todo dia, esta é histórico de vez em quando. Abre/fecha inline, sem
-          navegar pra outro lugar. */}
+      {/* Quitadas ficam sempre fora da lista principal: o botão abre uma
+          folha à parte com o histórico, em vez de crescer a página. */}
       {quitadas.length > 0 && (
-        <div className={styles.secaoQuitadas}>
-          <button
-            className={styles.cabecalhoQuitadas}
-            aria-expanded={quitadasAbertas}
-            onClick={() => setQuitadasAbertas(!quitadasAbertas)}
-          >
-            <span>Quitadas ({quitadas.length})</span>
-            <ChevronDown size={18} className={quitadasAbertas ? styles.chevronAberto : undefined} />
+        <div className={styles.rodape}>
+          <button className={styles.botaoQuitadas} onClick={() => setQuitadasAbertas(true)}>
+            <History size={16} />
+            Quitadas ({quitadas.length})
           </button>
-          {quitadasAbertas && (
-            <div className={styles.lista}>
-              {quitadasVisiveis.map((p) => (
-                <LinhaParcela
-                  key={p.id}
-                  p={p}
-                  moeda={moeda}
-                  aoEditar={abrirEdicao}
-                  mesRef={mesRef}
-                  diaVencimentoFatura={cfg.diaVencimentoFatura}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
+
+      <BottomSheet
+        aberta={quitadasAbertas}
+        aoFechar={() => setQuitadasAbertas(false)}
+        titulo={`Quitadas (${quitadas.length})`}
+      >
+        <div className={styles.lista}>
+          {quitadasVisiveis.map((p) => (
+            <LinhaParcela
+              key={p.id}
+              p={p}
+              moeda={moeda}
+              aoEditar={(item) => {
+                setQuitadasAbertas(false);
+                abrirEdicao(item);
+              }}
+              mesRef={mesRef}
+              diaVencimentoFatura={cfg.diaVencimentoFatura}
+            />
+          ))}
+        </div>
+      </BottomSheet>
 
       {/* A lista de intermediadores vive aqui, junto de quem a usa, e não em
           Definições — mesma razão dos locais de carregamento estarem no

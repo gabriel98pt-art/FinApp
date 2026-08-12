@@ -27,36 +27,29 @@
   padding: 16px 0;
 }
 
-/* Secção das quitadas: colapsada por padrão (o pedido original), abre inline
-   sem sair da tela. O cabeçalho é o alvo de toque inteiro, não só a seta. */
-.secaoQuitadas {
+/* Rodapé discreto: as quitadas ficam sempre fora da lista principal, e este
+   botão é o único jeito de as rever — abre uma folha à parte (item pedido),
+   em vez de crescer a página. Não é a ação do dia a dia, por isso não disputa
+   espaço com "+ Nova parcela" no cabeçalho. */
+.rodape {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: flex-end;
 }
 
-.cabecalhoQuitadas {
+.botaoQuitadas {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
   color: var(--mut);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 8px 4px;
+  padding: 8px 10px;
   border-radius: var(--r-sm);
 }
 
-.cabecalhoQuitadas:hover {
+.botaoQuitadas:hover {
   background: var(--s2);
   color: var(--txt);
-}
-
-.cabecalhoQuitadas svg {
-  transition: transform 0.15s ease;
-}
-
-.chevronAberto {
-  transform: rotate(180deg);
 }
 
 .adicionar {
