@@ -1,9 +1,24 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
 export default defineConfig({
+  test: {
+    coverage: {
+      provider: "v8",
+      // Só a lógica. Os componentes ainda não têm ambiente de teste (não há
+      // jsdom configurado), e incluí-los aqui afogaria o número que interessa
+      // num mar de 0% — o relatório deixaria de servir para decidir onde
+      // escrever o próximo teste, que é para o que ele existe.
+      include: ["src/utils/**", "src/services/**"],
+      // `firebase.ts` é só a inicialização do SDK (não há lógica para cobrir) e
+      // os próprios testes não se medem a si mesmos.
+      exclude: ["src/services/firebase.ts", "**/*.test.ts"],
+      reporter: ["text", "html"],
+    },
+  },
   plugins: [
     react(),
     VitePWA({
