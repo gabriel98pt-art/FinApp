@@ -508,3 +508,108 @@ describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém ma
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Casos de borda: fechamento de ciclo nas pontas do mês e fixa sem dia próprio.
+// ---------------------------------------------------------------------------
+
+describe("fechamento de fatura nas pontas do dia e do mês", () => {
+  test("a compra NO dia do fechamento ainda entra no ciclo que fecha", () => {
+    // A fronteira é inclusiva, e é onde um erro de sinal se esconde: comprar
+    // no próprio dia 5 tem de cair no ciclo de julho, não no de agosto. Errar
+    // aqui empurra a compra um mês inteiro para a frente na fatura.
+    expect(mesDoCiclo("2026-07-05", 5)).toBe("2026-07");
+  });
+
+  test("a compra no dia seguinte ao fechamento já é do ciclo seguinte", () => {
+    expect(mesDoCiclo("2026-07-06", 5)).toBe("2026-08");
+  });
+
+  test("compra no último dia do mês, com fechamento no dia 5, vai para o mês seguinte", () => {
+    // Fim de mês é onde as duas viradas coincidem — a do ciclo e a do
+    // calendário. 31 de julho é depois do fechamento de 5 de julho, portanto
+    // ciclo de agosto.
+    expect(mesDoCiclo("2026-07-31", 5)).toBe("2026-08");
+  });
+
+  test("compra depois do fechamento em dezembro atravessa o ano", () => {
+    // Se `somarMeses` não tratasse a virada, dezembro + 1 dava "2026-13" e a
+    // compra desaparecia de qualquer fatura.
+    expect(mesDoCiclo("2026-12-20", 5)).toBe("2027-01");
+    expect(mesDoCiclo("2026-12-03", 5)).toBe("2026-12");
+  });
+
+  test("fechamento no dia 31 em fevereiro prende-se ao último dia real", () => {
+    // Não existe 31 de fevereiro. O dia de fechamento tem de encolher para 28
+    // (ou 29), senão nenhuma compra do mês passava do fechamento e o ciclo
+    // seguinte ficava sempre vazio.
+    expect(mesDoCiclo("2026-02-28", 31)).toBe("2026-02");
+    // 2028 é bissexto: o fechamento cai a 29.
+    expect(mesDoCiclo("2028-02-29", 31)).toBe("2028-02");
+  });
+
+  test("sem dia de fechamento, o ciclo é o mês civil da própria compra", () => {
+    // Comportamento de sempre — o cartão fecha no fim do mês.
+    expect(mesDoCiclo("2026-07-31")).toBe("2026-07");
+    expect(mesDoCiclo("2026-07-01", 0)).toBe("2026-07");
+  });
+
+  test("a fatura de janeiro cobre dezembro do ano anterior", () => {
+    expect(cicloDaFatura("2027-01")).toBe("2026-12");
+  });
+});
+
+describe("despesa fixa sem dia de vencimento", () => {
+  const fixa = (extra: Partial<DespesaFixa> = {}): DespesaFixa => ({
+    id: "f1",
+    descricao: "Ginásio",
+    valor: 3000,
+    categoria: "Saúde",
+    contaCartao: "AB Gold (C)",
+    autoDebit: true,
+    pagoPorMes: {},
+    ...extra,
+  });
+
+  test("no mês corrente espera o fim do mês antes de dar por paga", () => {
+    // Sem dia próprio não há como saber quando sai. Supor o dia 1 afirmaria
+    // que já saiu logo no primeiro dia; o fallback é o fim do mês, que erra
+    // para o lado seguro (mostra como pendente algo que talvez já tenha saído,
+    // em vez de mostrar como paga uma coisa que ainda não saiu).
+    const f = fixa();
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-01")).toBe(false);
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-31")).toBe(true);
+  });
+
+  test("em fevereiro o fim do mês é o dia 28, não um 31 que não existe", () => {
+    const f = fixa();
+    expect(fixaEfetivamentePaga(f, "2026-02", "2026-02", "2026-02-28")).toBe(true);
+  });
+
+  test("mês já fechado conta como pago sem olhar ao dia", () => {
+    // Junho visto de julho: não há dúvida nenhuma de que passou por inteiro.
+    expect(fixaEfetivamentePaga(fixa(), "2026-06", "2026-07", "2026-07-01")).toBe(true);
+  });
+
+  test("marcada à mão conta sempre, mesmo sem dia e sem débito automático", () => {
+    const f = fixa({
+      autoDebit: undefined,
+      contaCartao: undefined,
+      pagoPorMes: { "2026-07": true },
+    });
+    expect(fixaEfetivamentePaga(f, "2026-07")).toBe(true);
+  });
+
+  test("sem débito automático e sem marcação, nunca se dá por paga sozinha", () => {
+    // Quem paga à mão decide quando pagou — o app não pode presumir.
+    const f = fixa({ autoDebit: undefined, contaCartao: undefined });
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-31")).toBe(false);
+  });
+
+  test("mês fora do plano da fixa não conta, mesmo já tendo passado", () => {
+    // Uma fixa que começou em agosto não pode aparecer como paga em julho só
+    // porque julho já acabou.
+    const f = fixa({ inicio: "2026-08" });
+    expect(fixaEfetivamentePaga(f, "2026-07", "2026-09", "2026-09-01")).toBe(false);
+  });
+});

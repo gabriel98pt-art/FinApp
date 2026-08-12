@@ -348,3 +348,144 @@ describe("diaVencimentoEfetivo", () => {
     expect(diaVencimentoEfetivo({ ...base, cartao: "AB Gold (C)" }, { "AB Gold (C)": 15 })).toBe(3);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Casos de borda: virada de ano, resto de centavos e quitação antecipada.
+// ---------------------------------------------------------------------------
+
+describe("virada de mês e de ano", () => {
+  test("uma parcela iniciada em novembro atravessa o ano sem saltar meses", () => {
+    // O caso real: compra de Natal em 4×. Se `somarMeses` tratasse o mês como
+    // número simples, dezembro + 1 dava "2026-13" em vez de "2027-01" — e a
+    // parcela de janeiro nunca aparecia em lado nenhum.
+    const p = parcela({ primeiroMes: "2026-11", numParcelas: 4, total: 40000 });
+    expect(mesesDaParcela(p)).toEqual(["2026-11", "2026-12", "2027-01", "2027-02"]);
+  });
+
+  test("uma parcela de 14× cobre um ano inteiro e mais dois meses", () => {
+    const p = parcela({ primeiroMes: "2026-12", numParcelas: 14, total: 140000 });
+    const meses = mesesDaParcela(p);
+    expect(meses).toHaveLength(14);
+    expect(meses[0]).toBe("2026-12");
+    expect(meses[1]).toBe("2027-01"); // a virada
+    expect(meses[13]).toBe("2028-01"); // a virada seguinte
+    // Sem meses repetidos: uma soma errada de ano daria dois "2027-01".
+    expect(new Set(meses).size).toBe(14);
+  });
+
+  test("o mês de referência que atravessa o ano ainda conta como passado", () => {
+    // Em janeiro de 2027, uma parcela de dezembro de 2026 já venceu. Comparar
+    // "2026-12" com "2027-01" só funciona porque o formato é ordenável como
+    // texto — se o ano ficasse depois do mês, dezembro pareceria futuro.
+    const p = parcela({ primeiroMes: "2026-12", numParcelas: 2, total: 20000 });
+    expect(mesesNaoPagos(p, "2027-01")).toEqual(["2026-12", "2027-01"]);
+  });
+});
+
+describe("resto de centavos quando o total não divide certo", () => {
+  test("a soma das parcelas é sempre EXACTAMENTE o total da compra", () => {
+    // O invariante que interessa: o cliente não pode pagar um cêntimo a mais
+    // nem a menos do que comprou por causa de arredondamento. Vale para
+    // qualquer combinação, não só para o 55,99 em 3× do exemplo.
+    for (const total of [5599, 10000, 10001, 33333, 1, 99999, 7]) {
+      for (const numParcelas of [2, 3, 6, 7, 12]) {
+        const p = parcela({ total, numParcelas });
+        const soma = mesesDaParcela(p).reduce((s, m) => s + valorDaParcela(p, m), 0);
+        expect(soma, `${total} em ${numParcelas}×`).toBe(total);
+      }
+    }
+  });
+
+  test("o resto vai às PRIMEIRAS parcelas, não às últimas", () => {
+    // 55,99 em 3× = 18,66 com resto 1 → a primeira leva o cêntimo a mais.
+    // Importa que seja a primeira: é a convenção do app de referência, e quem
+    // confere o extrato do cartão compara logo a primeira linha.
+    const p = parcela({ total: 5599, numParcelas: 3 });
+    const valores = mesesDaParcela(p).map((m) => valorDaParcela(p, m));
+    expect(valores).toEqual([1867, 1866, 1866]);
+  });
+
+  test("total menor que o número de parcelas não gera parcela negativa", () => {
+    // 3 cêntimos em 5× — absurdo, mas o formulário aceita. As duas primeiras
+    // levam 1 cêntimo e as outras ficam a zero; nenhuma pode ficar negativa,
+    // senão a compra passava a devolver dinheiro.
+    const p = parcela({ total: 3, numParcelas: 5 });
+    const valores = mesesDaParcela(p).map((m) => valorDaParcela(p, m));
+    expect(valores.reduce((s, v) => s + v, 0)).toBe(3);
+    expect(valores.every((v) => v >= 0)).toBe(true);
+  });
+
+  test("quitar no meio cobra o resto certo, sem perder o cêntimo do resto", () => {
+    // Paga a 1.ª (18,67) e quita as outras duas: 55,99 − 18,67 = 37,32.
+    const p = parcela({ total: 5599, numParcelas: 3, pagoPorMes: { "2026-06": true } });
+    expect(valorQuitacao(p, "2026-06")).toBe(3732);
+    expect(valorDaParcela(p, "2026-06") + valorQuitacao(p, "2026-06")).toBe(5599);
+  });
+});
+
+describe("quitação antecipada de parcela em débito automático", () => {
+  const auto = () =>
+    parcela({
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+    });
+
+  test("os meses já vencidos contam como pagos sem ninguém ter marcado nada", () => {
+    // É o que distingue autoDebit. Sem `hoje`, o mês de referência conta
+    // INTEIRO: em julho, junho e julho já saíram do cartão, e só agosto fica.
+    expect(mesesNaoPagos(auto(), "2026-07")).toEqual(["2026-08"]);
+    expect(progressoDaParcela(auto(), "2026-07").pagas).toBe(2);
+  });
+
+  test("quitar antecipado cobra só o que ainda não saiu do cartão", () => {
+    // Em julho, com o mês contado inteiro: sobra agosto, 100,00. Cobrar os
+    // 300,00 da compra significaria pagar junho e julho outra vez.
+    expect(valorQuitacao(auto(), "2026-07")).toBe(10000);
+  });
+
+  test("com `hoje`, o mês corrente só conta depois do dia de vencimento", () => {
+    // A diferença que importa: no dia 8 de julho, a parcela que vence dia 27
+    // AINDA NÃO saiu do cartão — quitar tem de a cobrar. Sem esta precisão de
+    // dia, o app dava a parcela por paga três semanas antes de o dinheiro sair.
+    const p = { ...auto(), diaVencimento: 27 };
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-08")).toBe(false);
+    expect(estaEfetivamentePaga(p, "2026-07", "2026-07", "2026-07-27")).toBe(true);
+    // Junho está fechado por inteiro: o dia não interessa.
+    expect(estaEfetivamentePaga(p, "2026-06", "2026-07", "2026-07-08")).toBe(true);
+  });
+
+  test("sem diaVencimento, o mês corrente espera o fim do mês", () => {
+    // Fallback documentado (dia 31, preso ao último dia real pelo diaDoMes):
+    // mais seguro dar por sair no fim do mês do que supor o dia 1 e afirmar
+    // que já saiu quando ainda faltam trinta dias.
+    const p = auto(); // sem diaVencimento
+    expect(estaEfetivamentePaga(p, "2026-06", "2026-06", "2026-06-01")).toBe(false);
+    expect(estaEfetivamentePaga(p, "2026-06", "2026-06", "2026-06-30")).toBe(true);
+  });
+
+  test("em fevereiro o fim do mês é o dia 28, não um dia 31 inexistente", () => {
+    // Se o fallback formatasse "2026-02-31" à letra, a comparação com a data
+    // de hoje nunca dava verdade e a parcela ficava por pagar o mês inteiro.
+    const p = { ...auto(), primeiroMes: "2026-02" };
+    expect(estaEfetivamentePaga(p, "2026-02", "2026-02", "2026-02-28")).toBe(true);
+  });
+
+  test("quitar antes da primeira parcela cobra a compra inteira", () => {
+    // Em maio nada venceu ainda, portanto não há nada já debitado a descontar.
+    expect(valorQuitacao(auto(), "2026-05")).toBe(30000);
+  });
+
+  test("a quitação nunca cobra mais do que o total da compra", () => {
+    for (const ref of ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09"]) {
+      expect(valorQuitacao(auto(), ref)).toBeLessThanOrEqual(30000);
+    }
+  });
+
+  test("depois do último mês vencido não há nada a quitar", () => {
+    expect(valorQuitacao(auto(), "2026-09")).toBe(0);
+    expect(parcelaQuitada(auto(), "2026-09")).toBe(true);
+  });
+});
