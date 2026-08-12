@@ -1,6 +1,7 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useDragToClose } from "../hooks/useDragToClose";
+import { useFocoModal } from "../hooks/useFocoModal";
 import styles from "./BottomSheet.module.css";
 
 /** Bottom sheet genérica, com drag-to-close de mola real (seção 6) a partir do
@@ -38,6 +39,8 @@ export default function BottomSheet({
   const folhaRef = useRef<HTMLDivElement>(null);
   const veuRef = useRef<HTMLDivElement>(null);
   const arrasto = useDragToClose({ folhaRef, veuRef, aoFechar });
+  const tituloId = useId();
+  useFocoModal({ aberta, folhaRef, aoFechar });
 
   // O conteúdo só é construído quando a folha abre pela primeira vez — e daí
   // em diante fica, para fechar e reabrir não custar nada e a transição de
@@ -69,8 +72,17 @@ export default function BottomSheet({
         style={nivel ? { zIndex: 46 + nivel * 2 } : undefined}
         role="dialog"
         aria-modal="true"
-        aria-label={titulo}
-        aria-hidden={!aberta}
+        aria-labelledby={tituloId}
+        // O foco entra aqui ao abrir (useFocoModal) — daí o -1: focável por
+        // código, mas fora da ordem natural do Tab.
+        tabIndex={-1}
+        // `inert` e não `aria-hidden`: fechada, a folha continua montada (o
+        // conteúdo fica em cache depois da primeira abertura) e `opacity:0` +
+        // `pointer-events:none` só travam o rato — o Tab continuava a entrar nos
+        // botões invisíveis lá dentro. Pior: `aria-hidden` num contentor com
+        // focáveis é ele próprio uma violação de ARIA. `inert` tira-os da
+        // navegação e da árvore de acessibilidade de uma vez.
+        inert={!aberta}
       >
         {arrastavel ? (
           <div
@@ -81,12 +93,16 @@ export default function BottomSheet({
             onPointerCancel={arrasto.aoPointerCancel}
           >
             <div className={styles.pegador} aria-hidden />
-            <h2 className={styles.titulo}>{titulo}</h2>
+            <h2 id={tituloId} className={styles.titulo}>
+              {titulo}
+            </h2>
           </div>
         ) : (
           <>
             <div className={styles.pegador} aria-hidden />
-            <h2 className={styles.titulo}>{titulo}</h2>
+            <h2 id={tituloId} className={styles.titulo}>
+              {titulo}
+            </h2>
           </>
         )}
         {jaAbriu && children}

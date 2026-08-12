@@ -96,13 +96,13 @@
 }
 
 .badgePago {
-  color: var(--grn);
-  background: color-mix(in srgb, var(--grn) 14%, transparent);
+  color: var(--selo-pago-txt);
+  background: var(--selo-pago-bg);
 }
 
 .badgePendente {
-  color: var(--ylw);
-  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  color: var(--selo-pendente-txt);
+  background: var(--selo-pendente-bg);
 }
 
 /* Formulários */

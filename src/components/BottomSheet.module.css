@@ -48,6 +48,14 @@
     transform var(--dur-exit) var(--ease-exit);
 }
 
+/* O foco entra na folha por código quando ela abre (useFocoModal), só para
+   ancorar o leitor de ecrã e o Tab seguinte. O anel serve para quem navega
+   ENTRE controles — aqui desenharia uma moldura à volta da folha inteira, e a
+   folha não é um controle. Os botões e campos lá dentro mantêm o deles. */
+.folha:focus {
+  outline: none;
+}
+
 .aberta {
   opacity: 1;
   pointer-events: auto;

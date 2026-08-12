@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import BottomSheet from "./BottomSheet";
 import FolhaAncorada from "./FolhaAncorada";
@@ -47,6 +47,8 @@ export default function Seletor({
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
+  const rotuloId = useId();
+  const gatilhoId = useId();
   const texto = (v: string) => (rotuloOpcao ? rotuloOpcao(v) : v);
 
   function escolher(v: string) {
@@ -63,6 +65,7 @@ export default function Seletor({
               type="button"
               className={`${styles.opcao} ${valor === "" ? styles.opcaoAtiva : ""}`}
               onClick={() => escolher("")}
+              aria-current={valor === "" ? true : undefined}
             >
               {renderIcone && <span className={styles.semIcone} aria-hidden />}
               <span className={styles.nome}>{rotuloVazio}</span>
@@ -76,6 +79,13 @@ export default function Seletor({
               type="button"
               className={`${styles.opcao} ${o === valor ? styles.opcaoAtiva : ""}`}
               onClick={() => escolher(o)}
+              // A escolha actual só se via pelo ✓, que é `aria-hidden` — quem
+              // usa leitor de ecrã ouvia as 12 opções todas iguais e não sabia
+              // em qual estava. `aria-current` marca-a sem mexer na estrutura
+              // da lista (uma listbox a sério obrigaria a trocar os botões por
+              // `role="option"`, e estes têm de continuar a ser botões para o
+              // clique e o teclado funcionarem como hoje).
+              aria-current={o === valor ? true : undefined}
             >
               {renderIcone?.(o, 30)}
               <span className={styles.nome}>{texto(o)}</span>
@@ -112,9 +122,14 @@ export default function Seletor({
     <div
       className={`${styles.campo} ${variante === "inline" ? styles.inline : ""} ${className ?? ""}`}
     >
-      {variante === "campo" && <span className={styles.rotulo}>{rotulo}</span>}
+      {variante === "campo" && (
+        <span id={rotuloId} className={styles.rotulo}>
+          {rotulo}
+        </span>
+      )}
       <button
         ref={gatilhoRef}
+        id={gatilhoId}
         type="button"
         className={styles.gatilho}
         // Um segundo clique no gatilho fecha, como num `<select>`: o popover
@@ -123,6 +138,13 @@ export default function Seletor({
         onClick={() => setAberta(!aberta)}
         disabled={desativado}
         aria-expanded={aberta}
+        aria-haspopup="dialog"
+        // O rótulo do campo é um `<span>`, não um `<label>`: sem isto o gatilho
+        // anunciava-se só pelo valor ("Nubank, botão"), sem dizer de que campo
+        // era — e num formulário com cinco seletores seguidos isso não chega.
+        // Os dois ids juntos dão "Cartão, Nubank, botão"; `aria-label` sozinho
+        // não servia porque substituiria o valor em vez de o prefixar.
+        aria-labelledby={variante === "campo" ? `${rotuloId} ${gatilhoId}` : undefined}
         aria-label={variante === "inline" ? rotulo : undefined}
       >
         {valor ? (

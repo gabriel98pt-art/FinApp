@@ -74,6 +74,23 @@
   /* Material translúcido (header/tabs/nav) */
   --material-bg: rgba(16, 30, 48, 0.72);
   --material-brd: rgba(255, 255, 255, 0.06);
+
+  /* Selos de status (Pago/Pendente em Despesas e Veículo, quitada em Parcelas).
+     Eram `color-mix(--grn 14%, transparent)` cravado em cada página — três
+     cópias da mesma decisão, e um fundo TRANSPARENTE, o que fazia o contraste
+     depender do cartão por baixo: o mesmo selo media 4,15:1 sobre --s1 e
+     3,72:1 sobre --s2. No tema claro nenhum dos dois chegava aos 4,5:1 que o
+     texto de 0.68rem exige (o hover descia a 3,38:1).
+
+     Agora são opacos e medidos: o escuro mantém exactamente a cor que o
+     color-mix já produzia sobre --s1 (7,1:1), e o claro ganhou tons próprios
+     (5,5:1). Fundo opaco = o mesmo contraste em qualquer superfície. */
+  --selo-pago-txt: #4ade80;
+  --selo-pago-bg: #18393b;
+  --selo-pago-bg-hi: #205446;
+  --selo-pendente-txt: #fbbf24;
+  --selo-pendente-bg: #31352e;
+  --selo-pendente-bg-hi: #524b2d;
 }
 
 [data-theme="light"] {
@@ -118,6 +135,15 @@
 
   --material-bg: rgba(255, 255, 255, 0.72);
   --material-brd: rgba(10, 37, 64, 0.08);
+
+  /* Texto mais escuro que o --grn/--ylw do tema claro: sobre um tint suave,
+     os tokens normais ficavam a 4,1:1. Ver nota no bloco escuro. */
+  --selo-pago-txt: #126e34;
+  --selo-pago-bg: #e8f2ec;
+  --selo-pago-bg-hi: #d0e6d8;
+  --selo-pendente-txt: #9b4708;
+  --selo-pendente-bg: #f8eee6;
+  --selo-pendente-bg-hi: #f0ddce;
 }
 
 /* Largura da barra lateral — fonte única, lida tanto pela própria barra como
