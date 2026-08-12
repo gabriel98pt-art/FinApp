@@ -31,11 +31,17 @@ export async function importarBackup(uid: string, json: string): Promise<void> {
   } catch {
     throw new Error("Arquivo não é um JSON válido.");
   }
+  const dados = (parsed as ArquivoBackup | null)?.dados;
   if (
     !parsed ||
     typeof parsed !== "object" ||
     !("dados" in parsed) ||
-    typeof (parsed as ArquivoBackup).dados !== "object"
+    typeof dados !== "object" ||
+    // `typeof null === "object"` em JavaScript: sem esta linha, um ficheiro
+    // com `{"dados": null}` passava a validação e o `set` abaixo recebia null
+    // — que no RTDB não grava nada, APAGA o nó. Ou seja: restaurar um backup
+    // malformado apagava a conta inteira, em silêncio e sem volta.
+    dados === null
   ) {
     throw new Error("Formato de backup não reconhecido.");
   }

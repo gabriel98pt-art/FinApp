@@ -300,3 +300,176 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toContain("R$");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Intenções que ficavam por exercer. O copiloto é a peça com mais decisões do
+// app (48% de ramos antes disto), e cada intenção que ninguém testa é uma
+// resposta que pode passar a dizer outra coisa sem nada falhar — e é uma
+// resposta sobre o dinheiro de alguém.
+// ---------------------------------------------------------------------------
+
+const despesa = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente =>
+  ({
+    id: `d${Math.random()}`,
+    descricao: "Mercado",
+    valor: 5000,
+    data: "2026-07-10",
+    categoria: "Alimentação",
+    ...extra,
+  }) as DespesaCorrente;
+
+const receita = (extra: Partial<Receita> = {}): Receita =>
+  ({
+    id: `r${Math.random()}`,
+    descricao: "Salário",
+    valor: 200000,
+    data: "2026-07-05",
+    fonte: "Trabalho",
+    ...extra,
+  }) as Receita;
+
+describe("copiloto: perguntas sem dados", () => {
+  // O caso mais provável de todos na primeira semana de uso — e o mais fácil
+  // de deixar rebentar, porque quase toda a resposta assume uma lista cheia.
+  test.each([
+    ["quanto gastei este mes", /0,00|Não há|sem/i],
+    ["quanto recebi este mes", /0,00|Não há|sem/i],
+    ["como estou este mes", /./],
+    ["qual a minha maior categoria", /./],
+    ["quanto devo no cartao", /cartõ|cartão|Ainda não|Não há/i],
+    ["quais as minhas parcelas", /parcela|Ainda não|Não há/i],
+    ["estou dentro do orcamento", /orçamento|Ainda não/i],
+    ["quanto falta pagar", /./],
+    ["qual a minha poupanca", /./],
+    ["qual foi o melhor mes", /./],
+    ["o que tenho na agenda", /evento|agendad/i],
+    ["quanto gastei com o carro", /./],
+    ["qual foi a ultima recarga", /combustível|carregamento|Ainda não/i],
+    ["quanto gastei em manutencao", /./],
+  ])("%s não rebenta e responde alguma coisa", (pergunta, esperado) => {
+    const r = responderPergunta(pergunta, ctx());
+    expect(typeof r).toBe("string");
+    expect(r.length).toBeGreaterThan(0);
+    expect(r).toMatch(esperado);
+  });
+});
+
+describe("copiloto: cartões", () => {
+  const cfg = cfgCom({
+    contasCartoes: ["AB Gold (C)", "Conta (D)"],
+    tipoCartao: { "AB Gold (C)": "credit", "Conta (D)": "debit" },
+  });
+
+  test("sem cartões configurados, diz isso em vez de somar zero", () => {
+    const semCartoes = cfgCom({ contasCartoes: [], tipoCartao: {} });
+    expect(responderPergunta("quanto gastei no cartao", ctx({ cfg: semCartoes }))).toMatch(
+      /Ainda não há cartões/,
+    );
+  });
+
+  test("com cartões mas sem despesas no mês, diz que não há gastos", () => {
+    expect(responderPergunta("quanto gastei nos cartoes", ctx({ cfg }))).toMatch(
+      /Não há despesas em nenhum cartão/,
+    );
+  });
+
+  test("soma as despesas por cartão", () => {
+    const r = responderPergunta(
+      "quanto gastei nos cartoes este mes",
+      ctx({ cfg, despesas: [despesa({ contaCartao: "AB Gold (C)", valor: 12345 })] }),
+    );
+    expect(r).toContain("AB Gold (C)");
+  });
+});
+
+describe("copiloto: parcelas", () => {
+  const parcela = (extra: Partial<Parcela> = {}): Parcela => ({
+    id: "p1",
+    descricao: "Portátil",
+    total: 30000,
+    numParcelas: 3,
+    primeiroMes: "2026-06",
+    pagoPorMes: {},
+    ...extra,
+  });
+
+  test("sem parcelas, diz que não há", () => {
+    expect(responderPergunta("quais as minhas parcelas", ctx())).toMatch(/Ainda não|Não há|não/i);
+  });
+
+  test("parcela já quitada é anunciada como tal, não como pendente", () => {
+    const quitada = parcela({
+      pagoPorMes: { "2026-06": true, "2026-07": true, "2026-08": true },
+    });
+    const r = responderPergunta(
+      "quanto falta na parcela do portatil",
+      ctx({ parcelas: [quitada] }),
+    );
+    expect(r).toMatch(/totalmente paga|quitada/i);
+  });
+
+  test("parcela em aberto diz quanto falta", () => {
+    const r = responderPergunta(
+      "quanto falta na parcela do portatil",
+      ctx({ parcelas: [parcela()] }),
+    );
+    expect(r).toContain("Portátil");
+  });
+});
+
+describe("copiloto: orçamento", () => {
+  test("sem tectos definidos, diz isso", () => {
+    expect(responderPergunta("estou dentro do orcamento", ctx())).toMatch(/Ainda não há orçamento/);
+  });
+
+  test("dentro do teto responde que está tudo bem", () => {
+    const cfg = cfgCom({ orcamentos: { Alimentação: 50000 } });
+    const r = responderPergunta(
+      "estou dentro do orcamento",
+      ctx({ cfg, despesas: [despesa({ valor: 1000 })] }),
+    );
+    expect(r).toMatch(/dentro|nenhum|tudo/i);
+  });
+
+  test("teto estourado nomeia a categoria", () => {
+    const cfg = cfgCom({ orcamentos: { Alimentação: 1000 } });
+    const r = responderPergunta(
+      "estou dentro do orcamento",
+      ctx({ cfg, despesas: [despesa({ valor: 90000 })] }),
+    );
+    expect(r).toContain("Alimentação");
+  });
+});
+
+describe("copiloto: melhor e pior mês", () => {
+  test("com um ano de dados, escolhe o melhor e o pior", () => {
+    const c = ctx({
+      receitas: [receita({ data: "2026-03-01", valor: 500000 }), receita({ data: "2026-05-01" })],
+      despesas: [despesa({ data: "2026-05-10", valor: 400000 })],
+    });
+    expect(responderPergunta("qual foi o melhor mes", c)).toMatch(/./);
+    expect(responderPergunta("qual foi o pior mes", c)).toMatch(/./);
+  });
+});
+
+describe("copiloto: resumo anual", () => {
+  test("resumo de um ano não conta meses ainda por acontecer", () => {
+    // `mesReal` é julho: dezembro de 2026 ainda não existe e não pode entrar
+    // no total, senão o ano fecha com números inventados.
+    const c = ctx({ receitas: [receita({ data: "2026-03-01", valor: 100000 })] });
+    const r = responderPergunta("resumo de 2026", c);
+    expect(typeof r).toBe("string");
+    expect(r.length).toBeGreaterThan(0);
+  });
+});
+
+describe("copiloto: pergunta que não bate em nada", () => {
+  test("cai na resposta padrão em vez de ficar em branco", () => {
+    const r = responderPergunta("qual a capital de portugal", ctx());
+    expect(r.length).toBeGreaterThan(0);
+  });
+
+  test("pergunta vazia também tem resposta", () => {
+    expect(responderPergunta("", ctx()).length).toBeGreaterThan(0);
+  });
+});
