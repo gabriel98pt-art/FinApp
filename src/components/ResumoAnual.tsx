@@ -74,7 +74,11 @@ export default function ResumoAnual({
 
   return (
     <div className={styles.card}>
-      {titulo && <p className={styles.titulo}>{titulo}</p>}
+      {/* h3 e não p: é o cabeçalho do quadro, e quem navega por cabeçalhos
+          (leitor de ecrã) não tinha como saltar de um quadro para o outro no
+          Início. O `.titulo` já fixa tamanho e peso, então o desenho não muda.
+          O Copiloto já era h3 — isto alinha o resto. */}
+      {titulo && <h3 className={styles.titulo}>{titulo}</h3>}
       <div className={styles.grid}>
         {celulas.map((c) => (
           <div

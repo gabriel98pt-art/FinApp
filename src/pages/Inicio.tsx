@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Pagina, { Kpis } from "../components/Pagina";
 import AvisoOrcamento from "../components/AvisoOrcamento";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import KpiCard from "../components/KpiCard";
 import CopilotoCard from "../components/CopilotoCard";
 import DonutCategoriaCard from "../components/DonutCategoriaCard";
@@ -37,6 +38,23 @@ export default function Inicio() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
+  // Início não tem lista própria: mostra só totais, somados a partir de cinco
+  // domínios. Se um deles não sincronizou, os KPIs continuam a desenhar um
+  // número — e um total incompleto é indistinguível de um total certo. Pior,
+  // com a subscrição caída logo no arranque o número é "€ 0,00", que se lê
+  // como "não tens nada", não como "não conseguimos saber".
+  //
+  // A FaixaErroSync global só cobre a `cfg` (moeda, categorias, tetos), que é
+  // transversal; cada domínio avisa na sua própria tela. Esta era a tela que
+  // faltava — e é a primeira que se abre.
+  const erroDados = [
+    useReceitasStore((s) => s.erro),
+    useDespesasStore((s) => s.erro),
+    useDespesasFixasStore((s) => s.erro),
+    useParcelasStore((s) => s.erro),
+    useVeiculoStore((s) => s.erro),
+  ].some(Boolean);
+
   // Mês exibido vem do seletor do header; `mesReal` é o de hoje e NÃO segue a
   // navegação — é ele que decide se uma fixa/parcela do mês corrente só conta
   // depois de marcada como paga (ver resumoMensal.ts).
@@ -67,6 +85,10 @@ export default function Inicio() {
 
   return (
     <Pagina titulo="Início">
+      {/* Compacta, e acima dos números: a faixa cheia substituiria os KPIs, e
+          eles continuam a valer — o que caiu foi a atualização, não os dados
+          que já lá estavam. */}
+      {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
       <Kpis pagina="inicio">
         <KpiCard
           rotulo="Receitas"

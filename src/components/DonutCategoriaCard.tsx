@@ -56,7 +56,10 @@ export default function DonutCategoriaCard() {
   if (fatias.length === 0) {
     return (
       <div className={styles.card}>
-        <p className={styles.titulo}>Despesas por categoria</p>
+        {/* Ver nota em ResumoAnual. Na variante cheia (abaixo) o mesmo título
+            fica em <span>, e tem de ficar: ali envolve-o um <button>, que só
+            aceita conteúdo de frase — um heading lá dentro é HTML inválido. */}
+        <h3 className={styles.titulo}>Despesas por categoria</h3>
         <EstadoVazio
           Icone={PieChart}
           mensagem={`Nenhuma despesa em ${rotuloMes(mes)}`}
