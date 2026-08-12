@@ -38,6 +38,7 @@ import { totalVeiculoGeral } from "../utils/veiculo";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import type { Cents, DespesaFixa, Id } from "../types";
+import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Despesas.module.css";
 
 type Aba = "correntes" | "fixas";
@@ -297,7 +298,9 @@ export default function Despesas() {
           <button
             key={id}
             role="tab"
+            id={idAba(id)}
             aria-selected={aba === id}
+            aria-controls={idPainelAba(id)}
             className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
             onClick={() => setAba(id)}
           >

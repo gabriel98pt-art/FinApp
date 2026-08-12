@@ -51,6 +51,7 @@ import {
   totalVeiculoMes,
 } from "../utils/veiculo";
 import type { CargaEletrica, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
+import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Veiculo.module.css";
 
 type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
@@ -497,7 +498,9 @@ export default function Veiculo() {
           <button
             key={id}
             role="tab"
+            id={idAba(id)}
             aria-selected={aba === id}
+            aria-controls={idPainelAba(id)}
             className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
             onClick={() => setAba(id)}
           >

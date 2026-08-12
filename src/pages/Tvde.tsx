@@ -34,6 +34,7 @@ import {
   semanaDeHoje,
   totaisPerformance,
 } from "../utils/tvde";
+import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Tvde.module.css";
 
 // Moeda FIXA em EUR (seção 4.4) — este módulo NÃO segue a moeda da conta.
@@ -286,7 +287,9 @@ export default function Tvde() {
           <button
             key={id}
             role="tab"
+            id={idAba(id)}
             aria-selected={aba === id}
+            aria-controls={idPainelAba(id)}
             className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
             onClick={() => setAba(id)}
           >
