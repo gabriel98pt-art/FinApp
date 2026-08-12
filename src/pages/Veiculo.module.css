@@ -39,13 +39,6 @@
   gap: 8px;
 }
 
-.vazio {
-  color: var(--mut);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 18px;
-}
-
 .item {
   display: flex;
   align-items: center;

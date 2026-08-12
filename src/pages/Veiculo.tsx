@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Car, Pencil, Plus } from "lucide-react";
+import { Car, Gauge, Pencil, Plus, Repeat, Wrench, Zap } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -602,11 +602,15 @@ export default function Veiculo() {
 
             <div className={styles.lista}>
               {cargasVisiveis.length === 0 ? (
-                <p className={styles.vazio}>
-                  {visaoCargas === "semana" && semanaAtual
-                    ? `Nenhum carregamento em ${rotuloDaSemana(semanaAtual)}.`
-                    : `Nenhum carregamento em ${rotuloMes(mes)}.`}
-                </p>
+                <EstadoVazio
+                  Icone={Zap}
+                  mensagem={
+                    visaoCargas === "semana" && semanaAtual
+                      ? `Nenhum carregamento em ${rotuloDaSemana(semanaAtual)}`
+                      : `Nenhum carregamento em ${rotuloMes(mes)}`
+                  }
+                  sub="Registe um carregamento com o botão acima."
+                />
               ) : (
                 [...cargasVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
@@ -686,7 +690,11 @@ export default function Veiculo() {
 
             <div className={styles.lista}>
               {despesasVisiveis.length === 0 ? (
-                <p className={styles.vazio}>Nenhuma despesa do veículo em {rotuloMes(mes)}.</p>
+                <EstadoVazio
+                  Icone={Wrench}
+                  mensagem={`Nenhuma despesa do veículo em ${rotuloMes(mes)}`}
+                  sub="Manutenção, seguro, portagens — registe com o botão acima."
+                />
               ) : (
                 [...despesasVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
@@ -765,7 +773,12 @@ export default function Veiculo() {
 
             <div className={styles.lista}>
               {fixasVisiveis.length === 0 ? (
-                <p className={styles.vazio}>Nenhuma despesa fixa do veículo em {rotuloMes(mes)}.</p>
+                // Mesmo ícone das fixas gerais em Despesas: é o mesmo conceito.
+                <EstadoVazio
+                  Icone={Repeat}
+                  mensagem={`Nenhuma despesa fixa do veículo em ${rotuloMes(mes)}`}
+                  sub="As já criadas começam ou terminam em outros meses."
+                />
               ) : (
                 fixasVisiveis.map((f) => {
                   // Mesma regra do resto do app (ver Despesas fixas gerais):
@@ -797,6 +810,12 @@ export default function Veiculo() {
                       ) : (
                         <button
                           className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          // Mesmo tratamento das fixas gerais: sem isto, uma
+                          // lista de fixas dava vários botões chamados só
+                          // "Pago"/"Pendente", sem dizer de qual, e sem
+                          // anunciar que alternam estado.
+                          aria-pressed={paga}
+                          aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                           onClick={() =>
                             void agir(
                               () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
@@ -826,7 +845,11 @@ export default function Veiculo() {
 
             <div className={styles.lista}>
               {kmVisiveis.length === 0 ? (
-                <p className={styles.vazio}>Nenhum registo de km em {rotuloMes(mes)}.</p>
+                <EstadoVazio
+                  Icone={Gauge}
+                  mensagem={`Nenhum registo de km em ${rotuloMes(mes)}`}
+                  sub="Anote o conta-quilómetros para acompanhar o consumo."
+                />
               ) : (
                 [...kmVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
