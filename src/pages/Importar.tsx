@@ -39,6 +39,7 @@ import type {
   LinhaExtrato,
   OrigemExistente,
 } from "../types";
+import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Importar.module.css";
 
 const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
@@ -508,7 +509,13 @@ export default function Importar() {
               <button
                 key={f.id}
                 role="tab"
+                id={idAba(f.id)}
                 aria-selected={filtro === f.id}
+                // Variante de painel único: ao contrário de Despesas ou
+                // Veículo, aqui não há um painel por separador — é sempre a
+                // mesma lista, filtrada. Os três separadores apontam para ela,
+                // e é ela que muda de rótulo conforme o que está seleccionado.
+                aria-controls={idPainelAba("linhas")}
                 className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
                 onClick={() => setFiltro(f.id)}
               >
@@ -518,7 +525,12 @@ export default function Importar() {
             ))}
           </div>
 
-          <div className={styles.lista}>
+          <div
+            className={styles.lista}
+            role="tabpanel"
+            id={idPainelAba("linhas")}
+            aria-labelledby={idAba(filtro)}
+          >
             {visiveis.map((l) => (
               <div key={l.id} className={styles.linha}>
                 <label className={styles.linhaAcao}>
