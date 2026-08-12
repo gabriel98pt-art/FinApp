@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Plus, Square, SquareCheck, TrendingDown } from "lucide-react";
-import Pagina, { Kpis } from "../components/Pagina";
+import { Plus, Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
+import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
@@ -393,11 +393,24 @@ export default function Despesas() {
               {erroFixas && fixasVisiveis.length === 0 ? (
                 <ErroSincronizacao />
               ) : fixasVisiveis.length === 0 ? (
-                <p className={styles.vazio}>
-                  {despesasFixas.length === 0
-                    ? "Nenhuma despesa fixa ainda."
-                    : `Nenhuma despesa fixa em ${rotuloMes(mes)}.`}
-                </p>
+                // Era um <p> solto, estilizado à parte, enquanto todas as outras
+                // listas reais sem dados do app usam o EstadoVazio (ícone num
+                // círculo + mensagem + sub). A distinção entre "nunca criaste
+                // nenhuma" e "nenhuma vigora neste mês" mantém-se, e é ela que
+                // decide o sub: uma leva a criar, a outra a mudar de mês.
+                <EstadoVazio
+                  Icone={Repeat}
+                  mensagem={
+                    despesasFixas.length === 0
+                      ? "Nenhuma despesa fixa ainda"
+                      : `Nenhuma despesa fixa em ${rotuloMes(mes)}`
+                  }
+                  sub={
+                    despesasFixas.length === 0
+                      ? "Toque em Adicionar despesa fixa para criar a primeira."
+                      : "As já criadas começam ou terminam em outros meses."
+                  }
+                />
               ) : (
                 fixasVisiveis.map((f) => {
                   // Débito automático segue a mesma regra do Resumo, do
@@ -437,6 +450,13 @@ export default function Despesas() {
                       ) : (
                         <button
                           className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          // Sem nome próprio, uma lista de oito fixas dava oito
+                          // botões chamados "Pago"/"Pendente" e nada dizia a
+                          // qual despesa cada um pertencia — o nome da fixa está
+                          // no botão ao lado, que é outro elemento. O
+                          // aria-pressed dá o estado; o rótulo diz de quem é.
+                          aria-pressed={paga}
+                          aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                           onClick={() =>
                             void agir(
                               () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
