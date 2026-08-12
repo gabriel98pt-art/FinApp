@@ -8,6 +8,12 @@ export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
+      // Sem isto, o relatório só lista ficheiros que ALGUM teste importou — e
+      // um ficheiro que nenhum teste toca simplesmente não aparecia, em vez de
+      // aparecer a 0%. Ou seja: o relatório escondia exactamente os buracos
+      // para que serve. Era o caso de renomear.ts, que é a cascata de
+      // renomeação (o sítio onde um erro reescreve lançamentos em massa).
+      all: true,
       // Só a lógica. Os componentes ainda não têm ambiente de teste (não há
       // jsdom configurado), e incluí-los aqui afogaria o número que interessa
       // num mar de 0% — o relatório deixaria de servir para decidir onde
