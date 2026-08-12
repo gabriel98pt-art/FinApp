@@ -196,7 +196,24 @@ export default function Cartoes() {
 
   const receitas = useReceitasStore((s) => s.itens);
 
+  // O valor das faturas e os quatro KPIs saem de cinco domínios, não só das
+  // transferências (que já eram verificadas mais abaixo). Se um deles não
+  // sincroniza, "Devido no mês" mostra um número MENOR do que o real, em
+  // silêncio — e uma fatura que parece mais barata do que é leva a pagar a
+  // menos. É o mesmo problema que Início tinha.
+  const erroValores = [
+    useDespesasStore((s) => s.erro),
+    useDespesasFixasStore((s) => s.erro),
+    useParcelasStore((s) => s.erro),
+    useVeiculoStore((s) => s.erro),
+    useReceitasStore((s) => s.erro),
+  ].some(Boolean);
+
   const mes = useMesVisivelStore((s) => s.mes);
+  // Era `doMes(transferencias, mes)` repetido quatro vezes no mesmo render —
+  // a mesma varredura da lista feita quatro vezes para responder à mesma
+  // pergunta.
+  const transferenciasDoMes = doMes(transferencias, mes);
   const [contaAberta, setContaAberta] = useState<string | null>(null);
   const [pagando, setPagando] = useState<FaturaCalculada | null>(null);
   const [ajustando, setAjustando] = useState<FaturaCalculada | null>(null);
@@ -453,6 +470,10 @@ export default function Cartoes() {
         />
       </Kpis>
 
+      {/* Compacta: os cartões e as faturas continuam a valer e a ser úteis —
+          o que se perdeu foi a garantia de que os valores estão completos. */}
+      {erroValores && <ErroSincronizacao compacto mensagem="Alguns valores não sincronizaram" />}
+
       {cfgCarregada && cfg.contasCartoes.length === 0 ? (
         <EstadoVazio
           Icone={CreditCard}
@@ -591,15 +612,19 @@ export default function Cartoes() {
       </div>
 
       <div className={styles.lista}>
-        {erroTransferencias && doMes(transferencias, mes).length > 0 && (
-          <ErroSincronizacao compacto />
-        )}
-        {erroTransferencias && doMes(transferencias, mes).length === 0 ? (
+        {erroTransferencias && transferenciasDoMes.length > 0 && <ErroSincronizacao compacto />}
+        {erroTransferencias && transferenciasDoMes.length === 0 ? (
           <ErroSincronizacao />
-        ) : doMes(transferencias, mes).length === 0 ? (
-          <p className={styles.vazio}>Nenhuma transferência em {rotuloMes(mes)}.</p>
+        ) : transferenciasDoMes.length === 0 ? (
+          // Era um <p> à parte; o resto do app usa o EstadoVazio para listas
+          // reais sem dados. Mesmo alinhamento feito no vazio das fixas.
+          <EstadoVazio
+            Icone={ArrowLeftRight}
+            mensagem={`Nenhuma transferência em ${rotuloMes(mes)}`}
+            sub="Mova dinheiro entre contas com o botão Adicionar transferência."
+          />
         ) : (
-          ordenarPorDataDesc(doMes(transferencias, mes)).map((t) => (
+          ordenarPorDataDesc(transferenciasDoMes).map((t) => (
             <div key={t.id} className={styles.item}>
               <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
                 <span className={styles.itemTexto}>

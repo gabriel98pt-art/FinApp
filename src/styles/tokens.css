@@ -91,6 +91,12 @@
   --selo-pendente-txt: #fbbf24;
   --selo-pendente-bg: #31352e;
   --selo-pendente-bg-hi: #524b2d;
+
+  /* Terceiro estado: o selo vermelho de "falhou/estourou" (meta não atingida,
+     confiança baixa na importação). Sem par `-hi`: ao contrário do Pago das
+     fixas, nenhum destes é clicável — são estado, não acção. */
+  --selo-alerta-txt: #fb7185;
+  --selo-alerta-bg: #312a3c;
 }
 
 [data-theme="light"] {
@@ -144,6 +150,9 @@
   --selo-pendente-txt: #9b4708;
   --selo-pendente-bg: #f8eee6;
   --selo-pendente-bg-hi: #f0ddce;
+
+  --selo-alerta-txt: #b8113a;
+  --selo-alerta-bg: #f9e7ec;
 }
 
 /* Largura da barra lateral — fonte única, lida tanto pela própria barra como

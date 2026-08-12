@@ -254,14 +254,17 @@
   padding: 3px 9px;
 }
 
+/* Tokens dos selos — ver nota em tokens.css. Estes marcam a confiança do
+   reconhecimento de cada linha do extrato: são exactamente o sítio onde a
+   pessoa decide o que aceitar, portanto o sítio onde ler mal custa dinheiro. */
 .confAlta {
-  color: var(--grn);
-  background: color-mix(in srgb, var(--grn) 14%, transparent);
+  color: var(--selo-pago-txt);
+  background: var(--selo-pago-bg);
 }
 
 .confMedia {
-  color: var(--ylw);
-  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  color: var(--selo-pendente-txt);
+  background: var(--selo-pendente-bg);
 }
 
 .confBaixa {

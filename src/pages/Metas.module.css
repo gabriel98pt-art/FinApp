@@ -33,14 +33,17 @@
   white-space: nowrap;
 }
 
+/* Tokens dos selos (ver nota em tokens.css): o color-mix com `transparent` que
+   aqui estava fazia o contraste depender do cartão por baixo, e no tema claro
+   não chegava aos 4,5:1 que este tamanho de texto exige. */
 .badgeOk {
-  color: var(--grn);
-  background: color-mix(in srgb, var(--grn) 14%, transparent);
+  color: var(--selo-pago-txt);
+  background: var(--selo-pago-bg);
 }
 
 .badgeAlerta {
-  color: var(--red);
-  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--selo-alerta-txt);
+  background: var(--selo-alerta-bg);
 }
 
 .cardMetaGrid {

@@ -155,8 +155,10 @@
   font-style: normal;
   font-size: 0.65rem;
   font-weight: 700;
-  color: var(--ylw);
-  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  /* Tokens dos selos — ver nota em tokens.css. A 0.65rem este é o selo mais
+     pequeno do app, portanto o que menos margem tinha para falhar contraste. */
+  color: var(--selo-pendente-txt);
+  background: var(--selo-pendente-bg);
   border-radius: var(--r-pill);
   padding: 2px 8px;
 }
