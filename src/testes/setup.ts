@@ -36,7 +36,12 @@ if (typeof window !== "undefined") {
     }),
   });
 
-  if (!("ResizeObserver" in window)) {
+  // Checagem por VALOR, e não `"ResizeObserver" in window`: a lib DOM declara
+  // o ResizeObserver como global garantido, portanto o compilador dá o ramo
+  // "não existe" do `in` por impossível, narrowa o `window` para `never` e a
+  // atribuição abaixo deixa de compilar (TS2339). O jsdom, esse, não o traz —
+  // a garantia é só de tipo.
+  if (typeof window.ResizeObserver === "undefined") {
     window.ResizeObserver = class {
       observe() {}
       unobserve() {}
