@@ -1,0 +1,136 @@
+// @vitest-environment jsdom
+
+// Veículo tem cinco abas, cada uma com a sua lista, e foi onde os quatro
+// estados vazios passaram de <p> solto para o EstadoVazio do sistema. É
+// também a página com mais abas, portanto a melhor para segurar o teclado
+// delas com um número de separadores que não seja dois.
+
+import { describe, expect, test, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { DadosVeiculo, DespesaFixa } from "../types";
+import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { lista } from "../testes/dobras";
+
+vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+vi.mock("../services/veiculoService", () => ({
+  alternarPagoFixaVeiculo: vi.fn(async () => {}),
+  atualizarCarga: vi.fn(async () => {}),
+  atualizarDespesaVeiculo: vi.fn(async () => {}),
+  atualizarFixaVeiculo: vi.fn(async () => {}),
+  atualizarKm: vi.fn(async () => {}),
+  criarCarga: vi.fn(async () => {}),
+  criarDespesaVeiculo: vi.fn(async () => {}),
+  criarFixaVeiculo: vi.fn(async () => {}),
+  criarKm: vi.fn(async () => {}),
+  removerCarga: vi.fn(async () => {}),
+  removerDespesaVeiculo: vi.fn(async () => {}),
+  removerFixaVeiculo: vi.fn(async () => {}),
+  removerKm: vi.fn(async () => {}),
+  VEICULO_VAZIO: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
+}));
+vi.mock("../services/cfgService", () => ({
+  adicionarItemLista: vi.fn(async () => {}),
+  removerItemLista: vi.fn(async () => {}),
+  renomearCategoria: vi.fn(async () => {}),
+  renomearLocal: vi.fn(async () => {}),
+}));
+
+const vazio = (): DadosVeiculo =>
+  ({ cargas: [], despesas: [], despesasFixas: [], quilometragem: [] }) as unknown as DadosVeiculo;
+
+let dados = vazio();
+let erro = false;
+
+vi.mock("../stores/veiculoStore", () => ({
+  useVeiculoStore: (s: (e: unknown) => unknown) => s({ dados, carregado: true, erro }),
+}));
+vi.mock("../stores/cfgStore", () => ({
+  useCfgStore: (s: (e: unknown) => unknown) =>
+    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+}));
+vi.mock("../stores/mesVisivelStore", () => ({
+  useMesVisivelStore: (s: (e: unknown) => unknown) => s({ mes: "2026-08" }),
+}));
+vi.mock("../stores/authStore", () => ({
+  useAuthStore: (s: (e: unknown) => unknown) => s({ sessao: { uid: "u1" } }),
+}));
+vi.mock("../stores/lancamentosStore", () => ({
+  useDespesasStore: (s: (e: unknown) => unknown) => s(lista()),
+  useDespesasFixasStore: (s: (e: unknown) => unknown) => s(lista()),
+}));
+vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
+
+const Veiculo = (await import("./Veiculo")).default;
+
+beforeEach(() => {
+  dados = vazio();
+  erro = false;
+});
+
+describe("Veiculo", () => {
+  test("monta e abre no Resumo", () => {
+    render(<Veiculo />);
+    expect(screen.getByRole("heading", { name: "Veículo" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Resumo" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("tem as cinco abas", () => {
+    render(<Veiculo />);
+    expect(screen.getAllByRole("tab")).toHaveLength(5);
+  });
+
+  test("cada aba vazia mostra o EstadoVazio dela, com o seu próprio texto", async () => {
+    render(<Veiculo />);
+
+    await userEvent.click(screen.getByRole("tab", { name: "Carregamentos" }));
+    expect(screen.getByText(/Nenhum carregamento em agosto 2026/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("tab", { name: "Despesas" }));
+    expect(screen.getByText(/Nenhuma despesa do veículo em agosto 2026/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("tab", { name: "Km" }));
+    expect(screen.getByText(/Nenhum registo de km em agosto 2026/)).toBeInTheDocument();
+  });
+
+  test("o selo da fixa do veículo diz de quem é e em que estado está", async () => {
+    dados = {
+      ...vazio(),
+      despesasFixas: [
+        {
+          id: "fv1",
+          descricao: "Seguro",
+          valor: 4500,
+          categoria: "Seguro",
+          pagoPorMes: {},
+        } as DespesaFixa,
+      ],
+    } as unknown as DadosVeiculo;
+    render(<Veiculo />);
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+
+    const selo = screen.getByRole("button", { name: "Seguro — pendente" });
+    expect(selo).toHaveAttribute("aria-pressed", "false");
+  });
+
+  test("sincronização caída: faixa compacta acima das abas", () => {
+    // Aqui o aviso fica compacto mesmo sem dados, ao contrário da regra geral:
+    // as cinco abas vêm da mesma store e a caixa cheia repetida por aba seria
+    // pior. O comentário no código explica; este teste segura a decisão.
+    erro = true;
+    render(<Veiculo />);
+    expect(screen.getByText(/os dados podem estar desatualizados/)).toBeInTheDocument();
+  });
+
+  test("setas percorrem as cinco abas e dão a volta", async () => {
+    render(<Veiculo />);
+    screen.getByRole("tab", { selected: true }).focus();
+
+    await userEvent.keyboard("{ArrowLeft}");
+    // Da primeira para trás = última.
+    expect(screen.getByRole("tab", { name: "Km" })).toHaveAttribute("aria-selected", "true");
+
+    await userEvent.keyboard("{Home}");
+    expect(screen.getByRole("tab", { name: "Resumo" })).toHaveAttribute("aria-selected", "true");
+  });
+});
