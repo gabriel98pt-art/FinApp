@@ -11,6 +11,7 @@ import {
   dadosDaTransferencia,
   pagamentoDaLinha,
 } from "../services/importacaoService";
+import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -148,6 +149,11 @@ export default function Importar() {
   const resetarRascunho = useImportacaoStore((s) => s.resetar);
 
   const [filtro, setFiltro] = useState<DecisaoLinha | "todas">("todas");
+  const { propsLista, propsAba } = useAbasTeclado({
+    abas: FILTROS.map((f) => f.id),
+    atual: filtro,
+    aoMudar: setFiltro,
+  });
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
   const [arrastando, setArrastando] = useState(false);
@@ -504,7 +510,7 @@ export default function Importar() {
             />
           </div>
 
-          <div className={styles.filtros} role="tablist">
+          <div className={styles.filtros} role="tablist" {...propsLista}>
             {FILTROS.map((f) => (
               <button
                 key={f.id}
@@ -516,6 +522,7 @@ export default function Importar() {
                 // mesma lista, filtrada. Os três separadores apontam para ela,
                 // e é ela que muda de rótulo conforme o que está seleccionado.
                 aria-controls={idPainelAba("linhas")}
+                {...propsAba(f.id)}
                 className={`${styles.filtroBotao} ${filtro === f.id ? styles.filtroAtivo : ""}`}
                 onClick={() => setFiltro(f.id)}
               >

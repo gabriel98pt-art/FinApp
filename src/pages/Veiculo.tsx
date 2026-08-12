@@ -33,6 +33,7 @@ import {
   renomearCategoria,
   renomearLocal,
 } from "../services/cfgService";
+import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -56,6 +57,16 @@ import styles from "./Veiculo.module.css";
 
 type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
 
+/** Fonte única da ordem das abas: a lista desenhada e a ordem que as setas do
+ *  teclado percorrem têm de ser a mesma. */
+const ABAS = [
+  ["resumo", "Resumo"],
+  ["cargas", "Carregamentos"],
+  ["despesas", "Despesas"],
+  ["fixas", "Fixas"],
+  ["km", "Km"],
+] as const satisfies readonly (readonly [Aba, string])[];
+
 function agir(acao: () => Promise<unknown>, ok: string) {
   return acao()
     .then(() => mostrarToast(ok))
@@ -71,6 +82,11 @@ export default function Veiculo() {
   const erro = useVeiculoStore((s) => s.erro);
 
   const [aba, setAba] = useState<Aba>("resumo");
+  const { propsLista, propsAba } = useAbasTeclado({
+    abas: ABAS.map(([id]) => id),
+    atual: aba,
+    aoMudar: setAba,
+  });
   const mes = useMesVisivelStore((s) => s.mes);
   const real = mesAtual();
 
@@ -485,22 +501,15 @@ export default function Veiculo() {
         <KpiCard rotulo="Km no mês" valor={kmDoMes ? kmDoMes.toLocaleString("pt-PT") : "0"} />
       </Kpis>
 
-      <div className={styles.abas} role="tablist">
-        {(
-          [
-            ["resumo", "Resumo"],
-            ["cargas", "Carregamentos"],
-            ["despesas", "Despesas"],
-            ["fixas", "Fixas"],
-            ["km", "Km"],
-          ] as const
-        ).map(([id, nome]) => (
+      <div className={styles.abas} role="tablist" {...propsLista}>
+        {ABAS.map(([id, nome]) => (
           <button
             key={id}
             role="tab"
             id={idAba(id)}
             aria-selected={aba === id}
             aria-controls={idPainelAba(id)}
+            {...propsAba(id)}
             className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
             onClick={() => setAba(id)}
           >

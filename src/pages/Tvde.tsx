@@ -15,6 +15,7 @@ import {
   removerSemana,
   salvarSemana,
 } from "../services/tvdeService";
+import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useTvdeStore } from "../stores/tvdeStore";
@@ -47,6 +48,17 @@ function eur(cents: number): string {
     .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   return `${negativo ? "−" : ""}€ ${unidades},${(abs % 100).toString().padStart(2, "0")}`;
 }
+
+type AbaTvde = "semanas" | "meses" | "periodos" | "extras";
+
+/** Fonte única da ordem das abas: a lista desenhada e a ordem que as setas do
+ *  teclado percorrem têm de ser a mesma. */
+const ABAS = [
+  ["semanas", "Semanas"],
+  ["meses", "Meses"],
+  ["periodos", "Períodos"],
+  ["extras", "Seg. Social & Despesas"],
+] as const satisfies readonly (readonly [AbaTvde, string])[];
 
 const CAMPOS_DINHEIRO = [
   ["fat", "Faturamento"],
@@ -210,7 +222,12 @@ export default function Tvde() {
   const erro = useTvdeStore((s) => s.erro);
 
   const [editando, setEditando] = useState<number | null>(null);
-  const [aba, setAba] = useState<"semanas" | "meses" | "periodos" | "extras">("semanas");
+  const [aba, setAba] = useState<AbaTvde>("semanas");
+  const { propsLista, propsAba } = useAbasTeclado({
+    abas: ABAS.map(([id]) => id),
+    atual: aba,
+    aoMudar: setAba,
+  });
   const [segMes, setSegMes] = useState(mesAtual());
   const mesVisivel = useMesVisivelStore((s) => s.mes);
   const [segValor, setSegValor] = useState<Cents | null>(null);
@@ -275,21 +292,15 @@ export default function Tvde() {
         <KpiCard rotulo="Líquido (− Seg. Social)" valor={eur(t.lucroLiquido)} />
       </Kpis>
 
-      <div className={styles.abas} role="tablist">
-        {(
-          [
-            ["semanas", "Semanas"],
-            ["meses", "Meses"],
-            ["periodos", "Períodos"],
-            ["extras", "Seg. Social & Despesas"],
-          ] as const
-        ).map(([id, nome]) => (
+      <div className={styles.abas} role="tablist" {...propsLista}>
+        {ABAS.map(([id, nome]) => (
           <button
             key={id}
             role="tab"
             id={idAba(id)}
             aria-selected={aba === id}
             aria-controls={idPainelAba(id)}
+            {...propsAba(id)}
             className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
             onClick={() => setAba(id)}
           >
