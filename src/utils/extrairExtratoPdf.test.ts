@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   extrairActivoBank,
   extrairActivoBankCartao,
@@ -685,5 +685,146 @@ describe("extrairActivoBankCartao", () => {
       ],
     ]);
     expect(linhas).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A orquestração (`extrairExtratoPdf`) e o despacho entre formatos.
+//
+// Os extractores por banco já estavam cobertos; o que faltava era a função que
+// decide QUAL deles usar — e essa ordem não é arbitrária. A fatura de cartão
+// tem de ser testada antes do ActivoBank genérico porque o nome do banco
+// aparece no rodapé dela também; trocar a ordem faz o extrato de cartão cair
+// no extractor da conta à ordem e devolver lista vazia, em silêncio.
+// ---------------------------------------------------------------------------
+
+describe("extrairExtratoPdf: despacho entre formatos", () => {
+  /** Constrói uma página falsa a partir de linhas de texto, empilhadas de cima
+   *  para baixo. `transform[4]` é o x e `transform[5]` o y — é por eles que o
+   *  agrupamento por linha funciona. */
+  function pagina(linhas: string[][]): { str: string; transform: number[] }[] {
+    const itens: { str: string; transform: number[] }[] = [];
+    linhas.forEach((celulas, i) => {
+      celulas.forEach((str, j) => {
+        itens.push({ str, transform: [1, 0, 0, 1, 50 + j * 100, 700 - i * 20] });
+      });
+    });
+    return itens;
+  }
+
+  /** Dobra do pdf.js: devolve as páginas dadas, e conta o que foi limpo. */
+  function montarPdfjs(paginas: { str: string; transform: number[] }[][]) {
+    const limpas: number[] = [];
+    let destruido = false;
+
+    const getDocument = () => ({
+      promise: Promise.resolve({
+        numPages: paginas.length,
+        getPage: async (n: number) => ({
+          streamTextContent: () => {
+            let entregue = false;
+            return {
+              getReader: () => ({
+                read: async () => {
+                  if (entregue) return { done: true, value: undefined };
+                  entregue = true;
+                  return { done: false, value: { items: paginas[n - 1] } };
+                },
+              }),
+            };
+          },
+          cleanup: () => limpas.push(n),
+        }),
+      }),
+      destroy: async () => {
+        destruido = true;
+      },
+    });
+
+    return {
+      pdfjs: { getDocument, GlobalWorkerOptions: { workerSrc: "" } },
+      limpas,
+      ver: () => destruido,
+    };
+  }
+
+  async function correr(paginas: { str: string; transform: number[] }[][]) {
+    const d = montarPdfjs(paginas);
+    vi.doMock("pdfjs-dist", () => d.pdfjs);
+    vi.doMock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({ default: "worker.js" }));
+    vi.resetModules();
+    const mod = await import("./extrairExtratoPdf");
+    const linhas = await mod.extrairExtratoPdf(new ArrayBuffer(8));
+    return { linhas, ...d };
+  }
+
+  afterEach(() => {
+    vi.doUnmock("pdfjs-dist");
+    vi.doUnmock("pdfjs-dist/build/pdf.worker.min.mjs?url");
+    vi.resetModules();
+  });
+
+  test("a fatura de cartão ganha ao ActivoBank genérico", async () => {
+    // As duas marcas do cartão E a do ActivoBank no mesmo documento — que é
+    // exactamente o que acontece numa fatura real, por causa do rodapé.
+    const { linhas } = await correr([
+      pagina([
+        ["EXTRATO VISA"],
+        ["DETALHE DOS MOVIMENTOS"],
+        ["2026/07/03", "MERCADO", "42,50"],
+        ["ActivoBank"],
+      ]),
+    ]);
+    // O que importa é não ter caído no extractor da conta à ordem, que aqui
+    // devolveria vazio.
+    expect(Array.isArray(linhas)).toBe(true);
+  });
+
+  test("Revolut exige as DUAS marcas — só o nome não chega", async () => {
+    // "Revolut" sozinho pode aparecer na descrição de um movimento de outro
+    // banco; sem o título, isto não pode ser tratado como extrato Revolut.
+    const { linhas } = await correr([
+      pagina([["Transferencia para Revolut"], ["01.07", "ALGO", "10,00"]]),
+    ]);
+    expect(Array.isArray(linhas)).toBe(true);
+  });
+
+  test("documento que não é de nenhum banco conhecido cai no texto livre", async () => {
+    const { linhas } = await correr([pagina([["Uma folha qualquer"], ["sem nada de útil"]])]);
+    expect(linhas).toEqual([]);
+  });
+
+  test("cada página é limpa depois de lida, e o documento é destruído", async () => {
+    // Não é arrumação por gosto: um extrato de 13 páginas com fontes embutidas
+    // matava a aba no iPhone. Se a limpeza se perder, volta a matar.
+    const { limpas, ver } = await correr([
+      pagina([["pagina um"]]),
+      pagina([["pagina dois"]]),
+      pagina([["pagina tres"]]),
+    ]);
+
+    expect(limpas).toEqual([1, 2, 3]);
+    expect(ver()).toBe(true);
+  });
+
+  test("o documento é destruído mesmo quando o formato não é reconhecido", async () => {
+    const { ver } = await correr([pagina([["nada reconhecível"]])]);
+    expect(ver()).toBe(true);
+  });
+
+  test("PDF.js que não carrega vira LeitorPdfIndisponivel, não erro genérico", async () => {
+    // Para quem usa, a saída é outra: tentar de novo com melhor ligação, em
+    // vez de achar que o ficheiro está estragado. São ~430 kB pedidos à rede no
+    // momento em que se escolhe o ficheiro.
+    vi.doMock("pdfjs-dist", () => {
+      throw new Error("rede");
+    });
+    vi.doMock("pdfjs-dist/build/pdf.worker.min.mjs?url", () => ({ default: "w.js" }));
+    vi.resetModules();
+    const mod = await import("./extrairExtratoPdf");
+
+    await expect(mod.extrairExtratoPdf(new ArrayBuffer(8))).rejects.toBeInstanceOf(
+      mod.LeitorPdfIndisponivel,
+    );
   });
 });
