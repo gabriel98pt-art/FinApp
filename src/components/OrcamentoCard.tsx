@@ -183,7 +183,13 @@ export default function OrcamentoCard() {
                 className={styles.linha}
                 onClick={() => abrirEdicao(s.categoria)}
               >
-                <div className={styles.linhaTopo}>
+                {/* span e não div: o conteúdo de um <button> é, por
+                    especificação, conteúdo de frase — um <div> lá dentro é HTML
+                    inválido. As outras listas clicáveis do app (Transações,
+                    Parcelas, ListaLancamentos) já usavam span; este cartão é que
+                    tinha derivado. Os estilos não mudam: .linhaTopo e .linhaBase
+                    já são flex, e .barra/.preenchido ganharam display: block. */}
+                <span className={styles.linhaTopo}>
                   <span className={styles.categoriaNome}>
                     <CategoriaBolha categoria={s.categoria} tamanho={24} />
                     {s.categoria}
@@ -195,17 +201,17 @@ export default function OrcamentoCard() {
                       / {formatMoney(s.teto, cfg.currency)}
                     </span>
                   </span>
-                </div>
-                <div className={styles.barra}>
-                  <div
+                </span>
+                <span className={styles.barra}>
+                  <span
                     className={styles.preenchido}
                     style={{
                       width: `${Math.min(100, s.pct)}%`,
                       background: s.estourado ? "var(--red)" : cor,
                     }}
                   />
-                </div>
-                <div className={styles.linhaBase}>
+                </span>
+                <span className={styles.linhaBase}>
                   <span className={styles.pct}>{s.pct}%</span>
                   {(s.estourado || perto) && (
                     <span
@@ -214,7 +220,7 @@ export default function OrcamentoCard() {
                       {s.estourado ? "Estourou" : "Perto do limite"}
                     </span>
                   )}
-                </div>
+                </span>
               </button>
             );
           })}

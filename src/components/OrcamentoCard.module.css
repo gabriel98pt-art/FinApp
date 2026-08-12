@@ -92,6 +92,8 @@
 }
 
 .barra {
+  /* span (ver nota no .tsx): sem display, um span fica inline e ignora altura. */
+  display: block;
   height: 8px;
   border-radius: var(--r-pill);
   background: var(--s2);
@@ -99,6 +101,7 @@
 }
 
 .preenchido {
+  display: block;
   height: 100%;
   border-radius: var(--r-pill);
   /* scaleX distorceria o raio de cápsula das pontas numa barra fina, e o
