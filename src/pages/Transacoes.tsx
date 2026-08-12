@@ -5,6 +5,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CategoriaBolha from "../components/CategoriaBolha";
+import ErroSincronizacao from "../components/ErroSincronizacao";
 import FiltroTransacoes from "../components/FiltroTransacoes";
 import SeletorCategoria from "../components/SeletorCategoria";
 import { useConfirmar } from "../hooks/useConfirmar";
@@ -89,6 +90,20 @@ export default function Transacoes() {
   const carregado =
     receitasOk && despesasOk && fixasOk && parcelasOk && transferenciasOk && veiculoOk;
 
+  // Em queda de subscrição o syncService marca `carregado: true` junto com
+  // `erro: true` — de propósito, para a tela sair do "Carregando…" em vez de
+  // esperar para sempre. O efeito colateral era este ecrã afirmar "Nada
+  // movimentado em <mês>" quando o que houve foi falha de rede: uma frase
+  // categórica sobre dados que não chegámos a ver.
+  const erro = [
+    useReceitasStore((s) => s.erro),
+    useDespesasStore((s) => s.erro),
+    useDespesasFixasStore((s) => s.erro),
+    useParcelasStore((s) => s.erro),
+    useTransferenciasStore((s) => s.erro),
+    useVeiculoStore((s) => s.erro),
+  ].some(Boolean);
+
   const itens = transacoesDoMes(dados, mes, mesAtual(), hojeIso());
   // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
   // refletem só o que está visível, não o mês inteiro por baixo dele.
@@ -170,7 +185,15 @@ export default function Transacoes() {
         </div>
       )}
 
-      {carregado && itens.length === 0 ? (
+      {/* Há linhas na tela: faixa fina por cima, elas continuam a valer. */}
+      {erro && itensFiltrados.length > 0 && <ErroSincronizacao compacto />}
+
+      {erro && itens.length === 0 ? (
+        // Sem nada para mostrar E com a sincronização caída, o vazio seria uma
+        // afirmação errada ("não movimentaste nada") sobre dados que não
+        // chegaram. Aqui a caixa cheia substitui mesmo o vazio.
+        <ErroSincronizacao sub="Não deu para carregar o extrato deste mês." />
+      ) : carregado && itens.length === 0 ? (
         <EstadoVazio
           Icone={ListTree}
           mensagem={`Nada movimentado em ${rotuloMes(mes)}`}
@@ -273,7 +296,11 @@ export default function Transacoes() {
                     onClick={moverParaDespesas}
                     disabled={movendo}
                   >
-                    Mover para despesas
+                    {/* A operação são duas escritas seguidas (criar a despesa,
+                        apagar a carga) e pode demorar. Só o botão apagado não
+                        diz se está a andar ou se o toque falhou — mesmo padrão
+                        de "Importando…" em Definições e "Lendo…" em Importar. */}
+                    {movendo ? "Movendo…" : "Mover para despesas"}
                   </button>
                 </div>
               ))}
