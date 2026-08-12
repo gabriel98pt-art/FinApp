@@ -147,6 +147,22 @@ export default function Calendario() {
                 key={data}
                 className={`${styles.dia} ${foraDoMes ? styles.diaForaDoMes : ""} ${ehHoje ? styles.diaHoje : ""}`}
                 onClick={() => setDiaSelecionado(data)}
+                // Os pontos que marcam o dia são aria-hidden (são desenho), e o
+                // conteúdo do botão é só o número — ou seja, quem usa leitor de
+                // ecrã ouvia "1, 2, 3…" e não ficava a saber nada do que este
+                // ecrã existe para mostrar: em que dias há algo. "Hoje" e "fora
+                // do mês" também só se viam pela cor.
+                aria-label={[
+                  `Dia ${parseInt(data.slice(8, 10), 10)}`,
+                  foraDoMes ? "de outro mês" : null,
+                  ehHoje ? "hoje" : null,
+                  doDia.length > 0
+                    ? `${doDia.length} vencimento${doDia.length > 1 ? "s" : ""}`
+                    : null,
+                  temEvento ? "com evento" : null,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
               >
                 {parseInt(data.slice(8, 10), 10)}
                 <span className={styles.marcadores} aria-hidden>
@@ -162,7 +178,9 @@ export default function Calendario() {
       </div>
 
       <div className={styles.secao}>
-        <p className={styles.secaoTitulo}>Próximos 7 dias</p>
+        {/* h3, como "Despesas fixas", "Carregamentos" e as outras secções do
+            app. O .secaoTitulo já fixa tamanho e peso, então nada muda à vista. */}
+        <h3 className={styles.secaoTitulo}>Próximos 7 dias</h3>
         {proximos7.length === 0 ? (
           <p className={styles.vazio}>Nada agendado nos próximos 7 dias.</p>
         ) : (
