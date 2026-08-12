@@ -6,18 +6,28 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vite.dev/config/
 export default defineConfig({
   test: {
+    // O ambiente por omissão continua a ser `node`: 781 dos testes são lógica
+    // pura e correm em ~400 ms assim. Os testes de componente pedem jsdom com
+    // `// @vitest-environment jsdom` no topo do próprio ficheiro — é o
+    // mecanismo do Vitest para isto, e assim quem escreve um teste vê no
+    // ficheiro em que ambiente ele corre, em vez de o deduzir de uma glob
+    // escondida na configuração.
+    setupFiles: ["./src/testes/setup.ts"],
     coverage: {
       provider: "v8",
-      // Sem isto, o relatório só lista ficheiros que ALGUM teste importou — e
-      // um ficheiro que nenhum teste toca simplesmente não aparecia, em vez de
-      // aparecer a 0%. Ou seja: o relatório escondia exactamente os buracos
-      // para que serve. Era o caso de renomear.ts, que é a cascata de
-      // renomeação (o sítio onde um erro reescreve lançamentos em massa).
-      all: true,
-      // Só a lógica. Os componentes ainda não têm ambiente de teste (não há
-      // jsdom configurado), e incluí-los aqui afogaria o número que interessa
-      // num mar de 0% — o relatório deixaria de servir para decidir onde
-      // escrever o próximo teste, que é para o que ele existe.
+      // Sem `include` explícito, o relatório só lista ficheiros que ALGUM
+      // teste importou — e um ficheiro que nenhum teste toca simplesmente não
+      // aparecia, em vez de aparecer a 0%. O relatório escondia exactamente
+      // os buracos para que serve (era o caso de renomear.ts, a cascata de
+      // renomeação). Com `include` preenchido, o provider v8 já lista todos
+      // os ficheiros que baterem nele — a opção `all` que fazia isto
+      // explicitamente saiu do Vitest 4, este `include` sozinho basta agora.
+      // Continua a medir só a lógica, mesmo agora que há testes de página. Os
+      // smoke tests provam que a tela monta e que os estados aparecem — não
+      // percorrem ramos —, e pôr os componentes aqui daria uma percentagem que
+      // sobe sem que nada tenha ficado mais protegido. O relatório serve para
+      // decidir onde escrever o próximo teste, e para isso tem de continuar a
+      // falar da lógica.
       include: ["src/utils/**", "src/services/**"],
       // `firebase.ts` é só a inicialização do SDK (não há lógica para cobrir) e
       // os próprios testes não se medem a si mesmos.
