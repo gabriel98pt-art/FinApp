@@ -20,34 +20,43 @@
   white-space: nowrap;
 }
 
-/* Rodapé da página: só o olho de "ver só as quitadas". Fica encostado à
-   direita, alinhado com o fim dos cartões, e não puxa a atenção — é uma ação
-   de vez em quando, não do dia a dia. */
-.rodape {
-  display: flex;
-  justify-content: flex-end;
+.tudoQuitado {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 16px 0;
 }
 
-.filtroRodape {
+/* Secção das quitadas: colapsada por padrão (o pedido original), abre inline
+   sem sair da tela. O cabeçalho é o alvo de toque inteiro, não só a seta. */
+.secaoQuitadas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cabecalhoQuitadas {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   color: var(--mut);
-  /* Alvo de toque confortável no telemóvel, mesmo o ícone sendo pequeno. */
-  width: 40px;
-  height: 40px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 4px;
   border-radius: var(--r-sm);
 }
 
-.filtroRodape:hover {
+.cabecalhoQuitadas:hover {
   background: var(--s2);
   color: var(--txt);
 }
 
-.filtroRodapeAtivo,
-.filtroRodapeAtivo:hover {
-  background: var(--s2);
-  color: var(--blu);
+.cabecalhoQuitadas svg {
+  transition: transform 0.15s ease;
+}
+
+.chevronAberto {
+  transform: rotate(180deg);
 }
 
 .adicionar {

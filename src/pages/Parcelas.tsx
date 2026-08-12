@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, History, Layers } from "lucide-react";
+import { ChevronDown, Layers } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -8,12 +8,7 @@ import CampoMoeda from "../components/CampoMoeda";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
-import {
-  LINHAS_ORDEM_PARCELA,
-  parcelasVisiveis,
-  type FiltroQuitadas,
-  type OrdemParcela,
-} from "../utils/ordemParcelas";
+import { LINHAS_ORDEM_PARCELA, parcelasVisiveis, type OrdemParcela } from "../utils/ordemParcelas";
 import {
   criarParcela,
   excluirParcela,
@@ -374,10 +369,10 @@ export default function Parcelas() {
   // opções, quatro delas só de parcela (ver utils/ordemParcelas.ts); a folha
   // mostra-as em 5 linhas, juntando cada par de direções opostas.
   const [ordem, setOrdem] = useState<OrdemParcela>("recentes");
-  // Três estados no rodapé — mostrar tudo (padrão), esconder as quitadas, ou
-  // isolar só elas para rever o histórico: escolha da visita, não uma
-  // preferência guardada — reabrir a tela volta ao padrão.
-  const [filtroQuitadas, setFiltroQuitadas] = useState<FiltroQuitadas>("todas");
+  // Quitadas ficam numa secção à parte, colapsada por padrão (item pedido):
+  // não somem, só saem da vista até alguém querer rever o histórico. Escolha
+  // da visita, não uma preferência guardada — reabrir a tela volta a esconder.
+  const [quitadasAbertas, setQuitadasAbertas] = useState(false);
   const [novoIntermediador, setNovoIntermediador] = useState("");
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
@@ -429,10 +424,17 @@ export default function Parcelas() {
   const faltaPagar = totalDoMes - pagoEsteMes;
   const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
 
-  const visiveis = parcelasVisiveis(
+  const ativasVisiveis = parcelasVisiveis(
     parcelas,
     ordem,
-    filtroQuitadas,
+    "ocultar",
+    mesRef,
+    cfg.diaVencimentoFatura,
+  );
+  const quitadasVisiveis = parcelasVisiveis(
+    parcelas,
+    ordem,
+    "apenas",
     mesRef,
     cfg.diaVencimentoFatura,
   );
@@ -468,9 +470,11 @@ export default function Parcelas() {
           mensagem="Nenhuma compra parcelada"
           sub="Crie uma parcela para acompanhar o progresso mês a mês."
         />
+      ) : ativasVisiveis.length === 0 && quitadas.length > 0 ? (
+        <p className={styles.tudoQuitado}>Tudo quitado — veja o histórico abaixo.</p>
       ) : (
         <div className={styles.lista}>
-          {visiveis.map((p) => (
+          {ativasVisiveis.map((p) => (
             <LinhaParcela
               key={p.id}
               p={p}
@@ -480,6 +484,36 @@ export default function Parcelas() {
               diaVencimentoFatura={cfg.diaVencimentoFatura}
             />
           ))}
+        </div>
+      )}
+
+      {/* Quitadas ficam à parte, colapsadas: a lista de cima é a que se olha
+          todo dia, esta é histórico de vez em quando. Abre/fecha inline, sem
+          navegar pra outro lugar. */}
+      {quitadas.length > 0 && (
+        <div className={styles.secaoQuitadas}>
+          <button
+            className={styles.cabecalhoQuitadas}
+            aria-expanded={quitadasAbertas}
+            onClick={() => setQuitadasAbertas(!quitadasAbertas)}
+          >
+            <span>Quitadas ({quitadas.length})</span>
+            <ChevronDown size={18} className={quitadasAbertas ? styles.chevronAberto : undefined} />
+          </button>
+          {quitadasAbertas && (
+            <div className={styles.lista}>
+              {quitadasVisiveis.map((p) => (
+                <LinhaParcela
+                  key={p.id}
+                  p={p}
+                  moeda={moeda}
+                  aoEditar={abrirEdicao}
+                  mesRef={mesRef}
+                  diaVencimentoFatura={cfg.diaVencimentoFatura}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -517,49 +551,6 @@ export default function Parcelas() {
           </button>
         </div>
       </form>
-
-      {/* Rodapé discreto: mexer na visibilidade das quitadas é para vez em
-          quando, não uma ação do dia a dia — por isso saiu do cabeçalho, onde
-          disputava espaço com "Nova parcela". Um toque cicla os 3 estados:
-          tudo → esconder quitadas → só quitadas → tudo de novo. */}
-      {quitadas.length > 0 && (
-        <div className={styles.rodape}>
-          <button
-            className={`${styles.filtroRodape} ${filtroQuitadas !== "todas" ? styles.filtroRodapeAtivo : ""}`}
-            aria-label={
-              filtroQuitadas === "todas"
-                ? "Mostrando todas — toque para esconder as quitadas"
-                : filtroQuitadas === "ocultar"
-                  ? "Quitadas escondidas — toque para ver só as quitadas"
-                  : "A mostrar só as quitadas — toque para ver todas"
-            }
-            title={
-              filtroQuitadas === "todas"
-                ? "Esconder as quitadas"
-                : filtroQuitadas === "ocultar"
-                  ? "Mostrar só as quitadas"
-                  : "Mostrar todas"
-            }
-            onClick={() =>
-              setFiltroQuitadas(
-                filtroQuitadas === "todas"
-                  ? "ocultar"
-                  : filtroQuitadas === "ocultar"
-                    ? "apenas"
-                    : "todas",
-              )
-            }
-          >
-            {filtroQuitadas === "todas" ? (
-              <Eye size={18} />
-            ) : filtroQuitadas === "ocultar" ? (
-              <EyeOff size={18} />
-            ) : (
-              <History size={18} />
-            )}
-          </button>
-        </div>
-      )}
 
       <FormParcela
         aberta={folhaAberta}
