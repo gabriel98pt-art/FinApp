@@ -88,12 +88,14 @@ function LinhaParcela({
           </span>
         </span>
 
-        <span
-          className={styles.barra}
-          role="progressbar"
-          aria-valuenow={pagas}
-          aria-valuemax={total}
-        >
+        {/* A barra era role="progressbar" com aria-valuenow/max, dentro de um
+            <button> — um widget aninhado noutro widget, que os leitores de ecrã
+            expõem mal, e ainda por cima sem nome acessível ("barra de
+            progresso, 3" não diz de quê). O número já está ali ao lado, em
+            texto, no `.progresso` ("3/10"): a barra é o eco visual dele. Sendo
+            eco, o lugar dela é fora da árvore de acessibilidade — assim a linha
+            é anunciada uma vez só, e bem. */}
+        <span className={styles.barra} aria-hidden>
           <span className={styles.preenchido} style={{ width: `${(pagas / total) * 100}%` }} />
         </span>
 
@@ -491,7 +493,7 @@ export default function Parcelas() {
       {quitadas.length > 0 && (
         <div className={styles.rodape}>
           <button className={styles.botaoQuitadas} onClick={() => setQuitadasAbertas(true)}>
-            <History size={16} />
+            <History size={16} aria-hidden />
             Quitadas ({quitadas.length})
           </button>
         </div>
