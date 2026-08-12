@@ -23,7 +23,11 @@ export default function Paginador({
       >
         <ChevronLeft size={16} aria-hidden />
       </button>
-      <span>
+      {/* A lista inteira troca de conteúdo ao mudar de página, mas o foco fica
+          na seta — sem região viva, nada é anunciado e a pessoa não sabe se o
+          toque pegou. Anunciar o contador (curto) em vez da lista (15 linhas)
+          dá a confirmação sem despejar tudo outra vez. */}
+      <span aria-live="polite">
         {pagina} / {paginas}
       </span>
       <button

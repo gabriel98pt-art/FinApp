@@ -97,7 +97,12 @@ export default function ListaLancamentos({
       {erro && itens.length === 0 ? (
         <ErroSincronizacao />
       ) : !carregado ? (
-        <p className={styles.vazio}>Carregando…</p>
+        // role="status": sem isto, quem usa leitor de ecrã ficava sem saber
+        // que a lista estava a carregar nem que tinha acabado — a troca de
+        // "Carregando…" pelas linhas acontecia em silêncio.
+        <p className={styles.vazio} role="status">
+          Carregando…
+        </p>
       ) : itens.length === 0 ? (
         <EstadoVazio Icone={vazioIcone} mensagem={vazio} sub={vazioSub} />
       ) : (
