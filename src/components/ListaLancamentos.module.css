@@ -84,6 +84,16 @@
   color: var(--mut);
 }
 
+/* A conta do líquido, quando a despesa tem reembolso. Mesmo tamanho do
+   detalhe, mas no verde do dinheiro que volta — é a informação que muda o
+   sentido da linha (paguei 100, mas fiquei com 25), e no cinzento do detalhe
+   passava despercebida ao lado do valor cheio. */
+.sub {
+  font-size: 0.75rem;
+  color: var(--grn);
+  font-variant-numeric: tabular-nums;
+}
+
 .valor {
   font-size: 0.92rem;
   font-weight: 700;

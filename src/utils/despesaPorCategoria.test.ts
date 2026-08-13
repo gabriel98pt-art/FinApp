@@ -223,3 +223,169 @@ describe("maiorCategoriaRelevante — o que o card de Despesas mostra", () => {
     expect(maiorCategoriaRelevante(fatias)?.valor).toBe(30000);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Reembolso: uma despesa negativa na mesma categoria, que a reduz.
+// ---------------------------------------------------------------------------
+
+describe("categorias com reembolso", () => {
+  const jantar = corrente({
+    id: "d1",
+    descricao: "Restaurante",
+    valor: 10000,
+    categoria: "Restaurante",
+  });
+
+  const devolvido = (valor: number, extra: Partial<DespesaCorrente> = {}) =>
+    corrente({
+      id: "r1",
+      descricao: "Reembolso jantar",
+      valor: -valor,
+      categoria: "Restaurante",
+      origem: "reemb",
+      reembolsoDeId: "d1",
+      ...extra,
+    });
+
+  test("reembolso parcial: a categoria aparece com o valor LÍQUIDO", () => {
+    // 100,00 de jantar, 75,00 devolvidos → o donut mostra 25,00, que é o que
+    // esta pessoa gastou de facto. Sem netar, mostraria 100,00 e a fatia
+    // maior do mês seria uma despesa que ela não teve.
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(7500)],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(fatias).toEqual([{ categoria: "Restaurante", valor: 2500, pct: 100 }]);
+  });
+
+  test("reembolso total: a categoria SOME do donut", () => {
+    // Uma fatia de 0% não desenha nada mas ocupa uma cor e uma linha de
+    // legenda — lixo visual sobre uma despesa que deixou de existir.
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(10000)],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(fatias).toEqual([]);
+  });
+
+  test("devolveram mais do que se gastou: a categoria também some", () => {
+    // Estorno com juros, ou lançamento errado. Uma fatia negativa desenharia
+    // o gradiente ao contrário e o total do donut deixava de bater com a soma
+    // das fatias visíveis.
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(12000)],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(fatias).toEqual([]);
+  });
+
+  test("uma categoria zerada não estraga as percentagens das outras", () => {
+    // O que importa é o total do donut passar a ser só o das fatias visíveis:
+    // com a categoria zerada a contar para o total, as outras encolhiam e a
+    // soma das percentagens não fechava em 100.
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(10000), corrente({ id: "d2", valor: 5000, categoria: "Alimentação" })],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(fatias).toEqual([{ categoria: "Alimentação", valor: 5000, pct: 100 }]);
+  });
+
+  test("reembolso solto (sem vínculo) reduz a categoria à mesma", () => {
+    // O vínculo serve para a linha da despesa mostrar o líquido; a redução da
+    // categoria não depende dele.
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(4000, { reembolsoDeId: undefined })],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(fatias).toEqual([{ categoria: "Restaurante", valor: 6000, pct: 100 }]);
+  });
+
+  test("reembolso noutra categoria não mexe na categoria do jantar", () => {
+    const fatias = despesaPorCategoriaMes(
+      [jantar, devolvido(4000, { categoria: "Alimentação", reembolsoDeId: undefined })],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    // "Alimentação" ficaria a -40,00 e sai; "Restaurante" fica intacta.
+    expect(fatias).toEqual([{ categoria: "Restaurante", valor: 10000, pct: 100 }]);
+  });
+});
+
+describe("maiorCategoriaRelevante com reembolso", () => {
+  test("não escolhe uma categoria que o reembolso zerou", () => {
+    // Ela já nem chega aqui — sai no filtro do donut. O teste existe porque
+    // esta função lê `fatias[0]` sem verificar nada, e é o card "Maior
+    // categoria" de Despesas que a consome.
+    const fatias = despesaPorCategoriaMes(
+      [
+        corrente({ id: "d1", valor: 10000, categoria: "Restaurante" }),
+        corrente({
+          id: "r1",
+          valor: -10000,
+          categoria: "Restaurante",
+          origem: "reemb",
+          reembolsoDeId: "d1",
+        }),
+        corrente({ id: "d2", valor: 3000, categoria: "Alimentação" }),
+      ],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(maiorCategoriaRelevante(fatias)?.categoria).toBe("Alimentação");
+  });
+
+  test("com tudo reembolsado, não há maior categoria nenhuma", () => {
+    const fatias = despesaPorCategoriaMes(
+      [
+        corrente({ id: "d1", valor: 10000, categoria: "Restaurante" }),
+        corrente({
+          id: "r1",
+          valor: -10000,
+          categoria: "Restaurante",
+          origem: "reemb",
+          reembolsoDeId: "d1",
+        }),
+      ],
+      [],
+      [],
+      SEM_VEICULO,
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(maiorCategoriaRelevante(fatias)).toBeNull();
+  });
+});

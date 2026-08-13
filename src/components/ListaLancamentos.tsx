@@ -22,6 +22,11 @@ export interface ItemLista {
   etiqueta: string;
   /** Nome puro da categoria/fonte, só para a bolha colorida — sem a nota. */
   categoria?: string;
+  /** Terceira linha, abaixo da etiqueta — hoje só a conta do líquido quando a
+   *  despesa tem reembolso ("100,00 − 75,00 reembolsado = 25,00 líquido").
+   *  Mesmo papel do "X de Y em Z" da linha de Parcelas: o número que interessa
+   *  a seguir, sem obrigar a abrir a despesa para o calcular de cabeça. */
+  sub?: string;
 }
 
 function dataCurta(data: IsoDate): string {
@@ -108,26 +113,34 @@ export default function ListaLancamentos({
       ) : (
         <>
           <ul className={styles.lista}>
-            {visiveis.map((item) => (
-              <li key={item.id}>
-                <button className={styles.linha} onClick={() => aoEditar(item.id)}>
-                  {item.categoria !== undefined && (
-                    <CategoriaBolha categoria={item.categoria} tamanho={30} />
-                  )}
-                  <span className={styles.principal}>
-                    <span className={styles.descricao}>{item.descricao}</span>
-                    <span className={styles.detalhe}>
-                      {item.etiqueta} · {dataCurta(item.data)}
+            {visiveis.map((item) => {
+              // O sinal e a cor são POR ITEM, não pelo `tom` da lista inteira.
+              // Um reembolso é uma despesa de valor negativo e vive na lista de
+              // despesas, que é `tom="vermelho"`: pela regra antiga saía
+              // "− €-75,00", com o sinal duas vezes. Valor negativo numa lista
+              // de despesas é dinheiro que VOLTOU, portanto verde e com "+", e
+              // o módulo no formatMoney para o menos não aparecer outra vez.
+              const entrada = item.valor < 0 ? true : tom === "verde";
+              return (
+                <li key={item.id}>
+                  <button className={styles.linha} onClick={() => aoEditar(item.id)}>
+                    {item.categoria !== undefined && (
+                      <CategoriaBolha categoria={item.categoria} tamanho={30} />
+                    )}
+                    <span className={styles.principal}>
+                      <span className={styles.descricao}>{item.descricao}</span>
+                      <span className={styles.detalhe}>
+                        {item.etiqueta} · {dataCurta(item.data)}
+                      </span>
+                      {item.sub !== undefined && <span className={styles.sub}>{item.sub}</span>}
                     </span>
-                  </span>
-                  <span
-                    className={`${styles.valor} ${tom === "verde" ? styles.verde : styles.vermelho}`}
-                  >
-                    {tom === "verde" ? "+" : "−"} {formatMoney(item.valor, moeda)}
-                  </span>
-                </button>
-              </li>
-            ))}
+                    <span className={`${styles.valor} ${entrada ? styles.verde : styles.vermelho}`}>
+                      {entrada ? "+" : "−"} {formatMoney(Math.abs(item.valor), moeda)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
 
           <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />

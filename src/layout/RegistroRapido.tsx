@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Check, Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
@@ -26,7 +26,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
-import { hojeIso, mesAtual, mesDe } from "../utils/calculos";
+import { despesasNosTotais, hojeIso, mesAtual, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
 import { formatMoney } from "../utils/money";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
@@ -108,10 +108,46 @@ export default function RegistroRapido() {
   // Débito automático: sugerido pelo tipo do cartão, mas o usuário decide.
   // `null` = ainda não mexeu, então continua a seguir a sugestão.
   const [autoDebitEscolhido, setAutoDebitEscolhido] = useState<boolean | null>(null);
+  /** "Isto é dinheiro que voltou" — o jantar em grupo que os amigos devolvem.
+   *  Grava uma despesa de valor NEGATIVO na mesma categoria (ver
+   *  utils/reembolsos.ts). O campo de valor continua a pedir um número
+   *  positivo: obrigar a escrever "-75" é pedir à pessoa que saiba a convenção
+   *  interna do app. A negação acontece no submit. */
+  const [reembolso, setReembolso] = useState(false);
+  /** Despesa que este reembolso reduz. Opcional — ver `reembolsoDeId`. */
+  const [reembolsoDe, setReembolsoDe] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
   const ehVeiculo = tipo === "carga" || tipo === "despesaVeiculo";
+
+  /** Despesas que podem ter gerado este reembolso: as dos 30 dias ANTERIORES à
+   *  data do reembolso, com as da categoria já escolhida à frente.
+   *
+   *  A janela conta a partir da data do formulário e não de hoje, por duas
+   *  razões. A boa: quem regista hoje um estorno datado do mês passado quer ver
+   *  as compras daquela altura, não as desta semana. A outra: ler o relógio
+   *  aqui dentro é impuro — o resultado mudava sem nenhuma dependência mudar, e
+   *  o próprio ESLint apanha.
+   *
+   *  Trinta dias porque um estorno que demora mais do que isso já não se liga
+   *  de cabeça a uma compra, e a lista com o histórico todo era impossível de
+   *  percorrer numa folha. Fora ficam os próprios reembolsos (um reembolso não
+   *  reembolsa outro) e o que não é despesa real (pagamento de fatura, espelho
+   *  de parcela). */
+  const candidatasReembolso = useMemo(() => {
+    if (!reembolso) return [];
+    const fim = new Date(`${data}T00:00:00Z`);
+    const limite = new Date(fim.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    return despesasNosTotais(despesas)
+      .filter((d) => d.origem !== "reemb" && d.valor > 0 && d.data >= limite && d.data <= data)
+      .sort((a, b) => {
+        // A categoria escolhida primeiro; dentro de cada grupo, a mais recente.
+        const ca = a.categoria === etiqueta ? 0 : 1;
+        const cb = b.categoria === etiqueta ? 0 : 1;
+        return ca !== cb ? ca - cb : a.data < b.data ? 1 : -1;
+      });
+  }, [reembolso, despesas, etiqueta, data]);
 
   /** Lado escolhido à mão numa edição, quando difere do que o lançamento é
    *  hoje. Fica à parte do `tipo` do store porque é esse `tipo` que diz em que
@@ -148,7 +184,12 @@ export default function RegistroRapido() {
       if (editando) {
         setDescricao(editando.descricao);
         setNota(editando.nota ?? "");
-        setValorTexto(editando.valor);
+        // Um reembolso está guardado negativo; o campo mostra-o positivo, como
+        // o pediu ao ser criado.
+        const ehReemb = editando.origem === "reemb";
+        setValorTexto(ehReemb ? Math.abs(editando.valor) : editando.valor);
+        setReembolso(ehReemb);
+        setReembolsoDe(("reembolsoDeId" in editando && editando.reembolsoDeId) || "");
         setData(editando.data);
         setEtiqueta("fonte" in editando ? editando.fonte : editando.categoria);
         setConta(("fonte" in editando ? editando.conta : editando.contaCartao) ?? "");
@@ -167,6 +208,8 @@ export default function RegistroRapido() {
         setFolhaParcelamento(false);
         setModoValorParcela("total");
         setAutoDebitEscolhido(null);
+        setReembolso(false);
+        setReembolsoDe("");
       }
     } else if (assinatura === "novo") {
       // Trocou de tipo num lançamento novo: a fonte/categoria não se traduz
@@ -177,6 +220,9 @@ export default function RegistroRapido() {
       setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
+      // Sair de Despesa apaga a escolha de reembolso: ela só existe deste lado.
+      setReembolso(false);
+      setReembolsoDe("");
     }
   }
 
@@ -337,13 +383,28 @@ export default function RegistroRapido() {
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
         else await criarReceita(uid, dados);
       } else {
+        // A negação acontece AQUI, não no campo: quem usa escreve os 75 € que
+        // voltaram, e o app trata de os guardar como -75 na mesma categoria —
+        // que é o que faz o Restaurante mostrar 25 em vez de 100.
+        //
+        // A `origem` tem três casos, e não dois. `atualizar` grava com `set` e
+        // limpa os `undefined`, portanto pôr `origem: undefined` aqui APAGA a
+        // que estiver guardada: escrevê-lo sempre que não é reembolso fazia um
+        // ajuste de reconciliação perder o 'recon' só por ser editado, e com
+        // ele a exclusão dos totais. Só se mexe na origem quando ela é mesmo
+        // deste formulário — virou reembolso, ou deixou de o ser.
+        const eraReembolso = editando?.origem === "reemb";
+        const origem = reembolso ? ("reemb" as const) : eraReembolso ? undefined : editando?.origem;
+
         const dados = {
           descricao,
-          valor,
+          valor: reembolso ? -valor : valor,
           data,
           categoria: etiquetaFinal,
           contaCartao: conta || undefined,
           nota: notaFinal,
+          origem,
+          reembolsoDeId: reembolso ? reembolsoDe || undefined : undefined,
         };
         if (editando) await atualizarDespesa(uid, { ...editando, ...dados });
         else await criarDespesa(uid, dados);
@@ -546,6 +607,52 @@ export default function RegistroRapido() {
           )}
         </div>
 
+        {/* Despesa ou dinheiro que voltou. Só do lado da despesa e fora do
+            veículo: uma receita já é dinheiro a entrar, e o veículo tem os
+            seus próprios fluxos. Mesmo desenho do alternador Mês/Semana das
+            listas — é o segmentado que este app já usa para "duas vistas da
+            mesma coisa", e um reembolso é isso: a mesma despesa, ao contrário. */}
+        {lado === "despesa" && !ehVeiculo && (
+          <div className={styles.alternadorTipoDespesa} role="radiogroup" aria-label="Natureza">
+            {/* "Gasto" e não "Despesa": o radiogroup de cima já tem uma opção
+                chamada "Despesa", e dois controles com o mesmo nome no mesmo
+                formulário deixam quem usa leitor de ecrã sem saber em qual
+                está. */}
+            {(
+              [
+                [false, "Gasto"],
+                [true, "Reembolso"],
+              ] as const
+            ).map(([valor, rotulo]) => (
+              <button
+                key={rotulo}
+                type="button"
+                role="radio"
+                aria-checked={reembolso === valor}
+                className={`${styles.opcaoTipoDespesa} ${
+                  reembolso === valor ? styles.opcaoTipoDespesaAtiva : ""
+                }`}
+                onClick={() => {
+                  setReembolso(valor);
+                  if (valor) {
+                    // Um reembolso não se parcela, e não herda o cartão que
+                    // pagou a conta original: o dinheiro costuma voltar para a
+                    // conta ou em numerário. Quem receber o estorno pelo
+                    // próprio cartão escolhe-o à mão.
+                    setParcelada(false);
+                    setFolhaParcelamento(false);
+                    setConta("");
+                  } else {
+                    setReembolsoDe("");
+                  }
+                }}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        )}
+
         <SeletorData valor={data} aoMudar={setData} />
 
         {lado !== "carga" && (
@@ -580,6 +687,25 @@ export default function RegistroRapido() {
           </p>
         )}
 
+        {/* Reembolso de qual despesa — opcional. Só faz sentido depois de a
+            categoria estar escolhida: é ela que decide o que se sugere. */}
+        {reembolso && lado === "despesa" && (
+          <Seletor
+            rotulo="Reembolso de qual despesa? (opcional)"
+            valor={reembolsoDe}
+            opcoes={candidatasReembolso.map((d) => d.id)}
+            aoMudar={setReembolsoDe}
+            rotuloOpcao={(id) => {
+              const d = candidatasReembolso.find((x) => x.id === id);
+              if (!d) return id;
+              return `${d.descricao} · ${formatMoney(d.valor, cfg.currency)} · ${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`;
+            }}
+            rotuloVazio="Sem despesa de origem"
+            aviso="Nenhuma despesa nos últimos 30 dias para associar."
+            nivel={1}
+          />
+        )}
+
         {cfg.contasCartoes.length > 0 && (
           <div className={styles.campo}>
             <span>Cartão</span>
@@ -601,8 +727,12 @@ export default function RegistroRapido() {
         )}
 
         {/* item 24: um toque transforma a despesa numa compra parcelada. Marcar
-            abre a folha do parcelamento; desmarcar volta à despesa simples. */}
-        {tipo === "despesa" && !editando && (
+            abre a folha do parcelamento; desmarcar volta à despesa simples.
+            Fora do reembolso: dinheiro que volta não se parcela, e deixar o
+            interruptor à mão não era só ruído — marcá-lo depois de escolher
+            Reembolso fazia o submit cair no ramo da parcela, que ignora a
+            `origem` e o sinal, e o reembolso desaparecia sem aviso. */}
+        {tipo === "despesa" && !editando && !reembolso && (
           <div className={styles.campo}>
             <button
               type="button"

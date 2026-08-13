@@ -33,6 +33,7 @@ import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from ".
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
+import { liquidoDaDespesa } from "../utils/reembolsos";
 import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
@@ -359,14 +360,25 @@ export default function Despesas() {
             <ListaLancamentos
               /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
               key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
-              itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => ({
-                id: d.id,
-                descricao: d.descricao,
-                valor: d.valor,
-                data: d.data,
-                etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
-                categoria: d.categoria,
-              }))}
+              itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => {
+                // A conta do líquido é feita contra o mês INTEIRO (`itens`) e
+                // não contra `doPeriodo`: na visão por semana, o reembolso
+                // costuma cair noutra semana que não a do jantar, e limitá-lo
+                // ao período mostrava a despesa como se ninguém a tivesse
+                // devolvido.
+                const liq = liquidoDaDespesa(d, itens);
+                return {
+                  id: d.id,
+                  descricao: d.descricao,
+                  valor: d.valor,
+                  data: d.data,
+                  etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
+                  categoria: d.categoria,
+                  sub: liq.temReembolso
+                    ? `${formatMoney(liq.bruto, moeda)} − ${formatMoney(liq.reembolsado, moeda)} reembolsado = ${formatMoney(liq.liquido, moeda)} líquido`
+                    : undefined,
+                };
+              })}
               carregado={carregado}
               erro={erroDespesas}
               tom="vermelho"

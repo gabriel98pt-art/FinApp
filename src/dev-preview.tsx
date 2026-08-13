@@ -131,6 +131,28 @@ useDespesasStore.setState({
       categoria: "Lazer",
       contaCartao: CONTA,
     },
+    // O caso do reembolso: paga-se o jantar de grupo inteiro e os amigos
+    // devolvem a parte deles. O reembolso é uma despesa NEGATIVA na mesma
+    // categoria — a lista mostra-o a verde com "+", a linha do jantar mostra o
+    // líquido, e o donut conta 25,00 em vez de 100,00.
+    {
+      id: "d3",
+      descricao: "Jantar de equipa",
+      valor: 10000,
+      data: "2026-07-14",
+      categoria: "Restaurante",
+      contaCartao: CARTAO,
+    },
+    {
+      id: "d4",
+      descricao: "Reembolso do jantar",
+      valor: -7500,
+      data: "2026-07-16",
+      categoria: "Restaurante",
+      contaCartao: CONTA,
+      origem: "reemb",
+      reembolsoDeId: "d3",
+    },
   ],
 });
 

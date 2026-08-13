@@ -200,3 +200,74 @@ describe("teclado das abas", () => {
     expect(painel).toHaveAttribute("aria-labelledby", aba.id);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Reembolso: a despesa negativa que reduz a categoria.
+// ---------------------------------------------------------------------------
+
+const gasto = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente =>
+  ({
+    id: "d1",
+    descricao: "Jantar de equipa",
+    valor: 10000,
+    data: "2026-08-03",
+    categoria: "Restaurante",
+    ...extra,
+  }) as DespesaCorrente;
+
+const devolvido = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente =>
+  gasto({
+    id: "r1",
+    descricao: "Reembolso jantar",
+    valor: -7500,
+    data: "2026-08-05",
+    origem: "reemb",
+    reembolsoDeId: "d1",
+    ...extra,
+  });
+
+describe("Despesas com reembolso", () => {
+  test("o reembolso aparece com + e em valor absoluto, não '− -75,00'", async () => {
+    // A lista de despesas é tom="vermelho" e punha "−" em tudo. Com o valor já
+    // negativo, saía o sinal duas vezes e o número ficava ilegível.
+    despesas = lista([gasto(), devolvido()]);
+    render(<Despesas />);
+
+    const linha = screen.getByText("Reembolso jantar").closest("button")!;
+    expect(linha.textContent).toContain("+");
+    expect(linha.textContent).not.toContain("-75");
+    expect(linha.textContent).not.toContain("−75");
+  });
+
+  test("a despesa comum continua com − e a vermelho", () => {
+    despesas = lista([gasto()]);
+    render(<Despesas />);
+
+    const linha = screen.getByText("Jantar de equipa").closest("button")!;
+    expect(linha.textContent).toContain("−");
+  });
+
+  test("a linha da despesa original mostra a conta do líquido", async () => {
+    despesas = lista([gasto(), devolvido()]);
+    render(<Despesas />);
+
+    // "100,00 − 75,00 reembolsado = 25,00 líquido"
+    expect(screen.getByText(/reembolsado/)).toBeInTheDocument();
+    expect(screen.getByText(/líquido/)).toBeInTheDocument();
+  });
+
+  test("despesa sem reembolso não ganha linha nenhuma a mais", () => {
+    despesas = lista([gasto()]);
+    render(<Despesas />);
+    expect(screen.queryByText(/reembolsado/)).not.toBeInTheDocument();
+  });
+
+  test("o total do mês já vem líquido", () => {
+    // 100,00 − 75,00 = 25,00. Sem netar, o rodapé contradizia o donut.
+    despesas = lista([gasto(), devolvido()]);
+    render(<Despesas />);
+
+    const rodape = screen.getByText("Total agosto 2026").closest("div")!;
+    expect(rodape.textContent).toContain("25,00");
+  });
+});

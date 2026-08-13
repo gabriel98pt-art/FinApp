@@ -57,6 +57,14 @@ export function despesaPorCategoriaMes(
   somar("Veículo", totalVeiculoMes(veiculo, ym, mesReal));
 
   const fatias = [...porCategoria.entries()]
+    // Fora as que não sobraram. O `somar` acima já ignorava uma entrada de
+    // valor zero, mas não o TOTAL da categoria acabar em zero ou abaixo, que é
+    // o que acontece quando um reembolso cobre a despesa toda (jantar em grupo
+    // devolvido por inteiro) ou a ultrapassa (estorno com juros). Uma fatia de
+    // 0% não desenha nada e uma negativa desenha ao contrário: em ambos os
+    // casos entra lixo na legenda e o total do donut deixa de bater com a
+    // soma das fatias visíveis.
+    .filter(([, valor]) => valor > 0)
     .map(([categoria, valor]) => ({ categoria, valor, pct: 0 }))
     .sort((a, b) => b.valor - a.valor);
 

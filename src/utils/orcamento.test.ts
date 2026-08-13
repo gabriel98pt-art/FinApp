@@ -137,3 +137,91 @@ describe("statusOrcamentoMes — seção 4.8", () => {
     expect(status.map((s) => s.categoria)).toEqual(["Saúde", "Alimentação"]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Reembolso: o gasto da categoria já vem líquido, porque o lançamento é
+// negativo e este ficheiro soma tudo. O que se confirma aqui é que a redução
+// não produz um alerta errado nem uma percentagem absurda.
+// ---------------------------------------------------------------------------
+
+describe("orçamento com reembolso", () => {
+  const despesa = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente => ({
+    id: "d1",
+    descricao: "Restaurante",
+    valor: 10000,
+    data: "2026-07-10",
+    categoria: "Restaurante",
+    ...extra,
+  });
+
+  const jantar = despesa();
+  const devolvido = (valor: number) =>
+    despesa({
+      id: "r1",
+      valor: -valor,
+      origem: "reemb",
+      reembolsoDeId: "d1",
+    });
+
+  test("o teto é medido contra o gasto LÍQUIDO", () => {
+    // 100,00 gastos com teto de 50,00 estariam estourados; devolvidos 75,00,
+    // ficam 25,00 — dentro do teto. Alertar aqui seria alertar sobre dinheiro
+    // que a pessoa não gastou.
+    const [r] = statusOrcamentoMes(
+      [jantar, devolvido(7500)],
+      [],
+      { Restaurante: 5000 },
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(r.gasto).toBe(2500);
+    expect(r.pct).toBe(50);
+    expect(r.estourado).toBe(false);
+  });
+
+  test("reembolso total: gasto zero, e nada de estouro", () => {
+    const [r] = statusOrcamentoMes(
+      [jantar, devolvido(10000)],
+      [],
+      { Restaurante: 5000 },
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(r.gasto).toBe(0);
+    expect(r.pct).toBe(0);
+    expect(r.estourado).toBe(false);
+  });
+
+  test("devolveram mais do que se gastou: percentagem negativa, mas nunca estourado", () => {
+    // Caso raro (estorno com juros). O que não pode acontecer é isto contar
+    // como estouro — e, ordenado por percentagem, fica no fim da lista, que é
+    // onde uma categoria sem problema nenhum deve estar.
+    const [r] = statusOrcamentoMes(
+      [jantar, devolvido(12000)],
+      [],
+      { Restaurante: 5000 },
+      "2026-07",
+      "2026-07",
+    );
+
+    expect(r.gasto).toBe(-2000);
+    expect(r.estourado).toBe(false);
+    expect(r.pct).toBeLessThan(0);
+  });
+
+  test("a categoria reembolsada cai para o fim da ordenação", () => {
+    const status = statusOrcamentoMes(
+      [jantar, devolvido(10000), despesa({ id: "d2", valor: 9000, categoria: "Alimentação" })],
+      [],
+      { Restaurante: 5000, Alimentação: 10000 },
+      "2026-07",
+      "2026-07",
+    );
+
+    // A que está perto do limite vem primeiro; a zerada por reembolso, no fim.
+    expect(status[0].categoria).toBe("Alimentação");
+    expect(status[status.length - 1].categoria).toBe("Restaurante");
+  });
+});

@@ -4,8 +4,19 @@ import type { Cents, Id, IsoDate, YearMonth } from "./common";
  *  - 'parc': gerado por uma parcela mensal (seção 4.3)
  *  - 'fat':  registro de pagamento de fatura (excluído do cálculo da própria
  *            fatura para evitar contagem circular, seção 4.1)
- *  - 'recon': criado pela reconciliação da importação bancária */
-export type OrigemLancamento = "parc" | "fat" | "recon";
+ *  - 'recon': criado pela reconciliação da importação bancária
+ *  - 'reemb': dinheiro devolvido sobre uma despesa já lançada (o jantar em
+ *             grupo que os amigos pagam de volta). Guardado como despesa de
+ *             valor NEGATIVO na MESMA categoria da original, e não como
+ *             receita: dinheiro que volta para quem o adiantou não é receita
+ *             nova, e pô-lo do outro lado inflava as Receitas com o que já era
+ *             dele. Na categoria, o negativo neta sozinho — o Restaurante
+ *             mostra os 25 € que ficaram, não 100 nem dois números soltos.
+ *             (Mesmo padrão do YNAB para estornos e divisão de contas.)
+ *
+ *             Ao contrário dos outros três, 'reemb' NÃO é excluído dos totais
+ *             (`despesasNosTotais`): ele existe justamente para os reduzir. */
+export type OrigemLancamento = "parc" | "fat" | "recon" | "reemb";
 
 interface LancamentoBase {
   id: Id;
@@ -70,6 +81,16 @@ export interface DespesaCorrente extends LancamentoBase {
   /** Num pagamento de fatura (origem 'fat'): qual cartão/mês ele quita. */
   fatCartao?: string;
   fatMes?: YearMonth;
+  /** Num reembolso (origem 'reemb'): a despesa que este valor reduz.
+   *
+   *  OPCIONAL de propósito, ao contrário do `parcelaId`: às vezes o reembolso
+   *  é uma correção solta — um estorno que chega semanas depois, de uma compra
+   *  que já ninguém identifica. Obrigar a escolher uma origem faria a pessoa
+   *  inventar uma, e um vínculo inventado é pior do que vínculo nenhum: ele
+   *  aparece na linha da despesa errada a dizer que ela foi reembolsada.
+   *
+   *  Quando existe, a linha da despesa original passa a mostrar o líquido. */
+  reembolsoDeId?: Id;
 }
 
 /** Transferência entre contas (antigo `trf`). Saídas contra cartão de crédito

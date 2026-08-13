@@ -279,3 +279,35 @@
   padding-inline: 6px;
   white-space: nowrap;
 }
+
+/* Despesa / Reembolso. Mesmo desenho do alternador Mês/Semana das listas
+   (.alternadorVisao / .visaoBotao em Despesas.module.css): é o segmentado que
+   este app já usa para "duas vistas da mesma coisa", e um reembolso é isso —
+   a mesma despesa, ao contrário. Copiado e não importado porque são módulos
+   CSS diferentes; os valores vêm todos de tokens, portanto acompanham. */
+.alternadorTipoDespesa {
+  display: flex;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.opcaoTipoDespesa {
+  flex: 1;
+  padding: 7px 14px;
+  border-radius: var(--r-xs);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+}
+
+.opcaoTipoDespesa:hover {
+  color: var(--txt);
+}
+
+.opcaoTipoDespesaAtiva {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
+}
