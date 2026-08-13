@@ -70,7 +70,16 @@ export function useFocoModal({
     anterior.current = document.activeElement as HTMLElement | null;
     // Num frame à parte: no mesmo tick a folha ainda tem `pointer-events:none`
     // e o browser recusa o foco.
-    const frame = requestAnimationFrame(() => folha?.focus());
+    //
+    // Mas um frame é tempo, e nesse tempo o foco pode JÁ ter entrado na folha —
+    // num campo, num botão. Aí não há nada a fazer: o objetivo ("o foco entra
+    // na folha ao abrir") está cumprido, e chamar `folha.focus()` na mesma
+    // roubava-o de volta para o contentor. Quem estivesse a escrever perdia o
+    // cursor e as teclas seguintes caíam no vazio.
+    const frame = requestAnimationFrame(() => {
+      if (!folha || folha.contains(document.activeElement)) return;
+      folha.focus();
+    });
 
     const aoTeclar = (e: KeyboardEvent) => {
       // Só a folha do topo reage: com o seletor aberto dentro do formulário,
