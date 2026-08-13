@@ -157,8 +157,12 @@ export function notificacoesDeOrcamento(
   parcelas: Parcela[],
   orcamentos: Record<string, Cents>,
   mes: YearMonth,
+  /** Dia de hoje — as outras três fontes já o recebiam. É ele que impede o
+   *  sino de anunciar um teto estourado por uma parcela em débito automático
+   *  que ainda não venceu. */
+  hoje?: IsoDate,
 ): Notificacao[] {
-  return statusOrcamentoMes(despesasCorrentes, parcelas, orcamentos, mes, mes)
+  return statusOrcamentoMes(despesasCorrentes, parcelas, orcamentos, mes, mes, hoje)
     .filter((s) => s.estourado)
     .map((s) => ({
       id: `orcamento-${s.categoria}`,
@@ -191,6 +195,7 @@ export function todasNotificacoes(
     parcelas,
     cfg.orcamentos,
     mes,
+    hoje,
   ).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
   return [...vencidas, ...estouradas];
 }

@@ -1,6 +1,6 @@
 // Orçamento vs. realizado por categoria (seção 4.8) — função pura.
 
-import type { Cents, DespesaCorrente, Parcela, YearMonth } from "../types";
+import type { Cents, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { despesasNosTotais, doMes } from "./calculos";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 
@@ -30,6 +30,16 @@ export function statusOrcamentoMes(
   orcamentos: Record<string, Cents>,
   ym: YearMonth,
   mesReal: YearMonth,
+  /** Dia de hoje — dá precisão de DIA ao mês corrente, igual ao que
+   *  `despesaRealizadaMes` e `transacoesDoMes` já faziam. Sem ele, uma parcela
+   *  em débito automático que vence dia 20 já contava para o teto no dia 5, e
+   *  a categoria aparecia estourada por dinheiro que ainda não tinha saído —
+   *  enquanto o extrato de Transações, esse, só a mostrava depois do dia 20.
+   *  Era essa a diferença entre os dois ecrãs.
+   *
+   *  Opcional para não partir quem chama sem ele: sem `hoje`, mês inteiro de
+   *  uma vez, como sempre foi. */
+  hoje?: IsoDate,
 ): StatusOrcamento[] {
   const doMesReal = despesasNosTotais(doMes(despesasCorrentes, ym));
   const gastoPorCategoria = new Map<string, Cents>();
@@ -37,7 +47,7 @@ export function statusOrcamentoMes(
     gastoPorCategoria.set(d.categoria, (gastoPorCategoria.get(d.categoria) ?? 0) + d.valor);
   }
   for (const p of parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal)) continue;
+    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal, hoje)) continue;
     const cat = p.categoria ?? "Parcelas";
     gastoPorCategoria.set(cat, (gastoPorCategoria.get(cat) ?? 0) + valorDaParcela(p, ym));
   }

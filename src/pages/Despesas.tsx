@@ -117,7 +117,7 @@ export default function Despesas() {
   // Card "Maior categoria": a maior fatia do mês fora veículo e aluguel — as
   // duas lideram quase sempre e não dizem nada de novo (ver o util).
   const maiorCategoria = maiorCategoriaRelevante(
-    despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal),
+    despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal, hojeIso()),
   );
   // Teto da maior categoria (seção 4.8), se houver um configurado — mesma
   // base de cálculo do orçamento (correntes + parcelas, sem fixas/veículo:
@@ -125,7 +125,7 @@ export default function Despesas() {
   // nunca a % — o valor já mostrado no cartão é o total mais amplo do resumo
   // por categoria, os dois números não são a mesma coisa.
   const statusMaiorCategoria = maiorCategoria
-    ? statusOrcamentoMes(itens, parcelas, cfg.orcamentos, mes, mesReal).find(
+    ? statusOrcamentoMes(itens, parcelas, cfg.orcamentos, mes, mesReal, hojeIso()).find(
         (s) => s.categoria === maiorCategoria.categoria,
       )
     : undefined;

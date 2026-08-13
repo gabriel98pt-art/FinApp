@@ -8,6 +8,7 @@ import type {
   DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
+  IsoDate,
   Parcela,
   YearMonth,
 } from "../types";
@@ -34,6 +35,11 @@ export function despesaPorCategoriaMes(
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
+  /** Dia de hoje — mesma precisão de DIA do resto do app (ver a nota igual em
+   *  `statusOrcamentoMes`). Sem ele o donut inflava a categoria de uma parcela
+   *  em débito automático desde o dia 1 do mês, antes de o dinheiro sair.
+   *  Opcional: sem `hoje`, mês inteiro de uma vez, como sempre foi. */
+  hoje?: IsoDate,
 ): FatiaCategoria[] {
   const porCategoria = new Map<string, Cents>();
   const somar = (categoria: string, valor: Cents) => {
@@ -51,10 +57,14 @@ export function despesaPorCategoriaMes(
   // `despesasNosTotais` já tirou), com a mesma regra mês corrente/mês fechado
   // — e em débito automático conta mesmo sem marcação (estaEfetivamentePaga).
   for (const p of parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal)) continue;
+    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal, hoje)) continue;
     somar(p.categoria ?? "Parcelas", valorDaParcela(p, ym));
   }
-  somar("Veículo", totalVeiculoMes(veiculo, ym, mesReal));
+  // O `hoje` vai também para o veículo: as fixas dele seguem a mesma regra de
+  // dia (`contribuicaoFixasVeiculoMes`), e `despesaRealizadaMes` já lho passava.
+  // Sem isto ficava metade da correção — a fatia "Veículo" continuava a inchar
+  // no dia 1 por uma fixa que só vence no fim do mês.
+  somar("Veículo", totalVeiculoMes(veiculo, ym, mesReal, hoje));
 
   const fatias = [...porCategoria.entries()]
     // Fora as que não sobraram. O `somar` acima já ignorava uma entrada de

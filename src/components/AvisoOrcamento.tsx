@@ -4,7 +4,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
-import { mesAtual } from "../utils/calculos";
+import { hojeIso, mesAtual } from "../utils/calculos";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import styles from "./AvisoOrcamento.module.css";
 
@@ -18,7 +18,7 @@ export default function AvisoOrcamento() {
   const parcelas = useParcelasStore((s) => s.itens);
   const mes = useMesVisivelStore((s) => s.mes);
 
-  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mesAtual());
+  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mesAtual(), hojeIso());
   const estouradas = status.filter((s) => s.estourado);
   const pertos = status.filter((s) => !s.estourado && s.pct >= LIMIAR_PERTO_ORCAMENTO);
   const total = estouradas.length + pertos.length;

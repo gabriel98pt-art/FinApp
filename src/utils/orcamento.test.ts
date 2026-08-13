@@ -225,3 +225,88 @@ describe("orçamento com reembolso", () => {
     expect(status[status.length - 1].categoria).toBe("Restaurante");
   });
 });
+
+// A precisão de DIA no mês corrente.
+//
+// Era aqui que o app se contradizia sobre dinheiro. Uma parcela em débito
+// automático conta como paga sem ninguém a marcar — a cobrança já entrou no
+// cartão. Mas "já entrou" tem um dia: a que vence dia 20 não entrou no dia 5.
+// `statusOrcamentoMes` não recebia `hoje` e por isso contava o mês inteiro
+// desde o dia 1, enquanto Transações (que recebia) só a mostrava depois do
+// dia 20. A pessoa via "Lazer estourou" e, ao filtrar o extrato por Lazer,
+// encontrava menos dinheiro do que o aviso dizia.
+describe("statusOrcamentoMes — precisão de dia no mês corrente", () => {
+  const MES = "2026-07";
+
+  const parcelaAuto = (extra: Partial<Parcela> = {}): Parcela => ({
+    id: "p1",
+    descricao: "Consola",
+    total: 30000,
+    numParcelas: 3,
+    primeiroMes: MES,
+    categoria: "Lazer",
+    cartao: "Visa",
+    autoDebit: true,
+    diaVencimento: 20,
+    pagoPorMes: {},
+    ...extra,
+  });
+
+  const gastoEm = (hoje?: string) =>
+    statusOrcamentoMes([], [parcelaAuto()], { Lazer: 5000 }, MES, MES, hoje)[0].gasto;
+
+  test("antes do vencimento não conta — o dinheiro ainda não saiu", () => {
+    expect(gastoEm("2026-07-05")).toBe(0);
+  });
+
+  test("no próprio dia do vencimento já conta", () => {
+    expect(gastoEm("2026-07-20")).toBe(10000);
+  });
+
+  test("depois do vencimento conta", () => {
+    expect(gastoEm("2026-07-25")).toBe(10000);
+  });
+
+  test("sem `hoje`, mantém o comportamento antigo: mês inteiro de uma vez", () => {
+    // Quem chama sem o argumento novo não pode ver nada mudar.
+    expect(gastoEm(undefined)).toBe(10000);
+  });
+
+  test("mês já fechado conta sem olhar o dia", () => {
+    // Junho visto em julho: não há dúvida de que junho passou por inteiro.
+    const p = parcelaAuto({ primeiroMes: "2026-06" });
+    const gasto = statusOrcamentoMes([], [p], { Lazer: 5000 }, "2026-06", MES, "2026-07-01")[0]
+      .gasto;
+    expect(gasto).toBe(10000);
+  });
+
+  test("marcada à mão conta mesmo antes do vencimento", () => {
+    const p = parcelaAuto({ pagoPorMes: { [MES]: true } });
+    const gasto = statusOrcamentoMes([], [p], { Lazer: 5000 }, MES, MES, "2026-07-05")[0].gasto;
+    expect(gasto).toBe(10000);
+  });
+
+  test("sem diaVencimento espera o fim do mês, não o dia 1", () => {
+    // Supor o dia 1 era o erro mais caro: dava a parcela por paga logo à
+    // abertura do mês. Sem dia declarado, o seguro é esperar.
+    const p = parcelaAuto({ diaVencimento: undefined });
+    const status = (hoje: string) =>
+      statusOrcamentoMes([], [p], { Lazer: 5000 }, MES, MES, hoje)[0].gasto;
+    expect(status("2026-07-15")).toBe(0);
+    expect(status("2026-07-31")).toBe(10000);
+  });
+
+  test("sem débito automático continua a depender da marcação", () => {
+    const p = parcelaAuto({ autoDebit: false });
+    expect(statusOrcamentoMes([], [p], { Lazer: 5000 }, MES, MES, "2026-07-25")[0].gasto).toBe(0);
+  });
+
+  test("é a diferença entre avisar e não avisar que estourou", () => {
+    // O relato do usuário, em números: teto de 50 €, parcela de 100 € que só
+    // vence dia 20. No dia 5 o teto NÃO está estourado.
+    const antes = statusOrcamentoMes([], [parcelaAuto()], { Lazer: 5000 }, MES, MES, "2026-07-05");
+    const depois = statusOrcamentoMes([], [parcelaAuto()], { Lazer: 5000 }, MES, MES, "2026-07-21");
+    expect(antes[0].estourado).toBe(false);
+    expect(depois[0].estourado).toBe(true);
+  });
+});

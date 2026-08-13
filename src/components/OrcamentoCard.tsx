@@ -11,7 +11,7 @@ import { useDespesasStore } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
-import { mesAtual } from "../utils/calculos";
+import { hojeIso, mesAtual } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { formatMoney } from "../utils/money";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
@@ -141,7 +141,7 @@ export default function OrcamentoCard() {
   const [formAberto, setFormAberto] = useState(false);
   const [editandoCategoria, setEditandoCategoria] = useState<string | null>(null);
 
-  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mesAtual());
+  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, mesAtual(), hojeIso());
   const comTeto = new Set(status.map((s) => s.categoria));
   const categoriasDisponiveis = cfg.categoriasDespesa.filter((c) => !comTeto.has(c));
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto

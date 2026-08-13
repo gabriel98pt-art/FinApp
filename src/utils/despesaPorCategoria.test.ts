@@ -389,3 +389,80 @@ describe("maiorCategoriaRelevante com reembolso", () => {
     expect(maiorCategoriaRelevante(fatias)).toBeNull();
   });
 });
+
+// A mesma precisão de DIA que `statusOrcamentoMes` ganhou — o donut sofria do
+// mesmo: a categoria de uma parcela em débito automático inchava desde o dia 1
+// do mês, antes de o dinheiro sair.
+describe("despesaPorCategoriaMes — precisão de dia no mês corrente", () => {
+  const MES = "2026-07";
+
+  const parcelaAuto = (extra: Partial<Parcela> = {}): Parcela => ({
+    id: "p1",
+    descricao: "Consola",
+    total: 30000,
+    numParcelas: 3,
+    primeiroMes: MES,
+    categoria: "Lazer",
+    cartao: "Visa",
+    autoDebit: true,
+    diaVencimento: 20,
+    pagoPorMes: {},
+    ...extra,
+  });
+
+  const lazerEm = (hoje?: string) =>
+    despesaPorCategoriaMes([], [], [parcelaAuto()], SEM_VEICULO, MES, MES, hoje).find(
+      (f) => f.categoria === "Lazer",
+    );
+
+  test("antes do vencimento a fatia nem existe", () => {
+    expect(lazerEm("2026-07-05")).toBeUndefined();
+  });
+
+  test("no dia do vencimento a fatia aparece", () => {
+    expect(lazerEm("2026-07-20")?.valor).toBe(10000);
+  });
+
+  test("depois do vencimento a fatia aparece", () => {
+    expect(lazerEm("2026-07-25")?.valor).toBe(10000);
+  });
+
+  test("sem `hoje`, mantém o comportamento antigo: mês inteiro de uma vez", () => {
+    expect(lazerEm(undefined)?.valor).toBe(10000);
+  });
+
+  test("mês já fechado conta sem olhar o dia", () => {
+    const p = parcelaAuto({ primeiroMes: "2026-06" });
+    const fatias = despesaPorCategoriaMes([], [], [p], SEM_VEICULO, "2026-06", MES, "2026-07-01");
+    expect(fatias.find((f) => f.categoria === "Lazer")?.valor).toBe(10000);
+  });
+
+  test("a fixa do veículo segue a mesma regra de dia", () => {
+    // Metade da correção seria só tratar as parcelas: a fatia "Veículo" vem de
+    // `totalVeiculoMes`, que também recebe `hoje` — e `despesaRealizadaMes` já
+    // lho passava. Sem isto, o donut continuava a discordar do KPI.
+    const veiculo: DadosVeiculo = {
+      cargas: [],
+      despesas: [],
+      despesasFixas: [
+        {
+          id: "fv1",
+          descricao: "Seguro",
+          valor: 8000,
+          diaVencimento: 20,
+          autoDebit: true,
+          contaCartao: "Visa",
+          pagoPorMes: {},
+        },
+      ],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+
+    const veiculoEm = (hoje: string) =>
+      despesaPorCategoriaMes([], [], [], veiculo, MES, MES, hoje).find(
+        (f) => f.categoria === "Veículo",
+      );
+    expect(veiculoEm("2026-07-05")).toBeUndefined();
+    expect(veiculoEm("2026-07-25")?.valor).toBe(8000);
+  });
+});

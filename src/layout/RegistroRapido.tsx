@@ -255,9 +255,14 @@ export default function RegistroRapido() {
   // "hoje"), pra um lançamento retroativo mostrar o teto do mês certo.
   const statusTeto =
     tipo === "despesa" && !ehParcelada && etiqueta && cfg.orcamentos[etiqueta]
-      ? statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mesDe(data), mesAtual()).find(
-          (s) => s.categoria === etiqueta,
-        )
+      ? statusOrcamentoMes(
+          despesas,
+          parcelas,
+          cfg.orcamentos,
+          mesDe(data),
+          mesAtual(),
+          hojeIso(),
+        ).find((s) => s.categoria === etiqueta)
       : undefined;
 
   async function salvar(e: FormEvent) {

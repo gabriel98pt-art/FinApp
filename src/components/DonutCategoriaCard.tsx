@@ -8,7 +8,7 @@ import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosSt
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { mesAtual, rotuloMes } from "../utils/calculos";
+import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { despesaPorCategoriaMes, paradasDonut } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
@@ -49,6 +49,7 @@ export default function DonutCategoriaCard() {
     veiculo,
     mes,
     mesAtual(),
+    hojeIso(),
   );
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
