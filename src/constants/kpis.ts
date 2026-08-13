@@ -20,12 +20,12 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
   {
     id: "receitas",
     titulo: "Receitas",
-    rotulos: ["Total do mês", "Lançamentos (mês)", "Maior fonte", "Total geral"],
+    rotulos: ["Total do mês", "Lançamentos (mês)", "vs mês passado", "Média (3 meses)"],
   },
   {
     id: "despesas",
     titulo: "Despesas",
-    rotulos: ["Total do mês", "Lançamentos (mês)", "Maior categoria", "Total geral"],
+    rotulos: ["Total do mês", "Lançamentos (mês)", "Maior categoria", "vs mês passado"],
   },
   {
     id: "cartoes",

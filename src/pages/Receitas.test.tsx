@@ -13,6 +13,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 // Firebase nunca é tocado: as páginas leem das stores, e é nelas que mandamos.
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
@@ -120,5 +121,59 @@ describe("Receitas", () => {
     // Com o id: abrir a edição da linha errada é o tipo de troca que passa
     // despercebida até alguém editar o lançamento errado.
     expect(abrirRegistro).toHaveBeenCalledWith("receita", "r1");
+  });
+});
+
+describe("KPIs de Receitas", () => {
+  test("os quatro cartões, com os rótulos que Definições espera", () => {
+    // A escolha de "KPIs no mobile" é casada por TEXTO (ver constants/kpis.ts e
+    // o `Kpis` em components/Pagina.tsx). Quando os dois lados divergem nada
+    // rebenta — a página cai calada nos dois primeiros cartões —, e é por isso
+    // que tem de haver um teste a segurá-los juntos.
+    estadoReceitas = { itens: [receita()], carregado: true, erro: false };
+    render(<Receitas />);
+
+    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "receitas")!.rotulos;
+    expect(esperados).toHaveLength(4);
+    for (const rotulo of esperados) {
+      expect(screen.getByText(rotulo)).toBeInTheDocument();
+    }
+  });
+
+  test("vs mês passado: a variação contra o mês anterior", () => {
+    estadoReceitas = {
+      itens: [
+        receita({ id: "r0", valor: 100000, data: "2026-07-05" }),
+        receita({ id: "r1", valor: 125000, data: "2026-08-05" }),
+      ],
+      carregado: true,
+      erro: false,
+    };
+    render(<Receitas />);
+
+    expect(screen.getByText("+25%")).toBeInTheDocument();
+    expect(screen.getByText(/julho 2026: € 1\.000,00/)).toBeInTheDocument();
+  });
+
+  test("primeiro mês de uso: 'Novo' em vez de uma percentagem impossível", () => {
+    // Nada em julho — a divisão seria por zero. O cartão continua lá.
+    estadoReceitas = { itens: [receita({ valor: 125000 })], carregado: true, erro: false };
+    render(<Receitas />);
+
+    expect(screen.getByText("Novo")).toBeInTheDocument();
+  });
+
+  test("Média (3 meses): diz quando teve menos história do que promete", () => {
+    // Só julho antes de agosto: a média é de UM mês, e o cartão assume-o em vez
+    // de deixar ler "média de 3 meses" sobre um número que não é isso.
+    estadoReceitas = {
+      itens: [receita({ id: "r0", valor: 90000, data: "2026-07-05" })],
+      carregado: true,
+      erro: false,
+    };
+    render(<Receitas />);
+
+    expect(screen.getByText("€ 900,00")).toBeInTheDocument();
+    expect(screen.getByText("só 1 mês de história")).toBeInTheDocument();
   });
 });

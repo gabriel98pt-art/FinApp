@@ -8,13 +8,17 @@ import { useReceitasStore } from "../stores/lancamentosStore";
 import { useUiStore } from "../stores/uiStore";
 import {
   doMes,
+  mediaMensal,
+  mesesRecentes,
   ordenarPorDataDesc,
   receitasNosTotais,
   rotuloMes,
+  rotuloVariacao,
+  somarMeses,
   total,
   totalDoMes,
+  variacaoMensal,
 } from "../utils/calculos";
-import { maiorFonteMes } from "../utils/receitaPorCategoria";
 import { formatMoney } from "../utils/money";
 
 export default function Receitas() {
@@ -31,26 +35,46 @@ export default function Receitas() {
   // igual ao que Despesas faz com pagamento de fatura e espelho de parcela.
   const contadas = receitasNosTotais(itens);
   const doMesExibido = doMes(itens, mes);
-  const maiorFonte = maiorFonteMes(itens, mes);
-  // "Total geral": histórico completo, sem filtro de mês — pra quem quer ver
-  // o acumulado de sempre, não só o mês exibido.
-  const totalGeral = total(contadas);
+  const totalMes = totalDoMes(contadas, mes);
+
+  // "vs mês passado": a mesma soma, um mês atrás. `null` quando o mês anterior
+  // fechou a zero — não há percentagem contra nada, e o cartão diz isso em
+  // palavras em vez de mostrar Infinity.
+  const mesAnterior = somarMeses(mes, -1);
+  const totalMesAnterior = totalDoMes(contadas, mesAnterior);
+  const variacao = variacaoMensal(totalMes, totalMesAnterior);
+
+  // "Média (3 meses)": os três meses ANTERIORES ao exibido, sem o incluir. O
+  // mês em curso está quase sempre pela metade, e incluí-lo fazia a referência
+  // afundar todo dia 1 e subir ao longo do mês — o cartão existe justamente
+  // para dar um número estável contra o qual ler o mês de agora.
+  const media = mediaMensal(contadas, mesesRecentes(3, mesAnterior));
 
   return (
     <Pagina titulo="Receitas">
       <Kpis pagina="receitas">
-        <KpiCard
-          rotulo="Total do mês"
-          valor={formatMoney(totalDoMes(contadas, mes), moeda)}
-          tom="verde"
-        />
+        <KpiCard rotulo="Total do mês" valor={formatMoney(totalMes, moeda)} tom="verde" />
         <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+        {/* Do lado da receita, subir é bom — o verde/vermelho é o contrário do
+            mesmo cartão em Despesas. */}
         <KpiCard
-          rotulo="Maior fonte"
-          valor={maiorFonte ? maiorFonte.fonte : "—"}
-          sub={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : undefined}
+          rotulo="vs mês passado"
+          valor={variacao === null ? (totalMes > 0 ? "Novo" : "—") : rotuloVariacao(variacao)}
+          sub={`${rotuloMes(mesAnterior)}: ${formatMoney(totalMesAnterior, moeda)}`}
+          tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "verde" : "vermelho"}
         />
-        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeral, moeda)} tom="laranja" />
+        <KpiCard
+          rotulo="Média (3 meses)"
+          valor={media ? formatMoney(media.media, moeda) : "—"}
+          sub={
+            media
+              ? media.meses === 3
+                ? "os 3 meses antes deste"
+                : `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de história`
+              : "sem meses anteriores"
+          }
+          tom="laranja"
+        />
       </Kpis>
 
       <ListaLancamentos

@@ -25,6 +25,54 @@ export function totalDoMes(itens: ItemComValor[], anoMes: YearMonth): Cents {
   return total(doMes(itens, anoMes));
 }
 
+/** Variação percentual de um total mensal contra o do mês anterior,
+ *  arredondada ao inteiro.
+ *
+ *  `null` quando não há base de comparação. O mês anterior a zero é o caso
+ *  óbvio (primeiro mês de uso do app), mas negativo conta igual: com um
+ *  reembolso maior que os gastos, um mês de despesa pode fechar abaixo de zero
+ *  e a percentagem contra ele inverte o sinal sem querer ("gastou mais" vira
+ *  "-30%"). Dividir por zero daria Infinity e "subiu ∞%" não se lê. Quem chama
+ *  decide o que mostrar no lugar — o cartão não desaparece por isto. */
+export function variacaoMensal(atual: Cents, anterior: Cents): number | null {
+  if (anterior <= 0) return null;
+  return Math.round(((atual - anterior) / anterior) * 100);
+}
+
+/** '+12%' / '-8%' / '0%'. O sinal explícito é o ponto do cartão: sem ele,
+ *  "12%" não diz se subiu ou desceu. */
+export function rotuloVariacao(pct: number): string {
+  return `${pct > 0 ? "+" : ""}${pct}%`;
+}
+
+export interface MediaMensal {
+  /** Média do total mensal, ao centavo. */
+  media: Cents;
+  /** Quantos dos meses pedidos tinham história e entraram na conta — o cartão
+   *  precisa disto para não prometer três meses quando só houve um. */
+  meses: number;
+}
+
+/** Média do total mensal ao longo de `meses`, contando só os meses que já
+ *  existiam — do mês do lançamento mais antigo em diante.
+ *
+ *  A distinção importa num app novo, e é a diferença entre um número útil e um
+ *  número errado. Um mês vazio DEPOIS de a pessoa começar a usar é um zero
+ *  verdadeiro e tem de entrar na média: houve o mês, não houve receita. Um mês
+ *  ANTES disso não é zero, é ausência de dados — dividir por três fixo mostrava
+ *  a terça parte do que a pessoa recebe a quem só tem um mês de história, e o
+ *  cartão que devia servir de referência passava a mentir para baixo.
+ *
+ *  `null` quando nenhum dos meses pedidos tem história. */
+export function mediaMensal(itens: ItemComValor[], meses: YearMonth[]): MediaMensal | null {
+  if (itens.length === 0 || meses.length === 0) return null;
+  const primeiroMes = mesDe(itens.reduce((min, i) => (i.data < min ? i.data : min), itens[0].data));
+  const comHistoria = meses.filter((m) => m >= primeiroMes);
+  if (comHistoria.length === 0) return null;
+  const soma = comHistoria.reduce((acc, m) => acc + totalDoMes(itens, m), 0);
+  return { media: Math.round(soma / comHistoria.length), meses: comHistoria.length };
+}
+
 export interface ResumoMes {
   receitas: Cents;
   despesas: Cents;

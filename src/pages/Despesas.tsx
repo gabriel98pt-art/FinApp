@@ -29,14 +29,21 @@ import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { despesasNosTotais, doMes, hojeIso, mesAtual, rotuloMes, total } from "../utils/calculos";
-import { totalFixasGeral } from "../utils/despesasFixas";
+import {
+  despesasNosTotais,
+  doMes,
+  hojeIso,
+  mesAtual,
+  rotuloMes,
+  rotuloVariacao,
+  somarMeses,
+  total,
+  variacaoMensal,
+} from "../utils/calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { liquidoDaDespesa } from "../utils/reembolsos";
-import { totalParcelasGeral } from "../utils/parcelas";
 import { despesaRealizadaMes } from "../utils/resumoMensal";
-import { totalVeiculoGeral } from "../utils/veiculo";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import type { Cents, DespesaFixa, Id } from "../types";
@@ -126,14 +133,22 @@ export default function Despesas() {
     !!statusMaiorCategoria &&
     !statusMaiorCategoria.estourado &&
     statusMaiorCategoria.pct >= LIMIAR_PERTO_ORCAMENTO;
-  // "Total geral": mesmas quatro parcelas do "Total do mês" (correntes + fixas
-  // + parcelas + veículo), só que sem filtro de mês — histórico completo. É a
-  // mesma soma que a Poupança do Início subtrai das receitas (ver Inicio.tsx).
-  const totalGeral =
-    total(despesasNosTotais(itens)) +
-    totalFixasGeral(despesasFixas, mesReal) +
-    totalParcelasGeral(parcelas, mesReal) +
-    totalVeiculoGeral(veiculo, mesReal);
+  // "vs mês passado": o mesmo total do mês, um mês atrás — pelas mesmas quatro
+  // parcelas (correntes + fixas + parcelas + veículo), senão comparava-se coisa
+  // com coisa diferente. Fica sempre mensal, mesmo com "Semana" escolhida, pela
+  // razão de "Maior categoria": uma semana contra outra é amostra pequena
+  // demais e o número saltava sem querer dizer nada.
+  const mesAnterior = somarMeses(mes, -1);
+  const totalMesAnterior = despesaRealizadaMes(
+    itens,
+    despesasFixas,
+    parcelas,
+    veiculo,
+    mesAnterior,
+    mesReal,
+    hojeIso(),
+  );
+  const variacao = variacaoMensal(totalDoMesComVeiculo, totalMesAnterior);
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
   // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
@@ -278,12 +293,15 @@ export default function Despesas() {
           chave="Lançamentos (mês)"
           valor={String(contagemKpi)}
         />
+        {/* O valor manda, o nome é o detalhe: numa fila de quatro cartões que
+            mostram todos dinheiro, o único que mostrava uma palavra obrigava a
+            parar e reler para saber o que estava a ver. */}
         <KpiCard
           rotulo="Maior categoria"
-          valor={maiorCategoria ? maiorCategoria.categoria : "—"}
+          valor={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : "—"}
           sub={
             maiorCategoria
-              ? `${formatMoney(maiorCategoria.valor, moeda)}${
+              ? `${maiorCategoria.categoria}${
                   statusMaiorCategoria?.estourado
                     ? " — estourou o teto"
                     : pertoMaiorCategoria
@@ -300,7 +318,16 @@ export default function Despesas() {
                 : "neutro"
           }
         />
-        <KpiCard rotulo="Total geral" valor={formatMoney(totalGeral, moeda)} tom="laranja" />
+        {/* Aqui subir é mau: o verde/vermelho é o contrário do mesmo cartão em
+            Receitas. */}
+        <KpiCard
+          rotulo="vs mês passado"
+          valor={
+            variacao === null ? (totalDoMesComVeiculo > 0 ? "Novo" : "—") : rotuloVariacao(variacao)
+          }
+          sub={`${rotuloMes(mesAnterior)}: ${formatMoney(totalMesAnterior, moeda)}`}
+          tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"}
+        />
       </Kpis>
 
       <div className={styles.abas} role="tablist" {...propsLista}>

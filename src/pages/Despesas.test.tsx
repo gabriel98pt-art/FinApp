@@ -12,6 +12,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente, DespesaFixa } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 vi.mock("../services/lancamentosService", () => ({
@@ -269,5 +270,62 @@ describe("Despesas com reembolso", () => {
 
     const rodape = screen.getByText("Total agosto 2026").closest("div")!;
     expect(rodape.textContent).toContain("25,00");
+  });
+});
+
+describe("KPIs de Despesas", () => {
+  const despesa = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente =>
+    ({
+      id: "d1",
+      descricao: "Mercado",
+      valor: 50000,
+      data: "2026-08-05",
+      categoria: "Alimentação",
+      ...extra,
+    }) as DespesaCorrente;
+
+  test("os quatro cartões, com os rótulos que Definições espera", () => {
+    // Mesma amarra de Receitas: a escolha de "KPIs no mobile" casa por texto, e
+    // divergir daqui não rebenta nada — só faz a página cair calada nos dois
+    // primeiros cartões.
+    despesas = lista([despesa()]);
+    render(<Despesas />);
+
+    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "despesas")!.rotulos;
+    expect(esperados).toHaveLength(4);
+    for (const rotulo of esperados) {
+      expect(screen.getByText(rotulo)).toBeInTheDocument();
+    }
+  });
+
+  test("Maior categoria mostra o dinheiro em cima e o nome por baixo", () => {
+    // Alimentação = 500 + 400 = 900; nenhuma linha sozinha vale isso, então o
+    // que se encontra é mesmo o cartão.
+    despesas = lista([
+      despesa({ id: "d1", valor: 50000 }),
+      despesa({ id: "d2", valor: 40000 }),
+      despesa({ id: "d3", valor: 35000, categoria: "Transporte" }),
+    ]);
+    render(<Despesas />);
+
+    expect(screen.getByText("€ 900,00")).toBeInTheDocument();
+  });
+
+  test("vs mês passado: a variação contra o mês anterior", () => {
+    despesas = lista([
+      despesa({ id: "d0", valor: 100000, data: "2026-07-05" }),
+      despesa({ id: "d1", valor: 125000 }),
+    ]);
+    render(<Despesas />);
+
+    expect(screen.getByText("+25%")).toBeInTheDocument();
+    expect(screen.getByText(/julho 2026: € 1\.000,00/)).toBeInTheDocument();
+  });
+
+  test("primeiro mês de uso: 'Novo' em vez de uma percentagem impossível", () => {
+    despesas = lista([despesa({ valor: 125000 })]);
+    render(<Despesas />);
+
+    expect(screen.getByText("Novo")).toBeInTheDocument();
   });
 });
