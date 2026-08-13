@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
   anoDe,
+  diaDoMes,
+  diasDoMes,
   doMes,
   mediaMensal,
   MESES_CURTOS_PT,
@@ -206,5 +208,32 @@ describe("mediaMensal", () => {
     // A decisão de desenho do cartão: o mês em curso está incompleto e puxava
     // a média para baixo todo dia 1. `mesesRecentes(3, somarMeses(mes, -1))`.
     expect(mesesRecentes(3, somarMeses("2026-07", -1))).toEqual(["2026-04", "2026-05", "2026-06"]);
+  });
+});
+
+describe("diasDoMes", () => {
+  test("os meses de 31 e de 30 dias", () => {
+    expect(diasDoMes("2026-01")).toBe(31);
+    expect(diasDoMes("2026-04")).toBe(30);
+    expect(diasDoMes("2026-07")).toBe(31);
+    expect(diasDoMes("2026-11")).toBe(30);
+    expect(diasDoMes("2026-12")).toBe(31);
+  });
+
+  test("fevereiro: 28 num ano comum, 29 num bissexto", () => {
+    expect(diasDoMes("2026-02")).toBe(28);
+    expect(diasDoMes("2024-02")).toBe(29);
+    // As duas exceções da regra dos 100/400 anos, que uma conta escrita à mão
+    // costuma falhar.
+    expect(diasDoMes("1900-02")).toBe(28);
+    expect(diasDoMes("2000-02")).toBe(29);
+  });
+
+  test("é a mesma conta que prende um vencimento a 31 ao fim do mês", () => {
+    // `diaDoMes` passou a usar esta função em vez de repetir o cálculo — se as
+    // duas divergirem, um vencimento a 31 escorrega para o mês seguinte.
+    for (const ym of ["2026-01", "2026-02", "2024-02", "2026-04"]) {
+      expect(diaDoMes(ym, 31)).toBe(`${ym}-${String(diasDoMes(ym)).padStart(2, "0")}`);
+    }
   });
 });

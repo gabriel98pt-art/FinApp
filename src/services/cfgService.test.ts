@@ -226,6 +226,19 @@ describe("gravar valor vs apagar chave", () => {
     expect(removes).toEqual([`${CFG}/orcamentos/Casa`, `${CFG}/orcamentos/Casa`]);
   });
 
+  test("definirOrcamentoTotal: valor grava, 0 e null apagam", async () => {
+    await s.definirOrcamentoTotal(UID, 150000);
+    expect(sets).toEqual([{ caminho: `${CFG}/orcamentoTotalMensal`, valor: 150000 }]);
+
+    sets = [];
+    await s.definirOrcamentoTotal(UID, 0);
+    await s.definirOrcamentoTotal(UID, null);
+    // Mesma razão do teto por categoria: um total de 0 € seria um plano sempre
+    // estourado, e o que se quer dizer é "não definido".
+    expect(sets).toHaveLength(0);
+    expect(removes).toEqual([`${CFG}/orcamentoTotalMensal`, `${CFG}/orcamentoTotalMensal`]);
+  });
+
   test("definirSaldoInicial: 0 apaga, negativo grava", async () => {
     await s.definirSaldoInicial(UID, "Conta", 0);
     expect(removes).toEqual([`${CFG}/saldosIniciais/Conta`]);

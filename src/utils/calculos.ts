@@ -172,10 +172,21 @@ export function diaDe(data: IsoDate): number {
  *  dependência de parcela/fixa/fatura) pra dar pra usar de qualquer um deles
  *  sem import circular. */
 export function diaDoMes(ym: YearMonth, dia?: number): IsoDate {
-  const [y, m] = ym.split("-").map(Number);
-  const ultimo = new Date(y, m, 0).getDate();
+  const ultimo = diasDoMes(ym);
   const d = Math.min(Math.max(dia || 1, 1), ultimo);
   return `${ym}-${String(d).padStart(2, "0")}`;
+}
+
+/** Quantos dias tem o mês — 28, 29, 30 ou 31. O dia 0 do mês seguinte É o
+ *  último deste, que é como o `Date` responde a esta pergunta sem tabela de
+ *  meses nem regra de bissexto escrita à mão. Estava dentro de `diaDoMes`, que
+ *  precisa exatamente disto para prender um vencimento a 31 ao fim de
+ *  fevereiro; sai para aqui porque o "valor por dia" do Planejamento faz a
+ *  mesma pergunta, e duas contas de calendário separadas é como se começa a
+ *  divergir. */
+export function diasDoMes(ym: YearMonth): number {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
 }
 
 /** '2026-07' → 'julho 2026'. */

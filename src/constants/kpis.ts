@@ -28,6 +28,11 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     rotulos: ["Total do mês", "Lançamentos (mês)", "Maior categoria", "vs mês passado"],
   },
   {
+    id: "planejamento",
+    titulo: "Planejamento",
+    rotulos: ["Total", "Restam", "% usado", "Valor/dia"],
+  },
+  {
     id: "cartoes",
     titulo: "Cartões",
     rotulos: ["Devido no mês", "Pago", "Restante", "Saldo em contas"],

@@ -14,8 +14,13 @@ import { mostrarToast } from "../stores/toastStore";
 import { hojeIso, mesAtual } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { formatMoney } from "../utils/money";
-import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
-import type { Cents } from "../types";
+import {
+  gastosDaCategoriaMes,
+  LIMIAR_PERTO_ORCAMENTO,
+  statusOrcamentoMes,
+} from "../utils/orcamento";
+import type { Transacao } from "../utils/transacoes";
+import type { Cents, Currency } from "../types";
 import styles from "./OrcamentoCard.module.css";
 
 /** Caixa única de teto: define (escolhendo a categoria) ou edita/remove (a
@@ -28,6 +33,8 @@ function FormTeto({
   categoriaFixa,
   tetoAtual,
   categoriasDisponiveis,
+  transacoes,
+  moeda,
   uid,
 }: {
   aberta: boolean;
@@ -36,6 +43,10 @@ function FormTeto({
   categoriaFixa: string;
   tetoAtual: Cents | undefined;
   categoriasDisponiveis: string[];
+  /** O que compõe o gasto desta categoria no mês exibido, já filtrado. Vazio
+   *  no modo "definir novo" — ainda não há categoria escolhida. */
+  transacoes: Transacao[];
+  moeda: Currency;
   uid: string;
 }) {
   const editando = categoriaFixa !== "";
@@ -88,12 +99,43 @@ function FormTeto({
     }
   }
 
+  const gastoDaLista = transacoes.reduce((s, t) => s + t.valor, 0);
+
   return (
     <BottomSheet
       aberta={aberta}
       aoFechar={fechar}
       titulo={editando ? `Teto — ${categoriaFixa}` : "Definir teto"}
+      tamanho={editando ? "grande" : "padrao"}
     >
+      {/* O que já foi gasto, item a item — a prova do número que a linha
+          mostra. Vem de `transacoesDoMes`, o mesmo cálculo que alimenta a tela
+          Transações: contar aqui à parte seria a segunda implementação da
+          mesma pergunta, que foi exatamente o que fez o orçamento e o extrato
+          discordarem sobre uma parcela por vencer (ver
+          coerenciaMesCorrente.test.ts). */}
+      {editando && (
+        <div className={styles.gastos}>
+          <p className={styles.gastosTitulo}>
+            Gastos que contam para este teto
+            <span className={styles.gastosTotal}>{formatMoney(gastoDaLista, moeda)}</span>
+          </p>
+          {transacoes.length === 0 ? (
+            <p className={styles.vazio}>Nada nesta categoria no mês exibido.</p>
+          ) : (
+            <ul className={styles.gastosLista}>
+              {transacoes.map((t) => (
+                <li key={t.chave} className={styles.gasto}>
+                  <span className={styles.gastoDia}>{t.data.slice(8, 10)}</span>
+                  <span className={styles.gastoTitulo}>{t.titulo}</span>
+                  <span className={styles.gastoValor}>{formatMoney(t.valor, moeda)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (
           <Seletor
@@ -233,6 +275,19 @@ export default function OrcamentoCard() {
         categoriaFixa={editandoCategoria ?? ""}
         tetoAtual={editandoCategoria ? cfg.orcamentos[editandoCategoria] : undefined}
         categoriasDisponiveis={categoriasDisponiveis}
+        transacoes={
+          editandoCategoria
+            ? gastosDaCategoriaMes(
+                despesas,
+                parcelas,
+                editandoCategoria,
+                mes,
+                mesAtual(),
+                hojeIso(),
+              )
+            : []
+        }
+        moeda={cfg.currency}
         uid={uid}
       />
     </div>

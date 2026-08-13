@@ -1,0 +1,108 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.campo input {
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  color: var(--txt);
+  font-size: 1rem;
+}
+
+.campo input:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.salvar {
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--brd);
+}
+
+.resumoTitulo {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.vazio {
+  color: var(--mut);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.nome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  min-width: 0;
+}
+
+.teto {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.totais {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--brd);
+}
+
+.linhaTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.estourado {
+  color: var(--red);
+}

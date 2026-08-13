@@ -68,6 +68,11 @@ export interface ConfigConta {
   metaPoupanca: Cents;
   /** Teto de orçamento mensal por categoria (antigo `bud`, seção 4.8). */
   orcamentos: Record<string, Cents>;
+  /** Quanto se planeia gastar por mês, no total. Recorrente como os tetos por
+   *  categoria — "todo mês", e não um valor por mês (não há
+   *  `orcamentoTotalMensal["2026-08"]`). Ausente = ainda não foi definido, que
+   *  é o estado com que a tela Planejamento nasce. */
+  orcamentoTotalMensal?: Cents;
   /** Saldo inicial por conta (antigo `bal`). */
   saldosIniciais: Record<string, Cents>;
 

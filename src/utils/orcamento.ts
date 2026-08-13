@@ -3,6 +3,7 @@
 import type { Cents, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { despesasNosTotais, doMes } from "./calculos";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
+import { filtrarTransacoes, transacoesDoMes, type Transacao } from "./transacoes";
 
 export interface StatusOrcamento {
   categoria: string;
@@ -65,4 +66,49 @@ export function statusOrcamentoMes(
       };
     })
     .sort((a, b) => b.pct - a.pct);
+}
+
+/** Os lançamentos por trás do `gasto` de UMA categoria — o que a folha de
+ *  edição do teto mostra por baixo do número.
+ *
+ *  Vive ao lado de `statusOrcamentoMes` de propósito: a lista tem de somar
+ *  exatamente o `gasto` que ela calcula, senão contradiz o número que está logo
+ *  por cima. Manter as duas no mesmo ficheiro é o que torna essa amarra óbvia
+ *  para quem mexer numa delas — e há teste a exigi-la.
+ *
+ *  Daí alimentar o `transacoesDoMes` só com os domínios que o orçamento mede:
+ *  despesas correntes que contam nos totais (fora pagamento de fatura, ajuste
+ *  de reconciliação e espelho de parcela) e as parcelas pelo plano. Fixas e
+ *  veículo ficam de fora porque o orçamento por categoria também os deixa de
+ *  fora; incluí-los mostrava linhas que o teto não conta.
+ *
+ *  E o "já saiu?" — o dia de vencimento de uma parcela em débito automático —
+ *  continua a ser o do `transacoesDoMes`, não um segundo cálculo escrito aqui.
+ *  Foi um segundo desses que pôs o orçamento e o extrato a discordarem sobre a
+ *  mesma parcela (ver `coerenciaMesCorrente.test.ts`). */
+export function gastosDaCategoriaMes(
+  despesasCorrentes: DespesaCorrente[],
+  parcelas: Parcela[],
+  categoria: string,
+  ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
+): Transacao[] {
+  const itens = transacoesDoMes(
+    {
+      receitas: [],
+      despesasCorrentes: despesasNosTotais(despesasCorrentes),
+      despesasFixas: [],
+      parcelas,
+      transferencias: [],
+      veiculo: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
+    },
+    ym,
+    mesReal,
+    hoje,
+  );
+  // Mais recente primeiro, como o extrato.
+  return filtrarTransacoes(itens, categoria, "").sort((a, b) =>
+    a.data < b.data ? 1 : a.data > b.data ? -1 : 0,
+  );
 }

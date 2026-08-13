@@ -13,9 +13,9 @@
 // que ela chegou ao usuário.
 
 import { describe, expect, test } from "vitest";
-import type { DadosVeiculo, Parcela } from "../types";
+import type { DadosVeiculo, DespesaCorrente, Parcela } from "../types";
 import { despesaPorCategoriaMes } from "./despesaPorCategoria";
-import { statusOrcamentoMes } from "./orcamento";
+import { gastosDaCategoriaMes, statusOrcamentoMes } from "./orcamento";
 import { despesaRealizadaMes } from "./resumoMensal";
 import { transacoesDoMes } from "./transacoes";
 
@@ -107,5 +107,75 @@ describe("orçamento, donut, total do mês e extrato concordam", () => {
         extrato: r.extrato,
       });
     }
+  });
+});
+
+// A lista que a folha do teto mostra é a PROVA VISUAL do número que está por
+// cima dela. Se as duas não fecharem, a folha contradiz-se sozinha — e é a
+// mesma família de defeito: dois caminhos a responder à mesma pergunta.
+describe("a lista da folha do teto soma exatamente o gasto do orçamento", () => {
+  const correntes: DespesaCorrente[] = [
+    { id: "d1", descricao: "Cinema", valor: 2000, data: "2026-07-03", categoria: "Lazer" },
+    { id: "d2", descricao: "Concerto", valor: 6000, data: "2026-07-12", categoria: "Lazer" },
+    // Reembolso: negativo, e tem de aparecer na lista a puxar o total para
+    // baixo — senão a soma da lista fica acima do gasto.
+    {
+      id: "d3",
+      descricao: "Devolução do bilhete",
+      valor: -1500,
+      data: "2026-07-14",
+      categoria: "Lazer",
+      origem: "reemb",
+    },
+    // Fora dos totais: pagamento de fatura e espelho de parcela.
+    {
+      id: "d4",
+      descricao: "Pagamento fatura",
+      valor: 50000,
+      data: "2026-07-15",
+      categoria: "Lazer",
+      origem: "fat",
+    },
+    { id: "d5", descricao: "Mercado", valor: 9000, data: "2026-07-08", categoria: "Alimentação" },
+  ] as DespesaCorrente[];
+
+  const soma = (hoje: string) =>
+    gastosDaCategoriaMes(correntes, [parcela], "Lazer", MES, MES, hoje).reduce(
+      (s, t) => s + t.valor,
+      0,
+    );
+  const gasto = (hoje: string) =>
+    statusOrcamentoMes(correntes, [parcela], { Lazer: 100000 }, MES, MES, hoje)[0].gasto;
+
+  test("antes do vencimento da parcela", () => {
+    expect(soma("2026-07-05")).toBe(gasto("2026-07-05"));
+  });
+
+  test("depois do vencimento da parcela", () => {
+    expect(soma("2026-07-25")).toBe(gasto("2026-07-25"));
+  });
+
+  test("todos os dias do mês, sem um único em que a lista minta", () => {
+    for (let d = 1; d <= 31; d++) {
+      const hoje = `${MES}-${String(d).padStart(2, "0")}`;
+      expect({ hoje, soma: soma(hoje) }).toEqual({ hoje, soma: gasto(hoje) });
+    }
+  });
+
+  test("a lista traz o reembolso e deixa de fora o que não conta nos totais", () => {
+    const titulos = gastosDaCategoriaMes(correntes, [parcela], "Lazer", MES, MES, "2026-07-25").map(
+      (t) => t.titulo,
+    );
+    expect(titulos).toContain("Devolução do bilhete");
+    expect(titulos).not.toContain("Pagamento fatura");
+    // E nada de outra categoria.
+    expect(titulos).not.toContain("Mercado");
+  });
+
+  test("mostra a parcela só depois de ela vencer, como o extrato", () => {
+    const nomes = (hoje: string) =>
+      gastosDaCategoriaMes(correntes, [parcela], "Lazer", MES, MES, hoje).map((t) => t.titulo);
+    expect(nomes("2026-07-05").some((n) => n.startsWith("Consola"))).toBe(false);
+    expect(nomes("2026-07-25").some((n) => n.startsWith("Consola"))).toBe(true);
   });
 });

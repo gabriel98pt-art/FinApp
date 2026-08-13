@@ -225,6 +225,17 @@ export async function definirOrcamento(uid: string, categoria: string, valor: Ce
   else await set(r, valor);
 }
 
+/** Total que se planeia gastar por mês, somando tudo — o guarda-chuva por
+ *  cima dos tetos por categoria. `null`/0 remove, mesma regra de
+ *  `definirOrcamento`: um total de 0 € seria um planeamento sempre estourado,
+ *  e "não definido" é o que se quer dizer. */
+export async function definirOrcamentoTotal(uid: string, valor: Cents | null) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, "/orcamentoTotalMensal"));
+  if (valor === null || valor === 0) await remove(r);
+  else await set(r, valor);
+}
+
 /** Saldo inicial da conta/cartão de débito — a base de onde o saldo atual soma
  *  e subtrai os movimentos. 0 remove a chave: é o mesmo efeito, já é o valor
  *  assumido quando não há nada guardado. */

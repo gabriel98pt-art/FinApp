@@ -186,3 +186,63 @@
   padding: 6px;
   align-self: center;
 }
+
+/* Lista de gastos dentro da folha de editar teto */
+
+.gastos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--brd);
+}
+
+.gastosTitulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.gastosTotal {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gastosLista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gasto {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.85rem;
+}
+
+.gastoDia {
+  color: var(--mut);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.4em;
+}
+
+.gastoTitulo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gastoValor {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
