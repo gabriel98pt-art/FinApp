@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { History, Layers } from "lucide-react";
+import { History, Layers, Plus } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -456,7 +456,7 @@ export default function Parcelas() {
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
           <button className={styles.adicionar} onClick={abrirNova}>
-            + Nova parcela
+            <Plus size={15} aria-hidden /> Nova parcela
           </button>
         </div>
       </div>

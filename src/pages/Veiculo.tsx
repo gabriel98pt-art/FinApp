@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useLocation } from "react-router-dom";
 import { Car, Gauge, Pencil, Plus, Repeat, Wrench, Zap } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
@@ -81,7 +82,13 @@ export default function Veiculo() {
   const carregado = useVeiculoStore((s) => s.carregado);
   const erro = useVeiculoStore((s) => s.erro);
 
-  const [aba, setAba] = useState<Aba>("resumo");
+  // Chegar de Transações "Abrir em Veículo → Carregamentos/Despesas" (item
+  // 4.6) já abre na aba certa — a rota manda o destino pelo state da
+  // navegação, porque a aba é estado local desta página.
+  const location = useLocation();
+  const abaPedida = (location.state as { aba?: string } | null)?.aba;
+  const abaInicial = ABAS.some(([id]) => id === abaPedida) ? (abaPedida as Aba) : "resumo";
+  const [aba, setAba] = useState<Aba>(abaInicial);
   const { propsLista, propsAba } = useAbasTeclado({
     abas: ABAS.map(([id]) => id),
     atual: aba,

@@ -9,6 +9,7 @@
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente, DespesaFixa } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -55,6 +56,16 @@ vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => 
 
 const Despesas = (await import("./Despesas")).default;
 
+// Despesas usa `useLocation` (item 4.6, aba pedida por Transações) — precisa
+// de um Router em volta, mesmo nos testes que não navegam.
+function renderDespesas() {
+  return render(
+    <MemoryRouter>
+      <Despesas />
+    </MemoryRouter>,
+  );
+}
+
 const fixa = (extra: Partial<DespesaFixa> = {}): DespesaFixa => ({
   id: "f1",
   descricao: "Netflix",
@@ -71,18 +82,18 @@ beforeEach(() => {
 
 describe("Despesas", () => {
   test("monta e abre na aba Correntes", () => {
-    render(<Despesas />);
+    renderDespesas();
     expect(screen.getByRole("heading", { name: "Despesas" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Correntes" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("sem despesas: estado vazio da aba Correntes", () => {
-    render(<Despesas />);
+    renderDespesas();
     expect(screen.getByText(/Nenhuma despesa em agosto 2026/)).toBeInTheDocument();
   });
 
   test("aba Fixas sem nada mostra o vazio próprio, não o das correntes", async () => {
-    render(<Despesas />);
+    renderDespesas();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
 
     expect(screen.getByText("Nenhuma despesa fixa ainda")).toBeInTheDocument();
@@ -92,7 +103,7 @@ describe("Despesas", () => {
     // A distinção que o passe de polimento introduziu: nunca ter criado
     // nenhuma é diferente de ter criadas que só não vigoram neste mês.
     fixas = lista([fixa({ inicio: "2026-11" })]);
-    render(<Despesas />);
+    renderDespesas();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
 
     expect(screen.getByText(/Nenhuma despesa fixa em agosto 2026/)).toBeInTheDocument();
@@ -101,7 +112,7 @@ describe("Despesas", () => {
 
   test("o selo da fixa diz de quem é e em que estado está", async () => {
     fixas = lista([fixa()]);
-    render(<Despesas />);
+    renderDespesas();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
 
     // Sem nome próprio, uma lista de fixas dava vários botões "Pendente"
@@ -116,7 +127,7 @@ describe("teclado das abas", () => {
   const focarAtivo = () => screen.getByRole("tab", { selected: true }).focus();
 
   test("só o separador activo está na ordem do Tab", () => {
-    render(<Despesas />);
+    renderDespesas();
 
     expect(screen.getByRole("tab", { name: "Correntes" })).toHaveAttribute("tabindex", "0");
     // O resto sai da ordem do Tab: é isso que faz o Tab entrar e sair do grupo
@@ -125,7 +136,7 @@ describe("teclado das abas", () => {
   });
 
   test("seta para a direita avança e leva o foco consigo", async () => {
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
     await userEvent.keyboard("{ArrowRight}");
 
@@ -137,7 +148,7 @@ describe("teclado das abas", () => {
   });
 
   test("seta para a esquerda recua", async () => {
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
     await userEvent.keyboard("{ArrowRight}{ArrowLeft}");
 
@@ -145,7 +156,7 @@ describe("teclado das abas", () => {
   });
 
   test("dá a volta nas duas pontas", async () => {
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
 
     // Da última para a primeira.
@@ -159,7 +170,7 @@ describe("teclado das abas", () => {
 
   test("cima e baixo funcionam como esquerda e direita", async () => {
     // Quem usa leitor de ecrã em modo de aplicação tenta as duas.
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
 
     await userEvent.keyboard("{ArrowDown}");
@@ -170,7 +181,7 @@ describe("teclado das abas", () => {
   });
 
   test("Home e End saltam para as pontas", async () => {
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
 
     await userEvent.keyboard("{End}");
@@ -183,7 +194,7 @@ describe("teclado das abas", () => {
   test("teclas que não são nossas passam adiante", async () => {
     // Travar tudo seria pior do que não fazer nada: a página tem de continuar
     // a responder ao resto do teclado com o foco num separador.
-    render(<Despesas />);
+    renderDespesas();
     focarAtivo();
     await userEvent.keyboard("{PageDown}");
 
@@ -191,7 +202,7 @@ describe("teclado das abas", () => {
   });
 
   test("o separador aponta para o painel, e o painel de volta para ele", () => {
-    render(<Despesas />);
+    renderDespesas();
 
     const aba = screen.getByRole("tab", { name: "Correntes" });
     const painel = screen.getByRole("tabpanel");
@@ -232,7 +243,7 @@ describe("Despesas com reembolso", () => {
     // A lista de despesas é tom="vermelho" e punha "−" em tudo. Com o valor já
     // negativo, saía o sinal duas vezes e o número ficava ilegível.
     despesas = lista([gasto(), devolvido()]);
-    render(<Despesas />);
+    renderDespesas();
 
     const linha = screen.getByText("Reembolso jantar").closest("button")!;
     expect(linha.textContent).toContain("+");
@@ -242,7 +253,7 @@ describe("Despesas com reembolso", () => {
 
   test("a despesa comum continua com − e a vermelho", () => {
     despesas = lista([gasto()]);
-    render(<Despesas />);
+    renderDespesas();
 
     const linha = screen.getByText("Jantar de equipa").closest("button")!;
     expect(linha.textContent).toContain("−");
@@ -250,7 +261,7 @@ describe("Despesas com reembolso", () => {
 
   test("a linha da despesa original mostra a conta do líquido", async () => {
     despesas = lista([gasto(), devolvido()]);
-    render(<Despesas />);
+    renderDespesas();
 
     // "100,00 − 75,00 reembolsado = 25,00 líquido"
     expect(screen.getByText(/reembolsado/)).toBeInTheDocument();
@@ -259,14 +270,14 @@ describe("Despesas com reembolso", () => {
 
   test("despesa sem reembolso não ganha linha nenhuma a mais", () => {
     despesas = lista([gasto()]);
-    render(<Despesas />);
+    renderDespesas();
     expect(screen.queryByText(/reembolsado/)).not.toBeInTheDocument();
   });
 
   test("o total do mês já vem líquido", () => {
     // 100,00 − 75,00 = 25,00. Sem netar, o rodapé contradizia o donut.
     despesas = lista([gasto(), devolvido()]);
-    render(<Despesas />);
+    renderDespesas();
 
     const rodape = screen.getByText("Total agosto 2026").closest("div")!;
     expect(rodape.textContent).toContain("25,00");
@@ -289,7 +300,7 @@ describe("KPIs de Despesas", () => {
     // divergir daqui não rebenta nada — só faz a página cair calada nos dois
     // primeiros cartões.
     despesas = lista([despesa()]);
-    render(<Despesas />);
+    renderDespesas();
 
     const esperados = KPIS_POR_PAGINA.find((p) => p.id === "despesas")!.rotulos;
     expect(esperados).toHaveLength(4);
@@ -306,7 +317,7 @@ describe("KPIs de Despesas", () => {
       despesa({ id: "d2", valor: 40000 }),
       despesa({ id: "d3", valor: 35000, categoria: "Transporte" }),
     ]);
-    render(<Despesas />);
+    renderDespesas();
 
     expect(screen.getByText("€ 900,00")).toBeInTheDocument();
   });
@@ -316,7 +327,7 @@ describe("KPIs de Despesas", () => {
       despesa({ id: "d0", valor: 100000, data: "2026-07-05" }),
       despesa({ id: "d1", valor: 125000 }),
     ]);
-    render(<Despesas />);
+    renderDespesas();
 
     expect(screen.getByText("+25%")).toBeInTheDocument();
     expect(screen.getByText(/julho 2026: € 1\.000,00/)).toBeInTheDocument();
@@ -324,7 +335,7 @@ describe("KPIs de Despesas", () => {
 
   test("primeiro mês de uso: 'Novo' em vez de uma percentagem impossível", () => {
     despesas = lista([despesa({ valor: 125000 })]);
-    render(<Despesas />);
+    renderDespesas();
 
     expect(screen.getByText("Novo")).toBeInTheDocument();
   });

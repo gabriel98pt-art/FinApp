@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useLocation } from "react-router-dom";
 import { Plus, Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
@@ -80,7 +81,13 @@ export default function Despesas() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
-  const [aba, setAba] = useState<Aba>("correntes");
+  // Chegar de Transações "Abrir em Despesas → Fixas" (item 4.6) já abre na
+  // aba certa — a rota manda o destino pelo state da navegação, porque a aba
+  // é estado local desta página.
+  const location = useLocation();
+  const abaPedida = (location.state as { aba?: string } | null)?.aba;
+  const abaInicial = ABAS.some(([id]) => id === abaPedida) ? (abaPedida as Aba) : "correntes";
+  const [aba, setAba] = useState<Aba>(abaInicial);
   const { propsLista, propsAba } = useAbasTeclado({
     abas: ABAS.map(([id]) => id),
     atual: aba,

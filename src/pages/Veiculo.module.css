@@ -81,21 +81,15 @@
 }
 
 .badgeToggle {
-  font-size: 0.68rem;
-  font-weight: 700;
-  border-radius: var(--r-pill);
-  padding: 4px 10px;
-  white-space: nowrap;
+  composes: badgeToggle from "../styles/selos.module.css";
 }
 
 .badgePago {
-  color: var(--selo-pago-txt);
-  background: var(--selo-pago-bg);
+  composes: badgePago from "../styles/selos.module.css";
 }
 
 .badgePendente {
-  color: var(--selo-pendente-txt);
-  background: var(--selo-pendente-bg);
+  composes: badgePendente from "../styles/selos.module.css";
 }
 
 /* Formulários */

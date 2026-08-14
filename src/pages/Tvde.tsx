@@ -214,6 +214,61 @@ function FormSemana({
   );
 }
 
+/** Folha para escolher o número de uma semana avulsa — único jeito de abrir
+ *  uma semana fora da atual/mais recente. Substitui o `window.prompt` (item
+ *  4.5): era a única caixa nativa do app, destoando das folhas por toda a
+ *  parte. */
+function EscolherSemanaFolha({
+  aberta,
+  aoFechar,
+  aoConfirmar,
+}: {
+  aberta: boolean;
+  aoFechar: () => void;
+  aoConfirmar: (n: number) => void;
+}) {
+  const [valor, setValor] = useState("");
+
+  function submeter(e: FormEvent) {
+    e.preventDefault();
+    const n = parseInt(valor, 10);
+    if (!Number.isFinite(n) || n < 1 || n > 500) {
+      mostrarToast("Número de semana inválido.");
+      return;
+    }
+    setValor("");
+    aoConfirmar(n);
+  }
+
+  return (
+    <BottomSheet
+      aberta={aberta}
+      aoFechar={() => {
+        aoFechar();
+        setValor("");
+      }}
+      titulo="Abrir semana"
+    >
+      <form className={styles.form} onSubmit={submeter}>
+        <label className={styles.campo}>
+          Número da semana
+          <input
+            inputMode="numeric"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            autoFocus
+            required
+          />
+        </label>
+        <p className={styles.notaEur}>1 = semana de referência.</p>
+        <button type="submit" className={styles.salvar}>
+          Abrir
+        </button>
+      </form>
+    </BottomSheet>
+  );
+}
+
 export default function Tvde() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
@@ -222,6 +277,7 @@ export default function Tvde() {
   const erro = useTvdeStore((s) => s.erro);
 
   const [editando, setEditando] = useState<number | null>(null);
+  const [escolhendoSemana, setEscolhendoSemana] = useState(false);
   const [aba, setAba] = useState<AbaTvde>("semanas");
   const { propsLista, propsAba } = useAbasTeclado({
     abas: ABAS.map(([id]) => id),
@@ -318,20 +374,8 @@ export default function Tvde() {
                 <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
                   <Plus size={15} aria-hidden /> Semana atual ({semanaAtualN})
                 </button>
-                <button
-                  className={styles.adicionar}
-                  onClick={() => {
-                    const resposta = window.prompt("Número da semana (1 = semana de referência):");
-                    if (!resposta) return;
-                    const nSem = parseInt(resposta, 10);
-                    if (!Number.isFinite(nSem) || nSem < 1 || nSem > 500) {
-                      mostrarToast("Número de semana inválido.");
-                      return;
-                    }
-                    setEditando(nSem);
-                  }}
-                >
-                  + Outra…
+                <button className={styles.adicionar} onClick={() => setEscolhendoSemana(true)}>
+                  <Plus size={15} aria-hidden /> Outra…
                 </button>
               </div>
             </div>
@@ -567,6 +611,14 @@ export default function Tvde() {
         )}
 
         <FormSemana n={editando} aoFechar={() => setEditando(null)} />
+        <EscolherSemanaFolha
+          aberta={escolhendoSemana}
+          aoFechar={() => setEscolhendoSemana(false)}
+          aoConfirmar={(n) => {
+            setEscolhendoSemana(false);
+            setEditando(n);
+          }}
+        />
       </AbaTransicao>
     </Pagina>
   );

@@ -7,6 +7,7 @@
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -63,6 +64,16 @@ vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => 
 
 const Veiculo = (await import("./Veiculo")).default;
 
+// Veiculo usa `useLocation` (item 4.6, aba pedida por Transações) — precisa
+// de um Router em volta, mesmo nos testes que não navegam.
+function renderVeiculo() {
+  return render(
+    <MemoryRouter>
+      <Veiculo />
+    </MemoryRouter>,
+  );
+}
+
 beforeEach(() => {
   dados = vazio();
   erro = false;
@@ -70,18 +81,18 @@ beforeEach(() => {
 
 describe("Veiculo", () => {
   test("monta e abre no Resumo", () => {
-    render(<Veiculo />);
+    renderVeiculo();
     expect(screen.getByRole("heading", { name: "Veículo" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Resumo" })).toHaveAttribute("aria-selected", "true");
   });
 
   test("tem as cinco abas", () => {
-    render(<Veiculo />);
+    renderVeiculo();
     expect(screen.getAllByRole("tab")).toHaveLength(5);
   });
 
   test("cada aba vazia mostra o EstadoVazio dela, com o seu próprio texto", async () => {
-    render(<Veiculo />);
+    renderVeiculo();
 
     await userEvent.click(screen.getByRole("tab", { name: "Carregamentos" }));
     expect(screen.getByText(/Nenhum carregamento em agosto 2026/)).toBeInTheDocument();
@@ -106,7 +117,7 @@ describe("Veiculo", () => {
         } as DespesaFixa,
       ],
     } as unknown as DadosVeiculo;
-    render(<Veiculo />);
+    renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
 
     const selo = screen.getByRole("button", { name: "Seguro — pendente" });
@@ -118,12 +129,12 @@ describe("Veiculo", () => {
     // as cinco abas vêm da mesma store e a caixa cheia repetida por aba seria
     // pior. O comentário no código explica; este teste segura a decisão.
     erro = true;
-    render(<Veiculo />);
+    renderVeiculo();
     expect(screen.getByText(/os dados podem estar desatualizados/)).toBeInTheDocument();
   });
 
   test("setas percorrem as cinco abas e dão a volta", async () => {
-    render(<Veiculo />);
+    renderVeiculo();
     screen.getByRole("tab", { selected: true }).focus();
 
     await userEvent.keyboard("{ArrowLeft}");

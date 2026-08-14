@@ -1,0 +1,23 @@
+/* Selo pago/pendente, partilhado entre Despesas e Veículo (item 4.7): antes
+   era duplicado byte a byte nos dois módulos — vetor de divergência futura
+   sem nenhuma vantagem, já que o visual é o mesmo selo em ambos. Cada módulo
+   continua livre para acrescentar variantes locais (ver `.badgeAuto` e o
+   hover em Despesas.module.css) por cima do que é `composes` daqui. */
+
+.badgeToggle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.badgePago {
+  color: var(--selo-pago-txt);
+  background: var(--selo-pago-bg);
+}
+
+.badgePendente {
+  color: var(--selo-pendente-txt);
+  background: var(--selo-pendente-bg);
+}

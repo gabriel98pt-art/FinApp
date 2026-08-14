@@ -35,15 +35,18 @@ import {
 } from "../utils/transacoes";
 import styles from "./Transacoes.module.css";
 
-/** Onde cada tipo é gerenciado — usado pelo botão da folha de detalhe. */
-const TELA_DO_TIPO: Record<Transacao["origem"], { rota: string; nome: string }> = {
+/** Onde cada tipo é gerenciado — usado pelo botão da folha de detalhe.
+ *  `aba`, quando presente, é passada como state da navegação para a página
+ *  de destino abrir direto na aba certa (item 4.6) — sem isto, "aba" é
+ *  estado local da página de destino e ela cai sempre na primeira. */
+const TELA_DO_TIPO: Record<Transacao["origem"], { rota: string; nome: string; aba?: string }> = {
   receita: { rota: "/receitas", nome: "Receitas" },
   despesa: { rota: "/despesas", nome: "Despesas" },
-  fixa: { rota: "/despesas", nome: "Despesas → Fixas" },
+  fixa: { rota: "/despesas", nome: "Despesas → Fixas", aba: "fixas" },
   parcela: { rota: "/parcelas", nome: "Parcelas" },
   transferencia: { rota: "/cartoes", nome: "Cartões → Transferências" },
-  carga: { rota: "/veiculo", nome: "Veículo → Carregamentos" },
-  despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas" },
+  carga: { rota: "/veiculo", nome: "Veículo → Carregamentos", aba: "cargas" },
+  despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas", aba: "despesas" },
 };
 
 /** Extrato geral do mês (item 22): tudo que movimentou dinheiro, num feed só.
@@ -271,7 +274,7 @@ export default function Transacoes() {
               onClick={() => {
                 const destino = TELA_DO_TIPO[detalhe.origem];
                 fecharDetalhe();
-                navegar(destino.rota);
+                navegar(destino.rota, destino.aba ? { state: { aba: destino.aba } } : undefined);
               }}
             >
               Abrir em {TELA_DO_TIPO[detalhe.origem].nome}

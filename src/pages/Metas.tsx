@@ -274,7 +274,7 @@ export default function Metas() {
                     setContribuindo(f.id);
                   }}
                 >
-                  + Contribuir
+                  <Plus size={15} aria-hidden /> Contribuir
                 </button>
               </div>
             );

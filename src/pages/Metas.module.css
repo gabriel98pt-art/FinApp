@@ -241,6 +241,10 @@
 /* Um por meta, portanto repetido na lista — ver a mesma nota em Parcelas. */
 .contribuirBotao {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   background: var(--s2);
   color: var(--txt);
   font-weight: 700;
