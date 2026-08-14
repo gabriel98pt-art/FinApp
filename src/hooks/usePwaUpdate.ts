@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { mostrarToast } from "../stores/toastStore";
-import { usePwaStore } from "../stores/pwaStore";
+import { usePwaStore, recarregarQuandoLivre } from "../stores/pwaStore";
 
 // O `registerType: "autoUpdate"` do vite.config só descreve o que fazer QUANDO
 // uma versão nova é encontrada — não faz ninguém procurar por ela. Sem este
@@ -35,7 +35,7 @@ export function usePwaUpdate() {
       // (o puxar-para-recarregar) que a atualização é tratada aqui.
       usePwaStore.getState().marcarAplicando();
       mostrarToast("Nova versão — atualizando…");
-      setTimeout(() => window.location.reload(), MS_ANTES_DE_RECARREGAR);
+      setTimeout(recarregarQuandoLivre, MS_ANTES_DE_RECARREGAR);
     },
   });
 

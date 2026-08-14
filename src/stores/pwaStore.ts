@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useUiStore } from "./uiStore";
 
 // Ponte entre o usePwaUpdate — que vive no App.tsx e é o único a falar com o
 // service worker — e quem, mais abaixo na árvore, precisa forçar uma checagem
@@ -58,4 +59,37 @@ export async function checarVersaoNova(msEspera = MS_ESPERA_VERSAO): Promise<boo
       resolve(false);
     }, msEspera);
   });
+}
+
+/** Tempo máximo à espera do Registro Rápido fechar antes de recarregar de
+ *  qualquer jeito — senão uma folha esquecida aberta trava a atualização para
+ *  sempre, e a pessoa nunca chega a ver os próximos consertos. */
+const MS_ESPERA_MAXIMA_REGISTRO = 2 * 60 * 1000;
+
+/** Recarrega — mas não no meio de um Registro Rápido aberto: o caso relatado
+ *  foi abrir o atalho do iPhone, a atualização chegar sozinha uns segundos
+ *  depois, e a folha já ter algo digitado que se perdia no reload sem aviso
+ *  nenhum. Sem folha aberta, recarrega na hora, como sempre. Com ela aberta,
+ *  espera fechar (ou o limite máximo bater) antes de recarregar.
+ *
+ *  `recarregar` e `msEsperaMaxima` são injetáveis só para o teste — quem
+ *  chama de verdade (usePwaUpdate) usa os padrões. */
+export function recarregarQuandoLivre(
+  recarregar: () => void = () => window.location.reload(),
+  msEsperaMaxima = MS_ESPERA_MAXIMA_REGISTRO,
+) {
+  if (!useUiStore.getState().registroAberto) {
+    recarregar();
+    return;
+  }
+  const parar = useUiStore.subscribe((estado) => {
+    if (estado.registroAberto) return;
+    clearTimeout(limite);
+    parar();
+    recarregar();
+  });
+  const limite = setTimeout(() => {
+    parar();
+    recarregar();
+  }, msEsperaMaxima);
 }
