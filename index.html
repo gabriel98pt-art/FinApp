@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0A1622" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <!-- O iOS não lê os ícones do manifest ao "Adicionar ao ecrã principal":
+         sem esta tag, o Safari usa uma captura da própria página como ícone.
+         O PNG é quadrado de propósito — o iOS aplica o seu próprio squircle e
+         brilho por cima, e um ficheiro já arredondado ficaria cortado. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>FinApp</title>
   </head>
