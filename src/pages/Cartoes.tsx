@@ -256,6 +256,7 @@ export default function Cartoes() {
     transferencias,
     cargas: veiculo.cargas,
     despesasVeiculo: veiculo.despesas,
+    receitas,
   };
 
   const dadosContas: DadosContas = {

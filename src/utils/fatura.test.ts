@@ -5,6 +5,7 @@ import type {
   DespesaFixa,
   DespesaVeiculo,
   Parcela,
+  Receita,
   Transferencia,
 } from "../types";
 import { despesasNosTotais } from "./calculos";
@@ -135,6 +136,54 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
     };
     // 999 + 4500 + 1500 + 3000 (30000/10) + 2000
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(11999);
+  });
+
+  // Estes três nasceram de dinheiro real: a fatura do AB Gold pedia mais do
+  // que o banco cobrava, e a diferença era um cashback de 2% e o estorno de
+  // uma comissão de limite excedido — os dois lançados como RECEITA no cartão,
+  // que é o que o próprio importador de extrato do app faz com um crédito.
+  // Sem isto o erro era invisível: cartão de crédito não mostra saldo em lado
+  // nenhum, só a fatura, e a fatura ignorava-os.
+  function credito(extra: Partial<Receita>): Receita {
+    return {
+      id: Math.random().toString(36).slice(2),
+      descricao: "cashback",
+      valor: 500,
+      data: "2026-06-15",
+      fonte: "Outros",
+      conta: CARTAO,
+      ...extra,
+    };
+  }
+
+  test("crédito no cartão (cashback/estorno) reduz o devido", () => {
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [dc({ valor: 5000 })],
+      receitas: [credito({ valor: 1632 })],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(5000 - 1632);
+  });
+
+  test("crédito só conta se for do cartão e do ciclo", () => {
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [dc({ valor: 5000 })],
+      receitas: [
+        credito({ valor: 1000, conta: "Conta Principal" }), // outra conta
+        credito({ valor: 2000, data: "2026-07-15" }), // outro ciclo
+        credito({ valor: 300 }), // este conta
+      ],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(4700);
+  });
+
+  test("mês só de estornos deixa o devido negativo, mas o restante em zero", () => {
+    // O cartão fica mesmo a crédito. Cortar o devido em zero aqui esconderia
+    // dinheiro que é do usuário; quem mostra "a pagar" usa `restante`.
+    const dados: DadosFatura = { ...vazio, receitas: [credito({ valor: 2500 })] };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(-2500);
+    expect(calcularFatura(CARTAO, "2026-07", dados, {}).restante).toBe(0);
   });
 
   test("só entra o que é do cartão e do ciclo", () => {

@@ -19,6 +19,7 @@ import type {
   IsoDate,
   PagamentoFatura,
   Parcela,
+  Receita,
   Transferencia,
   YearMonth,
 } from "../types";
@@ -118,6 +119,12 @@ export interface DadosFatura {
   /** Carregamentos e despesas variáveis do veículo pagos no cartão. */
   cargas?: CargaEletrica[];
   despesasVeiculo?: DespesaVeiculo[];
+  /** Créditos lançados NO cartão — cashback, estorno de comissão, devolução de
+   *  compra. Reduzem o devido: é dinheiro que o banco põe de volta no cartão,
+   *  não receita nova numa conta à ordem. Opcional para não partir quem chama
+   *  sem elas, mas quem mostra fatura ao usuário TEM de as passar, senão a
+   *  fatura pede mais do que o banco cobra. */
+  receitas?: Receita[];
 }
 
 /** Débito automático das parcelas vinculadas ao cartão num mês do ciclo.
@@ -138,7 +145,8 @@ function debitoAutomaticoParcelas(cartao: string, ciclo: YearMonth, parcelas: Pa
  *  correntes do cartão no ciclo (EXCLUINDO origem 'fat' — o pagamento da
  *  própria fatura nunca conta) + parcelas em débito automático +
  *  transferências de saída contra o cartão + cargas e despesas do veículo
- *  pagas nesse cartão no ciclo. */
+ *  pagas nesse cartão no ciclo, MENOS os créditos lançados no cartão nesse
+ *  ciclo (cashback, estornos — ver `receitas` em DadosFatura). */
 export function calcularFaturaAutomatica(
   cartao: string,
   mesFatura: YearMonth,
@@ -173,7 +181,20 @@ export function calcularFaturaAutomatica(
   const veiculo = (dados.despesasVeiculo ?? [])
     .filter((d) => d.contaCartao === cartao && mesDoCiclo(d.data, diaFechamento) === ciclo)
     .reduce((s, d) => s + d.valor, 0);
-  return fixas + fixasVeiculo + correntes + parcelas + transferencias + cargas + veiculo;
+  // Créditos do ciclo, SUBTRAÍDOS. Um cashback ou o estorno de uma comissão
+  // aparecem no extrato do cartão como crédito e a fatura do banco já vem
+  // abatida deles; sem esta linha o app pedia mais do que o banco cobra, e a
+  // diferença era invisível porque o saldo de um cartão de crédito não é
+  // mostrado em lado nenhum — só a fatura.
+  //
+  // O sinal fica assim mesmo que passe o devido a negativo: o cartão pode
+  // mesmo ficar a crédito (mês só de estornos), e cortar em zero aqui
+  // esconderia dinheiro que é do usuário. Quem mostra o valor a pagar usa
+  // `restante`, que já tem o Math.max(0, …).
+  const creditos = (dados.receitas ?? [])
+    .filter((r) => r.conta === cartao && mesDoCiclo(r.data, diaFechamento) === ciclo)
+    .reduce((s, r) => s + r.valor, 0);
+  return fixas + fixasVeiculo + correntes + parcelas + transferencias + cargas + veiculo - creditos;
 }
 
 /** Formato legado do app antigo: pagamento único {paid, val, date, from, dcId}

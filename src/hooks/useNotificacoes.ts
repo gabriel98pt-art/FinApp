@@ -2,6 +2,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
+  useReceitasStore,
   useTransferenciasStore,
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
@@ -23,6 +24,7 @@ export function useNotificacoes(): Notificacao[] {
   const transferencias = useTransferenciasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
+  const receitas = useReceitasStore((s) => s.itens);
 
   const dados: DadosFatura = {
     despesasFixas,
@@ -32,6 +34,7 @@ export function useNotificacoes(): Notificacao[] {
     transferencias,
     cargas: veiculo.cargas,
     despesasVeiculo: veiculo.despesas,
+    receitas,
   };
 
   return todasNotificacoes(hojeIso(), mesAtual(), dados, cfg, parcelas, [

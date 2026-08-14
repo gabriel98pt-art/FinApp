@@ -268,6 +268,7 @@ function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
     transferencias: ctx.transferencias ?? [],
     cargas: ctx.veiculo.cargas,
     despesasVeiculo: ctx.veiculo.despesas,
+    receitas: ctx.receitas,
   };
 }
 

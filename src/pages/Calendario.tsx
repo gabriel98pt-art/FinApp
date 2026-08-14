@@ -13,6 +13,7 @@ import { useEventosStore } from "../stores/eventosStore";
 import {
   useDespesasFixasStore,
   useDespesasStore,
+  useReceitasStore,
   useTransferenciasStore,
 } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -53,6 +54,7 @@ export default function Calendario() {
   const transferencias = useTransferenciasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
+  const receitas = useReceitasStore((s) => s.itens);
 
   const mes = useMesVisivelStore((s) => s.mes);
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
@@ -87,6 +89,7 @@ export default function Calendario() {
     transferencias,
     cargas: veiculo.cargas,
     despesasVeiculo: veiculo.despesas,
+    receitas,
   };
   const devidoPorCartao = cfg.contasCartoes
     .filter((c) => cfg.tipoCartao[c] === "credit")

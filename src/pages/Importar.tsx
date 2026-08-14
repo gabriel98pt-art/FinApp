@@ -342,6 +342,7 @@ export default function Importar() {
           transferencias,
           cargas: veiculo.cargas,
           despesasVeiculo: veiculo.despesas,
+          receitas,
         },
       });
       if (apagar.length) await apagarExistentes(uid, apagar, despesasFixas);
