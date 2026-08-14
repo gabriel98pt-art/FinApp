@@ -45,6 +45,18 @@ export interface Transacao {
   chave: string;
   /** Id da entidade, pra abrir a folha do tipo certo. */
   refId: string;
+  /** Desempate de ORDEM dentro do mesmo dia — não confundir com `chave`
+   *  (identidade) nem `refId` (navegação). Quando existe um lançamento real
+   *  por trás do item (despesa, receita, transferência, carga, despesa de
+   *  veículo, ou a despesa espelho que uma parcela paga gera), é o `id` dele
+   *  — uma push key do Firebase, cronologicamente ordenável como string — e
+   *  reflete a ordem real de entrada no app. Fixa nunca tem: marcar uma fixa
+   *  como paga não grava hora nenhuma, e em débito automático nem "marcar"
+   *  existe — o dia de vencimento passa e ela conta como paga sozinha, sem
+   *  nenhum evento a ter acontecido numa hora certa. Nesses casos cai no
+   *  `id` da própria entidade (fixa ou parcela) — estável, mas sem refletir
+   *  quando o pagamento daquele mês em particular "aconteceu". */
+  ordemId: string;
   origem: OrigemTransacao;
   data: IsoDate;
   titulo: string;
@@ -88,6 +100,7 @@ export function transacoesDoMes(
     itens.push({
       chave: `receita-${r.id}`,
       refId: r.id,
+      ordemId: r.id,
       origem: "receita",
       data: r.data,
       titulo: r.descricao,
@@ -104,6 +117,7 @@ export function transacoesDoMes(
     itens.push({
       chave: `despesa-${d.id}`,
       refId: d.id,
+      ordemId: d.id,
       origem: "despesa",
       data: d.data,
       titulo: d.descricao,
@@ -123,6 +137,8 @@ export function transacoesDoMes(
     itens.push({
       chave: `fixa-${f.id}-${ym}`,
       refId: f.id,
+      // Sem hora de quando foi marcada — ver a nota em `Transacao.ordemId`.
+      ordemId: f.id,
       origem: "fixa",
       data: diaDoMes(ym, f.diaVencimento),
       titulo: f.descricao,
@@ -160,6 +176,10 @@ export function transacoesDoMes(
     itens.push({
       chave: `parcela-${p.id}-${ym}`,
       refId: p.id,
+      // `real.id`, quando existe, é a despesa espelho que o pagamento criou —
+      // mesma push key que dá a data. Sem ela (paga sozinha por débito
+      // automático, sem lançamento nenhum), cai no id da própria parcela.
+      ordemId: real?.id ?? p.id,
       origem: "parcela",
       data: real?.data ?? diaDoMes(ym, p.diaVencimento),
       titulo: `${p.descricao} (${idx + 1}/${p.numParcelas})`,
@@ -176,6 +196,7 @@ export function transacoesDoMes(
     itens.push({
       chave: `transferencia-${t.id}`,
       refId: t.id,
+      ordemId: t.id,
       origem: "transferencia",
       data: t.data,
       titulo: t.descricao || `${t.de} → ${t.para}`,
@@ -192,6 +213,7 @@ export function transacoesDoMes(
     itens.push({
       chave: `carga-${c.id}`,
       refId: c.id,
+      ordemId: c.id,
       origem: "carga",
       data: c.data,
       titulo: c.local,
@@ -207,6 +229,7 @@ export function transacoesDoMes(
     itens.push({
       chave: `despesaVeiculo-${d.id}`,
       refId: d.id,
+      ordemId: d.id,
       origem: "despesaVeiculo",
       data: d.data,
       // A nota é o próprio título aqui (a despesa do veículo não tem descrição
@@ -218,9 +241,15 @@ export function transacoesDoMes(
     });
   }
 
-  // Mais recente primeiro; empate desempata pela chave, pra ordem estável.
+  // Mais recente primeiro; empate no mesmo dia desempata por `ordemId` — que é
+  // uma push key do Firebase (cronologicamente ordenável como string) sempre
+  // que existe um lançamento real por trás do item, então reflete a ordem de
+  // entrada de verdade. Era `chave` antes, e isso agrupava por TIPO (o prefixo
+  // "despesa-"/"fixa-"/"parcela-" dominava o localeCompare): um dia com
+  // correntes, parcelas e fixas misturadas mostrava todas as correntes juntas,
+  // depois as fixas, depois as parcelas — nunca intercaladas pela ordem real.
   return itens.sort((a, b) =>
-    a.data === b.data ? a.chave.localeCompare(b.chave) : a.data < b.data ? 1 : -1,
+    a.data === b.data ? a.ordemId.localeCompare(b.ordemId) : a.data < b.data ? 1 : -1,
   );
 }
 

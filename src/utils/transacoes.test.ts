@@ -57,6 +57,66 @@ describe("transacoesDoMes", () => {
     expect(t[0].entrada).toBe(false);
   });
 
+  it("no mesmo dia, intercala pela ordem real de entrada — não agrupa por tipo", () => {
+    // O bug relatado: o desempate comparava a `chave` inteira ("despesa-x",
+    // "fixa-x", "parcela-x"), e o prefixo do tipo dominava o localeCompare —
+    // um dia com despesa, parcela e fixa misturadas saía sempre com todas as
+    // despesas juntas, depois as fixas, depois as parcelas, nunca na ordem em
+    // que realmente aconteceram.
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        despesasCorrentes: [
+          {
+            id: "b-despesa",
+            descricao: "Café",
+            valor: 500,
+            data: "2026-08-10",
+            categoria: "Alimentação",
+          },
+          // A despesa espelho que o pagamento da parcela gerou — fica fora do
+          // feed pelo seu próprio lado (origem 'parc'), mas empresta o `id`
+          // (a push key, criada ANTES da despesa acima) pra ordenar a parcela.
+          {
+            id: "a-parcela-real",
+            descricao: "Sofá",
+            valor: 10000,
+            data: "2026-08-10",
+            categoria: "Parcelas",
+            origem: "parc",
+            parcelaId: "p1",
+            parcelaMes: "2026-08",
+          },
+        ],
+        parcelas: [
+          {
+            id: "p1",
+            descricao: "Sofá",
+            total: 30000,
+            numParcelas: 3,
+            primeiroMes: "2026-08",
+            categoria: "Casa",
+            diaVencimento: 10,
+            pagoPorMes: { "2026-08": true },
+          },
+        ],
+        despesasFixas: [
+          {
+            id: "c-fixa",
+            descricao: "Internet",
+            valor: 4000,
+            categoria: "Casa",
+            diaVencimento: 10,
+            pagoPorMes: { "2026-08": true },
+          },
+        ],
+      },
+      "2026-08",
+    );
+    expect(t.map((x) => x.origem)).toEqual(["parcela", "despesa", "fixa"]);
+    expect(t.map((x) => x.ordemId)).toEqual(["a-parcela-real", "b-despesa", "c-fixa"]);
+  });
+
   it("ignora o que é de outro mês", () => {
     const t = transacoesDoMes(
       {
@@ -444,6 +504,7 @@ function transacao(extra: Partial<Transacao> = {}): Transacao {
   return {
     chave: "x",
     refId: "1",
+    ordemId: "1",
     origem: "despesa",
     data: "2026-07-01",
     titulo: "Item",
