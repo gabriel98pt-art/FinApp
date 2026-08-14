@@ -1,12 +1,18 @@
 // Compromissos que caem num dia do mês, para marcar no Calendário (item 11):
 // despesas fixas, parcelas e faturas de cartão.
 //
-// Nem tudo tem data exata no schema — fixa e parcela têm `diaVencimento`
-// (opcional), e fatura não tem dia nenhum. Daí as duas convenções abaixo:
+// Nem tudo tem data exata garantida — fixa e parcela têm `diaVencimento`
+// (opcional), e fatura tem `cfg.diaVencimentoFatura[cartao]` (também
+// opcional, configurado em Cartões). Duas convenções abaixo:
 //   - sem `diaVencimento`, o item simplesmente não é marcado (não inventamos
 //     um dia que o usuário não escolheu);
-//   - a fatura cai no dia 1 do mês seguinte ao ciclo, que é o mês da própria
-//     fatura em `cicloDaFatura`.
+//   - fatura SEM `diaVencimentoFatura` configurado cai no dia 1 do mês da
+//     própria fatura (`cicloDaFatura`) — aqui sim é preciso mostrar algo,
+//     mesmo sem dia exato, porque a fatura em si não é opcional de marcar
+//     como as outras duas. COM o dia configurado, é ele que vale — era isto
+//     que faltava: a função nunca olhava para `diaVencimentoFatura`, então
+//     toda fatura caía no dia 1 mesmo quem já tinha configurado o dia real
+//     (ex. dia 20) em Cartões.
 
 import type { Cents, DespesaFixa, IsoDate, Parcela, YearMonth } from "../types";
 import { diaDoMes } from "./calculos";
@@ -98,9 +104,9 @@ export function vencimentosDeParcelas(
     });
 }
 
-/** Faturas dos cartões, no dia 1 do mês (convenção — ver nota do topo).
- *  `restantePorCartao` já vem calculado pela tela, que é quem tem os dados
- *  todos em mãos (calcularFatura).
+/** Faturas dos cartões, no dia real de vencimento de cada uma (ver nota do
+ *  topo). `restantePorCartao` já vem calculado pela tela, que é quem tem os
+ *  dados todos em mãos (calcularFatura).
  *
  *  Usa `restante` (devido − pago), não `devido`: uma fatura já paga (mesmo
  *  parcialmente, até restar zero) continuava a aparecer como vencimento
@@ -109,12 +115,13 @@ export function vencimentosDeParcelas(
 export function vencimentosDeFaturas(
   restantePorCartao: { cartao: string; restante: Cents }[],
   ym: YearMonth,
+  diaVencimentoFatura?: Record<string, number>,
 ): Vencimento[] {
   return restantePorCartao
     .filter((f) => f.restante > 0)
     .map((f) => ({
       tipo: "fatura" as const,
-      dia: diaDoMes(ym, 1),
+      dia: diaDoMes(ym, diaVencimentoFatura?.[f.cartao] ?? 1),
       titulo: `Fatura ${f.cartao}`,
       detalhe: "vencimento do cartão",
       valor: f.restante,

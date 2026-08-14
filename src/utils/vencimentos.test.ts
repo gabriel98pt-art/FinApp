@@ -105,7 +105,7 @@ describe("vencimentosDeParcelas", () => {
 });
 
 describe("vencimentosDeFaturas", () => {
-  it("cai no dia 1 e ignora fatura sem restante", () => {
+  it("sem diaVencimentoFatura configurado, cai no dia 1 (e ignora fatura sem restante)", () => {
     const v = vencimentosDeFaturas(
       [
         { cartao: "AB Gold", restante: 12345 },
@@ -117,6 +117,29 @@ describe("vencimentosDeFaturas", () => {
     expect(v[0].dia).toBe("2026-07-01");
     expect(v[0].titulo).toBe("Fatura AB Gold");
     expect(v[0].valor).toBe(12345);
+  });
+
+  // O bug relatado: o Calendário mostrava toda fatura no dia 1, mesmo quem
+  // já tinha configurado o dia de vencimento real do cartão em Cartões —
+  // a função nunca olhava para `diaVencimentoFatura`.
+  it("com diaVencimentoFatura configurado, cai no dia certo do cartão", () => {
+    const v = vencimentosDeFaturas([{ cartao: "AB Gold", restante: 12345 }], "2026-07", {
+      "AB Gold": 20,
+    });
+    expect(v[0].dia).toBe("2026-07-20");
+  });
+
+  it("cartão sem dia configurado continua no dia 1, mesmo com outros cartões configurados", () => {
+    const v = vencimentosDeFaturas(
+      [
+        { cartao: "AB Gold", restante: 12345 },
+        { cartao: "Revolut", restante: 5000 },
+      ],
+      "2026-07",
+      { "AB Gold": 20 },
+    );
+    expect(v.find((x) => x.titulo === "Fatura AB Gold")?.dia).toBe("2026-07-20");
+    expect(v.find((x) => x.titulo === "Fatura Revolut")?.dia).toBe("2026-07-01");
   });
 
   // O bug relatado: o Calendário mostrava a fatura inteira mesmo já paga,

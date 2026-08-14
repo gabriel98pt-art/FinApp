@@ -102,7 +102,7 @@ export default function Calendario() {
   const vencimentos: Vencimento[] = [
     ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mes, mesReal, hoje),
     ...vencimentosDeParcelas(parcelas, mes, cfg.diaVencimentoFatura, mesReal, hoje),
-    ...vencimentosDeFaturas(restantePorCartao, mes),
+    ...vencimentosDeFaturas(restantePorCartao, mes, cfg.diaVencimentoFatura),
   ];
   const vencimentosPorDia = porDia(vencimentos);
   const vencimentosDoDiaSel = diaSelecionado ? (vencimentosPorDia.get(diaSelecionado) ?? []) : [];
