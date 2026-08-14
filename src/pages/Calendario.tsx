@@ -36,7 +36,7 @@ import {
   proximosEventos,
   rotulosDiasSemana,
 } from "../utils/calendario";
-import { hojeIso, rotuloMes } from "../utils/calculos";
+import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import type { Cents } from "../types";
 import styles from "./Calendario.module.css";
@@ -91,14 +91,18 @@ export default function Calendario() {
     despesasVeiculo: veiculo.despesas,
     receitas,
   };
-  const devidoPorCartao = cfg.contasCartoes
+  const restantePorCartao = cfg.contasCartoes
     .filter((c) => cfg.tipoCartao[c] === "credit")
-    .map((c) => ({ cartao: c, devido: calcularFatura(c, mes, dadosFatura, cfg).devido }));
+    .map((c) => ({ cartao: c, restante: calcularFatura(c, mes, dadosFatura, cfg).restante }));
 
+  // `mesAtual()`/`hoje` dão a mesma precisão de dia que Transações e o
+  // Orçamento já usam — sem eles, um compromisso já pago continuava a
+  // aparecer no Calendário como se estivesse por fazer.
+  const mesReal = mesAtual();
   const vencimentos: Vencimento[] = [
-    ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mes),
-    ...vencimentosDeParcelas(parcelas, mes, cfg.diaVencimentoFatura),
-    ...vencimentosDeFaturas(devidoPorCartao, mes),
+    ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mes, mesReal, hoje),
+    ...vencimentosDeParcelas(parcelas, mes, cfg.diaVencimentoFatura, mesReal, hoje),
+    ...vencimentosDeFaturas(restantePorCartao, mes),
   ];
   const vencimentosPorDia = porDia(vencimentos);
   const vencimentosDoDiaSel = diaSelecionado ? (vencimentosPorDia.get(diaSelecionado) ?? []) : [];
