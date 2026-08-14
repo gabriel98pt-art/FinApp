@@ -41,7 +41,7 @@ export default defineConfig({
       // autoUpdate: nova versão publicada entra sozinha na próxima navegação,
       // sem diálogo pedindo confirmação ao usuário (seção 6.1).
       registerType: "autoUpdate",
-      includeAssets: ["icons/icon.svg", "icons/apple-touch-icon.png"],
+      includeAssets: ["icons/icon-v2.svg", "icons/apple-touch-icon-v2.png"],
       manifest: false, // manifest.json próprio já existe em public/
       workbox: {
         // Precache do app shell: todo HTML/JS/CSS gerado no build — abre
