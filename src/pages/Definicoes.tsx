@@ -5,6 +5,7 @@ import {
   Copy,
   Download,
   EyeOff,
+  KeyRound,
   LogOut,
   Moon,
   Palette,
@@ -24,7 +25,12 @@ import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
-import { sair } from "../services/authService";
+import {
+  alterarSenha,
+  mensagemDeErroSenhaAtual,
+  sair,
+  SENHA_MINIMA,
+} from "../services/authService";
 import { limparErros, observarErros, type ErroRegistado } from "../services/erroService";
 import {
   adicionarItemLista,
@@ -440,6 +446,68 @@ function ErrosRecentes({ uid }: { uid: string }) {
   );
 }
 
+/** Troca de senha. Pede a atual porque o Firebase exige login recente para
+ *  operações sensíveis — e porque é ela que impede que uma sessão deixada
+ *  aberta num telemóvel emprestado vire uma conta perdida. */
+function MudarSenha() {
+  const [atual, setAtual] = useState("");
+  const [nova, setNova] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  async function submeter(e: FormEvent) {
+    e.preventDefault();
+    if (salvando) return;
+    setSalvando(true);
+    try {
+      await alterarSenha(atual, nova);
+      // Limpar antes do toast: a senha nova não fica à vista de quem estiver
+      // ao lado, e o formulário não convida a submeter outra vez.
+      setAtual("");
+      setNova("");
+      mostrarToast("✓ Senha alterada");
+    } catch (err) {
+      mostrarToast(mensagemDeErroSenhaAtual(err));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <form className={styles.grupo} onSubmit={(e) => void submeter(e)}>
+      <p className={styles.grupoTitulo}>Senha</p>
+      <p className={styles.nota}>
+        Mínimo de {SENHA_MINIMA} caracteres. Pedimos a senha atual para confirmar que é mesmo você.
+      </p>
+      <div className={styles.linhaAdicionar}>
+        <input
+          className={styles.inputPequeno}
+          type="password"
+          value={atual}
+          onChange={(e) => setAtual(e.target.value)}
+          placeholder="Senha atual"
+          aria-label="Senha atual"
+          autoComplete="current-password"
+          required
+        />
+        <input
+          className={styles.inputPequeno}
+          type="password"
+          value={nova}
+          onChange={(e) => setNova(e.target.value)}
+          placeholder="Senha nova"
+          aria-label="Senha nova"
+          autoComplete="new-password"
+          minLength={SENHA_MINIMA}
+          required
+        />
+        <button type="submit" className={styles.botaoPequeno} disabled={salvando}>
+          <KeyRound size={14} aria-hidden /> {salvando ? "A alterar…" : "Alterar senha"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function Definicoes() {
   const sessao = useAuthStore((s) => s.sessao);
   const theme = useThemeStore((s) => s.theme);
@@ -639,6 +707,8 @@ export default function Definicoes() {
       </div>
 
       <ErrosRecentes uid={uid} />
+
+      <MudarSenha />
 
       <div className={styles.grupo}>
         <p className={styles.conta}>Sessão: {sessao?.email ?? "—"}</p>

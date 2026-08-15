@@ -12,11 +12,17 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 
 const sair = vi.fn(async () => {});
+const alterarSenha = vi.fn(async () => {});
 const exportarBackup = vi.fn(async () => {});
 const importarBackup = vi.fn(async () => {});
 const limparErros = vi.fn(async () => {});
 
-vi.mock("../services/authService", () => ({ sair }));
+vi.mock("../services/authService", () => ({
+  sair,
+  alterarSenha,
+  mensagemDeErroSenhaAtual: (err: unknown) => String(err),
+  SENHA_MINIMA: 8,
+}));
 vi.mock("../services/backupService", () => ({ exportarBackup, importarBackup }));
 vi.mock("../services/erroService", () => ({
   limparErros,
@@ -53,6 +59,7 @@ const Definicoes = (await import("./Definicoes")).default;
 beforeEach(() => {
   cfg = { ...CONFIG_PADRAO };
   sair.mockClear();
+  alterarSenha.mockClear();
 });
 
 describe("Definicoes", () => {
@@ -77,12 +84,26 @@ describe("Definicoes", () => {
     expect(screen.getByRole("button", { name: /Sair/ })).toBeInTheDocument();
   });
 
+  test("dá para trocar a senha sem sair da conta", () => {
+    render(<Definicoes />);
+    expect(screen.getByLabelText("Senha atual")).toBeInTheDocument();
+    expect(screen.getByLabelText("Senha nova")).toBeInTheDocument();
+  });
+
+  test("a senha nova exige o mínimo da app, não o do Firebase", () => {
+    render(<Definicoes />);
+    // 6 é o que o Firebase aceita; a app pede mais por guardar dados
+    // financeiros. Se este mínimo cair, cai em silêncio — daí o teste.
+    expect(screen.getByLabelText("Senha nova")).toHaveAttribute("minLength", "8");
+  });
+
   test("não dispara nada destrutivo só por renderizar", () => {
     // Parece óbvio, mas esta página tem efeitos no arranque (a subscrição dos
     // erros registados) e é fácil um deles passar a escrever por engano.
     render(<Definicoes />);
 
     expect(sair).not.toHaveBeenCalled();
+    expect(alterarSenha).not.toHaveBeenCalled();
     expect(exportarBackup).not.toHaveBeenCalled();
     expect(limparErros).not.toHaveBeenCalled();
   });
