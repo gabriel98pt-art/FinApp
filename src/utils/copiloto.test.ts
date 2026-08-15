@@ -1,15 +1,18 @@
 import { describe, expect, test } from "vitest";
-import type { ConfigConta, DespesaCorrente, Parcela, Receita } from "../types";
+import type { ConfigConta, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
   categoriasAcimaDaMedia,
+  categoriasDoMes,
   encontrarNaLista,
   interpretarReferencia,
   mediasPorCategoria,
   normalizarPergunta,
   responderPergunta,
+  totaisDoMes,
   type ContextoCopiloto,
 } from "./copiloto";
+import { despesaRealizadaMes } from "./resumoMensal";
 
 function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
   return {
@@ -106,6 +109,11 @@ describe("responderPergunta — intents (seção 3.9)", () => {
   // categoriasDoMes (uso interno do Copiloto) reimplementa a mesma soma de
   // despesaPorCategoriaMes — e tinha o mesmo furo: parcela em débito
   // automático não contava sem marcação manual.
+  //
+  // O `diaVencimento` é explícito porque o Copiloto passou a ter precisão de
+  // dia: sem ele vale a convenção de esperar o fim do mês, e no dia 23 do
+  // contexto a parcela ainda não teria saído — que é outro caso, coberto no
+  // bloco "mês corrente conta só o que já venceu" mais abaixo.
   test("categoria específica soma a parcela em débito automático sem marcação", () => {
     const parcela: Parcela = {
       id: "p1",
@@ -116,6 +124,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
       categoria: "Alimentação",
       cartao: "AB Gold (C)",
       autoDebit: true,
+      diaVencimento: 10,
       pagoPorMes: {},
     };
     const resp = responderPergunta(
@@ -687,5 +696,131 @@ describe("personalização do Copiloto", () => {
 
     expect(resp).not.toContain("<img");
     expect(resp).toContain("&lt;img");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Precisão de dia no mês corrente
+//
+// O Copiloto respondia 1513,28 de despesa enquanto o KPI "Despesas" do Início
+// mostrava 1248,16 para o mesmo mês. As duas somas são a mesma conta, mas o
+// Início passava `hoje` e o Copiloto não — e sem esse argumento uma fixa ou
+// parcela em débito automático conta no dia 8 uma cobrança que só sai no 27.
+//
+// É o mesmo bug corrigido em ef9fa9b no Orçamento/donut, que nunca chegou a
+// ser aplicado aqui. Os testes abaixo espelham os de orcamento.test.ts.
+// ---------------------------------------------------------------------------
+
+describe("copiloto: mês corrente conta só o que já venceu", () => {
+  const MES = "2026-07";
+
+  const parcelaAuto = (): Parcela => ({
+    id: "p1",
+    descricao: "Consola",
+    total: 30000,
+    numParcelas: 3,
+    primeiroMes: MES,
+    categoria: "Lazer",
+    cartao: "Visa",
+    autoDebit: true,
+    diaVencimento: 20,
+    pagoPorMes: {},
+  });
+
+  const fixaAuto = (): DespesaFixa => ({
+    id: "f1",
+    descricao: "Renda",
+    valor: 70000,
+    categoria: "Casa",
+    contaCartao: "Visa",
+    autoDebit: true,
+    diaVencimento: 27,
+    inicio: "2026-01",
+    pagoPorMes: {},
+  });
+
+  const comDia = (diaDeHoje: number) =>
+    ctx({ parcelas: [parcelaAuto()], despesasFixas: [fixaAuto()], mesReal: MES, diaDeHoje });
+
+  test("antes do vencimento não conta — o dinheiro ainda não saiu", () => {
+    expect(totaisDoMes(comDia(5), MES).despesas).toBe(0);
+  });
+
+  test("no próprio dia do vencimento da parcela, ela já conta", () => {
+    expect(totaisDoMes(comDia(20), MES).despesas).toBe(10000);
+  });
+
+  test("depois de vencerem as duas, contam as duas", () => {
+    expect(totaisDoMes(comDia(28), MES).despesas).toBe(80000);
+  });
+
+  test("a quebra por categoria segue exactamente a mesma regra de dia", () => {
+    // Se divergisse, a soma das categorias deixava de bater com o total que o
+    // próprio Copiloto responde uma linha acima.
+    expect(categoriasDoMes(comDia(5), MES)).toEqual({});
+    expect(categoriasDoMes(comDia(28), MES)).toEqual({ Lazer: 10000, Casa: 70000 });
+  });
+
+  test("mês fechado continua a contar o valor cheio, tenha o dia que tiver", () => {
+    // A precisão de dia é só do mês corrente: em junho, já tudo venceu.
+    const c = ctx({ parcelas: [parcelaAuto()], mesReal: "2026-08", diaDeHoje: 1 });
+    expect(totaisDoMes(c, MES).despesas).toBe(10000);
+  });
+
+  test("a resposta do intent de despesas reflecte isso", () => {
+    expect(responderPergunta("quanto gastei este mes?", comDia(5))).toContain("0,00");
+    expect(responderPergunta("quanto gastei este mes?", comDia(28))).toContain("800,00");
+  });
+
+  test("a média entre meses fica consertada de tabela, por usar categoriasDoMes", () => {
+    // Junho, maio e abril fechados a 100 € em Lazer; julho tem a parcela de
+    // 100 € que ainda não venceu. Sem a correção, julho aparecia como 100 €
+    // já gastos e a comparação dizia "em linha" quando na verdade ainda não
+    // saiu nada.
+    const anteriores = [
+      despesa({ data: "2026-04-02", valor: 10000, categoria: "Lazer" }),
+      despesa({ data: "2026-05-02", valor: 10000, categoria: "Lazer" }),
+      despesa({ data: "2026-06-02", valor: 10000, categoria: "Lazer" }),
+    ];
+    const linha = mediasPorCategoria(
+      ctx({ despesas: anteriores, parcelas: [parcelaAuto()], mesReal: MES, diaDeHoje: 5 }),
+      MES,
+    ).find((m) => m.categoria === "Lazer");
+
+    expect(linha?.gastoAtual).toBe(0);
+  });
+});
+
+describe("copiloto e Início respondem o mesmo número", () => {
+  test("a soma do Copiloto bate com a despesa realizada do KPI 'Despesas'", () => {
+    // Este é o teste que trava a regressão de origem: as duas somas existem
+    // separadas e já divergiram uma vez. Se voltarem a divergir, falha aqui.
+    const MES = "2026-07";
+    const despesas = [despesa({ data: "2026-07-03", valor: 12816 })];
+    const despesasFixas: DespesaFixa[] = [
+      {
+        id: "f1",
+        descricao: "Renda",
+        valor: 26512,
+        categoria: "Casa",
+        contaCartao: "Visa",
+        autoDebit: true,
+        diaVencimento: 27,
+        inicio: "2026-01",
+        pagoPorMes: {},
+      },
+    ];
+    const veiculo = { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] };
+
+    for (const diaDeHoje of [1, 15, 27, 31]) {
+      const hoje = `2026-07-${String(diaDeHoje).padStart(2, "0")}`;
+      const doCopiloto = totaisDoMes(
+        ctx({ despesas, despesasFixas, veiculo, mesReal: MES, diaDeHoje }),
+        MES,
+      ).despesas;
+      const doInicio = despesaRealizadaMes(despesas, despesasFixas, [], veiculo, MES, MES, hoje);
+
+      expect(doCopiloto).toBe(doInicio);
+    }
   });
 });

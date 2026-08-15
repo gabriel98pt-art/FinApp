@@ -284,29 +284,37 @@ export function progressoFundo(fundo: Fundo, mesReal: YearMonth): ProgressoFundo
 }
 
 export function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
+  // `hoje` dá precisão de DIA ao mês corrente: sem ele, uma fixa ou parcela em
+  // débito automático que só vence no dia 27 já contava como despesa realizada
+  // no dia 8. Ver a nota em `despesaRealizadaMes` (utils/resumoMensal.ts), que
+  // é a soma equivalente do Início.
+  const hoje = hojeDoContexto(ctx);
   const despesas =
     totalDoMes(ctx.despesas, ym) +
-    contribuicaoFixasMes(ctx.despesasFixas, ym, ctx.mesReal) +
-    contribuicaoParcelasMes(ctx.parcelas, ym, ctx.mesReal) +
-    totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
+    contribuicaoFixasMes(ctx.despesasFixas, ym, ctx.mesReal, hoje) +
+    contribuicaoParcelasMes(ctx.parcelas, ym, ctx.mesReal, hoje) +
+    totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal, hoje);
   return { receitas: totalDoMes(ctx.receitas, ym), despesas };
 }
 
 /** Breakdown por categoria do mês, com o veículo entrando num bucket
  *  'Veículo' único (mesmo padrão do _cpCatTotals da origem). */
 export function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
+  // Mesma regra de dia que `totaisDoMes` — e tem de ser mesmo a mesma, senão a
+  // soma das categorias deixa de bater com o total do próprio Copiloto.
+  const hoje = hojeDoContexto(ctx);
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
   for (const f of ctx.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym))) {
-    if (ym === ctx.mesReal && !fixaEfetivamentePaga(f, ym, ctx.mesReal)) continue;
+    if (ym === ctx.mesReal && !fixaEfetivamentePaga(f, ym, ctx.mesReal, hoje)) continue;
     ct[f.categoria] = (ct[f.categoria] || 0) + f.valor;
   }
   for (const p of ctx.parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === ctx.mesReal && !estaEfetivamentePaga(p, ym, ctx.mesReal)) continue;
+    if (ym === ctx.mesReal && !estaEfetivamentePaga(p, ym, ctx.mesReal, hoje)) continue;
     const cat = p.categoria ?? "Parcelas";
     ct[cat] = (ct[cat] || 0) + valorDaParcela(p, ym);
   }
-  const totalVeic = totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal);
+  const totalVeic = totalVeiculoMes(ctx.veiculo, ym, ctx.mesReal, hoje);
   if (totalVeic > 0) ct["Veículo"] = (ct["Veículo"] || 0) + totalVeic;
   return ct;
 }
