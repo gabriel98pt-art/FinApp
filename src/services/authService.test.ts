@@ -32,13 +32,32 @@ const auth = {
   },
 };
 
+let caminhosRemovidos: string[] = [];
+
+/** Log partilhado entre o RTDB e o Auth — é o que deixa afirmar QUAL veio
+ *  primeiro, e não só que ambos aconteceram. */
+let ordemOperacoes: string[] = [];
+
+const deleteUser = vi.fn(async () => {
+  ordemOperacoes.push("login");
+});
+
 vi.mock("./firebase", () => ({ auth, db: {} }));
+
+vi.mock("firebase/database", () => ({
+  ref: (_db: unknown, caminho: string) => ({ caminho }),
+  remove: async (r: { caminho: string }) => {
+    caminhosRemovidos.push(r.caminho);
+    ordemOperacoes.push("dados");
+  },
+}));
 
 vi.mock("firebase/auth", () => ({
   createUserWithEmailAndPassword: vi.fn(async () => {}),
   EmailAuthProvider: {
     credential: (email: string, senha: string) => ({ email, senha }),
   },
+  deleteUser,
   onAuthStateChanged: vi.fn(() => () => {}),
   reauthenticateWithCredential,
   sendPasswordResetEmail,
@@ -70,6 +89,13 @@ beforeEach(() => {
   updatePassword.mockClear();
   updatePassword.mockImplementation(async (_user: unknown, senha: string) => {
     senhaGravada = senha;
+  });
+
+  caminhosRemovidos = [];
+  ordemOperacoes = [];
+  deleteUser.mockClear();
+  deleteUser.mockImplementation(async () => {
+    ordemOperacoes.push("login");
   });
 });
 
@@ -154,6 +180,47 @@ describe("alterarSenha", () => {
     await expect(s.alterarSenha("qualquer", "senha-nova-longa")).rejects.toThrow(/Sess/);
     expect(reauthenticateWithCredential).not.toHaveBeenCalled();
     expect(updatePassword).not.toHaveBeenCalled();
+  });
+});
+
+describe("apagarConta", () => {
+  test("apaga os dados ANTES do login — trocar a ordem deixaria a árvore órfã", async () => {
+    await s.apagarConta("senha-certa");
+
+    // As regras do RTDB só deixam escrever em users/$uid quem está
+    // autenticado com esse uid. Apagar o login primeiro tornaria os dados
+    // inalcançáveis para sempre — ninguém mais consegue autenticar-se ali.
+    expect(ordemOperacoes).toEqual(["dados", "login"]);
+  });
+
+  test("remove a árvore inteira do utilizador, não só o fin_v5", async () => {
+    await s.apagarConta("senha-certa");
+
+    // `erros_app` vive fora de fin_v5 e também é dado da pessoa.
+    expect(caminhosRemovidos).toEqual(["users/u1"]);
+  });
+
+  test("senha errada não apaga absolutamente nada", async () => {
+    reauthenticateWithCredential.mockImplementation(async () => {
+      throw new FirebaseError("auth/wrong-password", "errada");
+    });
+
+    await expect(s.apagarConta("errada")).rejects.toThrow();
+    expect(caminhosRemovidos).toEqual([]);
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  test("dados apagados mas login por apagar não fica em silêncio", async () => {
+    deleteUser.mockImplementation(async () => {
+      ordemOperacoes.push("login");
+      throw new FirebaseError("auth/network-request-failed", "caiu");
+    });
+
+    // Não há transação entre RTDB e Auth, então este estado é possível. O que
+    // não pode é a pessoa achar que correu tudo bem: o erro tem de dizer que
+    // os dados já se foram e que falta terminar.
+    await expect(s.apagarConta("senha-certa")).rejects.toThrow(/dados foram apagados/i);
+    expect(caminhosRemovidos).toEqual(["users/u1"]);
   });
 });
 

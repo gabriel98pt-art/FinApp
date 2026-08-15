@@ -27,6 +27,7 @@ import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
 import {
   alterarSenha,
+  apagarConta,
   mensagemDeErroSenhaAtual,
   sair,
   SENHA_MINIMA,
@@ -508,6 +509,68 @@ function MudarSenha() {
   );
 }
 
+/** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
+ *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
+ *
+ *  Pede a senha e ainda assim confirma: é a única ação da app que destrói
+ *  dados sem qualquer forma de recuperar, nem por backup. */
+function ApagarConta() {
+  const [senha, setSenha] = useState("");
+  const [apagando, setApagando] = useState(false);
+  const confirmar = useConfirmar();
+
+  async function submeter(e: FormEvent) {
+    e.preventDefault();
+    if (apagando) return;
+    if (
+      !(await confirmar(
+        "Apagar a conta? Isto remove DEFINITIVAMENTE todos os seus dados — lançamentos, cartões, parcelas, metas e configurações. Não há como desfazer, e nem o backup recupera o que for apagado aqui.",
+      ))
+    )
+      return;
+
+    setApagando(true);
+    try {
+      await apagarConta(senha);
+      // Sem toast de sucesso de propósito: o Firebase encerra a sessão sozinho
+      // e o app volta para o login. Um toast sobre a tela de login seria só
+      // estranho — e não há mais conta a que ele pertença.
+    } catch (err) {
+      mostrarToast(mensagemDeErroSenhaAtual(err));
+      setApagando(false);
+    }
+  }
+
+  return (
+    <form className={styles.grupo} onSubmit={(e) => void submeter(e)}>
+      <p className={styles.grupoTitulo}>Apagar conta</p>
+      <p className={styles.nota}>
+        Remove a conta e todos os dados guardados nela, sem volta. Se quiser ficar com uma cópia,
+        exporte o backup antes.
+      </p>
+      <div className={styles.linhaAdicionar}>
+        <input
+          className={styles.inputPequeno}
+          type="password"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          placeholder="Senha"
+          aria-label="Senha para apagar a conta"
+          autoComplete="current-password"
+          required
+        />
+        <button
+          type="submit"
+          className={`${styles.botaoPequeno} ${styles.sair}`}
+          disabled={apagando}
+        >
+          <Trash2 size={14} aria-hidden /> {apagando ? "A apagar…" : "Apagar conta"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function Definicoes() {
   const sessao = useAuthStore((s) => s.sessao);
   const theme = useThemeStore((s) => s.theme);
@@ -717,6 +780,8 @@ export default function Definicoes() {
           Sair da conta
         </button>
       </div>
+
+      <ApagarConta />
       <PainelCoresApp
         aberta={coresAbertas}
         aoFechar={() => setCoresAbertas(false)}

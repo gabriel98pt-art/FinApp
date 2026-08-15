@@ -2,6 +2,7 @@
 
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   EmailAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
@@ -12,7 +13,8 @@ import {
   type User,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { auth } from "./firebase";
+import { ref, remove } from "firebase/database";
+import { auth, db } from "./firebase";
 
 export interface Sessao {
   uid: string;
@@ -78,6 +80,37 @@ async function reautenticar(senha: string): Promise<User> {
 export async function alterarSenha(senhaAtual: string, senhaNova: string): Promise<void> {
   const user = await reautenticar(senhaAtual);
   await updatePassword(user, senhaNova);
+}
+
+/** Apaga a conta: os dados primeiro, o login depois.
+ *
+ *  A ordem não é preferência — é a única que funciona. As regras do RTDB só
+ *  deixam escrever em `users/$uid` a quem está autenticado com esse uid.
+ *  Apagar o login primeiro deixaria a árvore de dados órfã e para sempre
+ *  inalcançável: ninguém mais no mundo consegue autenticar-se como aquele
+ *  uid, portanto ninguém mais consegue apagá-la. O contrário de "apagar a
+ *  minha conta".
+ *
+ *  Remove `users/$uid` inteiro de propósito, e não só `fin_v5` — `erros_app`
+ *  também é dado da pessoa e vive fora dele.
+ *
+ *  Se os dados forem removidos mas o `deleteUser` falhar (rede a cair no meio,
+ *  tipicamente), a conta fica um login vazio: entra, não tem nada lá dentro.
+ *  Não há transação entre RTDB e Auth para evitar isso, então o que se faz é
+ *  não deixar acontecer em silêncio — o erro abaixo diz exatamente em que
+ *  estado ficou. Repetir a ação resolve: apagar de novo uma árvore já vazia
+ *  não faz mal nenhum, e o `deleteUser` volta a ser tentado. */
+export async function apagarConta(senha: string): Promise<void> {
+  const user = await reautenticar(senha);
+  await remove(ref(db, `users/${user.uid}`));
+
+  try {
+    await deleteUser(user);
+  } catch {
+    throw new Error(
+      "Os seus dados foram apagados, mas o login ainda existe. Tente apagar a conta outra vez para concluir.",
+    );
+  }
 }
 
 /** Observa a sessão; devolve a função de unsubscribe. */

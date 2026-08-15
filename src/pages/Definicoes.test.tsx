@@ -13,6 +13,7 @@ vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 
 const sair = vi.fn(async () => {});
 const alterarSenha = vi.fn(async () => {});
+const apagarConta = vi.fn(async () => {});
 const exportarBackup = vi.fn(async () => {});
 const importarBackup = vi.fn(async () => {});
 const limparErros = vi.fn(async () => {});
@@ -20,6 +21,7 @@ const limparErros = vi.fn(async () => {});
 vi.mock("../services/authService", () => ({
   sair,
   alterarSenha,
+  apagarConta,
   mensagemDeErroSenhaAtual: (err: unknown) => String(err),
   SENHA_MINIMA: 8,
 }));
@@ -60,6 +62,7 @@ beforeEach(() => {
   cfg = { ...CONFIG_PADRAO };
   sair.mockClear();
   alterarSenha.mockClear();
+  apagarConta.mockClear();
 });
 
 describe("Definicoes", () => {
@@ -97,6 +100,11 @@ describe("Definicoes", () => {
     expect(screen.getByLabelText("Senha nova")).toHaveAttribute("minLength", "8");
   });
 
+  test("dá para apagar a conta — o direito ao apagamento precisa de botão", () => {
+    render(<Definicoes />);
+    expect(screen.getByRole("button", { name: /Apagar conta/ })).toBeInTheDocument();
+  });
+
   test("não dispara nada destrutivo só por renderizar", () => {
     // Parece óbvio, mas esta página tem efeitos no arranque (a subscrição dos
     // erros registados) e é fácil um deles passar a escrever por engano.
@@ -104,6 +112,7 @@ describe("Definicoes", () => {
 
     expect(sair).not.toHaveBeenCalled();
     expect(alterarSenha).not.toHaveBeenCalled();
+    expect(apagarConta).not.toHaveBeenCalled();
     expect(exportarBackup).not.toHaveBeenCalled();
     expect(limparErros).not.toHaveBeenCalled();
   });
