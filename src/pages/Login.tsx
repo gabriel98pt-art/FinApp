@@ -4,6 +4,7 @@ import {
   enviarRecuperacaoSenha,
   entrar,
   mensagemDeErroAuth,
+  SENHA_MINIMA,
 } from "../services/authService";
 import styles from "./Login.module.css";
 
@@ -82,7 +83,7 @@ export default function Login() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               autoComplete={modo === "entrar" ? "current-password" : "new-password"}
-              minLength={6}
+              minLength={modo === "cadastrar" ? SENHA_MINIMA : 6}
               required
             />
           </label>

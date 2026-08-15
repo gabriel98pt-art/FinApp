@@ -15,6 +15,15 @@ export interface Sessao {
   email: string | null;
 }
 
+/** Mínimo exigido em senhas NOVAS (cadastro e troca de senha). Acima dos 6 que
+ *  o Firebase aceita: esta app guarda o histórico financeiro inteiro de
+ *  alguém, e 6 caracteres é o que se põe num fórum, não numa conta destas.
+ *
+ *  Não vale no LOGIN de propósito — quem já tem conta antiga com senha curta
+ *  tem de conseguir entrar. Exigir 8 ali não tornaria a senha dela mais forte,
+ *  só a trancava fora dos próprios dados. */
+export const SENHA_MINIMA = 8;
+
 export async function entrar(email: string, senha: string): Promise<void> {
   await signInWithEmailAndPassword(auth, email, senha);
 }
@@ -66,7 +75,7 @@ export function mensagemDeErroAuth(err: unknown): string {
       case "auth/email-already-in-use":
         return "Já existe uma conta com este e-mail.";
       case "auth/weak-password":
-        return "A senha precisa de pelo menos 6 caracteres.";
+        return `A senha precisa de pelo menos ${SENHA_MINIMA} caracteres.`;
       case "auth/too-many-requests":
         return "Muitas tentativas. Aguarde um pouco e tente de novo.";
       case "auth/network-request-failed":
