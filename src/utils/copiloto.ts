@@ -17,7 +17,7 @@ import type {
   Transferencia,
   YearMonth,
 } from "../types";
-import { doMes, mesDe, rotuloMes, somarMeses, totalDoMes } from "./calculos";
+import { doMes, mesDe, mesesRecentes, rotuloMes, somarMeses, totalDoMes } from "./calculos";
 import { proximosEventos } from "./calendario";
 import { calcularFatura, fixaAtivaNoMes, fixaEfetivamentePaga, type DadosFatura } from "./fatura";
 import { contribuicaoFixasMes } from "./despesasFixas";
@@ -210,6 +210,9 @@ export interface ContextoCopiloto {
    *  sentido (só quando a pergunta é sobre o mês corrente de verdade). */
   mesReal: YearMonth;
   diaDeHoje: number;
+  /** Qual das variações de fraseado usar. Ausente/0 = a frase histórica.
+   *  Quem chama roda o número para as respostas não saírem sempre iguais. */
+  variante?: number;
 }
 
 /** 'YYYY-MM-DD' de hoje, reconstruído de mesReal+diaDeHoje (mesma fonte que
@@ -308,6 +311,76 @@ export function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<st
   return ct;
 }
 
+/** Quantos meses fechados entram na média por categoria. 3 é pouco para
+ *  absorver um mês atípico; mais do que 6 traz hábitos que já não são os de
+ *  agora. Usa-se o que houver dentro desta janela. */
+const MESES_DE_MEDIA = 6;
+const MESES_DE_MEDIA_MINIMO = 3;
+
+export interface MediaCategoria {
+  categoria: string;
+  gastoAtual: Cents;
+  media: Cents;
+  /** Quantos meses fechados a média usou — sem isto não se sabe se ela é
+   *  confiável ou se é um mês só a fingir de tendência. */
+  mesesUsados: number;
+  /** Positivo = está a gastar acima do costume. */
+  desvio: Cents;
+  desvioPct: number | null;
+}
+
+/** Compara o mês com a média dos meses fechados anteriores, por categoria.
+ *
+ *  É a única parte do Copiloto que olha para mais do que um mês. Sem ela só
+ *  se consegue afirmar "gastaste X"; com ela dá para dizer "isto está acima
+ *  do teu costume", que é a pergunta que as pessoas fazem de verdade. */
+export function mediasPorCategoria(ctx: ContextoCopiloto, ym: YearMonth): MediaCategoria[] {
+  // +1 e slice: mesesRecentes inclui o mês de referência, que é justamente o
+  // que não pode entrar na própria média.
+  const anteriores = mesesRecentes(MESES_DE_MEDIA + 1, ym).slice(0, -1);
+  const porMes = anteriores.map((m) => categoriasDoMes(ctx, m));
+  const atual = categoriasDoMes(ctx, ym);
+
+  const categorias = new Set<string>([
+    ...Object.keys(atual),
+    ...porMes.flatMap((cats) => Object.keys(cats)),
+  ]);
+
+  const linhas: MediaCategoria[] = [];
+  for (const categoria of categorias) {
+    // Só meses em que a categoria teve movimento — incluir zeros de meses em
+    // que ela nem existia puxava a média para baixo e fazia tudo parecer
+    // "acima do costume".
+    const valores = porMes.map((c) => c[categoria]).filter((v): v is Cents => v !== undefined);
+    if (valores.length < MESES_DE_MEDIA_MINIMO) continue;
+
+    const media = Math.round(valores.reduce((s, v) => s + v, 0) / valores.length);
+    const gastoAtual = atual[categoria] ?? 0;
+    linhas.push({
+      categoria,
+      gastoAtual,
+      media,
+      mesesUsados: valores.length,
+      desvio: gastoAtual - media,
+      desvioPct: media > 0 ? Math.round(((gastoAtual - media) / media) * 100) : null,
+    });
+  }
+
+  return linhas.sort((a, b) => b.desvio - a.desvio);
+}
+
+/** Categorias claramente acima do costume — o "o que está pesando".
+ *  O corte de 15% existe para não chamar tendência a ruído de arredondamento. */
+export function categoriasAcimaDaMedia(
+  ctx: ContextoCopiloto,
+  ym: YearMonth,
+  minPct = 15,
+): MediaCategoria[] {
+  return mediasPorCategoria(ctx, ym).filter(
+    (m) => m.desvio > 0 && m.desvioPct !== null && m.desvioPct >= minPct,
+  );
+}
+
 function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
   let melhor: { ym: YearMonth; saldo: Cents } | null = null;
   let pior: { ym: YearMonth; saldo: Cents } | null = null;
@@ -358,6 +431,40 @@ function escaparHtml(s: string): string {
 }
 
 const b = (s: string) => `<b>${escaparHtml(s)}</b>`;
+
+/** Primeira palavra do nome configurado, já escapada — vai para dentro de
+ *  `dangerouslySetInnerHTML` como todo o resto, e este é texto livre que a
+ *  própria pessoa escreveu. */
+function vocativo(ctx: ContextoCopiloto): string {
+  const nome = ctx.cfg.copiloto?.nome?.trim();
+  if (!nome) return "";
+  return `${escaparHtml(nome.split(/\s+/)[0])}, `;
+}
+
+/** Frases alternativas por tom. O primeiro item de `direto` é sempre o
+ *  fraseado histórico do intent — sem personalização e sem rodar variante, a
+ *  resposta sai exactamente como saía antes. */
+export interface FrasesPorTom {
+  direto: string[];
+  acolhedor: string[];
+}
+
+/** Escolhe a variação e prende-lhe o vocativo.
+ *
+ *  A variação vem do contexto (`variante`) e nunca de `Math.random()`: com
+ *  aleatoriedade real, o mesmo estado dava respostas diferentes entre
+ *  execuções e nenhum teste conseguiria fixar uma. Quem chama é que roda o
+ *  número — a tela incrementa-o a cada pergunta.
+ *
+ *  Os corpos das frases começam em minúscula porque podem vir atrás de um
+ *  nome ("Gabriel, em julho…"); sem nome, capitaliza-se aqui. */
+function variar(ctx: ContextoCopiloto, frases: FrasesPorTom): string {
+  const tom = ctx.cfg.copiloto?.tom ?? "direto";
+  const lista = frases[tom].length ? frases[tom] : frases.direto;
+  const corpo = lista[(ctx.variante ?? 0) % lista.length];
+  const v = vocativo(ctx);
+  return v ? v + corpo : corpo.charAt(0).toUpperCase() + corpo.slice(1);
+}
 
 /** Frases que revelam que a pergunta é sobre juntar dinheiro para algo, e não
  *  sobre o que já se gastou nisso. É o que desempata um fundo e uma categoria
@@ -521,10 +628,26 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const cat = encontrarNaLista(q, ctx.cfg.categoriasDespesa)!;
       const ct = categoriasDoMes(ctx, ref.ym);
       const val = ct[cat] || 0;
-      if (!val) return `Não há gastos em ${b(cat)} em ${ref.label}.`;
+      if (!val)
+        return variar(ctx, {
+          direto: [`não há gastos em ${b(cat)} em ${ref.label}.`],
+          acolhedor: [`não gastou nada em ${b(cat)} em ${ref.label} — nada a assinalar aqui.`],
+        });
       const totalDesp = Object.values(ct).reduce((s, v) => s + v, 0);
       const pct = totalDesp > 0 ? Math.round((val / totalDesp) * 100) : 0;
-      return `Gastou ${b(formatMoney(val, ctx.cfg.currency))} em ${b(cat)} em ${ref.label} — ${pct}% do total de despesas do mês.`;
+      const dinheiro = b(formatMoney(val, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `gastou ${dinheiro} em ${b(cat)} em ${ref.label} — ${pct}% do total de despesas do mês.`,
+          `${b(cat)} levou ${dinheiro} em ${ref.label}, ${pct}% de tudo o que saiu no mês.`,
+          `em ${ref.label}, ${b(cat)} ficou em ${dinheiro} (${pct}% das despesas).`,
+        ],
+        acolhedor: [
+          `em ${ref.label} foram ${dinheiro} em ${b(cat)}, o que dá ${pct}% das suas despesas do mês.`,
+          `${b(cat)} ficou em ${dinheiro} em ${ref.label} — cerca de ${pct}% do que gastou no mês.`,
+          `gastou ${dinheiro} em ${b(cat)} durante ${ref.label}, ou seja ${pct}% do total do mês.`,
+        ],
+      });
     },
   },
   // orçamento (categorias com teto configurado — seção 4.8)
@@ -536,8 +659,31 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const ct = categoriasDoMes(ctx, ref.ym);
       const estourou = categorias.filter((cat) => (ct[cat] || 0) > ctx.cfg.orcamentos[cat]);
       if (!estourou.length)
-        return `Está dentro do orçamento em todas as categorias em ${ref.label}.`;
-      return `Está a ultrapassar o orçamento em ${ref.label} em: ${b(estourou.join(", "))}.`;
+        return variar(ctx, {
+          direto: [
+            `está dentro do orçamento em todas as categorias em ${ref.label}.`,
+            `nenhuma categoria passou do teto em ${ref.label}.`,
+            `orçamento de ${ref.label} cumprido em todas as categorias.`,
+          ],
+          acolhedor: [
+            `está tudo dentro do orçamento em ${ref.label} — nenhuma categoria passou do teto.`,
+            `boas notícias: em ${ref.label} nenhuma categoria estourou o que tinha planeado.`,
+            `em ${ref.label} conseguiu ficar dentro do teto em todas as categorias.`,
+          ],
+        });
+      const lista = b(estourou.join(", "));
+      return variar(ctx, {
+        direto: [
+          `está a ultrapassar o orçamento em ${ref.label} em: ${lista}.`,
+          `passou do teto em ${ref.label} em: ${lista}.`,
+          `fora do orçamento em ${ref.label}: ${lista}.`,
+        ],
+        acolhedor: [
+          `em ${ref.label} há categorias acima do teto: ${lista}. Vale a pena olhar para elas.`,
+          `atenção a ${lista} — passaram do orçamento que tinha definido para ${ref.label}.`,
+          `em ${ref.label}, ${lista} ficaram acima do planeado.`,
+        ],
+      });
     },
   },
   // pendências: parcelas do mês em aberto + faturas de cartão com restante
@@ -595,6 +741,51 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       return base;
     },
   },
+  // o que subiu face ao costume ("o que está pesando", "o que mudou")
+  //
+  // Vem antes de melhor/pior mês e do resumo porque é uma pergunta sobre o
+  // que MUDOU, não sobre o que o mês foi — responder com o resumo do mês
+  // seria responder outra coisa.
+  {
+    test: (q) =>
+      /o que esta pesando|o que ta pesando|esta pesando|o que mudou|por que gastei mais|porque gastei mais|gastei mais|subiu|acima da media/.test(
+        q,
+      ),
+    run: (_q, ref, ctx) => {
+      const subiram = categoriasAcimaDaMedia(ctx, ref.ym);
+      if (!subiram.length)
+        return variar(ctx, {
+          direto: [
+            `nada fora do normal em ${ref.label} — nenhuma categoria está acima da sua média.`,
+            `em ${ref.label} não há nenhuma categoria acima do costume.`,
+          ],
+          acolhedor: [
+            `em ${ref.label} está tudo dentro do seu costume — nenhuma categoria subiu.`,
+            `nada a assinalar em ${ref.label}: os gastos estão em linha com os meses anteriores.`,
+          ],
+        });
+
+      const moeda = ctx.cfg.currency;
+      const partes = subiram
+        .slice(0, 3)
+        .map(
+          (m) =>
+            `${b(m.categoria)} ${m.desvioPct}% acima (${formatMoney(m.gastoAtual, moeda)} contra ${formatMoney(m.media, moeda)} de média)`,
+        );
+      const meses = subiram[0].mesesUsados;
+
+      return variar(ctx, {
+        direto: [
+          `em ${ref.label}, face à média dos últimos ${meses} meses: ${partes.join("; ")}.`,
+          `o que subiu em ${ref.label} (média de ${meses} meses): ${partes.join("; ")}.`,
+        ],
+        acolhedor: [
+          `o que está a pesar mais em ${ref.label}, comparando com os últimos ${meses} meses: ${partes.join("; ")}.`,
+          `em ${ref.label} há coisas acima do seu costume dos últimos ${meses} meses: ${partes.join("; ")}.`,
+        ],
+      });
+    },
+  },
   // melhor / pior mês do ano
   {
     test: (q) => /melhor mes|pior mes/.test(q),
@@ -648,9 +839,33 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const ct = categoriasDoMes(ctx, ref.ym);
       const chaves = Object.keys(ct);
       const maior = chaves.length ? chaves.reduce((a, c) => (ct[c] > ct[a] ? c : a)) : null;
-      let msg = `Em ${ref.label} recebeu ${b(formatMoney(t.receitas, ctx.cfg.currency))} e gastou ${b(formatMoney(t.despesas, ctx.cfg.currency))} — saldo de ${b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency))}.`;
-      if (maior)
-        msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], ctx.cfg.currency)}).`;
+      const moeda = ctx.cfg.currency;
+      const rec = b(formatMoney(t.receitas, moeda));
+      const desp = b(formatMoney(t.despesas, moeda));
+      const saldo = b(formatMoney(t.receitas - t.despesas, moeda));
+
+      let msg = variar(ctx, {
+        direto: [
+          `em ${ref.label} recebeu ${rec} e gastou ${desp} — saldo de ${saldo}.`,
+          `${ref.label}: ${rec} de entradas, ${desp} de saídas, saldo de ${saldo}.`,
+          `entrou ${rec} e saiu ${desp} em ${ref.label}, ficando ${saldo}.`,
+        ],
+        acolhedor: [
+          `em ${ref.label} entraram ${rec} e saíram ${desp}, deixando um saldo de ${saldo}.`,
+          `o seu ${ref.label} fechou com ${rec} recebidos, ${desp} gastos e ${saldo} de saldo.`,
+          `durante ${ref.label} recebeu ${rec} e gastou ${desp} — no fim sobraram ${saldo}.`,
+        ],
+      });
+
+      if (maior) msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], moeda)}).`;
+
+      // A comparação com os meses anteriores é o que separa "gastaste X" de
+      // "isto está acima do teu costume" — só entra quando há uma diferença
+      // que valha a pena mencionar, para o resumo não virar sermão.
+      const subiu = categoriasAcimaDaMedia(ctx, ref.ym, 25)[0];
+      if (subiu && subiu.desvioPct !== null)
+        msg += ` ${b(subiu.categoria)} está ${subiu.desvioPct}% acima da média dos últimos ${subiu.mesesUsados} meses.`;
+
       return msg;
     },
   },
@@ -671,7 +886,19 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         return `O saldo de ${ref.year} é ${b(formatMoney(rec - desp, ctx.cfg.currency))}.`;
       }
       const t = totaisDoMes(ctx, ref.ym);
-      return `O saldo de ${ref.label} é ${b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency))} (receitas menos despesas).`;
+      const valor = b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `o saldo de ${ref.label} é ${valor} (receitas menos despesas).`,
+          `${ref.label} fechou com ${valor} de saldo.`,
+          `saldo de ${ref.label}: ${valor}.`,
+        ],
+        acolhedor: [
+          `o seu saldo em ${ref.label} está em ${valor}, já descontadas as despesas.`,
+          `em ${ref.label} sobraram ${valor} depois de tudo o que saiu.`,
+          `contas feitas, ${ref.label} deixou ${valor} de saldo.`,
+        ],
+      });
     },
   },
   // receitas genérico

@@ -15,7 +15,12 @@ import { despesasNosTotais, hojeIso, mesAtual, receitasNosTotais } from "../util
 import { responderPergunta } from "../utils/copiloto";
 import styles from "./CopilotoCard.module.css";
 
-const SUGESTOES = ["resumo do mês", "estou dentro do orçamento?", "qual meu saldo?"];
+const SUGESTOES = [
+  "resumo do mês",
+  "o que está pesando?",
+  "estou dentro do orçamento?",
+  "qual meu saldo?",
+];
 
 /** Copiloto (seção 3.9): pergunta em linguagem natural, resposta 100% local
  *  e determinística — zero chamada a IA externa. */
@@ -32,11 +37,17 @@ export default function CopilotoCard() {
 
   const [pergunta, setPergunta] = useState("");
   const [resposta, setResposta] = useState<string | null>(null);
+  // Roda o fraseado a cada pergunta, para a mesma pergunta duas vezes seguidas
+  // não devolver a frase idêntica. Vive na sessão: recarregar a página começa
+  // outra vez pela frase de sempre, o que é o comportamento certo por omissão.
+  const [variante, setVariante] = useState(0);
 
   function perguntar(q: string) {
     if (!q.trim()) return;
     const diaDeHoje = parseInt(hojeIso().slice(8, 10), 10);
+    setVariante((v) => v + 1);
     const r = responderPergunta(q, {
+      variante,
       receitas,
       despesas,
       parcelas,

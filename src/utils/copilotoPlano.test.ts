@@ -10,7 +10,7 @@ import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Receita } from "
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "./copiloto";
 import { progressoFundo, responderPergunta } from "./copiloto";
-import { buildFinanceSnapshot, gerarPlano, mediasPorCategoria } from "./copilotoPlano";
+import { buildFinanceSnapshot, gerarPlano } from "./copilotoPlano";
 
 function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
   return {
@@ -231,60 +231,6 @@ describe("buildFinanceSnapshot", () => {
       estourou: true,
       pctUsado: 150,
     });
-  });
-});
-
-describe("mediasPorCategoria", () => {
-  test("um mês solitário não vira tendência", () => {
-    // Só junho tem dados: abaixo do mínimo de meses, a categoria não entra —
-    // dizer "está 300% acima da média" com uma amostra de um mês seria dar
-    // ares de padrão a uma coincidência.
-    const linhas = mediasPorCategoria(
-      ctx({ despesas: [despesa("2026-06-02", 10000), despesa("2026-07-02", 40000)] }),
-      "2026-07",
-    );
-
-    expect(linhas).toHaveLength(0);
-  });
-
-  test("com meses suficientes, compara o mês corrente com a média", () => {
-    const linhas = mediasPorCategoria(
-      ctx({
-        despesas: [
-          despesa("2026-04-02", 10000),
-          despesa("2026-05-02", 10000),
-          despesa("2026-06-02", 10000),
-          despesa("2026-07-02", 20000),
-        ],
-      }),
-      "2026-07",
-    );
-
-    expect(linhas[0]).toMatchObject({
-      categoria: "Alimentação",
-      media: 10000,
-      gastoAtual: 20000,
-      mesesUsados: 3,
-      desvio: 10000,
-      desvioPct: 100,
-    });
-  });
-
-  test("o mês corrente não entra na sua própria média", () => {
-    const linhas = mediasPorCategoria(
-      ctx({
-        despesas: [
-          despesa("2026-04-02", 10000),
-          despesa("2026-05-02", 10000),
-          despesa("2026-06-02", 10000),
-          despesa("2026-07-02", 99999),
-        ],
-      }),
-      "2026-07",
-    );
-
-    // Se julho entrasse, a média subia — e o desvio encolhia sozinho.
-    expect(linhas[0].media).toBe(10000);
   });
 });
 

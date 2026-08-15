@@ -11,7 +11,8 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { Cents, ConfigConta, TokenCorApp, YearMonth } from "../types";
+import { semIndefinidos } from "./lancamentosService";
+import type { Cents, ConfigConta, PreferenciasCopiloto, TokenCorApp, YearMonth } from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
@@ -215,6 +216,18 @@ export async function definirCorApp(
   const r = ref(db, caminho(uid, `/coresApp/${tema}/${token}`));
   if (cor === null || cor === "") await remove(r);
   else await set(r, cor);
+}
+
+/** Personalização do Copiloto — `null` apaga o nó inteiro.
+ *
+ *  É guardada num nó só, e não campo a campo, para que "desligar a
+ *  personalização" seja um `remove` e não a limpeza de vários campos soltos:
+ *  o nome de alguém não pode ficar para trás porque uma das escritas falhou. */
+export async function definirPreferenciasCopiloto(uid: string, prefs: PreferenciasCopiloto | null) {
+  snapshotHistorico();
+  const r = ref(db, caminho(uid, "/copiloto"));
+  if (prefs === null) await remove(r);
+  else await set(r, semIndefinidos(prefs));
 }
 
 /** Teto de orçamento mensal por categoria (seção 4.8) — `null`/0 remove o teto. */

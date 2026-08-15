@@ -2,8 +2,10 @@ import { describe, expect, test } from "vitest";
 import type { ConfigConta, DespesaCorrente, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
+  categoriasAcimaDaMedia,
   encontrarNaLista,
   interpretarReferencia,
+  mediasPorCategoria,
   normalizarPergunta,
   responderPergunta,
   type ContextoCopiloto,
@@ -472,5 +474,218 @@ describe("copiloto: pergunta que não bate em nada", () => {
 
   test("pergunta vazia também tem resposta", () => {
     expect(responderPergunta("", ctx()).length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Comparação entre meses, variação de fraseado e personalização
+// ---------------------------------------------------------------------------
+
+/** Três meses fechados a 100 € em Alimentação, e julho ao valor que se quiser
+ *  — a base de quase todos os testes de média abaixo. */
+const tresMesesIguais = (julho: number): DespesaCorrente[] => [
+  despesa({ data: "2026-04-02", valor: 10000 }),
+  despesa({ data: "2026-05-02", valor: 10000 }),
+  despesa({ data: "2026-06-02", valor: 10000 }),
+  despesa({ data: "2026-07-02", valor: julho }),
+];
+
+describe("mediasPorCategoria", () => {
+  test("um mês solitário não vira tendência", () => {
+    // Só junho tem dados: abaixo do mínimo de meses a categoria não entra.
+    // Dizer "300% acima da média" com uma amostra de um mês seria dar ares de
+    // padrão a uma coincidência.
+    const linhas = mediasPorCategoria(
+      ctx({ despesas: [despesa({ data: "2026-06-02", valor: 10000 }), despesa({ valor: 40000 })] }),
+      "2026-07",
+    );
+
+    expect(linhas).toHaveLength(0);
+  });
+
+  test("com meses suficientes, compara o mês corrente com a média", () => {
+    const linhas = mediasPorCategoria(ctx({ despesas: tresMesesIguais(20000) }), "2026-07");
+
+    expect(linhas[0]).toMatchObject({
+      categoria: "Alimentação",
+      media: 10000,
+      gastoAtual: 20000,
+      mesesUsados: 3,
+      desvio: 10000,
+      desvioPct: 100,
+    });
+  });
+
+  test("o mês corrente não entra na sua própria média", () => {
+    const linhas = mediasPorCategoria(ctx({ despesas: tresMesesIguais(99999) }), "2026-07");
+
+    // Se julho entrasse, a média subia — e o desvio encolhia sozinho.
+    expect(linhas[0].media).toBe(10000);
+  });
+});
+
+describe("categoriasAcimaDaMedia", () => {
+  test("ignora subidas pequenas, que são ruído e não hábito", () => {
+    // 105 € contra 100 € de média: 5% não é "está a pesar mais".
+    expect(
+      categoriasAcimaDaMedia(ctx({ despesas: tresMesesIguais(10500) }), "2026-07"),
+    ).toHaveLength(0);
+  });
+
+  test("aponta a categoria que subiu de verdade", () => {
+    const acima = categoriasAcimaDaMedia(ctx({ despesas: tresMesesIguais(20000) }), "2026-07");
+
+    expect(acima).toHaveLength(1);
+    expect(acima[0]).toMatchObject({ categoria: "Alimentação", desvioPct: 100 });
+  });
+
+  test("quem gastou MENOS que o costume não aparece", () => {
+    expect(
+      categoriasAcimaDaMedia(ctx({ despesas: tresMesesIguais(1000) }), "2026-07"),
+    ).toHaveLength(0);
+  });
+});
+
+describe("intent 'o que está pesando'", () => {
+  test("responde com a categoria acima da média e os dois valores", () => {
+    const resp = responderPergunta(
+      "o que esta pesando este mes?",
+      ctx({ despesas: tresMesesIguais(20000) }),
+    );
+
+    expect(resp).toMatch(/Alimentação/);
+    expect(resp).toMatch(/100%/);
+    // Tem de mostrar o valor atual E a média — a afirmação sem os números por
+    // trás é só opinião.
+    expect(resp).toMatch(/200,00/);
+    expect(resp).toMatch(/100,00/);
+  });
+
+  test("'o que mudou' e 'por que gastei mais' caem no mesmo intent", () => {
+    const c = ctx({ despesas: tresMesesIguais(20000) });
+
+    expect(responderPergunta("o que mudou?", c)).toMatch(/Alimentação/);
+    expect(responderPergunta("por que gastei mais?", c)).toMatch(/Alimentação/);
+  });
+
+  test("sem nada acima do costume, diz isso em vez de inventar um culpado", () => {
+    const resp = responderPergunta(
+      "o que esta pesando?",
+      ctx({ despesas: tresMesesIguais(10000) }),
+    );
+
+    expect(resp).toMatch(/nada|linha|costume/i);
+    expect(resp).not.toMatch(/%/);
+  });
+
+  test("não rouba a pergunta de resumo", () => {
+    // "resumo do mês" continua a ser resumo, não comparação.
+    const resp = responderPergunta("resumo do mes", ctx({ despesas: tresMesesIguais(20000) }));
+    expect(resp).toMatch(/recebeu|entradas|entrou/i);
+  });
+});
+
+describe("resumo enriquecido com a comparação", () => {
+  test("menciona a categoria que subiu bem acima do costume", () => {
+    const resp = responderPergunta("resumo do mes", ctx({ despesas: tresMesesIguais(20000) }));
+
+    expect(resp).toMatch(/acima da média dos últimos 3 meses/);
+  });
+
+  test("não menciona nada quando o mês está em linha com o costume", () => {
+    const resp = responderPergunta("resumo do mes", ctx({ despesas: tresMesesIguais(10000) }));
+
+    expect(resp).not.toMatch(/acima da média/);
+  });
+});
+
+describe("variação de fraseado", () => {
+  const comDados = (variante?: number) =>
+    ctx({ despesas: [despesa({ valor: 15000 })], receitas: [receita()], variante });
+
+  test("sem variante, a resposta é exactamente a de sempre", () => {
+    // Este é o contrato que protege todos os outros testes do ficheiro: a
+    // variação não pode mudar o comportamento por omissão.
+    expect(responderPergunta("qual meu saldo?", comDados())).toBe(
+      responderPergunta("qual meu saldo?", comDados(0)),
+    );
+    expect(responderPergunta("qual meu saldo?", comDados())).toMatch(
+      /^O saldo de .* \(receitas menos despesas\)\.$/,
+    );
+  });
+
+  test("variantes diferentes dão textos diferentes", () => {
+    const a = responderPergunta("qual meu saldo?", comDados(0));
+    const b2 = responderPergunta("qual meu saldo?", comDados(1));
+
+    expect(a).not.toBe(b2);
+  });
+
+  test("mas o número é o mesmo em todas as variantes", () => {
+    // O ponto da variação é o texto. O valor não pode dançar com ele.
+    const respostas = [0, 1, 2, 3, 4].map((v) => responderPergunta("qual meu saldo?", comDados(v)));
+
+    for (const r of respostas) expect(r).toContain("1.850,00");
+  });
+
+  test("a variante roda em vez de rebentar quando passa do fim da lista", () => {
+    const alta = responderPergunta("qual meu saldo?", comDados(99));
+    expect(alta.length).toBeGreaterThan(0);
+  });
+
+  test("resumo, orçamento e categoria também variam", () => {
+    const base = ctx({ despesas: [despesa({ valor: 15000 })], cfg: cfgCom({ orcamentos: {} }) });
+    const v = (q: string, variante: number) =>
+      responderPergunta(q, {
+        ...base,
+        variante,
+        cfg: cfgCom({ orcamentos: { Alimentação: 1000 } }),
+      });
+
+    expect(v("resumo do mes", 0)).not.toBe(v("resumo do mes", 1));
+    expect(v("estou dentro do orcamento?", 0)).not.toBe(v("estou dentro do orcamento?", 1));
+    expect(v("quanto gastei em alimentacao?", 0)).not.toBe(v("quanto gastei em alimentacao?", 1));
+  });
+});
+
+describe("personalização do Copiloto", () => {
+  const comNome = (nome: string, tom: "direto" | "acolhedor" = "direto") =>
+    ctx({
+      despesas: [despesa({ valor: 15000 })],
+      receitas: [receita()],
+      cfg: cfgCom({ copiloto: { nome, tom } }),
+    });
+
+  test("trata pela primeira palavra do nome", () => {
+    const resp = responderPergunta("qual meu saldo?", comNome("Gabriel Castilho"));
+
+    expect(resp).toMatch(/^Gabriel, /);
+    expect(resp).not.toMatch(/Castilho/);
+  });
+
+  test("sem nome configurado, nada muda em relação a hoje", () => {
+    expect(responderPergunta("qual meu saldo?", ctx({ receitas: [receita()] }))).toMatch(
+      /^O saldo/,
+    );
+  });
+
+  test("nome vazio ou só espaços não vira vocativo pendurado", () => {
+    expect(responderPergunta("qual meu saldo?", comNome("   "))).toMatch(/^O saldo/);
+  });
+
+  test("o tom acolhedor muda o texto, não o número", () => {
+    const direto = responderPergunta("qual meu saldo?", comNome("Ana", "direto"));
+    const acolhedor = responderPergunta("qual meu saldo?", comNome("Ana", "acolhedor"));
+
+    expect(direto).not.toBe(acolhedor);
+    expect(direto).toContain("1.850,00");
+    expect(acolhedor).toContain("1.850,00");
+  });
+
+  test("nome com HTML é escapado — vai para dentro de innerHTML como o resto", () => {
+    const resp = responderPergunta("qual meu saldo?", comNome("<img onerror=x>"));
+
+    expect(resp).not.toContain("<img");
+    expect(resp).toContain("&lt;img");
   });
 });

@@ -9,6 +9,18 @@ export type TokenCorApp = "blu" | "grn" | "red" | "ylw" | "pur";
 
 export type CoresApp = Partial<Record<"dark" | "light", Partial<Record<TokenCorApp, string>>>>;
 
+/** Como o Copiloto trata quem lhe pergunta. */
+export type TomCopiloto = "direto" | "acolhedor";
+
+/** Personalização do Copiloto — SÓ existe se a pessoa a tiver configurado de
+ *  propósito. A ausência do campo é o estado normal, não um "por preencher":
+ *  sem ele o Copiloto responde exactamente como sempre respondeu. */
+export interface PreferenciasCopiloto {
+  /** Como tratar a pessoa. Usa-se só a primeira palavra. */
+  nome?: string;
+  tom: TomCopiloto;
+}
+
 /** Configuração por conta (antigo `S.cfg`). */
 export interface ConfigConta {
   theme: Theme;
@@ -88,6 +100,10 @@ export interface ConfigConta {
    *  usuário, gerida na aba Parcelas — é conceito daquele domínio, como os
    *  locais de carregamento são do Veículo. */
   intermediadoresParcelamento: string[];
+
+  /** Personalização do Copiloto. Ausente = sem personalização nenhuma, que é
+   *  como toda a conta nasce e como fica se a pessoa a desligar. */
+  copiloto?: PreferenciasCopiloto;
 
   /** Cores centrais escolhidas pelo usuário, POR TEMA — os tons de cada token
    *  já são diferentes entre claro e escuro, então um valor só não serviria

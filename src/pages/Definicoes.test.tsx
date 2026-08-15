@@ -17,6 +17,7 @@ const apagarConta = vi.fn(async () => {});
 const exportarBackup = vi.fn(async () => {});
 const importarBackup = vi.fn(async () => {});
 const limparErros = vi.fn(async () => {});
+const definirPreferenciasCopiloto = vi.fn(async () => {});
 
 vi.mock("../services/authService", () => ({
   sair,
@@ -40,6 +41,7 @@ vi.mock("../services/cfgService", () => ({
   definirIconeCategoria: vi.fn(async () => {}),
   definirCorCategoria: vi.fn(async () => {}),
   definirCorApp: vi.fn(async () => {}),
+  definirPreferenciasCopiloto,
 }));
 
 let cfg = { ...CONFIG_PADRAO };
@@ -100,6 +102,16 @@ describe("Definicoes", () => {
     expect(screen.getByLabelText("Senha nova")).toHaveAttribute("minLength", "8");
   });
 
+  test("dá para personalizar o Copiloto", () => {
+    render(<Definicoes />);
+    expect(screen.getByLabelText("Nome para o Copiloto")).toBeInTheDocument();
+  });
+
+  test("sem personalização guardada, não oferece desligar o que não está ligado", () => {
+    render(<Definicoes />);
+    expect(screen.queryByRole("button", { name: /Desligar/ })).not.toBeInTheDocument();
+  });
+
   test("dá para apagar a conta — o direito ao apagamento precisa de botão", () => {
     render(<Definicoes />);
     expect(screen.getByRole("button", { name: /Apagar conta/ })).toBeInTheDocument();
@@ -113,6 +125,7 @@ describe("Definicoes", () => {
     expect(sair).not.toHaveBeenCalled();
     expect(alterarSenha).not.toHaveBeenCalled();
     expect(apagarConta).not.toHaveBeenCalled();
+    expect(definirPreferenciasCopiloto).not.toHaveBeenCalled();
     expect(exportarBackup).not.toHaveBeenCalled();
     expect(limparErros).not.toHaveBeenCalled();
   });

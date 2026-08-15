@@ -1,36 +1,30 @@
-// Motor de fatos e planeamento do Copiloto — a camada entre os dados brutos e
-// qualquer IA.
+// Motor de fatos e planeamento do Copiloto.
 //
-// A divisão de trabalho do Copiloto híbrido é deliberada e vive aqui:
+//   dados reais → [ESTE FICHEIRO: números] → [copiloto.ts: palavras] → tela
 //
-//   dados reais → [ESTE FICHEIRO: números] → [IA: só palavras] → tela
-//
-// Tudo o que envolve aritmética acontece neste ficheiro, é determinístico e é
-// testável sem rede. A IA a jusante recebe o resultado já calculado e nunca
-// tem permissão para produzir um valor — se ela sair do ar, o que se perde é
-// o tom da resposta, não a resposta.
-//
-// É também o que vai pela rede: nunca a lista de transações, só este resumo.
+// Tudo o que envolve aritmética acontece aqui, é determinístico e é testável
+// sem rede nenhuma. Nada neste ficheiro chama serviços externos: chegou a
+// existir a ideia de mandar este resumo a uma IA para ela o reescrever com
+// mais jeito, mas isso foi cancelado por custo enquanto a app não é
+// comercial. A separação ficou na mesma, porque continua a valer por si — o
+// que a app AFIRMA sobre o dinheiro de alguém não se mistura com a forma
+// como o diz.
 
 import type { Cents, Currency, Id, YearMonth } from "../types";
-import { mesesRecentes, somarDias, somarMeses } from "./calculos";
+import { somarDias, somarMeses } from "./calculos";
 import { proximosEventos } from "./calendario";
 import { calcularFatura } from "./fatura";
 import {
   categoriasDoMes,
   dadosFaturaDoContexto,
+  mediasPorCategoria,
   progressoFundo,
   totaisDoMes,
   type ContextoCopiloto,
+  type MediaCategoria,
   type ProgressoFundo,
 } from "./copiloto";
 import { vencimentosDeFaturas, vencimentosDeFixas, vencimentosDeParcelas } from "./vencimentos";
-
-/** Quantos meses fechados entram na média por categoria. 3 é pouco para
- *  absorver um mês atípico; mais do que 6 traz hábitos que já não são os de
- *  agora. Usa-se o que houver dentro desta janela. */
-const MESES_DE_MEDIA = 6;
-const MESES_DE_MEDIA_MINIMO = 3;
 
 /** Um compromisso já datado dentro da janela de 30 dias. */
 export interface CompromissoPrevisto {
@@ -48,18 +42,6 @@ export interface OrcamentoCategoria {
   /** Pode passar de 100 — é justamente o caso que interessa mostrar. */
   pctUsado: number;
   estourou: boolean;
-}
-
-export interface MediaCategoria {
-  categoria: string;
-  gastoAtual: Cents;
-  media: Cents;
-  /** Quantos meses fechados a média usou — sem isto não se sabe se ela é
-   *  confiável ou se é um mês só a fingir de tendência. */
-  mesesUsados: number;
-  /** Positivo = está a gastar acima do costume. */
-  desvio: Cents;
-  desvioPct: number | null;
 }
 
 /** Retrato estruturado da conta. Números, nunca texto: é o que separa o que a
@@ -177,45 +159,6 @@ function estadoDoOrcamento(ctx: ContextoCopiloto, ym: YearMonth): OrcamentoCateg
       };
     })
     .sort((a, b) => b.pctUsado - a.pctUsado);
-}
-
-/** Média por categoria nos meses FECHADOS anteriores, comparada com o mês
- *  corrente. É a única parte do Copiloto que olha para mais do que um mês —
- *  sem ela não há como dizer "isto está acima do teu costume", só "isto é o
- *  valor". */
-export function mediasPorCategoria(ctx: ContextoCopiloto, ym: YearMonth): MediaCategoria[] {
-  // +1 e slice: mesesRecentes inclui o mês de referência, que é justamente o
-  // que não pode entrar na própria média.
-  const anteriores = mesesRecentes(MESES_DE_MEDIA + 1, ym).slice(0, -1);
-  const porMes = anteriores.map((m) => ({ m, cats: categoriasDoMes(ctx, m) }));
-  const atual = categoriasDoMes(ctx, ym);
-
-  const categorias = new Set<string>([
-    ...Object.keys(atual),
-    ...porMes.flatMap((p) => Object.keys(p.cats)),
-  ]);
-
-  const linhas: MediaCategoria[] = [];
-  for (const categoria of categorias) {
-    // Só meses em que a categoria teve movimento — incluir zeros de meses em
-    // que ela nem existia puxava a média para baixo e fazia tudo parecer
-    // "acima do costume".
-    const valores = porMes.map((p) => p.cats[categoria]).filter((v): v is Cents => v !== undefined);
-    if (valores.length < MESES_DE_MEDIA_MINIMO) continue;
-
-    const media = Math.round(valores.reduce((s, v) => s + v, 0) / valores.length);
-    const gastoAtual = atual[categoria] ?? 0;
-    linhas.push({
-      categoria,
-      gastoAtual,
-      media,
-      mesesUsados: valores.length,
-      desvio: gastoAtual - media,
-      desvioPct: media > 0 ? Math.round(((gastoAtual - media) / media) * 100) : null,
-    });
-  }
-
-  return linhas.sort((a, b) => b.desvio - a.desvio);
 }
 
 export function buildFinanceSnapshot(ctx: ContextoCopiloto): FinanceSnapshot {
