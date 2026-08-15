@@ -3,6 +3,7 @@
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
@@ -24,6 +25,25 @@ export async function cadastrar(email: string, senha: string): Promise<void> {
 
 export async function sair(): Promise<void> {
   await signOut(auth);
+}
+
+/** Envia o link de redefinição de senha.
+ *
+ *  Resolve em silêncio quando o e-mail não tem conta: quem chama mostra
+ *  sempre a mesma mensagem, aconteça o que acontecer. Sem isto, a tela de
+ *  recuperação vira um verificador de quem tem conta aqui — basta ir tentando
+ *  e-mails e ver qual dá erro. Numa app que guarda a vida financeira de
+ *  alguém, confirmar "esta pessoa é cliente" já é vazar informação.
+ *
+ *  Erros reais (rede, e-mail malformado, excesso de tentativas) continuam a
+ *  subir — esses o usuário precisa de ver. */
+export async function enviarRecuperacaoSenha(email: string): Promise<void> {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (err) {
+    if (err instanceof FirebaseError && err.code === "auth/user-not-found") return;
+    throw err;
+  }
 }
 
 /** Observa a sessão; devolve a função de unsubscribe. */

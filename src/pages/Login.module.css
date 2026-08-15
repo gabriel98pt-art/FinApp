@@ -66,6 +66,14 @@
   text-align: center;
 }
 
+/* Confirmação neutra da recuperação de senha — deliberadamente discreta, não
+   verde de "sucesso": ela aparece mesmo quando o e-mail não tem conta. */
+.aviso {
+  color: var(--mut);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .principal {
   background: var(--blu);
   color: var(--bg);
