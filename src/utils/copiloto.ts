@@ -508,10 +508,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // veículo genérico (soma tudo: cargas + despesas + fixas)
+  //
+  // Chama `totalVeiculoMes` directamente, sem passar por `totaisDoMes` nem
+  // `categoriasDoMes` — foi por isso que escapou à correção de 617d305 e
+  // continuou a contar o seguro do dia 28 já no dia 3.
   {
     test: (q) => /veiculo|\bcarro\b/.test(q),
     run: (_q, ref, ctx) =>
-      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
+      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal, hojeDoContexto(ctx)), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
   },
   // parcela específica (por nome)
   {

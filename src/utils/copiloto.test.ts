@@ -772,6 +772,43 @@ describe("copiloto: mês corrente conta só o que já venceu", () => {
     expect(responderPergunta("quanto gastei este mes?", comDia(28))).toContain("800,00");
   });
 
+  test("o intent de veículo também espera o dia do vencimento", () => {
+    // Este chama `totalVeiculoMes` directamente, sem passar por `totaisDoMes`
+    // nem `categoriasDoMes` — foi por isso que escapou à correção de 617d305.
+    const comSeguro = (diaDeHoje: number) =>
+      ctx({
+        mesReal: MES,
+        diaDeHoje,
+        veiculo: {
+          cargas: [
+            { id: "c1", data: "2026-07-02", kwh: 40, precoKwh: 25, custo: 1000, local: "Casa" },
+          ],
+          despesas: [],
+          despesasFixas: [
+            {
+              id: "fv1",
+              descricao: "Seguro do carro",
+              valor: 45000,
+              categoria: "Seguro",
+              contaCartao: "Visa",
+              autoDebit: true,
+              diaVencimento: 28,
+              inicio: "2026-01",
+              pagoPorMes: {},
+            },
+          ],
+          quilometragem: [],
+        },
+      });
+
+    // Dia 3: só o carregamento já feito, o seguro do dia 28 ainda não saiu.
+    expect(responderPergunta("quanto gastei no carro esse mes?", comSeguro(3))).toContain("10,00");
+    // Dia 28: o seguro entra e o total sobe.
+    expect(responderPergunta("quanto gastei no carro esse mes?", comSeguro(28))).toContain(
+      "460,00",
+    );
+  });
+
   test("a média entre meses fica consertada de tabela, por usar categoriasDoMes", () => {
     // Junho, maio e abril fechados a 100 € em Lazer; julho tem a parcela de
     // 100 € que ainda não venceu. Sem a correção, julho aparecia como 100 €
