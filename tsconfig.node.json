@@ -19,5 +19,8 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  // `api/` corre na Vercel (Node), não no browser — por isso entra neste
+  // projeto e não no `tsconfig.app.json`. Sem estar aqui, não era verificado
+  // por ninguém: um erro de tipo na função serverless só aparecia em produção.
+  "include": ["vite.config.ts", "api"]
 }

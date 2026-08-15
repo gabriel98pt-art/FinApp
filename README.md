@@ -46,6 +46,29 @@ exemplo e salta o login, sem tocar na rede. Serve pra conferir layout e
 interações; qualquer ação que grave vai falhar, porque não há sessão real.
 Não entra no build de produção — o Vite só usa o `index.html`.
 
+## Copiloto — camada 2 (IA)
+
+O Copiloto responde em duas camadas. A **camada 1** (`utils/copiloto.ts`) é
+local, síncrona e determinística, e trata de tudo o que a app sabe calcular. A
+**camada 2** só entra quando nenhum intent soube responder, e nunca produz um
+número: recebe um resumo já calculado e formatado e limita-se a escrevê-lo.
+
+A chave nunca vai no bundle — a chamada passa por `api/copiloto-ia.ts`, função
+serverless da Vercel. Para funcionar em produção é preciso criar, **no
+dashboard da Vercel** (Settings → Environment Variables), nunca em ficheiro
+commitado:
+
+| Variável         | Obrigatória | Notas                          |
+| ---------------- | ----------- | ------------------------------ |
+| `GEMINI_API_KEY` | sim         | Chave do Google AI Studio      |
+| `GEMINI_MODEL`   | não         | Omitida usa `gemini-2.0-flash` |
+
+Sem a variável a app **não parte**: a camada 2 responde sempre "não consigo
+responder agora, tente depois", e a camada 1 continua a funcionar na íntegra.
+
+As regras do Realtime Database mudaram (nó `iaUso`) e precisam de ser
+publicadas: `firebase deploy --only database`.
+
 ## Repositório
 
 https://github.com/gabriel98pt-art/FinApp

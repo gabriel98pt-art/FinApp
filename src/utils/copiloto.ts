@@ -1,8 +1,15 @@
 // Copiloto — motor de perguntas em linguagem natural (seção 3.9), portado do
-// financas.html (_CP_INTENTS e vizinhos). ZERO IA externa: resposta sempre
-// calculada localmente a partir do estado real da conta, determinística.
-// Lista ordenada de intents (mais específico → mais genérico); o primeiro
-// cujo test() bate vence.
+// financas.html (_CP_INTENTS e vizinhos). Lista ordenada de intents (mais
+// específico → mais genérico); o primeiro cujo test() bate vence.
+//
+// Esta é a CAMADA 1 do Copiloto e continua a ser 100% local, determinística e
+// síncrona: toda a resposta sai de cálculo sobre o estado real da conta, sem
+// rede nenhuma. Nada neste ficheiro chama IA.
+//
+// A camada 2 (services/copilotoIA.ts) só entra quando esta devolve
+// `RESPOSTA_PADRAO`, ou seja, quando nenhum intent soube responder. Nunca por
+// cima de uma resposta que a camada 1 conseguiu dar — o número calculado aqui
+// vale sempre mais do que texto gerado.
 
 import type {
   Cents,
@@ -430,7 +437,7 @@ interface IntentCopiloto {
  *  valores interpolados (nome de categoria/cartão/fonte/parcela) vêm de
  *  texto livre configurado pelo usuário: sem isso, um nome de categoria tipo
  *  '<img onerror=...>' viraria XSS armazenado. impeccable-disable-line broken-image */
-function escaparHtml(s: string): string {
+export function escaparHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -927,11 +934,20 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   },
 ];
 
-const RESPOSTA_PADRAO =
+/** Devolvida quando nenhum intent soube responder.
+ *
+ *  Exportada porque é o SINAL que liga a camada 2: quem chama compara a
+ *  resposta com esta constante para saber se vale a pena tentar a IA. Deixou
+ *  de ser texto que chega sozinho ao ecrã. */
+export const RESPOSTA_PADRAO =
   "Ainda não sei responder a isso. Pergunte sobre categorias, orçamento, poupança, parcelas, cartões ou peça um resumo do mês.";
 
-/** Zero IA — resposta 100% local e determinística (decisão deliberada,
- *  seção 3.9: custo e privacidade). */
+/** Resposta 100% local e determinística — camada 1, sem rede nenhuma.
+ *
+ *  Continua síncrona de propósito: é o caminho de todas as perguntas que a app
+ *  sabe responder sozinha, e não deve pagar o custo de ser assíncrona por
+ *  causa do caso em que falha. Quem quiser a camada 2 compara o retorno com
+ *  `RESPOSTA_PADRAO` e decide daí. */
 export function responderPergunta(pergunta: string, ctx: ContextoCopiloto): string {
   const q = normalizarPergunta(pergunta);
   const ref = interpretarReferencia(q, ctx.mesReal);
