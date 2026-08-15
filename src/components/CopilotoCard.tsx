@@ -7,6 +7,7 @@ import {
   useTransferenciasStore,
 } from "../stores/lancamentosStore";
 import { useEventosStore } from "../stores/eventosStore";
+import { useFundosStore } from "../stores/fundosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -26,6 +27,7 @@ export default function CopilotoCard() {
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const transferencias = useTransferenciasStore((s) => s.itens);
   const eventos = useEventosStore((s) => s.itens);
+  const fundos = useFundosStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
 
   const [pergunta, setPergunta] = useState("");
@@ -42,6 +44,7 @@ export default function CopilotoCard() {
       despesasFixas,
       transferencias,
       eventos,
+      fundos,
       cfg,
       mesReal: mesAtual(),
       diaDeHoje,

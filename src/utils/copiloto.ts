@@ -11,6 +11,7 @@ import type {
   DespesaCorrente,
   DespesaFixa,
   EventoCalendario,
+  Fundo,
   Parcela,
   Receita,
   Transferencia,
@@ -200,6 +201,11 @@ export interface ContextoCopiloto {
   /** Só usadas no cálculo de fatura (intent "pendentes"). */
   transferencias?: Transferencia[];
   eventos: EventoCalendario[];
+  /** Fundos/sub-metas ("cofrinhos"). Independentes de `cfg.metaPoupanca`, que
+   *  é um valor agregado único e legado: a meta de poupança responde "quanto
+   *  devia sobrar por mês", os fundos respondem "quanto falta para a viagem".
+   *  São perguntas diferentes e ambas continuam a existir. */
+  fundos: Fundo[];
   /** Mês real de hoje — usado pra decidir se "projeção no ritmo atual" faz
    *  sentido (só quando a pergunta é sobre o mês corrente de verdade). */
   mesReal: YearMonth;
@@ -217,7 +223,64 @@ function hojeDoContexto(ctx: ContextoCopiloto): string {
  *  Copiloto não responder um número menor que o KPI "Despesas" logo acima
  *  dele no Início. Fixas e parcelas contam pelo plano, com a regra mês
  *  corrente/mês fechado. */
-function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
+/** Meses inteiros de `de` até `ate` (negativo se `ate` já passou). */
+export function diferencaEmMeses(de: YearMonth, ate: YearMonth): number {
+  const [dy, dm] = de.split("-").map(Number);
+  const [ay, am] = ate.split("-").map(Number);
+  return (ay - dy) * 12 + (am - dm);
+}
+
+export interface ProgressoFundo {
+  fundo: Fundo;
+  falta: Cents;
+  /** 0–100, limitado a 100 mesmo quando se guardou a mais que o alvo. */
+  pct: number;
+  concluido: boolean;
+  /** Meses que restam até ao prazo CONTANDO o mês corrente — é neste mês que
+   *  ainda dá para separar dinheiro, portanto ele conta. `null` sem prazo. */
+  mesesRestantes: number | null;
+  /** Quanto separar por mês para lá chegar. Arredondado para CIMA: arredondar
+   *  para baixo faz a soma das parcelas ficar debaixo do alvo, que é
+   *  exactamente o que a pessoa não quer descobrir no último mês. */
+  porMes: Cents | null;
+  /** Tem prazo, o prazo já passou e o fundo não está completo. */
+  prazoVencido: boolean;
+}
+
+/** Estado de um fundo: quanto falta, e — havendo prazo — quanto separar por
+ *  mês para lá chegar a tempo. Pura, para servir tanto o intent como o
+ *  snapshot sem duplicar a aritmética. */
+export function progressoFundo(fundo: Fundo, mesReal: YearMonth): ProgressoFundo {
+  const falta = Math.max(0, fundo.alvo - fundo.atual);
+  const concluido = falta === 0;
+  const pct = fundo.alvo > 0 ? Math.min(100, Math.round((fundo.atual / fundo.alvo) * 100)) : 0;
+
+  if (!fundo.prazo) {
+    return {
+      fundo,
+      falta,
+      pct,
+      concluido,
+      mesesRestantes: null,
+      porMes: null,
+      prazoVencido: false,
+    };
+  }
+
+  const mesesRestantes = diferencaEmMeses(mesReal, mesDe(fundo.prazo)) + 1;
+  const prazoVencido = !concluido && mesesRestantes <= 0;
+  return {
+    fundo,
+    falta,
+    pct,
+    concluido,
+    mesesRestantes,
+    porMes: concluido || mesesRestantes <= 0 ? null : Math.ceil(falta / mesesRestantes),
+    prazoVencido,
+  };
+}
+
+export function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
   const despesas =
     totalDoMes(ctx.despesas, ym) +
     contribuicaoFixasMes(ctx.despesasFixas, ym, ctx.mesReal) +
@@ -228,7 +291,7 @@ function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
 
 /** Breakdown por categoria do mês, com o veículo entrando num bucket
  *  'Veículo' único (mesmo padrão do _cpCatTotals da origem). */
-function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
+export function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
   const ct: Record<string, Cents> = {};
   for (const d of doMes(ctx.despesas, ym)) ct[d.categoria] = (ct[d.categoria] || 0) + d.valor;
   for (const f of ctx.despesasFixas.filter((f) => fixaAtivaNoMes(f, ym))) {
@@ -259,7 +322,7 @@ function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
   return { melhor, pior };
 }
 
-function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
+export function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
   return {
     despesasFixas: ctx.despesasFixas,
     despesasFixasVeiculo: ctx.veiculo.despesasFixas,
@@ -295,6 +358,12 @@ function escaparHtml(s: string): string {
 }
 
 const b = (s: string) => `<b>${escaparHtml(s)}</b>`;
+
+/** Frases que revelam que a pergunta é sobre juntar dinheiro para algo, e não
+ *  sobre o que já se gastou nisso. É o que desempata um fundo e uma categoria
+ *  com o mesmo nome. */
+const PALAVRAS_DE_META =
+  /fundo|meta|falta|chegar|juntar|poupar|guardar|atingir|objetivo|objectivo|cofrinho/;
 
 export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // combustível / carregamento elétrico
@@ -408,6 +477,43 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         : `Não há receitas de ${b(fonte)} registadas em ${ref.label}.`;
     },
   },
+  // fundo/sub-meta específico pelo nome ("falta muito para a viagem?")
+  //
+  // Vem ANTES da categoria de despesa porque um fundo e uma categoria podem
+  // chamar-se igual ("Viagem"): quem escreve "quanto falta para a viagem"
+  // quer o cofrinho, não o quanto já gastou. Sem linguagem de meta na frase,
+  // porém, a categoria ganha — aí "gastei na viagem" continua a ser gasto.
+  {
+    test: (q, ctx) => {
+      const nome = encontrarNaLista(
+        q,
+        ctx.fundos.map((f) => f.nome),
+      );
+      if (!nome) return false;
+      if (PALAVRAS_DE_META.test(q)) return true;
+      return !encontrarNaLista(q, ctx.cfg.categoriasDespesa);
+    },
+    run: (q, _ref, ctx) => {
+      const nome = encontrarNaLista(
+        q,
+        ctx.fundos.map((f) => f.nome),
+      );
+      const fundo = ctx.fundos.find((f) => f.nome === nome);
+      if (!fundo) return null;
+
+      const p = progressoFundo(fundo, ctx.mesReal);
+      const moeda = ctx.cfg.currency;
+      const base = `O fundo ${b(fundo.nome)} está em ${b(formatMoney(fundo.atual, moeda))} de ${b(formatMoney(fundo.alvo, moeda))} (${p.pct}%).`;
+
+      if (p.concluido) return `${base} Já chegou ao alvo.`;
+      if (p.prazoVencido)
+        return `${base} Faltam ${b(formatMoney(p.falta, moeda))} e o prazo (${b(rotuloMes(mesDe(fundo.prazo!)))}) já passou.`;
+      if (p.porMes === null || p.mesesRestantes === null)
+        return `${base} Faltam ${b(formatMoney(p.falta, moeda))}. Sem prazo definido, não dá para dizer quanto por mês.`;
+
+      return `${base} Faltam ${b(formatMoney(p.falta, moeda))}. Até ${b(rotuloMes(mesDe(fundo.prazo!)))} são ${b(String(p.mesesRestantes))} mês(es) — dá cerca de ${b(formatMoney(p.porMes, moeda))} por mês.`;
+    },
+  },
   // categoria de despesa específica
   {
     test: (q, ctx) => !!encontrarNaLista(q, ctx.cfg.categoriasDespesa),
@@ -472,6 +578,19 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         const ultimoDia = new Date(ay, am, 0).getDate();
         const projecao = Math.round((saldo / ctx.diaDeHoje) * ultimoDia);
         base += ` No ritmo actual, a projecção para o fim do mês é ${b(formatMoney(projecao, ctx.cfg.currency))} (${projecao >= meta ? "bate" : "não bate"} a meta).`;
+      }
+      // Os fundos respondem a outra pergunta que não a meta agregada, mas quem
+      // pergunta "como vão as minhas metas" quer saber dos dois.
+      const abertos = ctx.fundos
+        .map((f) => progressoFundo(f, ctx.mesReal))
+        .filter((p) => !p.concluido);
+      if (abertos.length) {
+        const comPrazo = abertos.filter((p) => p.porMes !== null);
+        const totalPorMes = comPrazo.reduce((s, p) => s + (p.porMes ?? 0), 0);
+        base += ` Tem ainda ${b(String(abertos.length))} fundo(s) por completar`;
+        base += totalPorMes
+          ? `, que pedem ${b(formatMoney(totalPorMes, ctx.cfg.currency))} por mês para baterem o prazo.`
+          : " (sem prazo definido).";
       }
       return base;
     },

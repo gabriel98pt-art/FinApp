@@ -17,6 +17,7 @@ function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
     parcelas: [],
     veiculo: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
     eventos: [],
+    fundos: [],
     cfg: CONFIG_PADRAO,
     mesReal: "2026-07",
     diaDeHoje: 23,
