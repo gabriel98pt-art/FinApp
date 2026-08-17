@@ -304,6 +304,24 @@ export function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
   return { receitas: totalDoMes(ctx.receitas, ym), despesas };
 }
 
+/** Quantos dias tem o mês. `new Date(ano, mes, 0)` — com o mês 1-12 tal como
+ *  vem do 'YYYY-MM' — cai no último dia desse mês, sem tabela de 30/31. */
+export function ultimoDiaDoMes(ym: YearMonth): number {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+/** Saldo projetado para o fim do mês, mantendo o ritmo do que já correu.
+ *
+ *  `null` quando a projeção não quer dizer nada: num mês fechado o saldo já é
+ *  o final (projetar seria inventar), e sem um dia de hoje válido a divisão
+ *  não existe. */
+export function projecaoFimMes(ctx: ContextoCopiloto, ym: YearMonth): Cents | null {
+  if (ym !== ctx.mesReal || ctx.diaDeHoje <= 0) return null;
+  const t = totaisDoMes(ctx, ym);
+  return Math.round(((t.receitas - t.despesas) / ctx.diaDeHoje) * ultimoDiaDoMes(ym));
+}
+
 /** Breakdown por categoria do mês, com o veículo entrando num bucket
  *  'Veículo' único (mesmo padrão do _cpCatTotals da origem). */
 export function categoriasDoMes(ctx: ContextoCopiloto, ym: YearMonth): Record<string, Cents> {
@@ -423,7 +441,8 @@ export function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
   };
 }
 
-function dataCurta(d: string): string {
+/** '2026-07-05' → '05/07'. Dia e mês bastam onde o ano é o do contexto. */
+export function dataCurta(d: string): string {
   return `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 }
 
@@ -738,10 +757,8 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const saldo = t.receitas - t.despesas;
       const meta = ctx.cfg.metaPoupanca;
       let base = `A meta de poupança é ${b(formatMoney(meta, ctx.cfg.currency))}. Em ${ref.label} o saldo está em ${b(formatMoney(saldo, ctx.cfg.currency))} — ${saldo >= meta ? "acima" : "abaixo"} da meta.`;
-      if (/ritmo|projec|vou bater/.test(q) && ref.ym === ctx.mesReal && ctx.diaDeHoje > 0) {
-        const [ay, am] = ref.ym.split("-").map(Number);
-        const ultimoDia = new Date(ay, am, 0).getDate();
-        const projecao = Math.round((saldo / ctx.diaDeHoje) * ultimoDia);
+      const projecao = /ritmo|projec|vou bater/.test(q) ? projecaoFimMes(ctx, ref.ym) : null;
+      if (projecao !== null) {
         base += ` No ritmo actual, a projecção para o fim do mês é ${b(formatMoney(projecao, ctx.cfg.currency))} (${projecao >= meta ? "bate" : "não bate"} a meta).`;
       }
       // Os fundos respondem a outra pergunta que não a meta agregada, mas quem

@@ -33,11 +33,16 @@ const receita = (valor: number): Receita => ({
   fonte: "Trabalho",
 });
 
-const despesa = (valor: number, categoria: string): DespesaCorrente => ({
-  id: `d-${categoria}`,
-  data: "2026-07-05",
+const despesa = (
+  valor: number,
+  categoria: string,
+  data = "2026-07-05",
+  descricao = "Compra no Continente da Rua Y",
+): DespesaCorrente => ({
+  id: `d-${categoria}-${data}`,
+  data,
   valor,
-  descricao: "Compra no Continente da Rua Y",
+  descricao,
   categoria,
   contaCartao: "Visa terminado em 4321",
 });
@@ -55,16 +60,18 @@ describe("montarResumoParaIA", () => {
     expect(r.mes).toMatch(/julho/i);
   });
 
-  test("NÃO leva descrição, data, conta nem cartão de nenhum lançamento", () => {
+  test("NÃO leva conta, cartão nem id de nenhum lançamento", () => {
     const cru = JSON.stringify(
       montarResumoParaIA(ctx({ receitas: [receita(200000)], despesas: [despesa(50000, "Casa")] })),
     );
 
-    expect(cru).not.toContain("Continente");
-    expect(cru).not.toContain("Rua Y");
     expect(cru).not.toContain("Visa");
     expect(cru).not.toContain("4321");
+    expect(cru).not.toContain("d-Casa");
+    // A data vai curta ('05/07'), nunca a ISO completa.
     expect(cru).not.toContain("2026-07-05");
+    // Nem a descrição da receita: as transações que saem são só despesas.
+    expect(cru).not.toContain("Salário");
   });
 
   test("a quebra por categoria vai ordenada da maior para a menor", () => {
@@ -111,6 +118,10 @@ describe("montarResumoParaIA", () => {
     expect(r.categorias).toEqual([]);
     expect(r.fundos).toEqual([]);
     expect(r.saldo).toBe("€ 0,00");
+    expect(r.ultimasTransacoes).toEqual([]);
+    expect(r.tendencias).toEqual([]);
+    expect(r.mediaDiaria).toBe("€ 0,00");
+    expect(r.comparacaoMesAnterior.variacaoDespesas).toBeNull();
   });
 
   test("segue a moeda da conta", () => {
@@ -119,5 +130,120 @@ describe("montarResumoParaIA", () => {
     );
 
     expect(r.receitas).toContain("R$");
+  });
+});
+
+// A janela de lançamentos crus é a única parte do resumo que atravessa a
+// fronteira com dados de linha. Os limites dela são o teste.
+describe("montarResumoParaIA — últimas transações", () => {
+  test("leva as despesas mais recentes do mês, da nova para a antiga", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [
+          despesa(1000, "Casa", "2026-07-02", "Renda"),
+          despesa(2000, "Lazer", "2026-07-11", "Cinema"),
+          despesa(3000, "Comida", "2026-07-07", "Almoço"),
+        ],
+      }),
+    );
+
+    expect(r.ultimasTransacoes.map((t) => t.descricao)).toEqual(["Cinema", "Almoço", "Renda"]);
+    expect(r.ultimasTransacoes[0]).toEqual({
+      data: "11/07",
+      categoria: "Lazer",
+      descricao: "Cinema",
+      valor: "€ 20,00",
+    });
+  });
+
+  test("não leva despesas de outros meses — a janela é só o mês corrente", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [
+          despesa(1000, "Casa", "2026-06-30", "Mês passado"),
+          despesa(2000, "Casa", "2026-08-01", "Mês seguinte"),
+          despesa(3000, "Casa", "2026-07-03", "Este mês"),
+        ],
+      }),
+    );
+
+    expect(r.ultimasTransacoes.map((t) => t.descricao)).toEqual(["Este mês"]);
+  });
+
+  test("corta em 8 — o resumo não vira extrato", () => {
+    const muitas = Array.from({ length: 20 }, (_, i) =>
+      despesa(1000, "Casa", `2026-07-${String(i + 1).padStart(2, "0")}`, `Compra ${i + 1}`),
+    );
+
+    const r = montarResumoParaIA(ctx({ despesas: muitas }));
+
+    expect(r.ultimasTransacoes).toHaveLength(8);
+    expect(r.ultimasTransacoes[0].descricao).toBe("Compra 20");
+  });
+});
+
+// Números derivados: existem porque a IA está proibida de fazer contas. Se
+// não forem calculados aqui, ninguém os calcula.
+describe("montarResumoParaIA — números derivados", () => {
+  test("média diária divide a despesa do mês pelos dias já corridos", () => {
+    const r = montarResumoParaIA(ctx({ despesas: [despesa(30000, "Casa")], diaDeHoje: 10 }));
+
+    expect(r.mediaDiaria).toBe("€ 30,00");
+  });
+
+  test("projeção estende o saldo actual até ao último dia do mês", () => {
+    // Saldo de € 1.500,00 ao dia 15 de um mês de 31 dias → € 3.100,00.
+    const r = montarResumoParaIA(
+      ctx({ receitas: [receita(200000)], despesas: [despesa(50000, "Casa")] }),
+    );
+
+    expect(r.projecaoFimMes).toBe("€ 3.100,00");
+  });
+
+  test("sem dia de hoje válido não há projeção nem média inventada", () => {
+    const r = montarResumoParaIA(ctx({ despesas: [despesa(50000, "Casa")], diaDeHoje: 0 }));
+
+    expect(r.projecaoFimMes).toBeNull();
+    expect(r.mediaDiaria).toBe("€ 0,00");
+  });
+
+  test("compara com o mês anterior e leva a variação já com sinal", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        receitas: [receita(200000), { ...receita(100000), id: "r2", data: "2026-06-01" }],
+        despesas: [despesa(50000, "Casa"), despesa(40000, "Casa", "2026-06-10")],
+      }),
+    );
+
+    expect(r.comparacaoMesAnterior.mes).toMatch(/junho/i);
+    expect(r.comparacaoMesAnterior.receitas).toBe("€ 1.000,00");
+    expect(r.comparacaoMesAnterior.despesas).toBe("€ 400,00");
+    expect(r.comparacaoMesAnterior.variacaoReceitas).toBe("+100%");
+    expect(r.comparacaoMesAnterior.variacaoDespesas).toBe("+25%");
+  });
+
+  test("leva as categorias acima do costume, com desvio e meses da média", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [
+          despesa(10000, "Comida", "2026-04-10"),
+          despesa(10000, "Comida", "2026-05-10"),
+          despesa(10000, "Comida", "2026-06-10"),
+          despesa(20000, "Comida", "2026-07-10"),
+        ],
+      }),
+    );
+
+    expect(r.tendencias).toEqual([{ categoria: "Comida", desvioPct: "+100%", mesesUsados: 3 }]);
+  });
+
+  test("categoria sem histórico suficiente não vira tendência", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [despesa(10000, "Comida", "2026-06-10"), despesa(90000, "Comida", "2026-07-10")],
+      }),
+    );
+
+    expect(r.tendencias).toEqual([]);
   });
 });
