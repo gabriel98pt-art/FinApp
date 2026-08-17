@@ -470,6 +470,25 @@ describe("copiloto: melhor e pior mês", () => {
     expect(responderPergunta("qual foi o melhor mes", c)).toMatch(/./);
     expect(responderPergunta("qual foi o pior mes", c)).toMatch(/./);
   });
+
+  // Bug: o intent lia `ctx.mesReal` para o ano e ignorava por completo a
+  // referência de tempo interpretada da pergunta — "do ano passado" nunca
+  // mudava o ano usado no cálculo, e a resposta saía sobre o ano corrente
+  // mesmo quando perguntada sobre o anterior.
+  test("'do ano passado' usa o ano anterior, não o corrente", () => {
+    const c = ctx({
+      // 2026 (ano corrente, mesReal="2026-07"): saldo negativo em todos os meses.
+      despesas: [despesa({ data: "2026-05-10", valor: 900000 })],
+      // 2025 (ano passado): só maio tem receita, o resto fica a zero.
+      receitas: [receita({ data: "2025-05-01", valor: 500000 })],
+    });
+    const melhor = responderPergunta("qual foi o melhor mes do ano passado", c);
+    const pior = responderPergunta("qual foi o pior mes do ano passado", c);
+    expect(melhor).toMatch(/2025/);
+    expect(melhor).not.toMatch(/2026/);
+    expect(pior).toMatch(/2025/);
+    expect(pior).not.toMatch(/2026/);
+  });
 });
 
 describe("copiloto: resumo anual", () => {

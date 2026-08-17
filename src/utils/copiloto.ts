@@ -827,17 +827,28 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // melhor / pior mês do ano
+  //
+  // Bug corrigido: `ref` (o ano interpretado da pergunta, ex. "do ano
+  // passado" ou "de 2024") chegava a este intent como `_ref` e nunca era
+  // lido — "qual foi o pior mês do ano passado" respondia sempre com o ano
+  // CORRENTE, contradizendo a própria pergunta. Agora usa `ref.year` quando
+  // a pergunta traz um ano explícito (`ref.isYear`), e só cai no ano
+  // corrente na ausência de qualquer pista, como os demais intents de ano.
   {
     test: (q) => /melhor mes|pior mes/.test(q),
-    run: (q, _ref, ctx) => {
-      const { melhor, pior } = melhorPiorMes(ctx, parseInt(ctx.mesReal.slice(0, 4), 10));
+    run: (q, ref, ctx) => {
+      const anoAtual = parseInt(ctx.mesReal.slice(0, 4), 10);
+      const ano = ref.isYear && ref.year !== undefined ? ref.year : anoAtual;
+      const { melhor, pior } = melhorPiorMes(ctx, ano);
+      const deQual = ano === anoAtual ? "do ano" : `de ${ano}`;
+      const semDados = ano === anoAtual ? "este ano" : `em ${ano}`;
       if (q.includes("melhor"))
         return melhor
-          ? `O melhor mês do ano foi ${b(rotuloMes(melhor.ym))}, com saldo de ${b(formatMoney(melhor.saldo, ctx.cfg.currency))}.`
-          : "Ainda não há dados suficientes este ano.";
+          ? `O melhor mês ${deQual} foi ${b(rotuloMes(melhor.ym))}, com saldo de ${b(formatMoney(melhor.saldo, ctx.cfg.currency))}.`
+          : `Ainda não há dados suficientes ${semDados}.`;
       return pior
-        ? `O pior mês do ano foi ${b(rotuloMes(pior.ym))}, com saldo de ${b(formatMoney(pior.saldo, ctx.cfg.currency))}.`
-        : "Ainda não há dados suficientes este ano.";
+        ? `O pior mês ${deQual} foi ${b(rotuloMes(pior.ym))}, com saldo de ${b(formatMoney(pior.saldo, ctx.cfg.currency))}.`
+        : `Ainda não há dados suficientes ${semDados}.`;
     },
   },
   // calendário / próximos eventos (mesma janela de 7 dias da tela Calendário)
