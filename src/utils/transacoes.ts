@@ -34,7 +34,7 @@ import type {
   YearMonth,
 } from "../types";
 import { diaDoMes, mesDe } from "./calculos";
-import { fixaEfetivamentePaga } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 
 export type OrigemTransacao =
@@ -94,6 +94,14 @@ export function transacoesDoMes(
   hoje?: IsoDate,
 ): Transacao[] {
   const itens: Transacao[] = [];
+  // Mês já fechado (passado): mesma regra de `contribuicaoFixasMes` e das
+  // outras agregações por categoria/orçamento — conta o valor cheio de tudo
+  // que estava ativo, marcado ou não, em vez de exigir a marcação de "pago"
+  // que só faz sentido enquanto o mês ainda está a decorrer. Sem isso, uma
+  // fixa/parcela manual esquecida por marcar sumia do extrato de um mês
+  // passado, mas continuava a contar inteira no Orçamento e nos totais —
+  // as duas telas discordando sobre o mesmo dinheiro.
+  const mesFechado = mesReferencia !== undefined && ym < mesReferencia;
 
   for (const r of dados.receitas) {
     if (mesDe(r.data) !== ym || r.origem === "recon") continue;
@@ -133,7 +141,8 @@ export function transacoesDoMes(
   // à mão, ou em débito automático no cartão, que não precisa de marcação.
   const todasFixas = [...dados.despesasFixas, ...dados.veiculo.despesasFixas];
   for (const f of todasFixas) {
-    if (!fixaEfetivamentePaga(f, ym, mesReferencia, hoje)) continue;
+    if (mesFechado ? !fixaAtivaNoMes(f, ym) : !fixaEfetivamentePaga(f, ym, mesReferencia, hoje))
+      continue;
     itens.push({
       chave: `fixa-${f.id}-${ym}`,
       refId: f.id,
@@ -162,7 +171,7 @@ export function transacoesDoMes(
   // para dados incoerentes (mês marcado pago sem lançamento nenhum).
   for (const p of dados.parcelas) {
     if (!mesesDaParcela(p).includes(ym)) continue;
-    if (!estaEfetivamentePaga(p, ym, mesReferencia, hoje)) continue;
+    if (!mesFechado && !estaEfetivamentePaga(p, ym, mesReferencia, hoje)) continue;
     const idx = mesesDaParcela(p).indexOf(ym);
     // "quit" é a quitação antecipada: UM lançamento que varreu vários meses de
     // uma vez. Todos eles herdam essa data — é o dia real em que se pagou,

@@ -242,6 +242,25 @@ describe("transacoesDoMes", () => {
     expect(transacoesDoMes(dados, "2026-07")).toHaveLength(0);
   });
 
+  // Mês já fechado: mesma regra de `contribuicaoFixasMes`/`statusOrcamentoMes`
+  // — conta o valor cheio, marcado ou não, senão o extrato de um mês passado
+  // discordava do Orçamento e dos totais sobre a mesma fixa/parcela manual.
+  it("fixa manual não marcada ainda assim entra num mês já fechado", () => {
+    const fixa = {
+      id: "f9",
+      descricao: "Renda",
+      valor: 50000,
+      categoria: "Casa",
+      diaVencimento: 8,
+      pagoPorMes: {},
+    };
+    const dados = { ...vazio, despesasFixas: [fixa] };
+    // Julho já fechou (estamos em agosto): conta mesmo sem marcação.
+    expect(transacoesDoMes(dados, "2026-07", "2026-08")).toHaveLength(1);
+    // Mês corrente: continua a exigir a marcação, como sempre.
+    expect(transacoesDoMes(dados, "2026-08", "2026-08")).toHaveLength(0);
+  });
+
   // O bug relatado: MEO vence dia 27 e aparecia no extrato já no dia 1 de
   // agosto, com data no futuro. `hoje` dá precisão de dia ao mês corrente.
   it("com `hoje`, fixa em débito automático só entra no extrato depois do dia de vencimento", () => {
@@ -290,6 +309,15 @@ describe("transacoesDoMes", () => {
       // estando-se a 5/08 e sem nada ter sido pago.
       const t = transacoesDoMes({ ...vazio, parcelas: [sofa] }, "2026-08");
       expect(t).toHaveLength(0);
+    });
+
+    // Mês já fechado: mesma regra da fixa manual acima — conta o valor cheio
+    // do plano mesmo sem marcação, como `contribuicaoParcelasMes`/
+    // `statusOrcamentoMes` já contam para esse mês.
+    it("mês por pagar entra quando o mês já fechou", () => {
+      const t = transacoesDoMes({ ...vazio, parcelas: [sofa] }, "2026-07", "2026-09");
+      expect(t).toHaveLength(1);
+      expect(t[0].valor).toBe(10000);
     });
 
     // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
