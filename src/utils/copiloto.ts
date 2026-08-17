@@ -169,13 +169,18 @@ export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth):
   if (q.includes("este mes") || q.includes("mes atual"))
     return { ym: mesCorrente, label: rotuloMes(mesCorrente) };
 
+  const anoAtual = parseInt(mesCorrente.slice(0, 4), 10);
+  const anoPassado = q.includes("ano passado");
   const anoMatch = q.match(/\b(20\d{2})\b/);
-  const anoDaPergunta = anoMatch ? parseInt(anoMatch[1], 10) : null;
+  // "ano passado" também é um ano explícito: sem isto, "julho do ano passado"
+  // caía no laço abaixo sem ano nenhum fixado e devolvia julho DESTE ano — a
+  // parte "passado" da frase era lida e depois ignorada.
+  const anoDaPergunta = anoMatch ? parseInt(anoMatch[1], 10) : anoPassado ? anoAtual - 1 : null;
   const palavras = q.split(/[^a-z0-9]+/);
   for (const w of palavras) {
     const mi = indiceDoMes(w);
     if (mi > -1) {
-      const y = anoDaPergunta ?? parseInt(mesCorrente.slice(0, 4), 10);
+      const y = anoDaPergunta ?? anoAtual;
       let ym = `${y}-${String(mi + 1).padStart(2, "0")}`;
       if (!anoDaPergunta && ym > mesCorrente) ym = `${y - 1}-${String(mi + 1).padStart(2, "0")}`;
       return { ym, label: rotuloMes(ym) };
@@ -184,8 +189,7 @@ export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth):
 
   // isYear: ainda assim carrega ym/label do mês corrente (fallback honesto
   // pros intents que não tratam isYear explicitamente)
-  const anoAtual = parseInt(mesCorrente.slice(0, 4), 10);
-  if (q.includes("ano passado"))
+  if (anoPassado)
     return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoAtual - 1 };
   if (/\bano\b/.test(q))
     return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoAtual };

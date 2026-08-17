@@ -72,6 +72,14 @@ describe("interpretarReferencia", () => {
     expect(interpretarReferencia("saldo de marco de 2025", "2026-07").ym).toBe("2025-03");
   });
 
+  test("nome de mês com 'ano passado' usa o ano anterior, não o corrente", () => {
+    // Sem o ano ficar explícito, "julho" sozinho em julho/2026 seria o mês
+    // atual — é o "ano passado" que tem de virar o ano para trás.
+    expect(interpretarReferencia("quanto gastei em julho do ano passado", "2026-07").ym).toBe(
+      "2025-07",
+    );
+  });
+
   test("'ano' e 'resume o ano' pedem o ano inteiro, não só o mês corrente", () => {
     expect(interpretarReferencia("resume o ano", "2026-07").isYear).toBe(true);
     expect(interpretarReferencia("como está o ano passado", "2026-07")).toMatchObject({
