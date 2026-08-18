@@ -189,8 +189,15 @@ export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth):
 
   // isYear: ainda assim carrega ym/label do mês corrente (fallback honesto
   // pros intents que não tratam isYear explicitamente)
-  if (anoPassado)
-    return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoAtual - 1 };
+  //
+  // Bug corrigido: um ano explícito sem mês ("saldo de 2025", "resumo de
+  // 2025") só ativava isYear se a pergunta também tivesse a palavra "ano" —
+  // sem ela, caía direto no mês corrente e o ano escrito era lido e depois
+  // ignorado, o mesmo problema que o comentário acima já descreve para "ano
+  // passado" dentro do laço de meses. `anoDaPergunta` já cobre os dois casos
+  // (ano escrito por extenso ou "ano passado"), por isso basta checá-lo aqui.
+  if (anoDaPergunta !== null)
+    return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoDaPergunta };
   if (/\bano\b/.test(q))
     return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoAtual };
 

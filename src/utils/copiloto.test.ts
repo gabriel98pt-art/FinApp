@@ -88,6 +88,20 @@ describe("interpretarReferencia", () => {
     });
   });
 
+  // Bug: um ano explícito sem mês ("saldo de 2025") só virava isYear se a
+  // pergunta também tivesse a palavra "ano" — sem ela caía direto no mês
+  // corrente e o ano escrito na pergunta era lido e depois ignorado.
+  test("ano explícito sem mês e sem a palavra 'ano' também pede o ano inteiro", () => {
+    expect(interpretarReferencia("saldo de 2025", "2026-07")).toMatchObject({
+      isYear: true,
+      year: 2025,
+    });
+    expect(interpretarReferencia("resumo de 2025", "2026-07")).toMatchObject({
+      isYear: true,
+      year: 2025,
+    });
+  });
+
   test("sem pista nenhuma cai no mês corrente", () => {
     expect(interpretarReferencia("oi", "2026-07").ym).toBe("2026-07");
   });
