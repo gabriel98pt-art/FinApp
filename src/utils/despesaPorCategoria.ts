@@ -1,7 +1,8 @@
 // Despesa do mês repartida por categoria — dados do donut do Início.
-// Portado do bloco "Donut" do financas.html (renderDashboard): fixas gerais
-// ativas + correntes do mês (sem pagamento de fatura) + parcelas pelo plano,
-// cada uma na sua categoria + o veículo inteiro como UMA fatia.
+// Portado do bloco "Donut" do financas.html (renderDashboard): fixas gerais +
+// correntes do mês (sem pagamento de fatura) + parcelas pelo plano, cada uma
+// na sua categoria + o veículo inteiro como UMA fatia. Fixas e parcelas só
+// entram quando já realizadas — ver a nota de `despesaPorCategoriaMes`.
 
 import type {
   Cents,
@@ -13,7 +14,7 @@ import type {
   YearMonth,
 } from "../types";
 import { despesasNosTotais, doMes } from "./calculos";
-import { fixaAtivaNoMes } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
 
@@ -25,9 +26,16 @@ export interface FatiaCategoria {
 }
 
 /** Fatias ordenadas da maior pra menor. Categorias com total zero ficam fora.
- *  Atenção (mesma regra do app de referência): as fixas contam pelo valor
- *  cheio de todas as ativas no mês, sem olhar pago/pendente — o donut mostra o
- *  compromisso do mês, enquanto o KPI "Despesas" conta só o realizado. */
+ *
+ *  Tudo entra pela MESMA regra de "já realizado" que o resto do app usa (ver
+ *  `transacoesDoMes` em utils/transacoes.ts e `fixaEfetivamentePaga` em
+ *  utils/fatura.ts): num mês já FECHADO conta o valor cheio de tudo que estava
+ *  ativo, marcado ou não; no mês CORRENTE conta só o que já foi efetivamente
+ *  pago — marcado à mão, ou em débito automático com o dia de vencimento já
+ *  passado. Antes as fixas gerais eram a exceção e entravam cheias mesmo
+ *  pendentes: o donut inflava uma categoria com dinheiro que ainda nem tinha
+ *  saído (a mensalidade que só vence dia 27 já contando no dia 18) e
+ *  discordava do KPI "Despesas", do extrato de Transações e das Metas. */
 export function despesaPorCategoriaMes(
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
@@ -47,7 +55,11 @@ export function despesaPorCategoriaMes(
     porCategoria.set(categoria, (porCategoria.get(categoria) ?? 0) + valor);
   };
 
+  // Fixas gerais com a mesma regra mês corrente/mês fechado das parcelas logo
+  // abaixo — em débito automático contam sem marcação nenhuma, a partir do dia
+  // de vencimento (fixaEfetivamentePaga).
   for (const f of despesasFixas.filter((f) => fixaAtivaNoMes(f, ym))) {
+    if (ym === mesReal && !fixaEfetivamentePaga(f, ym, mesReal, hoje)) continue;
     somar(f.categoria, f.valor);
   }
   for (const d of doMes(despesasNosTotais(despesasCorrentes), ym)) {

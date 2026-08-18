@@ -118,13 +118,51 @@ describe("despesaPorCategoriaMes", () => {
     ]);
   });
 
-  test("fixa ativa entra pelo valor cheio mesmo pendente; fora da janela não entra", () => {
+  // Mesma regra das parcelas acima, que as fixas gerais não seguiam: entravam
+  // cheias mesmo pendentes e o donut mostrava dinheiro que ainda não saiu.
+  test("mês corrente: fixa pendente (sem débito automático) fica de fora", () => {
     const fixas = [
       fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: {} }),
       fixa({ id: "f2", valor: 999, categoria: "Assinaturas", inicio: "2026-08" }),
     ];
+    expect(despesaPorCategoriaMes([], fixas, [], SEM_VEICULO, "2026-07", "2026-07")).toEqual([]);
+  });
+
+  test("mês corrente: fixa marcada à mão entra cheia; fora da janela não entra", () => {
+    const fixas = [
+      fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: { "2026-07": true } }),
+      fixa({ id: "f2", valor: 999, categoria: "Assinaturas", inicio: "2026-08" }),
+    ];
     const fatias = despesaPorCategoriaMes([], fixas, [], SEM_VEICULO, "2026-07", "2026-07");
     expect(fatias).toEqual([{ categoria: "Casa", valor: 45000, pct: 100 }]);
+  });
+
+  test("mês fechado: fixa pendente entra cheia", () => {
+    const fixas = [fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: {} })];
+    expect(despesaPorCategoriaMes([], fixas, [], SEM_VEICULO, "2026-07", "2026-09")).toEqual([
+      { categoria: "Casa", valor: 45000, pct: 100 },
+    ]);
+  });
+
+  // Ninguém marca uma fixa em débito automático — igual às parcelas.
+  test("mês corrente: fixa em débito automático segue o dia de vencimento", () => {
+    const fixas = [
+      fixa({
+        id: "f1",
+        valor: 45000,
+        categoria: "Telemóvel",
+        contaCartao: "Visa",
+        autoDebit: true,
+        diaVencimento: 27,
+        pagoPorMes: {},
+      }),
+    ];
+    const telemovelEm = (hoje: string) =>
+      despesaPorCategoriaMes([], fixas, [], SEM_VEICULO, "2026-07", "2026-07", hoje).find(
+        (f) => f.categoria === "Telemóvel",
+      );
+    expect(telemovelEm("2026-07-18")).toBeUndefined();
+    expect(telemovelEm("2026-07-27")?.valor).toBe(45000);
   });
 
   test("veículo entra como uma fatia só (cargas + despesas + fixas pagas)", () => {
