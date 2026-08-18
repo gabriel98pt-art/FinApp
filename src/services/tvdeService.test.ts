@@ -201,6 +201,15 @@ describe("lancarReceitaSemana", () => {
     expect(receita.conta).toBe("Revolut");
   });
 
+  test("usa a fonte escolhida pelo usuário quando configurada", async () => {
+    // Quem já tem uma fonte própria para este rendimento (ex.: "Vencimento")
+    // não quer uma segunda categoria "TVDE" a fazer o mesmo.
+    const outraFonte = { ...base, cfg: { ...base.cfg, fonteReceita: "Vencimento" } };
+    await s.lancarReceitaSemana(UID, 1, outraFonte);
+    const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
+    expect(receita.fonte).toBe("Vencimento");
+  });
+
   test("a data é a de HOJE, não a data de pagamento da semana", async () => {
     // A semana 1 do padrão é de março/2026: a data de pagamento teórica caía
     // noutro dia (e noutro mês) que o do lançamento real.

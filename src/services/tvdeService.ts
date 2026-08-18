@@ -135,7 +135,9 @@ export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTv
     // Data de HOJE — o dia em que o usuário lança nas finanças, não a data de
     // pagamento teórica da semana (que caía noutro mês e desalinhava o extrato).
     data: hojeIso(),
-    fonte: "TVDE",
+    // Opcional, ao contrário da conta: "TVDE" já existe nas fontes padrão, então
+    // quem nunca mexer nisto continua a lançar como antes.
+    fonte: dados.cfg.fonteReceita || "TVDE",
     conta: dados.cfg.contaReceita,
   };
   await update(ref(db, `users/${uid}/fin_v5`), {

@@ -44,6 +44,11 @@ export interface ConfigTvde {
   /** Conta/cartão destino da receita lançada nas finanças (aba Extras) —
    *  escolhida pelo usuário, nunca fixa: cada um tem contas diferentes. */
   contaReceita?: string;
+  /** Fonte da receita lançada nas finanças (aba Extras) — escolhida pelo
+   *  usuário entre as fontes já cadastradas (`cfg.fontesReceita`), pra não
+   *  duplicar uma categoria que ele já usa pra isto (ex.: "Vencimento").
+   *  Sem configurar, cai em "TVDE". */
+  fonteReceita?: string;
 }
 
 export interface DespesaTvde {

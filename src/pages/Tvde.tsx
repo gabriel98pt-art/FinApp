@@ -219,6 +219,7 @@ export default function Tvde() {
   const carregado = useTvdeStore((s) => s.carregado);
   const erro = useTvdeStore((s) => s.erro);
   const contasCartoes = useCfgStore((s) => s.cfg.contasCartoes);
+  const fontesReceita = useCfgStore((s) => s.cfg.fontesReceita);
 
   const [editando, setEditando] = useState<number | null>(null);
   const [aba, setAba] = useState<AbaTvde>("semanas");
@@ -253,6 +254,14 @@ export default function Tvde() {
       ? numeros[numeros.length - 1]
       : null;
   const calcDestaque = semanaDestaque ? calcularSemana(semanaDestaque, cfg.pctFrota) : null;
+
+  // A fonte tem padrão sensato ("TVDE" existe nas fontes padrão), então nunca
+  // bloqueia o lançamento. Se o usuário apagou essa fonte em Definições, a atual
+  // entra na lista mesmo assim — senão o select ficaria sem seleção visível.
+  const fonteReceitaAtual = cfg.fonteReceita ?? "TVDE";
+  const opcoesFonteReceita = fontesReceita.includes(fonteReceitaAtual)
+    ? fontesReceita
+    : [...fontesReceita, fonteReceitaAtual];
 
   async function agir(acao: () => Promise<void>, ok: string) {
     try {
@@ -493,6 +502,35 @@ export default function Tvde() {
                   </select>
                 </div>
               )}
+            </div>
+
+            {/* A fonte também não é fixa: quem já usa uma fonte própria para
+                este rendimento (ex.: "Vencimento") escolhe-a aqui em vez de
+                ficar com duas categorias a fazer a mesma coisa. */}
+            <div className={styles.blocoExtra}>
+              <p className={styles.blocoTitulo}>Fonte da receita</p>
+              <p className={styles.blocoNota}>
+                Qual fonte usar ao lançar a receita da semana (TVDE) nas finanças — evita duplicar
+                categoria com uma fonte que você já usa.
+              </p>
+              <div className={styles.linhaDupla}>
+                <select
+                  value={fonteReceitaAtual}
+                  aria-label="Fonte da receita"
+                  onChange={(e) =>
+                    void agir(
+                      () => salvarConfigTvde(uid!, { fonteReceita: e.target.value }),
+                      "✓ Fonte da receita salva",
+                    )
+                  }
+                >
+                  {opcoesFonteReceita.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <form
