@@ -7,6 +7,7 @@ import type {
   DespesaCorrente,
   DespesaFixa,
   Fundo,
+  IsoDate,
   Parcela,
   Receita,
   YearMonth,
@@ -44,6 +45,10 @@ export function calcularMetaMensal(
   mesReal: YearMonth,
   diaDeHoje: number,
   metaConfigurada: Cents,
+  /** Mesmo `hoje` de `despesaRealizadaMes`: dá precisão de dia ao mês
+   *  corrente, senão uma fixa/parcela em débito automático conta como paga
+   *  antes do dia de vencimento (ver fixaEfetivamentePaga em fatura.ts). */
+  hoje?: IsoDate,
 ): MetaMensal {
   const rec = totalDoMes(receitasNosTotais(receitas), ym);
   const desp = despesaRealizadaMes(
@@ -53,6 +58,7 @@ export function calcularMetaMensal(
     veiculo,
     ym,
     mesReal,
+    hoje,
   );
   const saldo = rec - desp;
   const meta = metaConfigurada || META_POUPANCA_PADRAO;
@@ -88,6 +94,7 @@ export function poupancaMeses(
   veiculo: DadosVeiculo,
   meses: YearMonth[],
   mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   return meses.reduce((s, ym) => {
     const rec = totalDoMes(receitasNosTotais(receitas), ym);
@@ -98,6 +105,7 @@ export function poupancaMeses(
       veiculo,
       ym,
       mesReal,
+      hoje,
     );
     return s + Math.max(0, rec - desp);
   }, 0);

@@ -80,6 +80,50 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(m.saldo).toBe(155000);
   });
 
+  test("mês corrente: fixa em débito automático só conta depois do dia de vencimento", () => {
+    const fixaAutoDebit: DespesaFixa = {
+      id: "fa1",
+      descricao: "Streaming",
+      valor: 1000,
+      categoria: "Assinaturas",
+      contaCartao: "Cartão X",
+      autoDebit: true,
+      diaVencimento: 27,
+      pagoPorMes: {},
+    };
+    // hoje é dia 8 de julho — a cobrança do dia 27 ainda não venceu.
+    const antes = calcularMetaMensal(
+      receitas,
+      [],
+      [fixaAutoDebit],
+      [],
+      veiculo(),
+      "2026-07",
+      "2026-07",
+      8,
+      100000,
+      "2026-07-08",
+    );
+    expect(antes.despesas).toBe(0);
+    expect(antes.saldo).toBe(200000);
+
+    // hoje é dia 28 — a cobrança já venceu e passa a contar sozinha.
+    const depois = calcularMetaMensal(
+      receitas,
+      [],
+      [fixaAutoDebit],
+      [],
+      veiculo(),
+      "2026-07",
+      "2026-07",
+      28,
+      100000,
+      "2026-07-28",
+    );
+    expect(depois.despesas).toBe(1000);
+    expect(depois.saldo).toBe(199000);
+  });
+
   test("pct clampado entre 0 e 100, mesmo com saldo negativo ou acima da meta", () => {
     const despesas: DespesaCorrente[] = [
       { id: "d1", descricao: "X", valor: 500000, data: "2026-07-05", categoria: "Outros" },

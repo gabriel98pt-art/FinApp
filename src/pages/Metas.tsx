@@ -56,6 +56,7 @@ export default function Metas() {
     real,
     diaDeHoje,
     cfg.metaPoupanca,
+    hoje,
   );
   const { atual: fundosAtual, alvo: fundosAlvo } = totalFundos(fundos);
   const poupado12m = poupancaMeses(
@@ -66,6 +67,7 @@ export default function Metas() {
     veiculo,
     mesesRecentes(12, real),
     real,
+    hoje,
   );
   const taxaPoupanca =
     meta.receitas > 0 ? Math.round((Math.max(0, meta.saldo) / meta.receitas) * 100) : 0;
