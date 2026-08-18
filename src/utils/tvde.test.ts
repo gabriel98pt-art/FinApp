@@ -5,7 +5,6 @@ import {
   dadosPorMes,
   recargaPropriaDaSemana,
   dadosPorPeriodo,
-  dataPagamentoDaSemana,
   fimDaSemana,
   inicioDaSemana,
   mesDePagamento,
@@ -41,8 +40,7 @@ describe("datas de semana", () => {
     expect(rotuloDaSemana(INICIO, 1)).toBe("02/03 – 08/03");
   });
 
-  test("pagamento é a segunda seguinte; mês de pagamento = mês de início+7d", () => {
-    expect(dataPagamentoDaSemana(INICIO, 1)).toBe("2026-03-09");
+  test("mês de pagamento = mês de início+7d", () => {
     expect(mesDePagamento(INICIO, 1)).toBe("2026-03");
     // semana 5 começa 30/03 → +7d = 06/04 → paga em abril
     expect(inicioDaSemana(INICIO, 5).getDate()).toBe(30);

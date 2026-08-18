@@ -288,7 +288,8 @@
   flex-wrap: wrap;
 }
 
-.linhaDupla input {
+.linhaDupla input,
+.linhaDupla select {
   background: var(--s2);
   border: 1px solid var(--brd);
   border-radius: var(--r-sm);

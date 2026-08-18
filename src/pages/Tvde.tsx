@@ -13,11 +13,13 @@ import {
   lancarReceitaSemana,
   removerDespesaTvde,
   removerSemana,
+  salvarConfigTvde,
   salvarSemana,
 } from "../services/tvdeService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
+import { useCfgStore } from "../stores/cfgStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
@@ -216,6 +218,7 @@ export default function Tvde() {
   const dados = useTvdeStore((s) => s.dados);
   const carregado = useTvdeStore((s) => s.carregado);
   const erro = useTvdeStore((s) => s.erro);
+  const contasCartoes = useCfgStore((s) => s.cfg.contasCartoes);
 
   const [editando, setEditando] = useState<number | null>(null);
   const [aba, setAba] = useState<AbaTvde>("semanas");
@@ -454,6 +457,44 @@ export default function Tvde() {
 
         {aba === "extras" && (
           <div className={styles.extras}>
+            {/* Sem conta destino a receita nascia órfã e desalinhava os saldos
+                por conta. A conta NUNCA é fixa no código: cada usuário tem as
+                suas, definidas em Definições. */}
+            <div className={styles.blocoExtra}>
+              <p className={styles.blocoTitulo}>Conta destino da receita</p>
+              <p className={styles.blocoNota}>
+                Onde a receita lançada da semana (aba Semanas) entra nas finanças.
+              </p>
+              {contasCartoes.length === 0 ? (
+                <p className={styles.blocoNota}>
+                  Configure suas contas em Definições antes de escolher a conta destino da receita
+                  do TVDE.
+                </p>
+              ) : (
+                <div className={styles.linhaDupla}>
+                  <select
+                    value={cfg.contaReceita ?? ""}
+                    aria-label="Conta destino da receita"
+                    onChange={(e) =>
+                      void agir(
+                        () => salvarConfigTvde(uid!, { contaReceita: e.target.value }),
+                        "✓ Conta destino salva",
+                      )
+                    }
+                  >
+                    <option value="" disabled>
+                      Escolher conta…
+                    </option>
+                    {contasCartoes.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
             <form
               className={styles.blocoExtra}
               onSubmit={(e) => {

@@ -41,6 +41,9 @@ export interface ConfigTvde {
   aluguel: Cents;
   metaSem: Cents;
   metaMes: Cents;
+  /** Conta/cartão destino da receita lançada nas finanças (aba Extras) —
+   *  escolhida pelo usuário, nunca fixa: cada um tem contas diferentes. */
+  contaReceita?: string;
 }
 
 export interface DespesaTvde {

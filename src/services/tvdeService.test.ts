@@ -9,6 +9,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { DadosTvde, Receita, SemanaTvde } from "../types";
 import { calcularSemana } from "../utils/tvde";
+import { hojeIso } from "../utils/calculos";
 
 let dados: Record<string, unknown> = {};
 let updates: { caminho: string; mudancas: Record<string, unknown> }[] = [];
@@ -61,7 +62,9 @@ const semana: SemanaTvde = {
 };
 
 const base: DadosTvde = {
-  cfg: s.TVDE_CFG_PADRAO,
+  // A conta destino é obrigatória para lançar — nasce vazia no padrão e é o
+  // usuário que escolhe (aba Extras), por isso a fixture preenche-a.
+  cfg: { ...s.TVDE_CFG_PADRAO, contaReceita: "Conta Principal" },
   semanas: { "1": semana },
   segPorMes: {},
   lancamentos: {},
@@ -189,6 +192,30 @@ describe("lancarReceitaSemana", () => {
     await s.lancarReceitaSemana(UID, 1, comMaisGorjetas);
     const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
     expect(receita.valor).toBe(66000);
+  });
+
+  test("vai para a conta destino escolhida pelo usuário", async () => {
+    const outraConta = { ...base, cfg: { ...base.cfg, contaReceita: "Revolut" } };
+    await s.lancarReceitaSemana(UID, 1, outraConta);
+    const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
+    expect(receita.conta).toBe("Revolut");
+  });
+
+  test("a data é a de HOJE, não a data de pagamento da semana", async () => {
+    // A semana 1 do padrão é de março/2026: a data de pagamento teórica caía
+    // noutro dia (e noutro mês) que o do lançamento real.
+    await s.lancarReceitaSemana(UID, 1, base);
+    const receita = updates[0].mudancas["receitas/k1"] as Omit<Receita, "id">;
+    expect(receita.data).toBe(hojeIso());
+  });
+
+  test("recusa lançar sem conta destino configurada", async () => {
+    const semConta = { ...base, cfg: s.TVDE_CFG_PADRAO };
+    await expect(s.lancarReceitaSemana(UID, 1, semConta)).rejects.toThrow(
+      "Configure a conta destino da receita (aba Extras) antes de lançar.",
+    );
+    expect(updates).toHaveLength(0);
+    expect(snapshot).not.toHaveBeenCalled();
   });
 
   test("recusa lançar a mesma semana duas vezes", async () => {

@@ -48,14 +48,6 @@ export function recargaPropriaDaSemana(
   return cargas.filter((c) => c.data >= de && c.data <= ate).reduce((soma, c) => soma + c.custo, 0);
 }
 
-/** Dia em que o valor da semana é efetivamente recebido — um dia depois do
- *  fim (a segunda-feira seguinte). */
-export function dataPagamentoDaSemana(inicioSemana1: IsoDate, n: number): IsoDate {
-  const d = fimDaSemana(inicioSemana1, n);
-  d.setDate(d.getDate() + 1);
-  return paraIso(d);
-}
-
 /** MÊS DE PAGAMENTO da semana: o mês onde cai início+7 dias — sempre o mês
  *  seguinte quando a semana termina na virada (regra do app de origem). */
 export function mesDePagamento(inicioSemana1: IsoDate, n: number): YearMonth {

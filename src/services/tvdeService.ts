@@ -16,7 +16,8 @@ import type {
   SemanaTvde,
   YearMonth,
 } from "../types";
-import { calcularSemana, dataPagamentoDaSemana, rotuloDaSemana } from "../utils/tvde";
+import { calcularSemana, rotuloDaSemana } from "../utils/tvde";
+import { hojeIso } from "../utils/calculos";
 
 const raiz = (uid: string) => `users/${uid}/fin_v5/tvde`;
 
@@ -123,14 +124,19 @@ export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTv
   if (dados.lancamentos[String(n)]) throw new Error("Semana já lançada nas finanças.");
   const semana = dados.semanas[String(n)];
   if (!semana) throw new Error("Semana inexistente.");
+  if (!dados.cfg.contaReceita)
+    throw new Error("Configure a conta destino da receita (aba Extras) antes de lançar.");
   snapshotHistorico();
   const valorReceita = Math.round(calcularSemana(semana, dados.cfg.pctFrota).receita);
   const receitaId = push(ref(db, `users/${uid}/fin_v5/receitas`)).key!;
   const receita: Omit<Receita, "id"> = {
     descricao: `TVDE — Semana ${n} (${rotuloDaSemana(dados.cfg.inicioSemana1, n)})`,
     valor: valorReceita,
-    data: dataPagamentoDaSemana(dados.cfg.inicioSemana1, n),
+    // Data de HOJE — o dia em que o usuário lança nas finanças, não a data de
+    // pagamento teórica da semana (que caía noutro mês e desalinhava o extrato).
+    data: hojeIso(),
     fonte: "TVDE",
+    conta: dados.cfg.contaReceita,
   };
   await update(ref(db, `users/${uid}/fin_v5`), {
     [`receitas/${receitaId}`]: semIndefinidos(receita),
