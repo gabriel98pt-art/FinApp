@@ -7,7 +7,7 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import type { YearMonth } from "../types";
-import { mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
+import { hojeIso, mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
 import { despesaRealizadaMes, janelaResumoAnual } from "../utils/resumoMensal";
 import { formatCents, formatMoney } from "../utils/money";
 import styles from "./ResumoAnual.module.css";
@@ -52,12 +52,19 @@ export default function ResumoAnual({
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const real = mesAtual();
+  // O dia de hoje dá precisão de DIA ao mês corrente — sem ele, uma fixa ou
+  // parcela em débito automático que só vence dia 27 já contava aqui no dia 18,
+  // e o rodapé deste quadro discordava do KPI "Despesas" logo acima no Início
+  // (que passa `hojeIso()` via `resumoMesCompleto`) e do card de Metas. Era o
+  // único sítio da app a chamar `despesaRealizadaMes` sem ele. Ver
+  // `fixaEfetivamentePaga`/`estaEfetivamentePaga`.
+  const hoje = hojeIso();
 
   const celulas = janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
     const r = totalDoMes(receitasNosTotais(receitas), ym);
     const d = futuro
       ? 0
-      : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real);
+      : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real, hoje);
     const [, mi] = ym.split("-").map(Number);
     return { ym, futuro, receitas: r, despesas: d, saldo: r - d, rotulo: MESES_ABREV[mi - 1] };
   });
