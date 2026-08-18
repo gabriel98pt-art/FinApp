@@ -118,6 +118,31 @@ describe("despesaPorCategoriaMes", () => {
     ]);
   });
 
+  test("mês futuro: parcela entra cheia mesmo pendente e sem débito automático", () => {
+    const p: Parcela[] = [
+      {
+        id: "p1",
+        descricao: "Sofá",
+        total: 30000,
+        numParcelas: 3,
+        primeiroMes: "2026-08",
+        categoria: "Casa",
+        pagoPorMes: {},
+      },
+    ];
+    // Vendo setembro (mês futuro, mas dentro do plano) com hoje em agosto.
+    const fatias = despesaPorCategoriaMes(
+      [],
+      [],
+      p,
+      SEM_VEICULO,
+      "2026-09",
+      "2026-08",
+      "2026-08-18",
+    );
+    expect(fatias).toEqual([{ categoria: "Casa", valor: 10000, pct: 100 }]);
+  });
+
   // Mesma regra das parcelas acima, que as fixas gerais não seguiam: entravam
   // cheias mesmo pendentes e o donut mostrava dinheiro que ainda não saiu.
   test("mês corrente: fixa pendente (sem débito automático) fica de fora", () => {
@@ -141,6 +166,34 @@ describe("despesaPorCategoriaMes", () => {
     const fixas = [fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: {} })];
     expect(despesaPorCategoriaMes([], fixas, [], SEM_VEICULO, "2026-07", "2026-09")).toEqual([
       { categoria: "Casa", valor: 45000, pct: 100 },
+    ]);
+  });
+
+  // O gate `ym === mesReal` só protege o mês CORRENTE — um mês futuro (ainda
+  // por chegar) cai no mesmo ramo que um mês fechado: entra cheio, pago ou
+  // não, débito automático ou manual. Não dá pra pedir "já venceu?" ou "já
+  // marcou como pago?" de um mês que ainda nem começou — a única resposta que
+  // faz sentido pra alguém a planejar setembro em agosto é o valor cheio do
+  // compromisso, exatamente como as parcelas já faziam antes desta fixa
+  // acompanhar a mesma regra.
+  test("mês futuro: fixa entra cheia, tanto em débito automático quanto manual", () => {
+    const fixas = [
+      fixa({ id: "f1", valor: 4500, categoria: "Telemóvel", contaCartao: "Visa", autoDebit: true }),
+      fixa({ id: "f2", valor: 35000, categoria: "Casa", pagoPorMes: {} }),
+    ];
+    // Vendo setembro (mês futuro) enquanto "hoje" ainda está em agosto.
+    const fatias = despesaPorCategoriaMes(
+      [],
+      fixas,
+      [],
+      SEM_VEICULO,
+      "2026-09",
+      "2026-08",
+      "2026-08-18",
+    );
+    expect(fatias).toEqual([
+      { categoria: "Casa", valor: 35000, pct: 89 },
+      { categoria: "Telemóvel", valor: 4500, pct: 11 },
     ]);
   });
 
