@@ -216,6 +216,21 @@ describe("buildFinanceSnapshot", () => {
     expect(s.proximos30Dias.map((p) => p.dia)).not.toContain("2026-08-20");
   });
 
+  test("a janela de 30 dias pode atravessar DOIS meses, não só um", () => {
+    // 31 de janeiro + 30 dias cai a 2 de março (fevereiro tem só 28 dias em
+    // 2026): a janela inclui um terceiro mês, e ele tem de ser varrido tal
+    // como o segundo.
+    const s = buildFinanceSnapshot(
+      ctx({
+        mesReal: "2026-01",
+        diaDeHoje: 31,
+        despesasFixas: [fixa(70000, 2)],
+      }),
+    );
+
+    expect(s.proximos30Dias.map((p) => p.dia)).toContain("2026-03-02");
+  });
+
   test("estado do orçamento marca o que estourou", () => {
     const s = buildFinanceSnapshot(
       ctx({

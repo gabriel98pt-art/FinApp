@@ -11,7 +11,7 @@
 // como o diz.
 
 import type { Cents, Currency, Id, YearMonth } from "../types";
-import { somarDias, somarMeses } from "./calculos";
+import { mesDe, somarDias, somarMeses } from "./calculos";
 import { proximosEventos } from "./calendario";
 import { calcularFatura } from "./fatura";
 import {
@@ -108,7 +108,13 @@ function saldoAcumulado(ctx: ContextoCopiloto): Cents {
  *  saída que aí vem. */
 function compromissosProximos30Dias(ctx: ContextoCopiloto, hoje: string): CompromissoPrevisto[] {
   const limite = somarDias(hoje, 30);
-  const meses = [ctx.mesReal, somarMeses(ctx.mesReal, 1)];
+  // Normalmente é o mês corrente + o seguinte, mas hoje perto do fim de um mês
+  // curto (ex. 31 de janeiro) empurra o limite para um TERCEIRO mês (2 de
+  // março) — parar em mesReal+1 perdia justamente o vencimento mais distante
+  // dentro da própria janela.
+  const mesLimite = mesDe(limite);
+  const meses: YearMonth[] = [];
+  for (let m = ctx.mesReal; m <= mesLimite; m = somarMeses(m, 1)) meses.push(m);
   const dados = dadosFaturaDoContexto(ctx);
   const cartoesCredito = ctx.cfg.contasCartoes.filter((c) => ctx.cfg.tipoCartao[c] === "credit");
 
