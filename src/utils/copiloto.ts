@@ -450,6 +450,40 @@ export function dataCurta(d: string): string {
   return `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 }
 
+/** Quanto um cartão/conta específico movimentou no mês: despesas correntes +
+ *  fixas (gerais e do veículo) + parcelas + cargas/despesas do veículo, tudo
+ *  o que tiver esse `contaCartao`/`cartao`. Mesma regra de "efetivamente
+ *  paga" que `categoriasDoMes` usa — sem ela, este intent tinha o mesmo furo
+ *  que a categoria já teve: uma fixa ou parcela em débito automático no
+ *  cartão não contava sem alguém marcar "pago" à mão. */
+function totalCartaoMes(ctx: ContextoCopiloto, cartao: string, ym: YearMonth): Cents {
+  const hoje = hojeDoContexto(ctx);
+  let total = ctx.despesas
+    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ym)
+    .reduce((s, d) => s + d.valor, 0);
+
+  for (const f of [...ctx.despesasFixas, ...ctx.veiculo.despesasFixas]) {
+    if (f.contaCartao !== cartao || !fixaAtivaNoMes(f, ym)) continue;
+    if (ym === ctx.mesReal && !fixaEfetivamentePaga(f, ym, ctx.mesReal, hoje)) continue;
+    total += f.valor;
+  }
+
+  for (const p of ctx.parcelas) {
+    if (p.cartao !== cartao || !mesesDaParcela(p).includes(ym)) continue;
+    if (ym === ctx.mesReal && !estaEfetivamentePaga(p, ym, ctx.mesReal, hoje)) continue;
+    total += valorDaParcela(p, ym);
+  }
+
+  total += ctx.veiculo.cargas
+    .filter((c) => c.contaCartao === cartao && mesDe(c.data) === ym)
+    .reduce((s, c) => s + c.custo, 0);
+  total += ctx.veiculo.despesas
+    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ym)
+    .reduce((s, d) => s + d.valor, 0);
+
+  return total;
+}
+
 interface IntentCopiloto {
   test: (q: string, ctx: ContextoCopiloto) => boolean;
   run: (q: string, ref: ReferenciaTempo, ctx: ContextoCopiloto) => string | null;
@@ -589,9 +623,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     test: (q, ctx) => q.includes("cartao") && !!encontrarNaLista(q, ctx.cfg.contasCartoes, 5),
     run: (q, ref, ctx) => {
       const cartao = encontrarNaLista(q, ctx.cfg.contasCartoes, 5)!;
-      const total = ctx.despesas
-        .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ref.ym)
-        .reduce((s, d) => s + d.valor, 0);
+      const total = totalCartaoMes(ctx, cartao, ref.ym);
       return `Gastou ${b(formatMoney(total, ctx.cfg.currency))} no cartão ${b(cartao)} em ${ref.label}.`;
     },
   },
@@ -602,12 +634,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const cartoes = ctx.cfg.contasCartoes;
       if (!cartoes.length) return "Ainda não há cartões configurados.";
       const linhas = cartoes
-        .map((cartao) => ({
-          cartao,
-          total: ctx.despesas
-            .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ref.ym)
-            .reduce((s, d) => s + d.valor, 0),
-        }))
+        .map((cartao) => ({ cartao, total: totalCartaoMes(ctx, cartao, ref.ym) }))
         .sort((a, b2) => b2.total - a.total);
       if (!linhas[0].total) return `Não há despesas em nenhum cartão em ${ref.label}.`;
       return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].cartao)}, com ${b(formatMoney(linhas[0].total, ctx.cfg.currency))} em despesas.`;

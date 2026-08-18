@@ -400,6 +400,62 @@ describe("copiloto: cartões", () => {
     );
     expect(r).toContain("AB Gold (C)");
   });
+
+  // O total por cartão reimplementava a mesma soma que categoriasDoMes/
+  // totalVeiculoMes já fazem — e tinha o mesmo furo: fixa/parcela em débito
+  // automático no cartão não contava sem marcação manual.
+  test("cartão específico soma também fixa e parcela em débito automático", () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Streaming",
+      valor: 1000,
+      categoria: "Lazer",
+      contaCartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 10,
+      pagoPorMes: {},
+    };
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 5000,
+      numParcelas: 1,
+      primeiroMes: "2026-07",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 10,
+      pagoPorMes: {},
+    };
+    const r = responderPergunta(
+      "quanto gastei no cartao AB Gold este mes",
+      ctx({
+        cfg,
+        despesas: [despesa({ contaCartao: "AB Gold (C)", valor: 12345 })],
+        despesasFixas: [fixa],
+        parcelas: [parcela],
+      }),
+    );
+    // 123,45 (despesa) + 10,00 (fixa) + 50,00 (parcela) = 183,45
+    expect(r).toContain("183,45");
+  });
+
+  test("cartões agregado conta um cartão só com fixa/parcela, sem despesa corrente", () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Streaming",
+      valor: 5000,
+      categoria: "Lazer",
+      contaCartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 10,
+      pagoPorMes: {},
+    };
+    const r = responderPergunta(
+      "quanto gastei nos cartoes este mes",
+      ctx({ cfg, despesasFixas: [fixa] }),
+    );
+    expect(r).toContain("AB Gold (C)");
+  });
 });
 
 describe("copiloto: parcelas", () => {
