@@ -189,18 +189,19 @@ export function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
         : NaN;
       if (Number.isNaN(saldo)) continue;
 
-      // O valor sai da diferença de saldos; só na primeira linha sem saldo
-      // anterior é que se recorre à coluna de débito/crédito.
-      let valor: number;
-      if (saldoAnterior !== null) {
-        valor = Math.round((saldo - saldoAnterior) * 100) / 100;
-      } else {
-        const naColunaValor = linha.filter(
-          (i) => i.transform[4] >= X_VALOR && i.transform[4] < X_SALDO,
-        );
-        if (!naColunaValor.length) continue;
-        valor = -valorActivoBank(naColunaValor[0].str);
+      // O valor sai da diferença de saldos. Sem saldo anterior (não achou
+      // "SALDO INICIAL" em nenhuma página) não há como saber o sinal desta
+      // primeira linha: DÉBITO e CRÉDITO partilham a mesma coluna aqui (ver
+      // nota do topo), ao contrário da fatura de cartão, que tem uma coluna
+      // para cada. Adivinhar sempre débito inverteria um crédito (ex.: um
+      // depósito de salário virava despesa) — melhor não importar esta linha
+      // do que importar com o sinal errado. Guarda o saldo dela na mesma
+      // para as linhas seguintes já saírem certas pela diferença.
+      if (saldoAnterior === null) {
+        saldoAnterior = saldo;
+        continue;
       }
+      const valor = Math.round((saldo - saldoAnterior) * 100) / 100;
       saldoAnterior = saldo;
       if (!valor) continue; // saldo inalterado: não é movimento
 

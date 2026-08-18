@@ -120,6 +120,34 @@ describe("extrairActivoBank", () => {
     ]);
     expect(linhas.reduce((s, l) => s + l.valor, 0)).toBe(6500 - 10000);
   });
+
+  // Sem "SALDO INICIAL" (não encontrado em nenhuma página), a primeira linha
+  // não tem saldo anterior para tirar a diferença, e DÉBITO/CRÉDITO partilham
+  // a mesma coluna aqui — não dá para saber o sinal dela. Skip, sem adivinhar
+  // débito: um crédito (ex.: salário) não pode virar despesa. Aproveita o
+  // saldo dela para as linhas seguintes já saírem certas pela diferença.
+  test("sem SALDO INICIAL, a primeira linha é ignorada em vez de assumir débito", () => {
+    const linhas = extrairActivoBank([
+      [
+        ...movimento({
+          y: 396,
+          dataLanc: "3.02",
+          descricao: "SALARIO",
+          montante: "500.00",
+          saldo: "600.00",
+        }),
+        ...movimento({
+          y: 386.6,
+          dataLanc: "3.03",
+          descricao: "COMPRA X",
+          montante: "20.00",
+          saldo: "580.00",
+        }),
+      ],
+    ]);
+    expect(linhas.map((l) => l.descricao)).toEqual(["COMPRA X"]);
+    expect(linhas.map((l) => l.valor)).toEqual([-2000]);
+  });
 });
 
 describe("extrairWise", () => {
