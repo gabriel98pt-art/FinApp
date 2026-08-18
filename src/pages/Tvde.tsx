@@ -179,10 +179,6 @@ function FormSemana({
             <input inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value)} />
           </label>
         </div>
-        <label className={styles.checkbox}>
-          <input type="checkbox" checked={teste} onChange={(e) => setTeste(e.target.checked)} />
-          Semana de teste — conta no dinheiro real, fora das médias/performance
-        </label>
         <button type="submit" className={styles.salvar}>
           Salvar semana
         </button>
@@ -214,61 +210,6 @@ function FormSemana({
   );
 }
 
-/** Folha para escolher o número de uma semana avulsa — único jeito de abrir
- *  uma semana fora da atual/mais recente. Substitui o `window.prompt` (item
- *  4.5): era a única caixa nativa do app, destoando das folhas por toda a
- *  parte. */
-function EscolherSemanaFolha({
-  aberta,
-  aoFechar,
-  aoConfirmar,
-}: {
-  aberta: boolean;
-  aoFechar: () => void;
-  aoConfirmar: (n: number) => void;
-}) {
-  const [valor, setValor] = useState("");
-
-  function submeter(e: FormEvent) {
-    e.preventDefault();
-    const n = parseInt(valor, 10);
-    if (!Number.isFinite(n) || n < 1 || n > 500) {
-      mostrarToast("Número de semana inválido.");
-      return;
-    }
-    setValor("");
-    aoConfirmar(n);
-  }
-
-  return (
-    <BottomSheet
-      aberta={aberta}
-      aoFechar={() => {
-        aoFechar();
-        setValor("");
-      }}
-      titulo="Abrir semana"
-    >
-      <form className={styles.form} onSubmit={submeter}>
-        <label className={styles.campo}>
-          Número da semana
-          <input
-            inputMode="numeric"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            autoFocus
-            required
-          />
-        </label>
-        <p className={styles.notaEur}>1 = semana de referência.</p>
-        <button type="submit" className={styles.salvar}>
-          Abrir
-        </button>
-      </form>
-    </BottomSheet>
-  );
-}
-
 export default function Tvde() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
@@ -277,7 +218,6 @@ export default function Tvde() {
   const erro = useTvdeStore((s) => s.erro);
 
   const [editando, setEditando] = useState<number | null>(null);
-  const [escolhendoSemana, setEscolhendoSemana] = useState(false);
   const [aba, setAba] = useState<AbaTvde>("semanas");
   const { propsLista, propsAba } = useAbasTeclado({
     abas: ABAS.map(([id]) => id),
@@ -297,6 +237,10 @@ export default function Tvde() {
   const periodos = dadosPorPeriodo(semanas, cfg.pctFrota);
 
   const semanaAtualN = semanaDeHoje(cfg.inicioSemana1);
+  // A "próxima que falta": segue a sequência das semanas já registradas, em vez
+  // da semana do calendário de hoje (que muda sozinha e pula buracos). Sem
+  // nenhuma registrada ainda, a semana de hoje é o melhor palpite inicial.
+  const proximaSemanaFalta = numeros.length ? numeros[numeros.length - 1] + 1 : semanaAtualN;
   const semanaDestaque =
     semanas[String(semanaAtualN)] ??
     (numeros.length ? semanas[String(numeros[numeros.length - 1])] : undefined);
@@ -371,11 +315,11 @@ export default function Tvde() {
             <div className={styles.cabecalho}>
               <h3 className={styles.subtitulo}>Semanas</h3>
               <div className={styles.cabecalhoAcoes}>
-                <button className={styles.adicionar} onClick={() => setEditando(semanaAtualN)}>
-                  <Plus size={15} aria-hidden /> Semana atual ({semanaAtualN})
-                </button>
-                <button className={styles.adicionar} onClick={() => setEscolhendoSemana(true)}>
-                  <Plus size={15} aria-hidden /> Outra…
+                <button
+                  className={styles.adicionar}
+                  onClick={() => setEditando(proximaSemanaFalta)}
+                >
+                  <Plus size={15} aria-hidden /> Semana
                 </button>
               </div>
             </div>
@@ -611,14 +555,6 @@ export default function Tvde() {
         )}
 
         <FormSemana n={editando} aoFechar={() => setEditando(null)} />
-        <EscolherSemanaFolha
-          aberta={escolhendoSemana}
-          aoFechar={() => setEscolhendoSemana(false)}
-          aoConfirmar={(n) => {
-            setEscolhendoSemana(false);
-            setEditando(n);
-          }}
-        />
       </AbaTransicao>
     </Pagina>
   );

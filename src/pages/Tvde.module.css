@@ -393,14 +393,6 @@
   width: 100%;
 }
 
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
-  color: var(--txt);
-}
-
 .salvar {
   background: var(--lrj-grad);
   color: var(--bg);
