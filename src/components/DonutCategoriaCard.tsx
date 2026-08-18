@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronRight, PieChart } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
 import BottomSheet from "./BottomSheet";
@@ -26,10 +27,12 @@ const ROTULOS_ORDEM: Record<OrdemFatias, string> = {
  *  referência). Sem lib de gráfico: `conic-gradient` num círculo + um círculo
  *  da cor do card por cima faz o buraco do meio (equivale ao cutout 65%).
  *
- *  O card abre uma folha com o gráfico maior, a lista completa e ordenação
- *  (item 21). */
+ *  O título e o donut abrem uma folha com o gráfico maior, a lista completa e
+ *  ordenação (item 21); cada linha da legenda é um atalho próprio para as
+ *  transações daquela categoria. */
 export default function DonutCategoriaCard() {
   const cfg = useCfgStore((s) => s.cfg);
+  const navegar = useNavigate();
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
@@ -53,6 +56,24 @@ export default function DonutCategoriaCard() {
   );
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
+
+  /** Clicar numa fatia leva ao extrato já filtrado por ela — a categoria viaja
+   *  no `state` da navegação, o mesmo padrão que Transações usa para abrir
+   *  Despesas na aba certa.
+   *
+   *  "Veículo" é a exceção: aquela fatia é SINTÉTICA (soma cargas, despesas e
+   *  fixas do veículo inteiro, ver `despesaPorCategoriaMes`) e não existe como
+   *  categoria de nenhuma transação — as do veículo guardam a categoria delas
+   *  ("Seguro", "Portagens"…). Filtrar o extrato por ela daria lista vazia,
+   *  então o destino natural é a própria tela do Veículo. */
+  function irParaCategoria(categoria: string) {
+    setAberta(false);
+    if (categoria === "Veículo") {
+      navegar("/veiculo");
+      return;
+    }
+    navegar("/transacoes", { state: { categoria } });
+  }
 
   if (fatias.length === 0) {
     return (
@@ -89,36 +110,55 @@ export default function DonutCategoriaCard() {
 
   return (
     <>
-      <button className={`${styles.card} ${styles.cardBotao}`} onClick={() => setAberta(true)}>
-        <span className={styles.linhaTitulo}>
+      {/* O card já não é um botão só: cada linha da legenda leva ao extrato
+          daquela categoria, e botão dentro de botão é HTML inválido. Quem abre
+          a folha detalhada passou a ser o título e o donut, cada um o seu. */}
+      <div className={styles.card}>
+        <button
+          type="button"
+          className={`${styles.linhaTitulo} ${styles.abreFolha}`}
+          onClick={() => setAberta(true)}
+        >
           <span className={styles.titulo}>Despesas por categoria</span>
           <ChevronRight className={styles.chevron} size={18} aria-hidden />
-        </span>
+        </button>
 
-        <span className={styles.corpo}>
-          <span
-            className={styles.donut}
-            style={{ background: `conic-gradient(${paradas.join(", ")})` }}
-            role="img"
-            aria-label={descricaoDonut}
+        <div className={styles.corpo}>
+          <button
+            type="button"
+            className={styles.donutBotao}
+            onClick={() => setAberta(true)}
+            aria-label="Abrir detalhe das despesas por categoria"
           >
-            <span className={styles.buraco} />
-          </span>
+            <span
+              className={styles.donut}
+              style={{ background: `conic-gradient(${paradas.join(", ")})` }}
+              role="img"
+              aria-label={descricaoDonut}
+            >
+              <span className={styles.buraco} />
+            </span>
+          </button>
 
-          <span className={styles.legenda}>
+          <div className={styles.legenda}>
             {comCor.map((f) => (
-              <span key={f.categoria} className={styles.item}>
+              <button
+                key={f.categoria}
+                type="button"
+                className={styles.item}
+                onClick={() => irParaCategoria(f.categoria)}
+              >
                 <span className={styles.bolinha} style={{ background: f.cor }} />
                 <span className={styles.categoria}>{f.categoria}</span>
                 <span className={styles.pct}>{f.pct}%</span>
                 <span className={`${styles.valor} ${classeDiscreta}`}>
                   {formatMoney(f.valor, cfg.currency)}
                 </span>
-              </span>
+              </button>
             ))}
-          </span>
-        </span>
-      </button>
+          </div>
+        </div>
+      </div>
 
       <BottomSheet
         aberta={aberta}
@@ -151,13 +191,19 @@ export default function DonutCategoriaCard() {
 
         <ul className={styles.listaCompleta}>
           {ordenadas.map((f) => (
-            <li key={f.categoria} className={styles.linhaCompleta}>
-              <CategoriaBolha categoria={f.categoria} tamanho={28} />
-              <span className={styles.categoriaCompleta}>{f.categoria}</span>
-              <span className={styles.pct}>{f.pct}%</span>
-              <span className={`${styles.valor} ${classeDiscreta}`}>
-                {formatMoney(f.valor, cfg.currency)}
-              </span>
+            <li key={f.categoria}>
+              <button
+                type="button"
+                className={styles.linhaCompleta}
+                onClick={() => irParaCategoria(f.categoria)}
+              >
+                <CategoriaBolha categoria={f.categoria} tamanho={28} />
+                <span className={styles.categoriaCompleta}>{f.categoria}</span>
+                <span className={styles.pct}>{f.pct}%</span>
+                <span className={`${styles.valor} ${classeDiscreta}`}>
+                  {formatMoney(f.valor, cfg.currency)}
+                </span>
+              </button>
             </li>
           ))}
         </ul>

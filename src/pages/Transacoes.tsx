@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ListTree } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
@@ -68,7 +68,15 @@ export default function Transacoes() {
   const [categoriaMover, setCategoriaMover] = useState<string | null>(null);
   const [movendo, setMovendo] = useState(false);
   // Filtro de categoria/conta (item novo) — "" em cada um é "sem filtro".
-  const [filtroCategoria, setFiltroCategoria] = useState("");
+  // A categoria pode vir pronta pelo state da navegação: é assim que clicar
+  // numa fatia do donut do Início cai aqui já filtrado (mesmo padrão do `aba`
+  // que Despesas.tsx recebe). Lido UMA vez, só para semear o estado local —
+  // depois o filtro é do usuário. Não valida contra lista nenhuma porque
+  // categoria é lista aberta (`cfg.categoriasDespesa`); nome desconhecido dá
+  // lista vazia, que é resultado legível.
+  const location = useLocation();
+  const categoriaPedida = (location.state as { categoria?: string } | null)?.categoria;
+  const [filtroCategoria, setFiltroCategoria] = useState(categoriaPedida ?? "");
   const [filtroConta, setFiltroConta] = useState("");
 
   const dados: DadosTransacoes = {

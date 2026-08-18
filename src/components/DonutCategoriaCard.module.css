@@ -21,14 +21,35 @@
   flex-wrap: wrap;
 }
 
+/* O donut é o segundo gatilho da folha detalhada (o outro é a linha do
+   título). Envolve o círculo em vez de ser o círculo: assim o gráfico mantém
+   `role="img"` com a descrição das fatias, sem misturar imagem e botão no
+   mesmo elemento. */
+.donutBotao {
+  flex: 0 0 auto;
+  margin-inline: auto;
+  border-radius: 50%;
+  line-height: 0;
+  transition:
+    transform var(--dur-exit) var(--ease-exit),
+    box-shadow var(--dur-exit) var(--ease-exit);
+}
+
+.donutBotao:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-card-hi);
+  transition:
+    transform var(--dur-enter) var(--ease-enter),
+    box-shadow var(--dur-enter) var(--ease-enter);
+}
+
 /* Donut sem lib: conic-gradient no círculo + buraco por cima */
 .donut {
+  display: block;
   position: relative;
   width: 132px;
   height: 132px;
   border-radius: 50%;
-  flex: 0 0 auto;
-  margin-inline: auto;
   box-shadow: var(--sh-sm);
 }
 
@@ -69,16 +90,31 @@
   min-width: 0;
 }
 
+/* Cada linha da legenda é um botão (leva ao extrato filtrado por aquela
+   categoria) — daí a largura cheia, o texto à esquerda e o realce ao passar,
+   pra ficar claro que a linha inteira é clicável. */
 .item {
   display: flex;
+  /* o realce sangra 6px pra cada lado (daí o +12px), pra não colar no texto */
+  width: calc(100% + 12px);
   align-items: center;
+  text-align: left;
   gap: 9px;
-  padding: 5px 0;
+  padding: 5px 6px;
+  margin-inline: -6px;
+  border-radius: var(--r-xs);
   border-bottom: 1px solid var(--brd);
+  transition: background var(--dur-exit) var(--ease-exit);
 }
 
 .item:last-child {
   border-bottom: 0;
+}
+
+.item:hover,
+.item:focus-visible {
+  background: var(--s2);
+  transition: background var(--dur-enter) var(--ease-enter);
 }
 
 .bolinha {
@@ -114,35 +150,34 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* O card virou botão e abre a folha detalhada (item 21) */
-.cardBotao {
-  width: 100%;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    transform var(--dur-exit) var(--ease-exit),
-    box-shadow var(--dur-exit) var(--ease-exit);
-}
-
-.cardBotao:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sh-card-hi);
-  transition:
-    transform var(--dur-enter) var(--ease-enter),
-    box-shadow var(--dur-enter) var(--ease-enter);
-}
-
 .linhaTitulo {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
+  text-align: left;
   gap: 8px;
+}
+
+/* Gatilho da folha detalhada (item 21). Era o card inteiro; agora que cada
+   linha da legenda é o seu próprio botão, ficou só na linha do título — o
+   chevron já anunciava o "abre detalhe", e o realce vem do texto. */
+.abreFolha {
+  transition: color var(--dur-exit) var(--ease-exit);
+}
+
+.abreFolha:hover .chevron,
+.abreFolha:focus-visible .chevron {
+  color: var(--txt);
+  transform: translateX(2px);
 }
 
 .chevron {
   flex: none;
   color: var(--mut);
+  transition:
+    color var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
 }
 
 /* Versão maior do mesmo donut, dentro da folha */
@@ -199,16 +234,29 @@
   flex-direction: column;
 }
 
+/* Mesma história da legenda: cada linha é botão pra o extrato da categoria. */
 .linhaCompleta {
   display: flex;
+  width: calc(100% + 16px);
   align-items: center;
+  text-align: left;
   gap: 10px;
-  padding: 7px 0;
+  padding: 7px 8px;
+  margin-inline: -8px;
+  border-radius: var(--r-xs);
   border-bottom: 1px solid var(--brd);
+  transition: background var(--dur-exit) var(--ease-exit);
 }
 
-.linhaCompleta:last-child {
+/* o :last-child é do <li>: dentro dele o botão é sempre filho único */
+.listaCompleta li:last-child .linhaCompleta {
   border-bottom: 0;
+}
+
+.linhaCompleta:hover,
+.linhaCompleta:focus-visible {
+  background: var(--s2);
+  transition: background var(--dur-enter) var(--ease-enter);
 }
 
 .categoriaCompleta {
