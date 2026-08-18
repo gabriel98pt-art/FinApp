@@ -32,6 +32,24 @@
   box-shadow: var(--sh-sm);
 }
 
+/* Preso em 132px, o donut deixava metade do card vazia à esquerda da legenda
+   em ecrãs largos. Cresce nos mesmos degraus do resto do app (a barra lateral
+   em tokens.css e a largura do conteúdo em AppShell.module.css). O `.buraco`
+   é `inset` em %, portanto acompanha sozinho. */
+@media (min-width: 768px) {
+  .donut {
+    width: 176px;
+    height: 176px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .donut {
+    width: 220px;
+    height: 220px;
+  }
+}
+
 .buraco {
   position: absolute;
   inset: 17.5%; /* deixa ~65% de buraco, igual ao cutout do app antigo */
