@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { VEICULO_VAZIO } from "../services/veiculoService";
 import type { DespesaCorrente, Parcela } from "../types";
 import {
+  entraDinheiro,
   filtrarTransacoes,
   passaFiltroCategoria,
   passaFiltroConta,
@@ -620,5 +621,24 @@ describe("filtrarTransacoes", () => {
     expect(filtrarTransacoes(itens, "Mercado", "").map((t) => t.chave)).toEqual(["a", "b"]);
     expect(filtrarTransacoes(itens, "", "Revolut").map((t) => t.chave)).toEqual(["a", "c"]);
     expect(filtrarTransacoes(itens, "", "")).toHaveLength(3);
+  });
+});
+
+describe("entraDinheiro", () => {
+  it("segue o campo `entrada` quando o valor é positivo", () => {
+    expect(entraDinheiro(transacao({ valor: 1000, entrada: true }))).toBe(true);
+    expect(entraDinheiro(transacao({ valor: 1000, entrada: false }))).toBe(false);
+  });
+
+  it("inverte a direção quando o valor é negativo (reembolso)", () => {
+    // Reembolso: despesa de valor negativo. Dinheiro que VOLTOU, portanto
+    // entrada — sem isto a linha saía com o menos duas vezes ("− € -75,00").
+    expect(entraDinheiro(transacao({ valor: -7500, entrada: false }))).toBe(true);
+    expect(entraDinheiro(transacao({ valor: -7500, entrada: true }))).toBe(false);
+  });
+
+  it("valor zero não inverte nada", () => {
+    expect(entraDinheiro(transacao({ valor: 0, entrada: false }))).toBe(false);
+    expect(entraDinheiro(transacao({ valor: 0, entrada: true }))).toBe(true);
   });
 });

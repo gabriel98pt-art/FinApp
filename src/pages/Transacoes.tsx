@@ -28,6 +28,7 @@ import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { dadosDespesaDaCarga } from "../utils/veiculo";
 import {
+  entraDinheiro,
   filtrarTransacoes,
   transacoesDoMes,
   type DadosTransacoes,
@@ -218,24 +219,27 @@ export default function Transacoes() {
         />
       ) : (
         <div className={styles.lista}>
-          {itensFiltrados.map((t) => (
-            <button key={t.chave} className={styles.linha} onClick={() => abrir(t)}>
-              <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
-              <span className={styles.texto}>
-                <span className={styles.titulo}>{t.titulo}</span>
-                <span className={styles.detalhe}>
-                  {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                  {t.categoria ? ` · ${t.categoria}` : ""}
-                  {t.nota ? ` · ${t.nota}` : ""}
-                  {t.conta ? ` · ${t.conta}` : ""}
+          {itensFiltrados.map((t) => {
+            const entrada = entraDinheiro(t);
+            return (
+              <button key={t.chave} className={styles.linha} onClick={() => abrir(t)}>
+                <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
+                <span className={styles.texto}>
+                  <span className={styles.titulo}>{t.titulo}</span>
+                  <span className={styles.detalhe}>
+                    {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
+                    {t.categoria ? ` · ${t.categoria}` : ""}
+                    {t.nota ? ` · ${t.nota}` : ""}
+                    {t.conta ? ` · ${t.conta}` : ""}
+                  </span>
                 </span>
-              </span>
-              <span className={`${styles.valor} ${t.entrada ? styles.entrada : styles.saida}`}>
-                {t.entrada ? "+" : "−"}
-                {formatMoney(t.valor, cfg.currency)}
-              </span>
-            </button>
-          ))}
+                <span className={`${styles.valor} ${entrada ? styles.entrada : styles.saida}`}>
+                  {entrada ? "+" : "−"}
+                  {formatMoney(Math.abs(t.valor), cfg.currency)}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -248,9 +252,9 @@ export default function Transacoes() {
           <div className={styles.detalhes}>
             <div className={styles.linhaDetalhe}>
               <span>Valor</span>
-              <strong className={detalhe.entrada ? styles.entrada : styles.saida}>
-                {detalhe.entrada ? "+" : "−"}
-                {formatMoney(detalhe.valor, cfg.currency)}
+              <strong className={entraDinheiro(detalhe) ? styles.entrada : styles.saida}>
+                {entraDinheiro(detalhe) ? "+" : "−"}
+                {formatMoney(Math.abs(detalhe.valor), cfg.currency)}
               </strong>
             </div>
             <div className={styles.linhaDetalhe}>

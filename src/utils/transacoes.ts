@@ -71,6 +71,21 @@ export interface Transacao {
   entrada: boolean;
 }
 
+/** Para que lado o dinheiro andou de facto — o que decide o sinal e a cor da
+ *  linha no extrato.
+ *
+ *  Não é só `t.entrada`: um reembolso é guardado como despesa de valor
+ *  NEGATIVO (ver `utils/reembolsos.ts`), portanto chega aqui com
+ *  `entrada: false` e valor abaixo de zero. Pintá-lo pelo campo `entrada`
+ *  sozinho escrevia "− € -75,00", com o menos duas vezes — o prefixo da
+ *  direção mais o menos do próprio número. Valor negativo numa saída é
+ *  dinheiro que VOLTOU: conta como entrada (verde, com "+"), e quem mostra
+ *  formata o módulo do valor para o sinal não aparecer outra vez. Mesma regra
+ *  que `ListaLancamentos` já aplicava nas listas de despesas. */
+export function entraDinheiro(t: Pick<Transacao, "valor" | "entrada">): boolean {
+  return t.valor < 0 ? !t.entrada : t.entrada;
+}
+
 export interface DadosTransacoes {
   receitas: Receita[];
   despesasCorrentes: DespesaCorrente[];

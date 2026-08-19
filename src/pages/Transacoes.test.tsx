@@ -125,6 +125,35 @@ describe("Transacoes", () => {
     expect(screen.getByText("Mercado")).toBeInTheDocument();
     expect(screen.getByText("2 transações")).toBeInTheDocument();
   });
+
+  test("reembolso mostra o sinal UMA vez, do lado de quem recebe", () => {
+    // Um reembolso é uma despesa de valor NEGATIVO (utils/reembolsos.ts). A
+    // linha somava o prefixo da direção ao menos do próprio número e saía
+    // "− € -75,00". Dinheiro que voltou é entrada: "+", e o módulo do valor.
+    despesas = lista([
+      {
+        id: "d1",
+        descricao: "Jantar de grupo",
+        valor: 12000,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+      {
+        id: "d2",
+        descricao: "Reembolso do jantar",
+        valor: -7500,
+        data: "2026-08-04",
+        categoria: "Alimentação",
+        origem: "reemb",
+        reembolsoDeId: "d1",
+      } as DespesaCorrente,
+    ]);
+    const { container } = desenhar();
+
+    expect(container.textContent).toContain("+€ 75,00");
+    // A saída antiga, letra por letra — o menos duas vezes.
+    expect(container.textContent).not.toContain("−€ -75,00");
+  });
 });
 
 function receita(): Receita {
