@@ -36,8 +36,23 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { Cents, FaturaCalculada, Id, TipoCartao, Transferencia } from "../types";
-import { doMes, hojeIso, ordenarPorDataDesc, rotuloMes } from "../utils/calculos";
+import type {
+  Cents,
+  Currency,
+  FaturaCalculada,
+  Id,
+  TipoCartao,
+  Transferencia,
+  YearMonth,
+} from "../types";
+import {
+  doMes,
+  hojeIso,
+  mesAtual,
+  ordenarPorDataDesc,
+  rotuloMes,
+  somarMeses,
+} from "../utils/calculos";
 import {
   calcularFatura,
   cicloDaFatura,
@@ -175,6 +190,65 @@ function ControlesFatura({
   );
 }
 
+/** As duas leituras de um quadro de conta, já na ordem certa de leitura.
+ *
+ *  A manchete é sempre a POSIÇÃO REAL — quanto a conta tem (débito) ou quanto
+ *  se deve mesmo agora (crédito) —, e o movimento do período fica em segundo
+ *  plano. Estava ao contrário: o quadro da Conta Principal punha em destaque o
+ *  gasto do mês (ex. "€ -57,00") e escondia o saldo de "€ 4.657,00" numa linha
+ *  cinzenta, o que faz uma conta com quatro mil euros parecer negativa.
+ *
+ *  E cada número passa a dizer de que janela de tempo é. Um cartão de crédito
+ *  tem duas faturas vivas ao mesmo tempo e elas nunca batem certo: a do mês
+ *  exibido (ciclo do mês anterior, já fechada — é a que se paga agora) e a do
+ *  mês seguinte, que os gastos do mês exibido ainda estão a formar. Sem rótulo,
+ *  eram dois números soltos a competir pelo mesmo nome de "fatura". */
+function leiturasDoQuadro(
+  r: ResumoConta,
+  fatura: FaturaCalculada | null,
+  faturaSeguinte: FaturaCalculada | null,
+  mes: YearMonth,
+  moeda: Currency,
+): { rotulo: string; valor: string; tom: string; secundario: string } {
+  const proximo = somarMeses(mes, 1);
+
+  if (r.tipo === "credit") {
+    const devido = fatura?.devido ?? 0;
+    const restante = fatura?.restante ?? 0;
+    // "Em formação" só enquanto o ciclo não fechou: olhando para um mês
+    // passado, a fatura seguinte já está fechada há muito.
+    const emFormacao = mes >= mesAtual();
+    return {
+      rotulo:
+        devido > 0 && restante === 0
+          ? `Fatura de ${rotuloMes(mes)} · paga`
+          : `Fatura de ${rotuloMes(mes)} · a pagar`,
+      valor: formatMoney(restante, moeda),
+      tom: restante > 0 ? styles.amarelo : styles.verde,
+      secundario: `Fatura de ${rotuloMes(proximo)}${emFormacao ? " (em formação)" : ""}: ${formatMoney(
+        faturaSeguinte?.devido ?? 0,
+        moeda,
+      )}`,
+    };
+  }
+
+  return {
+    rotulo: "Saldo atual",
+    valor: formatMoney(r.saldoAtual, moeda),
+    // Positivo fica no cinza normal do texto: quem precisa de aviso é o saldo
+    // negativo, não o que está em ordem.
+    tom: r.saldoAtual < 0 ? styles.vermelho : "",
+    secundario:
+      r.gastoMes > 0
+        ? `Gasto em ${rotuloMes(mes)}: ${formatMoney(r.gastoMes, moeda)}`
+        : r.gastoMes < 0
+          ? // Gasto negativo é dinheiro que voltou (reembolso, estorno) — chamar
+            // isso de "gasto de −57,00" era pedir para ser lido como dívida.
+            `Devolvido em ${rotuloMes(mes)}: ${formatMoney(-r.gastoMes, moeda)}`
+          : `Sem gastos em ${rotuloMes(mes)}`,
+  };
+}
+
 // A FaturaCalculada não carrega a lista de pagamentos — este helper devolve a
 // lista atual a partir da store, com a mesma compat de formato legado do cálculo.
 function calcularPagamentos(fatura: FaturaCalculada) {
@@ -272,11 +346,23 @@ export default function Cartoes() {
   const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
   const contasDebito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] !== "credit");
   const faturas = cartoesCredito.map((c) => calcularFatura(c, mes, dados, cfg));
+  // A fatura do mês SEGUINTE é a que o ciclo do mês exibido está a formar
+  // (ver `cicloDaFatura`): é ela que dá sentido aos gastos lançados agora no
+  // cartão, e é o número que o sino do header mostra quando o mês exibido é o
+  // corrente. Sem ela, o quadro do cartão mostrava o "gasto do mês" da conta —
+  // que nem sequer inclui as parcelas em débito automático que vão cair nessa
+  // mesma fatura, e por isso nunca batia com nada.
+  const mesSeguinte = somarMeses(mes, 1);
+  const faturasSeguintes = cartoesCredito.map((c) => calcularFatura(c, mesSeguinte, dados, cfg));
   const resumos = resumosDasContas(dadosContas, cfg, mes, hojeIso());
   const resumoAberto = resumos.find((r) => r.conta === contaAberta) ?? null;
   const faturaAberta =
     resumoAberto?.tipo === "credit"
       ? (faturas.find((f) => f.cartao === resumoAberto.conta) ?? null)
+      : null;
+  const faturaSeguinteAberta =
+    resumoAberto?.tipo === "credit"
+      ? (faturasSeguintes.find((f) => f.cartao === resumoAberto.conta) ?? null)
       : null;
   const totalDevido = faturas.reduce((s, f) => s + f.devido, 0);
   const totalPago = faturas.reduce((s, f) => s + f.pago, 0);
@@ -457,9 +543,12 @@ export default function Cartoes() {
   return (
     <Pagina titulo="Cartões">
       <Kpis pagina="cartoes">
+        {/* O rótulo sozinho deixa supor que é o que se gastou no mês; é a
+            fatura DESTE mês, que cobra o ciclo do mês anterior. */}
         <KpiCard
           rotulo="Devido no mês"
           valor={formatMoney(totalDevido, cfg.currency)}
+          sub={`ciclo de ${rotuloMes(cicloDaFatura(mes))}`}
           tom="acento"
         />
         <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
@@ -483,33 +572,41 @@ export default function Cartoes() {
         />
       ) : (
         <div className={styles.grade}>
-          {resumos.map((r) => (
-            <button key={r.conta} className={styles.quadro} onClick={() => setContaAberta(r.conta)}>
-              <span className={styles.quadroTopo}>
-                <span className={styles.nome}>{r.conta}</span>
-                <span className={styles.tipoBadge}>
-                  {r.tipo === "credit" ? "crédito" : "débito"}
+          {resumos.map((r) => {
+            const leituras = leiturasDoQuadro(
+              r,
+              faturas.find((f) => f.cartao === r.conta) ?? null,
+              faturasSeguintes.find((f) => f.cartao === r.conta) ?? null,
+              mes,
+              cfg.currency,
+            );
+            return (
+              <button
+                key={r.conta}
+                className={styles.quadro}
+                onClick={() => setContaAberta(r.conta)}
+              >
+                <span className={styles.quadroTopo}>
+                  <span className={styles.nome}>{r.conta}</span>
+                  <span className={styles.tipoBadge}>
+                    {r.tipo === "credit" ? "crédito" : "débito"}
+                  </span>
                 </span>
-              </span>
-              <span className={styles.quadroValor}>{formatMoney(r.gastoMes, cfg.currency)}</span>
-              {/* O gasto do mês diz o que se moveu; isto diz onde a conta está
-                  agora. Débito tem saldo em caixa, crédito não — lá o "agora" é
-                  o que falta pagar da fatura do mês. Mais pequeno de propósito:
-                  é uma segunda leitura, não compete com o valor de cima. */}
-              <span className={styles.quadroEstado}>
-                {r.tipo === "credit"
-                  ? `Em aberto: ${formatMoney(
-                      faturas.find((f) => f.cartao === r.conta)?.restante ?? 0,
-                      cfg.currency,
-                    )}`
-                  : `Saldo: ${formatMoney(r.saldoAtual, cfg.currency)}`}
-              </span>
-              <span className={styles.quadroNota}>
-                {r.transacoesMes} {r.transacoesMes === 1 ? "transação" : "transações"} em{" "}
-                {rotuloMes(mes)}
-              </span>
-            </button>
-          ))}
+                {/* Manchete: o saldo da conta, ou o que falta pagar da fatura
+                    já fechada. O rótulo vem ANTES do número — sem ele, um
+                    valor de cartão não diz de que fatura é. */}
+                <span className={styles.quadroRotulo}>{leituras.rotulo}</span>
+                <span className={`${styles.quadroValor} ${leituras.tom}`}>{leituras.valor}</span>
+                {/* Segunda leitura, de propósito mais pequena: o movimento do
+                    período, que ainda não é uma obrigação a pagar. */}
+                <span className={styles.quadroEstado}>{leituras.secundario}</span>
+                <span className={styles.quadroNota}>
+                  {r.transacoesMes} {r.transacoesMes === 1 ? "transação" : "transações"} em{" "}
+                  {rotuloMes(mes)}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -657,8 +754,15 @@ export default function Cartoes() {
               <span>Tipo</span>
               <strong>{resumoAberto.tipo === "credit" ? "Crédito" : "Débito"}</strong>
             </div>
+            {/* "Fatura até agora" dizia o contrário do que mostrava: o valor é
+                o da fatura do mês exibido, que cobra o ciclo JÁ FECHADO do mês
+                anterior — nada do que se gastou "até agora" entra nele. O que
+                está a acontecer agora é a fatura do mês seguinte, na linha a
+                seguir. */}
             <div className={styles.linhaDetalhe}>
-              <span>{resumoAberto.tipo === "credit" ? "Fatura até agora" : "Saldo atual"}</span>
+              <span>
+                {resumoAberto.tipo === "credit" ? `Fatura de ${rotuloMes(mes)}` : "Saldo atual"}
+              </span>
               <strong>
                 {formatMoney(
                   resumoAberto.tipo === "credit"
@@ -668,6 +772,15 @@ export default function Cartoes() {
                 )}
               </strong>
             </div>
+            {resumoAberto.tipo === "credit" && (
+              <div className={styles.linhaDetalhe}>
+                <span>
+                  Fatura de {rotuloMes(mesSeguinte)}
+                  {mes >= mesAtual() ? " (em formação)" : ""}
+                </span>
+                <strong>{formatMoney(faturaSeguinteAberta?.devido ?? 0, cfg.currency)}</strong>
+              </div>
+            )}
             <div className={styles.linhaDetalhe}>
               <span>Despesas em {rotuloMes(mes)}</span>
               <strong>{resumoAberto.despesasMes}</strong>

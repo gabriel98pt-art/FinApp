@@ -89,6 +89,12 @@
   color: var(--ylw);
 }
 
+/* Só o saldo negativo de uma conta de débito — o único caso desta tela em que
+   o número é mesmo um problema. */
+.vermelho {
+  color: var(--red);
+}
+
 .pagamentos {
   list-style: none;
   margin: 0;
@@ -355,17 +361,31 @@
   padding: 3px 8px;
 }
 
+/* Rótulo da manchete do quadro ("Saldo atual", "Fatura de julho · a pagar").
+   Colado ao número que descreve — daí o gap negativo contra o `gap: 6px` da
+   coluna: os dois são uma coisa só, e o resto do quadro respira à volta. */
+.quadroRotulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mut);
+  margin-bottom: -4px;
+}
+
+/* A manchete: o saldo da conta, ou o que falta pagar da fatura fechada. Estava
+   aqui o gasto do mês — o número que menos compromete — enquanto o saldo ia
+   para a linha cinzenta de baixo. */
 .quadroValor {
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   font-weight: 800;
+  letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
 }
 
 /* Entre o valor grande e a nota: pesa mais do que a contagem de transações,
-   menos do que o gasto do mês. */
+   menos do que a manchete. */
 .quadroEstado {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--txt);
   opacity: 0.72;
   font-variant-numeric: tabular-nums;
