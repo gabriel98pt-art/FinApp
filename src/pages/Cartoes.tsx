@@ -102,7 +102,7 @@ function ControlesFatura({
 
       <div className={styles.valores}>
         <div>
-          <p className={styles.rotuloValor}>Devido</p>
+          <p className={styles.rotuloValor}>A pagar</p>
           <p className={styles.valor}>{formatMoney(fatura.devido, cfg.currency)}</p>
         </div>
         <div>
@@ -546,7 +546,12 @@ export default function Cartoes() {
         {/* O rótulo sozinho deixa supor que é o que se gastou no mês; é a
             fatura DESTE mês, que cobra o ciclo do mês anterior. */}
         <KpiCard
-          rotulo="Devido no mês"
+          rotulo="A pagar este mês"
+          // A escolha de KPIs em Definições é guardada por este texto: mudar
+          // só o rótulo visível deixaria de casar com quem já escolheu este
+          // cartão, e a página cairia nos 2 primeiros. `chave` mantém o nome
+          // antigo do lado dos dados, onde ninguém o lê.
+          chave="Devido no mês"
           valor={formatMoney(totalDevido, cfg.currency)}
           sub={`ciclo de ${rotuloMes(cicloDaFatura(mes))}`}
           tom="acento"
@@ -840,7 +845,7 @@ export default function Cartoes() {
         {pagando && (
           <form className={styles.form} onSubmit={submeterPagamento}>
             <p className={styles.resumoPagar}>
-              Devido {formatMoney(pagando.devido, cfg.currency)} · Pago{" "}
+              A pagar {formatMoney(pagando.devido, cfg.currency)} · Pago{" "}
               {formatMoney(pagando.pago, cfg.currency)} · Restante{" "}
               {formatMoney(pagando.restante, cfg.currency)}
             </p>

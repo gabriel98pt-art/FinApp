@@ -337,7 +337,9 @@ function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
                     aria-pressed={ativo}
                     onClick={() => void alternar(pag.id, r, [...atuais])}
                   >
-                    {r}
+                    {/* O chip mostra o mesmo texto do cartão na página; `r` é
+                        a chave guardada, que às vezes já não é esse texto. */}
+                    {pag.textos?.[r] ?? r}
                   </button>
                 );
               })}

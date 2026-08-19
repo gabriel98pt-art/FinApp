@@ -87,7 +87,7 @@ describe("Cartoes", () => {
   test("monta e mostra os KPIs da fatura", () => {
     render(<Cartoes />);
     expect(screen.getByRole("heading", { name: "Cartões" })).toBeInTheDocument();
-    expect(screen.getByText("Devido no mês")).toBeInTheDocument();
+    expect(screen.getByText("A pagar este mês")).toBeInTheDocument();
   });
 
   test("sem contas configuradas: convida a adicionar a primeira", () => {
