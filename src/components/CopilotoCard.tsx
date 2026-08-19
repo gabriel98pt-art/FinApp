@@ -12,6 +12,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
+import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { despesasNosTotais, hojeIso, mesAtual, receitasNosTotais } from "../utils/calculos";
 import { responderPergunta, RESPOSTA_PADRAO } from "../utils/copiloto";
 import { responderComIA } from "../services/copilotoIA";
@@ -41,6 +42,7 @@ export default function CopilotoCard() {
   const fundos = useFundosStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
   const sessao = useAuthStore((s) => s.sessao);
+  const mesVisivel = useMesVisivelStore((s) => s.mes);
 
   const [pergunta, setPergunta] = useState("");
   const [resposta, setResposta] = useState<string | null>(null);
@@ -69,6 +71,10 @@ export default function CopilotoCard() {
       fundos,
       cfg,
       mesReal: mesAtual(),
+      // O Copiloto vive no Início, que mostra o mês do seletor do header — as
+      // respostas têm de falar DESSE mês, senão o cartão respondia sobre
+      // agosto com julho escolhido logo acima dele.
+      mesVisivel,
       diaDeHoje: parseInt(hoje.slice(8, 10), 10),
     };
     setVariante((v) => v + 1);

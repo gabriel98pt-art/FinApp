@@ -161,15 +161,26 @@ export interface ReferenciaTempo {
 }
 
 /** Interpreta a que mês/ano a pergunta se refere. Sem pista nenhuma, usa o
- *  mês corrente. Portado de _cpParseRef. */
-export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth): ReferenciaTempo {
+ *  mês corrente. Portado de _cpParseRef.
+ *
+ *  `mesCorrente` é o mês em que a pergunta está ancorada — o que a pessoa tem
+ *  no ecrã, não necessariamente o de hoje. `mesReal` é o de hoje e serve só
+ *  para as duas coisas que dependem MESMO da data: o ano por omissão de um mês
+ *  escrito sem ano e o travão que impede uma pergunta de cair num mês que
+ *  ainda não aconteceu. Omitido, os dois coincidem — que é o caso de quem
+ *  chama sem navegação por mês. */
+export function interpretarReferencia(
+  pergunta: string,
+  mesCorrente: YearMonth,
+  mesReal: YearMonth = mesCorrente,
+): ReferenciaTempo {
   const q = normalizarPergunta(pergunta);
   if (q.includes("mes passado"))
     return { ym: somarMeses(mesCorrente, -1), label: rotuloMes(somarMeses(mesCorrente, -1)) };
   if (q.includes("este mes") || q.includes("mes atual"))
     return { ym: mesCorrente, label: rotuloMes(mesCorrente) };
 
-  const anoAtual = parseInt(mesCorrente.slice(0, 4), 10);
+  const anoAtual = parseInt(mesReal.slice(0, 4), 10);
   const anoPassado = q.includes("ano passado");
   const anoMatch = q.match(/\b(20\d{2})\b/);
   // "ano passado" também é um ano explícito: sem isto, "julho do ano passado"
@@ -182,7 +193,9 @@ export function interpretarReferencia(pergunta: string, mesCorrente: YearMonth):
     if (mi > -1) {
       const y = anoDaPergunta ?? anoAtual;
       let ym = `${y}-${String(mi + 1).padStart(2, "0")}`;
-      if (!anoDaPergunta && ym > mesCorrente) ym = `${y - 1}-${String(mi + 1).padStart(2, "0")}`;
+      // Mês no futuro é medido contra HOJE, não contra o mês que se está a
+      // ver: com julho no ecrã, "agosto" continua a ser o agosto deste ano.
+      if (!anoDaPergunta && ym > mesReal) ym = `${y - 1}-${String(mi + 1).padStart(2, "0")}`;
       return { ym, label: rotuloMes(ym) };
     }
   }
@@ -225,8 +238,17 @@ export interface ContextoCopiloto {
    *  São perguntas diferentes e ambas continuam a existir. */
   fundos: Fundo[];
   /** Mês real de hoje — usado pra decidir se "projeção no ritmo atual" faz
-   *  sentido (só quando a pergunta é sobre o mês corrente de verdade). */
+   *  sentido (só quando a pergunta é sobre o mês corrente de verdade) e se uma
+   *  fixa/parcela do mês já venceu. NÃO é o mês de que as respostas falam:
+   *  para isso existe `mesVisivel`. */
   mesReal: YearMonth;
+  /** Mês que a pessoa está a ver no seletor do header — é DELE que as
+   *  perguntas de período falam quando não nomeiam mês nenhum ("resumo do
+   *  mês", "qual meu saldo?"), e é ele que ancora as referências relativas
+   *  ("mês passado"). Com o Início em julho, o Copiloto respondia sobre agosto
+   *  porque só conhecia `mesReal`. Ausente = cai no mês real, que é o
+   *  comportamento certo para quem não navega por mês. */
+  mesVisivel?: YearMonth;
   diaDeHoje: number;
   /** Qual das variações de fraseado usar. Ausente/0 = a frase histórica.
    *  Quem chama roda o número para as respostas não saírem sempre iguais. */
@@ -1022,7 +1044,11 @@ export const RESPOSTA_PADRAO =
  *  `RESPOSTA_PADRAO` e decide daí. */
 export function responderPergunta(pergunta: string, ctx: ContextoCopiloto): string {
   const q = normalizarPergunta(pergunta);
-  const ref = interpretarReferencia(q, ctx.mesReal);
+  // A pergunta sem mês nomeado fala do mês que a pessoa está a VER, não do mês
+  // de hoje — o `mesReal` continua a ser usado dentro dos intents, mas só para
+  // o que depende mesmo da data de hoje (uma fixa em débito automático já ter
+  // vencido, a projeção "no ritmo atual" só valer para o mês corrente).
+  const ref = interpretarReferencia(q, ctx.mesVisivel ?? ctx.mesReal, ctx.mesReal);
   for (const intent of INTENTS_COPILOTO) {
     if (intent.test(q, ctx)) {
       const resposta = intent.run(q, ref, ctx);

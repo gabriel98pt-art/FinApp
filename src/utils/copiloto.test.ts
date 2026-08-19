@@ -105,6 +105,24 @@ describe("interpretarReferencia", () => {
   test("sem pista nenhuma cai no mês corrente", () => {
     expect(interpretarReferencia("oi", "2026-07").ym).toBe("2026-07");
   });
+
+  // Bug: o mês do ecrã era julho e o Copiloto respondia sobre agosto, porque
+  // só conhecia o mês real. O mês visível ancora a pergunta; o real continua a
+  // decidir o que ainda não aconteceu.
+  test("ancora no mês visível, mas mede o futuro pelo mês real", () => {
+    expect(interpretarReferencia("resumo do mes", "2026-07", "2026-08").ym).toBe("2026-07");
+    expect(interpretarReferencia("quanto gastei o mes passado", "2026-07", "2026-08").ym).toBe(
+      "2026-06",
+    );
+    // "agosto" é o mês real, não o futuro — não pode cair em agosto de 2025.
+    expect(interpretarReferencia("quanto gastei em agosto", "2026-07", "2026-08").ym).toBe(
+      "2026-08",
+    );
+    // Setembro esse sim ainda não chegou.
+    expect(interpretarReferencia("quanto gastei em setembro", "2026-07", "2026-08").ym).toBe(
+      "2025-09",
+    );
+  });
 });
 
 describe("responderPergunta — intents (seção 3.9)", () => {
@@ -257,6 +275,22 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     ];
     const resp = responderPergunta("resume o ano", ctx({ receitas: receitasAno }));
     expect(resp).toContain("3.000,00"); // 100000+200000 cents = 3.000,00
+  });
+
+  // Bug: com o Início a mostrar julho, "resumo do mês" respondia sobre agosto
+  // ("Em agosto 2026 recebeu € 0,00 e gastou € 0,00") — o contexto só levava o
+  // mês real. As respostas de período seguem agora o mês do seletor.
+  test("resumo do mês fala do mês visível, não do mês real", () => {
+    const c = ctx({ despesas, receitas, mesReal: "2026-08", mesVisivel: "2026-07" });
+    const resp = responderPergunta("resumo do mes", c);
+    expect(resp).toContain("julho 2026");
+    expect(resp).not.toContain("agosto");
+    expect(resp).toContain("2.000,00"); // as receitas de julho, não zero
+  });
+
+  test("sem mês visível o Copiloto continua a falar do mês real", () => {
+    const resp = responderPergunta("resumo do mes", ctx({ despesas, receitas }));
+    expect(resp).toContain("julho 2026");
   });
 
   test("saldo do mês (fallback genérico funciona sem palavra-chave específica)", () => {
