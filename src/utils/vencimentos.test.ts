@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DespesaFixa, Parcela } from "../types";
 import {
+  naJanela,
   porDia,
+  totalAVencer,
   vencimentosDeFaturas,
   vencimentosDeFixas,
   vencimentosDeParcelas,
@@ -159,5 +161,42 @@ describe("porDia", () => {
     ]);
     expect(mapa.get("2026-07-08")).toHaveLength(2);
     expect(mapa.has("2026-07-09")).toBe(false);
+  });
+});
+
+// Os dois KPIs do Calendário passaram a somar dinheiro em vez de contar
+// eventos manuais — estas duas funções são a conta que eles fazem.
+describe("totalAVencer", () => {
+  it("soma o valor de tudo que está por vencer", () => {
+    const v = [
+      ...vencimentosDeFixas([fixa({ valor: 50000, diaVencimento: 8 })], "2026-07"),
+      ...vencimentosDeParcelas([parcela({ diaVencimento: 20 })], "2026-07"),
+      ...vencimentosDeFaturas([{ cartao: "AB Gold", restante: 12345 }], "2026-07"),
+    ];
+    // 50000 da fixa + 10000 da parcela (30000 em 3) + 12345 da fatura.
+    expect(totalAVencer(v)).toBe(72345);
+  });
+
+  it("sem nada por vencer, é zero — e isso é uma resposta honesta", () => {
+    expect(totalAVencer([])).toBe(0);
+  });
+});
+
+describe("naJanela", () => {
+  const lista = [
+    ...vencimentosDeFixas([fixa({ id: "a", diaVencimento: 5 })], "2026-07"),
+    ...vencimentosDeFixas([fixa({ id: "b", diaVencimento: 12 })], "2026-07"),
+    ...vencimentosDeFixas([fixa({ id: "c", diaVencimento: 25 })], "2026-07"),
+  ];
+
+  it("fica só com os que caem entre as duas datas, extremos incluídos", () => {
+    const dentro = naJanela(lista, "2026-07-05", "2026-07-12");
+    expect(dentro.map((v) => v.dia)).toEqual(["2026-07-05", "2026-07-12"]);
+  });
+
+  it("uma janela que atravessa a virada do mês apanha os dois lados", () => {
+    const agosto = vencimentosDeFixas([fixa({ diaVencimento: 2 })], "2026-08");
+    const dentro = naJanela([...lista, ...agosto], "2026-07-28", "2026-08-04");
+    expect(dentro.map((v) => v.dia)).toEqual(["2026-08-02"]);
   });
 });

@@ -128,6 +128,21 @@ export function vencimentosDeFaturas(
     }));
 }
 
+/** Quanto dinheiro está em jogo — a soma dos vencimentos passados.
+ *
+ *  É o que os KPIs do Calendário mostram: contar compromissos ("3 vencimentos")
+ *  não diz se o mês aperta ou não, e a própria grelha já marca em que dias há
+ *  alguma coisa. O valor em euros é a informação que só o cartão dá. */
+export function totalAVencer(vencimentos: Vencimento[]): Cents {
+  return vencimentos.reduce((s, v) => s + v.valor, 0);
+}
+
+/** Os vencimentos que caem entre `de` e `ate`, ambos incluídos — datas ISO
+ *  comparam-se como texto, sem Date/timezone (mesma convenção do resto). */
+export function naJanela(vencimentos: Vencimento[], de: IsoDate, ate: IsoDate): Vencimento[] {
+  return vencimentos.filter((v) => v.dia >= de && v.dia <= ate);
+}
+
 /** Agrupa por dia, pro grid do Calendário. */
 export function porDia(vencimentos: Vencimento[]): Map<IsoDate, Vencimento[]> {
   const mapa = new Map<IsoDate, Vencimento[]>();

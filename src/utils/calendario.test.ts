@@ -3,9 +3,11 @@ import type { EventoCalendario } from "../types";
 import {
   diasComEventoNoMes,
   diasDoGrid,
+  eventosComValor,
   eventosDoDia,
   proximosEventos,
   rotulosDiasSemana,
+  totalEventos,
 } from "./calendario";
 import { somarDias } from "./calculos";
 
@@ -116,5 +118,25 @@ describe("rotulosDiasSemana", () => {
 
   it("gira a partir do dia pedido — segunda primeiro", () => {
     expect(rotulosDiasSemana(1)).toEqual(["S", "T", "Q", "Q", "S", "S", "D"]);
+  });
+});
+
+// O KPI do Calendário soma dinheiro, e o valor do evento é opcional — um
+// "consulta às 9h" não pode entrar em soma nenhuma.
+describe("eventos com valor", () => {
+  const eventos = [
+    evento({ id: "e1", valor: 2500 }),
+    evento({ id: "e2" }),
+    evento({ id: "e3", valor: 1000 }),
+  ];
+
+  it("eventosComValor deixa de fora os que não têm valor", () => {
+    expect(eventosComValor(eventos).map((e) => e.id)).toEqual(["e1", "e3"]);
+  });
+
+  it("totalEventos soma só o que tem valor", () => {
+    expect(totalEventos(eventos)).toBe(3500);
+    expect(totalEventos([evento({ id: "so-titulo" })])).toBe(0);
+    expect(totalEventos([])).toBe(0);
   });
 });

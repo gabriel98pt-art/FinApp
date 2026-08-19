@@ -112,3 +112,51 @@ describe("Calendario", () => {
     expect(screen.getByRole("heading", { name: "Próximos 7 dias" })).toBeInTheDocument();
   });
 });
+
+describe("KPIs do Calendário", () => {
+  // O que estes testes seguram é o problema que os motivou: os dois cartões
+  // contavam EVENTOS MANUAIS e por isso mostravam "0" num mês com fixas,
+  // parcelas e faturas por pagar — que a grelha logo abaixo já marcava com
+  // pontos. Agora somam o dinheiro desses mesmos vencimentos.
+  const netflix = (id: string, dia: number, valor: number) =>
+    ({
+      id,
+      descricao: `Fixa ${id}`,
+      valor,
+      categoria: "Assinaturas",
+      diaVencimento: dia,
+      pagoPorMes: {},
+    }) as DespesaFixa;
+
+  test("somam os vencimentos da grelha, sem um único evento manual", () => {
+    // Hoje é 12/08/2026: a janela de 7 dias vai até dia 19.
+    fixas = lista([netflix("f1", 15, 2000), netflix("f2", 20, 1590)]);
+    render(<Calendario />);
+
+    expect(screen.getByText("A pagar em agosto 2026")).toBeInTheDocument();
+    expect(screen.getByText("€ 35,90")).toBeInTheDocument();
+    expect(screen.getByText("Vence em 7 dias")).toBeInTheDocument();
+    // Só a de dia 15 cabe na janela — a de dia 20 fica de fora.
+    expect(screen.getByText("€ 20,00")).toBeInTheDocument();
+    // E nada de "0": era isto que a tela dizia antes, com estas mesmas fixas.
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+  });
+
+  test("evento manual com valor entra na soma; sem valor, não", () => {
+    eventos = lista<EventoCalendario>([
+      { id: "e1", titulo: "IUC", data: "2026-08-14", valor: 12000 },
+      { id: "e2", titulo: "Dentista", data: "2026-08-14" },
+    ]);
+    render(<Calendario />);
+
+    // 120,00 do evento com valor — o outro não é dinheiro e não conta.
+    expect(screen.getAllByText("€ 120,00").length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("mês genuinamente sem nada a vencer diz zero, e diz porquê", () => {
+    render(<Calendario />);
+    expect(screen.getAllByText("€ 0,00")).toHaveLength(2);
+    expect(screen.getByText("nada por vencer neste mês")).toBeInTheDocument();
+    expect(screen.getByText("nada vence até lá")).toBeInTheDocument();
+  });
+});

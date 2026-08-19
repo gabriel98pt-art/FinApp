@@ -22,7 +22,9 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
 import { calcularFatura, type DadosFatura } from "../utils/fatura";
 import {
+  naJanela,
   porDia,
+  totalAVencer,
   vencimentosDeFaturas,
   vencimentosDeFixas,
   vencimentosDeParcelas,
@@ -31,14 +33,16 @@ import {
 import {
   diasComEventoNoMes,
   diasDoGrid,
+  eventosComValor,
   eventosDoDia,
   eventosDoMes,
   proximosEventos,
   rotulosDiasSemana,
+  totalEventos,
 } from "../utils/calendario";
-import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
+import { hojeIso, mesAtual, rotuloMes, somarDias, somarMeses } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
-import type { Cents } from "../types";
+import type { Cents, YearMonth } from "../types";
 import styles from "./Calendario.module.css";
 
 export default function Calendario() {
@@ -91,21 +95,49 @@ export default function Calendario() {
     despesasVeiculo: veiculo.despesas,
     receitas,
   };
-  const restantePorCartao = cfg.contasCartoes
-    .filter((c) => cfg.tipoCartao[c] === "credit")
-    .map((c) => ({ cartao: c, restante: calcularFatura(c, mes, dadosFatura, cfg).restante }));
-
   // `mesAtual()`/`hoje` dão a mesma precisão de dia que Transações e o
   // Orçamento já usam — sem eles, um compromisso já pago continuava a
   // aparecer no Calendário como se estivesse por fazer.
   const mesReal = mesAtual();
-  const vencimentos: Vencimento[] = [
-    ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mes, mesReal, hoje),
-    ...vencimentosDeParcelas(parcelas, mes, cfg.diaVencimentoFatura, mesReal, hoje),
-    ...vencimentosDeFaturas(restantePorCartao, mes, cfg.diaVencimentoFatura),
-  ];
+  function vencimentosDoMes(ym: YearMonth): Vencimento[] {
+    const restantePorCartao = cfg.contasCartoes
+      .filter((c) => cfg.tipoCartao[c] === "credit")
+      .map((c) => ({ cartao: c, restante: calcularFatura(c, ym, dadosFatura, cfg).restante }));
+    return [
+      ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], ym, mesReal, hoje),
+      ...vencimentosDeParcelas(parcelas, ym, cfg.diaVencimentoFatura, mesReal, hoje),
+      ...vencimentosDeFaturas(restantePorCartao, ym, cfg.diaVencimentoFatura),
+    ];
+  }
+  const vencimentos = vencimentosDoMes(mes);
   const vencimentosPorDia = porDia(vencimentos);
   const vencimentosDoDiaSel = diaSelecionado ? (vencimentosPorDia.get(diaSelecionado) ?? []) : [];
+
+  // Os dois KPIs somam DINHEIRO a vencer, não contam eventos. Antes contavam só
+  // os eventos manuais e por isso diziam "0" num mês cheio de fixas, parcelas e
+  // faturas — que a própria grelha aqui em baixo já marcava com pontos. Mesma
+  // fonte dos marcadores (`vencimentosDoMes`), mais os eventos manuais que
+  // tenham valor, que também são dinheiro a sair.
+  const eventosComValorNoMes = eventosComValor(doMesAtual);
+  const aPagarNoMes = totalAVencer(vencimentos) + totalEventos(eventosComValorNoMes);
+  const qtdNoMes = vencimentos.length + eventosComValorNoMes.length;
+
+  // A janela de 7 dias parte de HOJE e não do mês que está a ser visto: pode
+  // atravessar a virada do mês, por isso junta os vencimentos do mês real e do
+  // seguinte (reaproveitando os já calculados quando calham ser os mesmos).
+  const proximoMesReal = somarMeses(mesReal, 1);
+  const limite7 = somarDias(hoje, 7);
+  const vencimentos7 = naJanela(
+    [
+      ...(mes === mesReal ? vencimentos : vencimentosDoMes(mesReal)),
+      ...(mes === proximoMesReal ? vencimentos : vencimentosDoMes(proximoMesReal)),
+    ],
+    hoje,
+    limite7,
+  );
+  const eventosComValor7 = eventosComValor(proximos7);
+  const aPagar7 = totalAVencer(vencimentos7) + totalEventos(eventosComValor7);
+  const qtd7 = vencimentos7.length + eventosComValor7.length;
 
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
@@ -127,8 +159,26 @@ export default function Calendario() {
   return (
     <Pagina titulo="Calendário">
       <Kpis>
-        <KpiCard rotulo={`Eventos em ${rotuloMes(mes)}`} valor={String(doMesAtual.length)} />
-        <KpiCard rotulo="Próximos 7 dias" valor={String(proximos7.length)} tom="amarelo" />
+        <KpiCard
+          rotulo={`A pagar em ${rotuloMes(mes)}`}
+          valor={formatMoney(aPagarNoMes, moeda)}
+          sub={
+            qtdNoMes === 0
+              ? "nada por vencer neste mês"
+              : `${qtdNoMes} compromisso${qtdNoMes > 1 ? "s" : ""} em aberto`
+          }
+          tom="laranja"
+        />
+        <KpiCard
+          rotulo="Vence em 7 dias"
+          valor={formatMoney(aPagar7, moeda)}
+          sub={
+            qtd7 === 0
+              ? "nada vence até lá"
+              : `${qtd7} compromisso${qtd7 > 1 ? "s" : ""} até ${limite7.slice(8, 10)}/${limite7.slice(5, 7)}`
+          }
+          tom="amarelo"
+        />
       </Kpis>
 
       <div className={styles.linhaMes}>

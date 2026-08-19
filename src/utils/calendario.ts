@@ -1,7 +1,7 @@
 // Funções puras do Calendário (seção 3) — usadas pela tela e pelo intent de
 // calendário do Copiloto (mesma janela de "próximos 7 dias").
 
-import type { EventoCalendario, IsoDate, YearMonth } from "../types";
+import type { Cents, EventoCalendario, IsoDate, YearMonth } from "../types";
 import { mesDe, somarDias } from "./calculos";
 
 /** Rótulos das colunas do grid — domingo primeiro, como `Date#getDay()`. Serve
@@ -65,6 +65,17 @@ export function eventosDoMes(eventos: EventoCalendario[], ym: YearMonth): Evento
  *  do grid. */
 export function diasComEventoNoMes(eventos: EventoCalendario[], ym: YearMonth): Set<string> {
   return new Set(eventosDoMes(eventos, ym).map((e) => e.data));
+}
+
+/** Eventos que têm valor associado — o campo é opcional, e um evento sem valor
+ *  ("consulta às 9h") não entra em soma nenhuma de dinheiro. */
+export function eventosComValor(eventos: EventoCalendario[]): EventoCalendario[] {
+  return eventos.filter((e) => e.valor !== undefined);
+}
+
+/** Soma dos valores dos eventos, ignorando os que não têm valor. */
+export function totalEventos(eventos: EventoCalendario[]): Cents {
+  return eventos.reduce((s, e) => s + (e.valor ?? 0), 0);
 }
 
 /** Eventos futuros dentro da janela de N dias (padrão 7) — mesma janela usada
