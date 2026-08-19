@@ -34,7 +34,9 @@ import {
   despesasNosTotais,
   doMes,
   hojeIso,
+  mediaDeMeses,
   mesAtual,
+  mesesRecentes,
   rotuloMes,
   rotuloVariacao,
   somarMeses,
@@ -44,7 +46,7 @@ import {
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { liquidoDaDespesa } from "../utils/reembolsos";
-import { despesaRealizadaMes } from "../utils/resumoMensal";
+import { despesaRealizadaMes, primeiroMesComDespesa } from "../utils/resumoMensal";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import type { Cents, DespesaFixa, Id } from "../types";
@@ -107,10 +109,12 @@ export default function Despesas() {
   const [semanaIdx, setSemanaIdx] = useState(() =>
     indiceDaSemana(semanasDoMes(mes, cfg.diaInicioSemana), hojeIso()),
   );
-  // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1);
-  // a LISTA mostra tudo, com a nota indicando a origem.
-  const contadas = despesasNosTotais(itens);
-  // total do mês/geral inclui fixas gerais + parcelas + veículo (Parte A) —
+  // KPIs excluem pagamentos de fatura (a compra já contou — seção 4.1); a LISTA
+  // mostra tudo, com a nota indicando a origem. Quem faz essa exclusão nos
+  // totais é `despesaRealizadaMes` (via `despesasNosTotais`), e aqui em baixo
+  // `contadasDoPeriodo` faz o mesmo para a visão de semana.
+  //
+  // Total do mês/geral inclui fixas gerais + parcelas + veículo (Parte A) —
   // fonte única em utils/resumoMensal.ts
   const totalDoMesComVeiculo = despesaRealizadaMes(
     itens,
@@ -157,6 +161,25 @@ export default function Despesas() {
   );
   const variacao = variacaoMensal(totalDoMesComVeiculo, totalMesAnterior);
 
+  // "Média (3 meses)": os três meses ANTERIORES ao exibido, sem o incluir —
+  // mesmo cartão e mesma razão do irmão em Receitas. O mês em curso está quase
+  // sempre pela metade, e incluí-lo fazia a referência afundar todo dia 1 e
+  // subir ao longo do mês; o cartão existe justamente para dar um número
+  // estável contra o qual ler o mês de agora. Substitui uma contagem de
+  // lançamentos que só repetia, em número, a lista logo abaixo.
+  //
+  // Cada mês entra pelo MESMO total do cartão "Total do mês" — as quatro
+  // parcelas de `despesaRealizadaMes` —, senão comparava-se um número com
+  // outro de base diferente, que é o defeito que ff91a39 corrigiu nesta tela.
+  // Fica sempre mensal, mesmo com "Semana" escolhida: três semanas são amostra
+  // pequena demais, igual ao que já vale para "Maior categoria" e "vs mês
+  // passado".
+  const media = mediaDeMeses(
+    mesesRecentes(3, mesAnterior),
+    primeiroMesComDespesa(itens, despesasFixas, parcelas, veiculo),
+    (m) => despesaRealizadaMes(itens, despesasFixas, parcelas, veiculo, m, mesReal, hojeIso()),
+  );
+
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
   // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
   const semanas = semanasDoMes(mes, cfg.diaInicioSemana);
@@ -171,15 +194,14 @@ export default function Despesas() {
   const doPeriodo =
     visao === "semana" && semanaAtual ? naSemana(itens, semanaAtual) : doMes(itens, mes);
 
-  // Com "Semana" escolhida, os dois primeiros KPIs passam a falar da semana —
-  // o mesmo total que o rodapé da lista já mostrava lá em baixo. Só na aba
-  // Correntes: é lá que vive o alternador Mês/Semana, e os KPIs agora ficam
-  // fora das abas. "Maior categoria" continua sempre mensal — uma semana é
-  // amostra pequena demais para essa pergunta.
+  // Com "Semana" escolhida, o primeiro KPI passa a falar da semana — o mesmo
+  // total que o rodapé da lista já mostrava lá em baixo. Só na aba Correntes:
+  // é lá que vive o alternador Mês/Semana, e os KPIs agora ficam fora das
+  // abas. Os outros três continuam sempre mensais — uma semana é amostra
+  // pequena demais para as perguntas que eles fazem.
   const porSemana = aba === "correntes" && visao === "semana" && semanaAtual !== undefined;
   const contadasDoPeriodo = despesasNosTotais(doPeriodo);
   const totalKpi = porSemana ? total(contadasDoPeriodo) : totalDoMesComVeiculo;
-  const contagemKpi = porSemana ? contadasDoPeriodo.length : doMes(contadas, mes).length;
 
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
@@ -304,11 +326,6 @@ export default function Despesas() {
           }
           tom="vermelho"
         />
-        <KpiCard
-          rotulo={porSemana ? "Lançamentos (semana)" : "Lançamentos (mês)"}
-          chave="Lançamentos (mês)"
-          valor={String(contagemKpi)}
-        />
         {/* O valor manda, o nome é o detalhe: numa fila de quatro cartões que
             mostram todos dinheiro, o único que mostrava uma palavra obrigava a
             parar e reler para saber o que estava a ver. */}
@@ -343,6 +360,20 @@ export default function Despesas() {
           }
           sub={`${rotuloMes(mesAnterior)}: ${formatMoney(totalMesAnterior, moeda)}`}
           tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"}
+        />
+        {/* Mesmo cartão, mesmas palavras e mesmo tom do de Receitas: os dois
+            respondem à mesma pergunta em lados opostos da conta. */}
+        <KpiCard
+          rotulo="Média (3 meses)"
+          valor={media ? formatMoney(media.media, moeda) : "—"}
+          sub={
+            media
+              ? media.meses === 3
+                ? "os 3 meses antes deste"
+                : `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de história`
+              : "sem meses anteriores"
+          }
+          tom="laranja"
         />
       </Kpis>
 

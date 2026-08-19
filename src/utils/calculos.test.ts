@@ -5,6 +5,7 @@ import {
   diaDoMes,
   diasDoMes,
   doMes,
+  mediaDeMeses,
   mediaMensal,
   MESES_CURTOS_PT,
   mesDe,
@@ -209,6 +210,40 @@ describe("mediaMensal", () => {
     // A decisão de desenho do cartão: o mês em curso está incompleto e puxava
     // a média para baixo todo dia 1. `mesesRecentes(3, somarMeses(mes, -1))`.
     expect(mesesRecentes(3, somarMeses("2026-07", -1))).toEqual(["2026-04", "2026-05", "2026-06"]);
+  });
+});
+
+describe("mediaDeMeses", () => {
+  const tres = ["2026-04", "2026-05", "2026-06"];
+  // Em Despesas o valor do mês não sai de uma lista de lançamentos — soma
+  // correntes + fixas + parcelas + veículo. Aqui um mapa faz esse papel.
+  const valores: Record<string, number> = {
+    "2026-04": 100000,
+    "2026-05": 200000,
+    "2026-06": 300000,
+  };
+  const valorDoMes = (m: string) => valores[m] ?? 0;
+
+  test("histórico completo: média dos três meses", () => {
+    expect(mediaDeMeses(tres, "2026-04", valorDoMes)).toEqual({ media: 200000, meses: 3 });
+  });
+
+  test("mês vazio DEPOIS do início conta como zero verdadeiro", () => {
+    expect(mediaDeMeses(tres, "2026-01", (m) => (m === "2026-05" ? 0 : valorDoMes(m)))).toEqual({
+      media: 133333,
+      meses: 3,
+    });
+  });
+
+  test("app novo: divide pelos meses que existiram, não por três", () => {
+    expect(mediaDeMeses(tres, "2026-06", valorDoMes)).toEqual({ media: 300000, meses: 1 });
+  });
+
+  test("sem história nenhuma na janela, é null", () => {
+    expect(mediaDeMeses(tres, null, valorDoMes)).toBeNull();
+    // A história começa depois da janela pedida.
+    expect(mediaDeMeses(tres, "2026-07", valorDoMes)).toBeNull();
+    expect(mediaDeMeses([], "2026-01", valorDoMes)).toBeNull();
   });
 });
 

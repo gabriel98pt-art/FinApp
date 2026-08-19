@@ -339,4 +339,37 @@ describe("KPIs de Despesas", () => {
 
     expect(screen.getByText("Novo")).toBeInTheDocument();
   });
+
+  test("Média (3 meses): a referência estável contra a qual ler o mês de agora", () => {
+    // Substituiu "Lançamentos (mês)", que só contava as linhas da lista logo
+    // abaixo — o número já estava à vista e não dizia nada de novo.
+    despesas = lista([
+      despesa({ id: "d5", valor: 10000, data: "2026-05-10" }),
+      despesa({ id: "d6", valor: 20000, data: "2026-06-10" }),
+      despesa({ id: "d7", valor: 30000, data: "2026-07-10" }),
+      despesa({ id: "d8", valor: 99900, data: "2026-08-10" }),
+    ]);
+    renderDespesas();
+
+    // (100 + 200 + 300) / 3 = 200. O mês exibido fica de fora de propósito: a
+    // meio do mês ele arrastaria para baixo a própria referência.
+    expect(screen.getByText("€ 200,00")).toBeInTheDocument();
+    expect(screen.getByText("os 3 meses antes deste")).toBeInTheDocument();
+  });
+
+  test("Média (3 meses): só conta os meses que já existiam", () => {
+    // Quem começou em julho não gasta "um terço" — dividir por três fixo fazia
+    // o cartão mentir para baixo justamente em quem tem pouco tempo de app.
+    despesas = lista([despesa({ id: "d7", valor: 30000, data: "2026-07-10" })]);
+    renderDespesas();
+
+    expect(screen.getByText("só 1 mês de história")).toBeInTheDocument();
+  });
+
+  test("Média (3 meses): sem passado nenhum, o cartão diz que não sabe", () => {
+    despesas = lista([despesa({ valor: 50000 })]);
+    renderDespesas();
+
+    expect(screen.getByText("sem meses anteriores")).toBeInTheDocument();
+  });
 });

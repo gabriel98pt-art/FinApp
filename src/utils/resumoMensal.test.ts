@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
-import { despesaRealizadaMes, janelaResumoAnual, resumoMesCompleto } from "./resumoMensal";
+import {
+  despesaRealizadaMes,
+  janelaResumoAnual,
+  primeiroMesComDespesa,
+  resumoMesCompleto,
+} from "./resumoMensal";
 
 function veiculo(extra: Partial<DadosVeiculo> = {}): DadosVeiculo {
   return { cargas: [], despesas: [], despesasFixas: [], quilometragem: [], ...extra };
@@ -217,5 +222,69 @@ describe("janelaResumoAnual — onde a janela termina vs. o que é futuro", () =
     expect(j[0].ym).toBe("2025-03");
     expect(j.at(-1)?.ym).toBe("2026-02");
     expect(new Set(j.map((c) => c.ym)).size).toBe(12);
+  });
+});
+
+describe("primeiroMesComDespesa — desde quando há história do lado do gasto", () => {
+  test("o mais antigo entre as quatro fontes, cada uma pela data que a faz começar", () => {
+    const correntes: DespesaCorrente[] = [
+      { id: "d1", descricao: "Mercado", valor: 5000, data: "2026-07-05", categoria: "Alimentação" },
+    ];
+    const fixas: DespesaFixa[] = [
+      {
+        id: "f1",
+        descricao: "Netflix",
+        valor: 1590,
+        categoria: "Casa",
+        pagoPorMes: {},
+        inicio: "2026-05",
+      },
+    ];
+    const parcelas: Parcela[] = [
+      {
+        id: "p1",
+        descricao: "TV",
+        total: 30000,
+        numParcelas: 3,
+        primeiroMes: "2026-06",
+        pagoPorMes: {},
+      },
+    ];
+    const v = veiculo({
+      cargas: [{ id: "c1", data: "2026-04-10", kwh: 40, precoKwh: 25, custo: 1000, local: "Casa" }],
+    });
+
+    expect(primeiroMesComDespesa(correntes, fixas, parcelas, v)).toBe("2026-04");
+    expect(primeiroMesComDespesa(correntes, fixas, parcelas, veiculo())).toBe("2026-05");
+    expect(primeiroMesComDespesa(correntes, [], parcelas, veiculo())).toBe("2026-06");
+    expect(primeiroMesComDespesa(correntes, [], [], veiculo())).toBe("2026-07");
+  });
+
+  test("fixa sem `inicio` vale desde sempre — como no 'vs mês passado' e no Resumo Anual", () => {
+    const fixas: DespesaFixa[] = [
+      { id: "f1", descricao: "Aluguel", valor: 45000, categoria: "Casa", pagoPorMes: {} },
+    ];
+    const desdeSempre = primeiroMesComDespesa([], fixas, [], veiculo());
+    expect(desdeSempre).not.toBeNull();
+    expect(desdeSempre! < "2000-01").toBe(true);
+  });
+
+  test("pagamento de fatura não abre história — a compra já contou (4.1)", () => {
+    const correntes: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Cartão de Crédito",
+        valor: 9999,
+        data: "2026-03-05",
+        categoria: "Cartão de Crédito",
+        origem: "fat",
+      },
+      { id: "d2", descricao: "Mercado", valor: 5000, data: "2026-07-05", categoria: "Alimentação" },
+    ];
+    expect(primeiroMesComDespesa(correntes, [], [], veiculo())).toBe("2026-07");
+  });
+
+  test("sem despesa nenhuma, é null", () => {
+    expect(primeiroMesComDespesa([], [], [], veiculo())).toBeNull();
   });
 });

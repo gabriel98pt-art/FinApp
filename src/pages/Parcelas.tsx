@@ -132,9 +132,12 @@ function LinhaParcela({
                 // O mesmo `mesRef` da linha acima e do que o serviço grava: o
                 // número que se confirma aqui tem de ser o que sai da conta.
                 const totalQuit = valorQuitacao(p, mesRef);
+                // O botão ao lado paga UM mês; este paga a compra inteira e
+                // cria uma despesa só, sem volta. A confirmação é o único
+                // sítio onde essa diferença cabe por extenso.
                 if (
                   !(await confirmar(
-                    `Quitar "${p.descricao}"?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)}\n\nUma única despesa de quitação será criada hoje.`,
+                    `Pagar tudo de "${p.descricao}" agora?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)} numa única despesa, lançada hoje.\n\nQuita a compra inteira de uma vez e não dá para desfazer.`,
                   ))
                 )
                   return;
@@ -145,7 +148,7 @@ function LinhaParcela({
               })();
             }}
           >
-            Quitar
+            Pagar tudo
           </button>
         )}
       </div>
@@ -323,12 +326,12 @@ function FormParcela({
           rotuloVazio="Sem cartão"
         />
         <Seletor
-          rotulo="Intermediador (opcional)"
+          rotulo="Serviço de parcelamento (opcional)"
           valor={intermediador}
           opcoes={cfg.intermediadoresParcelamento}
           aoMudar={setIntermediador}
-          rotuloVazio="Sem intermediador"
-          aviso="Nenhum intermediador guardado ainda — adicione um na lista abaixo da tela."
+          rotuloVazio="Nenhum serviço"
+          aviso="Nenhum serviço guardado ainda — adicione um na lista no fim da tela."
         />
         {cartaoCredito && (
           <label className={styles.checkbox}>
@@ -538,11 +541,17 @@ export default function Parcelas() {
         </div>
       </BottomSheet>
 
-      {/* A lista de intermediadores vive aqui, junto de quem a usa, e não em
+      {/* A lista destes serviços vive aqui, junto de quem a usa, e não em
           Definições — mesma razão dos locais de carregamento estarem no
-          Veículo: é conceito deste domínio, não configuração geral. */}
+          Veículo: é conceito deste domínio, não configuração geral.
+          No código continuam a chamar-se "intermediadores" (é o nome do campo
+          guardado); na tela ninguém diz isso, daí o texto ser outro. */}
       <form className={styles.gerir} onSubmit={adicionarIntermediador}>
-        <p className={styles.gerirTitulo}>Intermediadores de parcelamento</p>
+        <p className={styles.gerirTitulo}>Serviços de parcelamento</p>
+        <p className={styles.gerirNota}>
+          Empresas que dividem a compra em prestações por você, quando o parcelamento não é do
+          cartão (ex.: Klarna).
+        </p>
         {cfg.intermediadoresParcelamento.length > 0 && (
           <ul className={styles.chips}>
             {cfg.intermediadoresParcelamento.map((i) => (
@@ -563,7 +572,7 @@ export default function Parcelas() {
         <div className={styles.gerirLinha}>
           <input
             placeholder="Nome (ex. Klarna)"
-            aria-label="Nome do intermediador"
+            aria-label="Nome do serviço de parcelamento"
             value={novoIntermediador}
             onChange={(e) => setNovoIntermediador(e.target.value)}
           />

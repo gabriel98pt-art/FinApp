@@ -65,11 +65,33 @@ export interface MediaMensal {
  *
  *  `null` quando nenhum dos meses pedidos tem história. */
 export function mediaMensal(itens: ItemComValor[], meses: YearMonth[]): MediaMensal | null {
-  if (itens.length === 0 || meses.length === 0) return null;
+  if (itens.length === 0) return null;
   const primeiroMes = mesDe(itens.reduce((min, i) => (i.data < min ? i.data : min), itens[0].data));
+  return mediaDeMeses(meses, primeiroMes, (m) => totalDoMes(itens, m));
+}
+
+/** A mesma média de `mediaMensal`, para um total que NÃO sai de uma lista só de
+ *  lançamentos: quem chama diz quanto vale cada mês e desde quando há história.
+ *
+ *  Existe por causa de Despesas, onde o total de um mês soma quatro fontes
+ *  (correntes + fixas + parcelas + veículo, ver `despesaRealizadaMes`) e o
+ *  primeiro mês com história não se lê de uma lista de `data` só — ver
+ *  `primeiroMesComDespesa`. A regra dos meses é idêntica à do irmão: mês vazio
+ *  DEPOIS do início é zero verdadeiro e entra na conta; mês ANTES dele é
+ *  ausência de dados e fica de fora, senão a média mente para baixo em quem
+ *  ainda tem pouco tempo de app.
+ *
+ *  `null` quando não há história nenhuma (`primeiroMes` nulo) ou quando nenhum
+ *  dos meses pedidos é posterior a ela. */
+export function mediaDeMeses(
+  meses: YearMonth[],
+  primeiroMes: YearMonth | null,
+  valorDoMes: (mes: YearMonth) => Cents,
+): MediaMensal | null {
+  if (primeiroMes === null || meses.length === 0) return null;
   const comHistoria = meses.filter((m) => m >= primeiroMes);
   if (comHistoria.length === 0) return null;
-  const soma = comHistoria.reduce((acc, m) => acc + totalDoMes(itens, m), 0);
+  const soma = comHistoria.reduce((acc, m) => acc + valorDoMes(m), 0);
   return { media: Math.round(soma / comHistoria.length), meses: comHistoria.length };
 }
 

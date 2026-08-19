@@ -12,7 +12,7 @@ import type {
   Receita,
   YearMonth,
 } from "../types";
-import { despesasNosTotais, mesesRecentes, receitasNosTotais, totalDoMes } from "./calculos";
+import { despesasNosTotais, mesDe, mesesRecentes, receitasNosTotais, totalDoMes } from "./calculos";
 import { contribuicaoFixasMes } from "./despesasFixas";
 import { contribuicaoParcelasMes } from "./parcelas";
 import { totalVeiculoMes } from "./veiculo";
@@ -48,6 +48,40 @@ export function despesaRealizadaMes(
     contribuicaoParcelasMes(parcelas, ym, mesReal, hoje) +
     totalVeiculoMes(veiculo, ym, mesReal, hoje)
   );
+}
+
+/** "Desde sempre": mês menor que qualquer mês real, para as comparações de
+ *  string ordenarem certo. Uma fixa sem `inicio` vale em QUALQUER mês, também
+ *  nos anteriores ao dia em que foi criada — é assim que ela já entra no "vs
+ *  mês passado" e no Resumo Anual (ver `fixaAtivaNoMes`), e a média de meses
+ *  tem de concordar com o resto da tela. */
+const DESDE_SEMPRE: YearMonth = "0000-01";
+
+/** Primeiro mês em que já havia despesa de alguma espécie — o começo da
+ *  história da pessoa no app, do lado do gasto.
+ *
+ *  Serve a `mediaDeMeses`, que precisa separar "mês em que não se gastou nada"
+ *  (zero verdadeiro, entra na média) de "mês antes de a pessoa existir aqui"
+ *  (ausência de dados, fica de fora). Olha as quatro fontes que
+ *  `despesaRealizadaMes` soma, cada uma pela data que a faz começar: a data do
+ *  lançamento nas correntes e nos registos do veículo, `inicio` nas fixas e
+ *  `primeiroMes` nas parcelas.
+ *
+ *  `null` só quando não há despesa nenhuma em lado nenhum. */
+export function primeiroMesComDespesa(
+  despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
+  parcelas: Parcela[],
+  veiculo: DadosVeiculo,
+): YearMonth | null {
+  const meses: YearMonth[] = [
+    ...despesasNosTotais(despesasCorrentes).map((d) => mesDe(d.data)),
+    ...veiculo.cargas.map((c) => mesDe(c.data)),
+    ...veiculo.despesas.map((d) => mesDe(d.data)),
+    ...parcelas.map((p) => p.primeiroMes),
+    ...[...despesasFixas, ...veiculo.despesasFixas].map((f) => f.inicio ?? DESDE_SEMPRE),
+  ];
+  return meses.length === 0 ? null : meses.reduce((min, m) => (m < min ? m : min));
 }
 
 export function resumoMesCompleto(
