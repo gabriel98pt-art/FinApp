@@ -424,6 +424,14 @@ export default function Parcelas() {
   const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual());
   const faltaPagar = totalDoMes - pagoEsteMes;
   const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
+  // "Total do mês" soma TODAS as parcelas cujo plano cobre o mês exibido —
+  // inclusive as já quitadas, que a lista principal não mostra (vivem na folha
+  // "Quitadas", fechada por padrão). Sem dizer isto, o KPI mostrava € 300,00 e
+  // a lista à vista só somava € 180,00, sem nada que explicasse a diferença.
+  // Fatia do total que vem das quitadas: é ela que está fora da vista. Conta o
+  // valor, e não o número delas, para não bater de frente com o "Quitadas (N)"
+  // do rodapé, que conta as de TODOS os meses.
+  const totalQuitadasNoMes = totalParcelasNoMes(quitadas, mesRef);
 
   const ativasVisiveis = parcelasVisiveis(
     parcelas,
@@ -443,7 +451,16 @@ export default function Parcelas() {
   return (
     <Pagina titulo="Parcelas">
       <Kpis pagina="parcelas">
-        <KpiCard rotulo="Total do mês" valor={formatMoney(totalDoMes, moeda)} tom="acento" />
+        <KpiCard
+          rotulo="Total do mês"
+          valor={formatMoney(totalDoMes, moeda)}
+          sub={
+            totalQuitadasNoMes > 0
+              ? `inclui ${formatMoney(totalQuitadasNoMes, moeda)} quitado`
+              : undefined
+          }
+          tom="acento"
+        />
         <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
         <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
         <KpiCard rotulo="Parcelas ativas" valor={String(ativas.length)} />
