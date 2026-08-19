@@ -122,6 +122,11 @@ export default function Transacoes() {
   const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
   const entradas = itensFiltrados.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
   const saidas = itensFiltrados.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
+  // O número que faltava: sobrou ou faltou dinheiro no que está a ser visto.
+  // Derivado das mesmas duas somas acima, portanto segue o filtro tal como
+  // elas. Ficava no lugar dele uma contagem de linhas — que a lista já mostra
+  // logo abaixo, em "N transações".
+  const saldo = entradas - saidas;
   const filtroAtivo = filtroCategoria !== "" || filtroConta !== "";
 
   function abrir(t: Transacao) {
@@ -169,13 +174,17 @@ export default function Transacoes() {
 
   return (
     <Pagina titulo="Transações">
-      <Kpis>
+      {/* Com `pagina`, o mobile — que só cabe 2 dos 3 — deixa de ficar preso a
+          Entradas/Saídas: quem quiser pode trocar um deles pelo Saldo em
+          Definições. Sem isto o cartão novo só existiria no desktop. */}
+      <Kpis pagina="transacoes">
         <KpiCard rotulo="Entradas" valor={formatMoney(entradas, cfg.currency)} tom="verde" />
         <KpiCard rotulo="Saídas" valor={formatMoney(saidas, cfg.currency)} tom="vermelho" />
         <KpiCard
-          rotulo="Movimentações"
-          valor={String(itensFiltrados.length)}
-          tom={entradas - saidas >= 0 ? "acento" : "amarelo"}
+          rotulo="Saldo"
+          valor={formatMoney(saldo, cfg.currency)}
+          sub={filtroAtivo ? "no filtro ativo" : undefined}
+          tom={saldo >= 0 ? "acento" : "amarelo"}
         />
       </Kpis>
 

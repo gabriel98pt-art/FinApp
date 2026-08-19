@@ -11,6 +11,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import type { DespesaCorrente, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 
@@ -153,6 +154,56 @@ describe("Transacoes", () => {
     expect(container.textContent).toContain("+€ 75,00");
     // A saída antiga, letra por letra — o menos duas vezes.
     expect(container.textContent).not.toContain("−€ -75,00");
+  });
+
+  test("o terceiro KPI é o saldo do que está à vista, não a contagem de linhas", () => {
+    // Contar linhas repetia o "N transações" logo abaixo; o que faltava era
+    // saber se o período fecha acima ou abaixo de zero.
+    receitas = lista([receita()]);
+    despesas = lista([
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 4250,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+
+    expect(screen.getByText("Saldo")).toBeInTheDocument();
+    expect(screen.queryByText("Movimentações")).not.toBeInTheDocument();
+    // 1850,00 de entrada − 42,50 de saída.
+    expect(screen.getByText("€ 1.807,50")).toBeInTheDocument();
+  });
+
+  test("saldo negativo: gastou-se mais do que entrou no período", () => {
+    despesas = lista([
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 4250,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+
+    expect(screen.getByText("€ -42,50")).toBeInTheDocument();
+  });
+
+  test("os três rótulos são os que Definições oferece para o mobile", () => {
+    // No telemóvel só cabem 2 dos 3 cartões, e sem entrada em KPIS_POR_PAGINA
+    // o Saldo ficava fora do alcance de quem usa o app no telemóvel — não há
+    // sequer onde o escolher. A escolha é casada por TEXTO, então os dois lados
+    // têm de andar juntos (ver `Kpis` em components/Pagina.tsx).
+    desenhar();
+
+    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "transacoes")!.rotulos;
+    expect(esperados).toEqual(["Entradas", "Saídas", "Saldo"]);
+    for (const rotulo of esperados) {
+      expect(screen.getByText(rotulo)).toBeInTheDocument();
+    }
   });
 });
 

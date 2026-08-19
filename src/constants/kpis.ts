@@ -48,6 +48,11 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     rotulos: ["Total do mês", "Falta pagar", "Restante", "Parcelas ativas"],
   },
   {
+    id: "transacoes",
+    titulo: "Transações",
+    rotulos: ["Entradas", "Saídas", "Saldo"],
+  },
+  {
     id: "metas",
     titulo: "Metas",
     rotulos: ["Meta Mensal", "Taxa de Poupança", "Total em Fundos", "Poupado (12m)"],
