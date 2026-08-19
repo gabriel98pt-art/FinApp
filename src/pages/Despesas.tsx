@@ -288,11 +288,20 @@ export default function Despesas() {
           como na outra — e desapareciam ao passar para "Fixas". Mesma ordem
           de Veiculo e Tvde: KPIs primeiro, abas depois. */}
       <Kpis pagina="despesas">
+        {/* O sub não é enfeite: este cartão soma quatro coisas (correntes +
+            fixas + parcelas + veículo) e o rodapé da lista lá em baixo soma
+            só as correntes visíveis. Eram dois números diferentes com a mesma
+            palavra "Total" na mesma tela — quem olhava só via a contradição.
+            Aqui diz-se o que entra; lá em baixo diz-se que é só daquela lista. */}
         <KpiCard
           rotulo={porSemana ? "Total da semana" : "Total do mês"}
           chave="Total do mês"
           valor={formatMoney(totalKpi, moeda)}
-          sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
+          sub={
+            porSemana && semanaAtual
+              ? rotuloDaSemana(semanaAtual)
+              : "inclui fixas, parcelas e veículo"
+          }
           tom="vermelho"
         />
         <KpiCard
@@ -417,10 +426,17 @@ export default function Despesas() {
               erro={erroDespesas}
               tom="vermelho"
               moeda={moeda}
+              /* "Soma desta lista", e não "Total <mês>": este rodapé conta só
+                 as despesas CORRENTES do período — o que está mesmo à vista
+                 nesta aba — enquanto o KPI "Total do mês" lá em cima conta
+                 também fixas, parcelas e veículo. Chamar os dois de "Total"
+                 fazia a mesma tela mostrar € 85,30 e € 542,97 lado a lado sem
+                 dizer que somam coisas diferentes. (A soma é sempre de TODAS
+                 as linhas do período, não só da página aberta do paginador.) */
               rotuloTotal={
                 visao === "semana" && semanaAtual
-                  ? `Total ${rotuloDaSemana(semanaAtual)}`
-                  : `Total ${rotuloMes(mes)}`
+                  ? `Soma desta lista · ${rotuloDaSemana(semanaAtual)}`
+                  : `Soma desta lista · ${rotuloMes(mes)}`
               }
               /* A lista mostra pagamento de fatura e espelho de parcela, mas o
                  rodapé soma só o que conta nos totais — igual aos KPIs acima. */

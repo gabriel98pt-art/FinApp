@@ -279,7 +279,7 @@ describe("Despesas com reembolso", () => {
     despesas = lista([gasto(), devolvido()]);
     renderDespesas();
 
-    const rodape = screen.getByText("Total agosto 2026").closest("div")!;
+    const rodape = screen.getByText("Soma desta lista · agosto 2026").closest("div")!;
     expect(rodape.textContent).toContain("25,00");
   });
 });
