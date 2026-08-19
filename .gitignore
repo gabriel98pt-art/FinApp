@@ -15,3 +15,10 @@ SPEC_REESCRITA_COMPLETA.md
 .github/hooks/
 .claude/skills/
 .claude/settings.local.json
+.agents/
+
+# Saída do skill graphify (o grafo de conhecimento do repositório): 12 MB de
+# HTML/JSON gerados, mais um cache, todos regeráveis a partir do próprio código
+# — e com caminhos absolutos desta máquina lá dentro, que não servem a mais
+# ninguém.
+graphify-out/
