@@ -96,6 +96,43 @@ describe("resumoDaConta", () => {
   });
 });
 
+describe("saldo por caixa com fixa em débito automático", () => {
+  // Fixa de renda que sai sozinha da conta desde março, sem ninguém marcar
+  // `pagoPorMes` — é a promessa do débito automático.
+  const comAutoDebit: DadosContas = {
+    ...dados,
+    despesasFixas: [
+      {
+        id: "f2",
+        descricao: "Renda",
+        valor: 50000,
+        categoria: "Casa",
+        contaCartao: "Conta",
+        inicio: "2026-03",
+        autoDebit: true,
+        pagoPorMes: {},
+      },
+    ],
+  };
+
+  it("desconta do saldo os meses já vencidos, mesmo sem marcação manual", () => {
+    // 100000 inicial + 250000 receitas - 8000 corrente - 10000 saída
+    // - 50000 × 5 meses de renda (março a julho)
+    const conta = resumoDaConta("Conta", comAutoDebit, cfg, "2026-07");
+    expect(conta.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 5);
+  });
+
+  it("não conta o mesmo mês duas vezes quando também está marcado à mão", () => {
+    const comMarcacaoDuplicada: DadosContas = {
+      ...comAutoDebit,
+      despesasFixas: [{ ...comAutoDebit.despesasFixas[0], pagoPorMes: { "2026-03": true } }],
+    };
+    const semDuplicar = resumoDaConta("Conta", comAutoDebit, cfg, "2026-07");
+    const comDuplicar = resumoDaConta("Conta", comMarcacaoDuplicada, cfg, "2026-07");
+    expect(comDuplicar.saldoAtual).toBe(semDuplicar.saldoAtual);
+  });
+});
+
 describe("resumosDasContas", () => {
   it("devolve um resumo por conta configurada, na mesma ordem", () => {
     expect(resumosDasContas(dados, cfg, "2026-07").map((r) => r.conta)).toEqual(["Conta", "Gold"]);

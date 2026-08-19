@@ -26,7 +26,7 @@ import type {
   YearMonth,
 } from "../types";
 import { mesDe } from "./calculos";
-import { fixaAtivaNoMes } from "./fatura";
+import { fixaAtivaNoMes, mesesPagosComoAutoDebit } from "./fatura";
 
 export interface DadosContas {
   receitas: Receita[];
@@ -58,11 +58,21 @@ function fixasDoMes(fixas: DespesaFixa[], conta: string, mes: YearMonth) {
   return { total: ativas.reduce((s, f) => s + f.valor, 0), quantidade: ativas.length };
 }
 
-/** Soma das fixas da conta efetivamente marcadas como pagas (caixa). */
-function fixasPagas(fixas: DespesaFixa[], conta: string): Cents {
+/** Soma das fixas da conta efetivamente pagas (caixa): os meses marcados à
+ *  mão MAIS, para quem está em débito automático, os meses que já saíram
+ *  sozinhos até `mesReferencia` (mesma regra de `totalFixasGeral`) — sem
+ *  isto, uma fixa em débito automático nunca saía do saldo, porque ninguém a
+ *  marca (é a promessa do débito automático). */
+function fixasPagas(fixas: DespesaFixa[], conta: string, mesReferencia: YearMonth): Cents {
   return fixas
     .filter((f) => f.contaCartao === conta)
-    .reduce((s, f) => s + Object.values(f.pagoPorMes ?? {}).filter(Boolean).length * f.valor, 0);
+    .reduce((s, f) => {
+      const marcados = Object.entries(f.pagoPorMes ?? {})
+        .filter(([, pago]) => pago)
+        .map(([mes]) => mes as YearMonth);
+      const automaticos = mesesPagosComoAutoDebit(f, mesReferencia);
+      return s + f.valor * new Set([...marcados, ...automaticos]).size;
+    }, 0);
 }
 
 export function resumoDaConta(
@@ -111,8 +121,8 @@ export function resumoDaConta(
       .filter((d) => d.contaCartao === conta)
       .reduce((s, d) => s + d.valor, 0) -
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
-    fixasPagas(dados.despesasFixas, conta) -
-    fixasPagas(dados.despesasFixasVeiculo, conta) -
+    fixasPagas(dados.despesasFixas, conta, mes) -
+    fixasPagas(dados.despesasFixasVeiculo, conta, mes) -
     (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
     (dados.despesasVeiculo ?? [])
       .filter((d) => d.contaCartao === conta)
