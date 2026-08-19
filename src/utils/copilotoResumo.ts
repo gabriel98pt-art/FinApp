@@ -110,7 +110,11 @@ const MAX_TRANSACOES_RECENTES = 8;
 const MAX_TENDENCIAS = 3;
 
 export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
-  const ym = ctx.mesReal;
+  // Mesma âncora da camada 1 (ver `mesVisivel` em ContextoCopiloto): o resumo
+  // que vai para a IA tem de falar do mês que a pessoa está a ver, senão a
+  // camada 2 respondia sobre agosto com julho escolhido no ecrã — o mesmo bug
+  // já corrigido na camada 1, só que esquecido aqui.
+  const ym = ctx.mesVisivel ?? ctx.mesReal;
   const moeda = ctx.cfg.currency;
   const t = totaisDoMes(ctx, ym);
   const cats = categoriasDoMes(ctx, ym);
@@ -151,8 +155,13 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
         valor: formatMoney(d.valor, moeda),
       })),
     // Divisão protegida: um dia de hoje inválido daria Infinity, e "gasta
-    // € Infinity por dia" não é resposta nenhuma.
-    mediaDiaria: formatMoney(ctx.diaDeHoje > 0 ? Math.round(t.despesas / ctx.diaDeHoje) : 0, moeda),
+    // € Infinity por dia" não é resposta nenhuma. E só faz sentido para o mês
+    // REAL — dividir a despesa de um mês visível já fechado pelo dia de hoje
+    // misturaria dois meses diferentes numa "média" que não é de nada.
+    mediaDiaria: formatMoney(
+      ym === ctx.mesReal && ctx.diaDeHoje > 0 ? Math.round(t.despesas / ctx.diaDeHoje) : 0,
+      moeda,
+    ),
     projecaoFimMes: projecao === null ? null : formatMoney(projecao, moeda),
     comparacaoMesAnterior: {
       mes: rotuloMes(anterior),

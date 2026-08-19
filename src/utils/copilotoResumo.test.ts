@@ -131,6 +131,37 @@ describe("montarResumoParaIA", () => {
 
     expect(r.receitas).toContain("R$");
   });
+
+  // Bug: a camada 1 já ancora no mês do seletor do header (ver
+  // `interpretarReferencia`/commit "Copiloto responde sobre o mês que está no
+  // ecrã"), mas o resumo que vai para a camada 2 continuava preso a
+  // `mesReal` — com o Início em julho e hoje em agosto, a IA recebia os
+  // números de agosto para responder sobre "este mês".
+  test("fala do mês visível, não do mês real, quando o Início navegou", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        mesReal: "2026-08",
+        mesVisivel: "2026-07",
+        diaDeHoje: 15,
+        receitas: [receita(200000)],
+        despesas: [despesa(50000, "Casa")],
+      }),
+    );
+
+    expect(r.mes).toMatch(/julho/i);
+    expect(r.receitas).toBe("€ 2.000,00");
+    // Sem mês visível a média/projeção do mês em curso continuam a existir;
+    // navegado para outro mês, misturar o dia de hoje com a despesa de um mês
+    // que não é o real deixa de fazer sentido.
+    expect(r.mediaDiaria).toBe("€ 0,00");
+    expect(r.projecaoFimMes).toBeNull();
+  });
+
+  test("sem mês visível continua ancorado no mês real, como antes", () => {
+    const r = montarResumoParaIA(ctx({ receitas: [receita(200000)] }));
+
+    expect(r.mes).toMatch(/julho/i);
+  });
 });
 
 // A janela de lançamentos crus é a única parte do resumo que atravessa a
