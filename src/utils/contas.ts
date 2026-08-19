@@ -5,8 +5,9 @@
 // tela mostra:
 //   - "gasto do mês" é por COMPETÊNCIA: uma fixa ativa no mês conta, tenha
 //     sido marcada como paga ou não (é a mesma regra do cálculo da fatura);
-//   - "saldo atual" é por CAIXA: só sai da conta o que de facto foi pago, ou
-//     seja, fixa só entra nos meses marcados em `pagoPorMes`.
+//   - "saldo atual" é por CAIXA: só sai da conta o que de facto foi pago —
+//     fixa marcada à mão em `pagoPorMes`, ou fixa em débito automático cujo
+//     dia de vencimento já passou (ver `fixasPagas`).
 //
 // Cargas e despesas do veículo entram nas duas quando têm conta/cartão, pela
 // mesma regra das despesas correntes: é o mesmo dinheiro saindo da mesma
@@ -20,13 +21,14 @@ import type {
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
+  IsoDate,
   Receita,
   TipoCartao,
   Transferencia,
   YearMonth,
 } from "../types";
 import { mesDe } from "./calculos";
-import { fixaAtivaNoMes, mesesPagosComoAutoDebit } from "./fatura";
+import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 export interface DadosContas {
   receitas: Receita[];
@@ -60,17 +62,32 @@ function fixasDoMes(fixas: DespesaFixa[], conta: string, mes: YearMonth) {
 
 /** Soma das fixas da conta efetivamente pagas (caixa): os meses marcados à
  *  mão MAIS, para quem está em débito automático, os meses que já saíram
- *  sozinhos até `mesReferencia` (mesma regra de `totalFixasGeral`) — sem
- *  isto, uma fixa em débito automático nunca saía do saldo, porque ninguém a
- *  marca (é a promessa do débito automático). */
-function fixasPagas(fixas: DespesaFixa[], conta: string, mesReferencia: YearMonth): Cents {
+ *  sozinhos — sem isto, uma fixa em débito automático nunca saía do saldo,
+ *  porque ninguém a marca (é a promessa do débito automático).
+ *
+ *  `mesesPagosComoAutoDebit` dá os meses candidatos (início até
+ *  `mesReferencia`) sem noção de dia — certo para meses já fechados no
+ *  passado, mas cedo demais para o mês corrente: o dinheiro só sai de facto
+ *  no `diaVencimento`, não no dia 1. Por isso cada candidato passa por
+ *  `fixaEfetivamentePaga`, que com `hoje` só dá o mês corrente como pago
+ *  depois do vencimento (mesma regra do extrato de Transações). Sem `hoje`,
+ *  conta o mês corrente inteiro — comportamento de sempre para quem não tem
+ *  a data de hoje à mão. */
+function fixasPagas(
+  fixas: DespesaFixa[],
+  conta: string,
+  mesReferencia: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   return fixas
     .filter((f) => f.contaCartao === conta)
     .reduce((s, f) => {
       const marcados = Object.entries(f.pagoPorMes ?? {})
         .filter(([, pago]) => pago)
         .map(([mes]) => mes as YearMonth);
-      const automaticos = mesesPagosComoAutoDebit(f, mesReferencia);
+      const automaticos = mesesPagosComoAutoDebit(f, mesReferencia).filter((mes) =>
+        fixaEfetivamentePaga(f, mes, mesReferencia, hoje),
+      );
       return s + f.valor * new Set([...marcados, ...automaticos]).size;
     }, 0);
 }
@@ -80,6 +97,9 @@ export function resumoDaConta(
   dados: DadosContas,
   cfg: ConfigConta,
   mes: YearMonth,
+  /** Data de hoje — dá precisão de dia às fixas em débito automático do mês
+   *  corrente (ver `fixasPagas`). Sem ela, o mês corrente conta inteiro. */
+  hoje?: IsoDate,
 ): ResumoConta {
   const receitasMesLista = dados.receitas.filter((r) => r.conta === conta && mesDe(r.data) === mes);
   const correntesMes = dados.despesasCorrentes.filter(
@@ -121,8 +141,8 @@ export function resumoDaConta(
       .filter((d) => d.contaCartao === conta)
       .reduce((s, d) => s + d.valor, 0) -
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
-    fixasPagas(dados.despesasFixas, conta, mes) -
-    fixasPagas(dados.despesasFixasVeiculo, conta, mes) -
+    fixasPagas(dados.despesasFixas, conta, mes, hoje) -
+    fixasPagas(dados.despesasFixasVeiculo, conta, mes, hoje) -
     (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
     (dados.despesasVeiculo ?? [])
       .filter((d) => d.contaCartao === conta)
@@ -158,6 +178,7 @@ export function resumosDasContas(
   dados: DadosContas,
   cfg: ConfigConta,
   mes: YearMonth,
+  hoje?: IsoDate,
 ): ResumoConta[] {
-  return cfg.contasCartoes.map((c) => resumoDaConta(c, dados, cfg, mes));
+  return cfg.contasCartoes.map((c) => resumoDaConta(c, dados, cfg, mes, hoje));
 }

@@ -272,7 +272,7 @@ export default function Cartoes() {
   const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
   const contasDebito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] !== "credit");
   const faturas = cartoesCredito.map((c) => calcularFatura(c, mes, dados, cfg));
-  const resumos = resumosDasContas(dadosContas, cfg, mes);
+  const resumos = resumosDasContas(dadosContas, cfg, mes, hojeIso());
   const resumoAberto = resumos.find((r) => r.conta === contaAberta) ?? null;
   const faturaAberta =
     resumoAberto?.tipo === "credit"

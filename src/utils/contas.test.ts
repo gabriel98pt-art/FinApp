@@ -131,6 +131,28 @@ describe("saldo por caixa com fixa em débito automático", () => {
     const comDuplicar = resumoDaConta("Conta", comMarcacaoDuplicada, cfg, "2026-07");
     expect(comDuplicar.saldoAtual).toBe(semDuplicar.saldoAtual);
   });
+
+  it("com `hoje`, só desconta o mês corrente depois do dia de vencimento", () => {
+    const comVencimento: DadosContas = {
+      ...comAutoDebit,
+      despesasFixas: [{ ...comAutoDebit.despesasFixas[0], diaVencimento: 27 }],
+    };
+    const antesDoVencimento = resumoDaConta("Conta", comVencimento, cfg, "2026-07", "2026-07-10");
+    const depoisDoVencimento = resumoDaConta("Conta", comVencimento, cfg, "2026-07", "2026-07-27");
+    // Antes do dia 27: só março a junho (4 meses) já saíram, julho ainda não.
+    expect(antesDoVencimento.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 4);
+    // A partir do dia 27: julho também já saiu (5 meses, março a julho).
+    expect(depoisDoVencimento.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 5);
+  });
+
+  it("sem `hoje`, o mês corrente conta inteiro desde o dia 1 (comportamento de sempre)", () => {
+    const comVencimento: DadosContas = {
+      ...comAutoDebit,
+      despesasFixas: [{ ...comAutoDebit.despesasFixas[0], diaVencimento: 27 }],
+    };
+    const conta = resumoDaConta("Conta", comVencimento, cfg, "2026-07");
+    expect(conta.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 5);
+  });
 });
 
 describe("resumosDasContas", () => {
