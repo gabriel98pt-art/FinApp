@@ -234,6 +234,41 @@ export function receitasNosTotais<T extends { origem?: string }>(itens: T[]): T[
   return itens.filter((r) => r.origem !== "recon");
 }
 
+export interface Grupo {
+  /** Nome da chave (fonte de receita, categoria, conta…). */
+  nome: string;
+  valor: Cents;
+  /** Percentual do total, arredondado (só para exibição). */
+  pct: number;
+}
+
+/** Soma por chave, do maior para o menor, já com a percentagem do total — a
+ *  forma genérica do que `despesaPorCategoriaMes` faz para o donut do Início,
+ *  mas sobre uma lista simples de lançamentos (Receitas usa-o para "Maior
+ *  fonte").
+ *
+ *  Grupos que fecham a zero ou abaixo ficam de fora, pela mesma razão do donut:
+ *  não desenham nada e só sujam a leitura. */
+export function agruparPorChave<T extends ItemComValor>(
+  itens: T[],
+  chave: (item: T) => string,
+): Grupo[] {
+  const soma = new Map<string, Cents>();
+  for (const item of itens) {
+    const k = chave(item);
+    soma.set(k, (soma.get(k) ?? 0) + item.valor);
+  }
+  const grupos = [...soma.entries()]
+    .filter(([, valor]) => valor > 0)
+    .map(([nome, valor]) => ({ nome, valor, pct: 0 }))
+    .sort((a, b) => b.valor - a.valor);
+  const totalGeral = grupos.reduce((s, g) => s + g.valor, 0);
+  return grupos.map((g) => ({
+    ...g,
+    pct: totalGeral > 0 ? Math.round((g.valor / totalGeral) * 100) : 0,
+  }));
+}
+
 /** Ordena por data decrescente (mais recente primeiro), estável. */
 export function ordenarPorDataDesc<T extends ItemComValor>(itens: T[]): T[] {
   return [...itens].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));

@@ -140,6 +140,30 @@ describe("KPIs de Receitas", () => {
     }
   });
 
+  test("Maior fonte: de onde veio o maior pedaço do mês, em dinheiro", () => {
+    // Substituiu "Lançamentos (mês)", que só contava as linhas da lista logo
+    // abaixo — o número já estava à vista e não dizia nada de novo.
+    estadoReceitas = {
+      itens: [
+        receita({ id: "r1", valor: 150000, fonte: "Trabalho" }),
+        receita({ id: "r2", descricao: "Corridas", valor: 30000, fonte: "Uber" }),
+        receita({ id: "r3", descricao: "Corridas", valor: 20000, fonte: "Uber" }),
+      ],
+      carregado: true,
+      erro: false,
+    };
+    render(<Receitas />);
+
+    expect(screen.getByText("€ 1.500,00")).toBeInTheDocument();
+    // As duas linhas da Uber somam-se numa fonte só, com o peso dela no mês.
+    expect(screen.getByText("Trabalho · 75% do mês")).toBeInTheDocument();
+  });
+
+  test("mês sem receitas: o cartão assume que não sabe, em vez de mostrar 0", () => {
+    render(<Receitas />);
+    expect(screen.getByText("sem receitas no mês")).toBeInTheDocument();
+  });
+
   test("vs mês passado: a variação contra o mês anterior", () => {
     estadoReceitas = {
       itens: [

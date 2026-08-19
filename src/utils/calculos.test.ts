@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  agruparPorChave,
   anoDe,
   diaDoMes,
   diasDoMes,
@@ -235,5 +236,43 @@ describe("diasDoMes", () => {
     for (const ym of ["2026-01", "2026-02", "2024-02", "2026-04"]) {
       expect(diaDoMes(ym, 31)).toBe(`${ym}-${String(diasDoMes(ym)).padStart(2, "0")}`);
     }
+  });
+});
+
+// Usado pelo KPI "Maior fonte" de Receitas, no lugar de uma contagem de
+// lançamentos que só repetia a lista logo abaixo.
+describe("agruparPorChave", () => {
+  const receitas = [
+    { valor: 150000, data: "2026-07-05", fonte: "Trabalho" },
+    { valor: 30000, data: "2026-07-10", fonte: "Uber" },
+    { valor: 20000, data: "2026-07-20", fonte: "Uber" },
+  ];
+
+  test("soma por chave e ordena da maior pra menor, com a percentagem", () => {
+    const grupos = agruparPorChave(receitas, (r) => r.fonte);
+    expect(grupos).toEqual([
+      { nome: "Trabalho", valor: 150000, pct: 75 },
+      { nome: "Uber", valor: 50000, pct: 25 },
+    ]);
+  });
+
+  test("lista vazia dá lista vazia — quem chama decide o que mostrar", () => {
+    expect(agruparPorChave([], (i: { valor: number; data: string }) => String(i.valor))).toEqual(
+      [],
+    );
+  });
+
+  test("grupo que fecha a zero ou abaixo fica de fora", () => {
+    // Um estorno que devolve tudo: a fonte deixa de existir no mês em vez de
+    // aparecer com 0% ou negativa.
+    const grupos = agruparPorChave(
+      [
+        { valor: 10000, data: "2026-07-01", fonte: "Extra" },
+        { valor: -10000, data: "2026-07-02", fonte: "Extra" },
+        { valor: 5000, data: "2026-07-03", fonte: "Trabalho" },
+      ],
+      (r) => r.fonte,
+    );
+    expect(grupos.map((g) => g.nome)).toEqual(["Trabalho"]);
   });
 });

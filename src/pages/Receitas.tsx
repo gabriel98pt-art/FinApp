@@ -7,6 +7,7 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
 import { useUiStore } from "../stores/uiStore";
 import {
+  agruparPorChave,
   doMes,
   mediaMensal,
   mesesRecentes,
@@ -50,11 +51,24 @@ export default function Receitas() {
   // para dar um número estável contra o qual ler o mês de agora.
   const media = mediaMensal(contadas, mesesRecentes(3, mesAnterior));
 
+  // "Maior fonte": de onde veio a maior fatia do dinheiro do mês. Substitui uma
+  // contagem de lançamentos que só repetia, em número, a lista logo abaixo —
+  // ver o card irmão "Maior categoria" em Despesas. Sem exclusões como as de
+  // `maiorCategoriaRelevante` (veículo/aluguel): do lado da receita a fonte
+  // dominante é justamente o que interessa saber, e quanto ela pesa.
+  const maiorFonte = agruparPorChave(doMes(contadas, mes), (r) => r.fonte)[0] ?? null;
+
   return (
     <Pagina titulo="Receitas">
       <Kpis pagina="receitas">
         <KpiCard rotulo="Total do mês" valor={formatMoney(totalMes, moeda)} tom="verde" />
-        <KpiCard rotulo="Lançamentos (mês)" valor={String(doMes(contadas, mes).length)} />
+        <KpiCard
+          rotulo="Maior fonte"
+          valor={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : "—"}
+          sub={
+            maiorFonte ? `${maiorFonte.nome} · ${maiorFonte.pct}% do mês` : "sem receitas no mês"
+          }
+        />
         {/* Do lado da receita, subir é bom — o verde/vermelho é o contrário do
             mesmo cartão em Despesas. */}
         <KpiCard
