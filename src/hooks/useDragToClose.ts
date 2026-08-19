@@ -34,8 +34,14 @@ export function useDragToClose({ folhaRef, veuRef, aoFechar }: Opcoes) {
       if (folha) folha.style.transform = `translateX(-50%) translateY(${novoY}px)`;
       const veu = veuRef.current;
       if (veu) {
+        // 1 sem arrasto nenhum, 0 quando a folha já desceu 40% do ecrã. É a
+        // opacidade do véu tal e qual: em repouso ele está a 1 (`.veuVisivel`,
+        // e o preto já vem meio transparente do `background`), portanto
+        // qualquer fator aqui — era `fade * 0.6` — fazia o véu saltar de 1
+        // para 0,6 no PRIMEIRO pixel do gesto, um pisca visível antes de
+        // começar a desvanecer de facto.
         const fade = Math.max(0, 1 - Math.max(0, novoY) / (window.innerHeight * 0.4));
-        veu.style.opacity = (fade * 0.6).toFixed(3);
+        veu.style.opacity = fade.toFixed(3);
       }
     },
     [folhaRef, veuRef],
