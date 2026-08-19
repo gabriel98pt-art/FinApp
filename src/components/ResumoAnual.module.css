@@ -11,7 +11,7 @@
 
 .titulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
 }
 
 .grid {

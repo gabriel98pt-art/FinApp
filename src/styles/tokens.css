@@ -38,6 +38,24 @@
   --ch-red: #e93650;
   --ch-pur: #9b6de8;
 
+  /* Escala tipográfica. Antes destes tokens a app tinha 32 tamanhos de fonte
+     diferentes, 14 deles numa única página, com degraus de 0,02rem (0,32px) —
+     invisíveis ao olho, mas suficientes para que o tamanho deixasse de
+     comunicar hierarquia: se "título de secção" existe em 0.76, 0.88, 0.90,
+     0.95 e 1.05rem, o leitor não aprende que tamanho significa o quê.
+
+     São 6 degraus com razão constante de ~1.12 — o suficiente para que dois
+     degraus vizinhos sejam distinguíveis lado a lado, e poucos o bastante para
+     que cada um tenha um papel próprio. Um valor fora da escala num
+     .module.css é agora um sinal de que ou o papel do texto é novo, ou (muito
+     mais provável) é um dos casos que a escala já cobre. */
+  --fs-micro: 0.68rem; /* selo, badge, contador, rótulo de aba */
+  --fs-label: 0.76rem; /* rótulo, legenda, nota de apoio, overline em caps */
+  --fs-body: 0.85rem; /* corpo de lista, texto de botão, texto padrão */
+  --fs-title: 0.95rem; /* título de secção e de cartão, linha de destaque */
+  --fs-heading: 1.05rem; /* título de folha inferior */
+  --fs-display: 1.25rem; /* valor grande de KPI, título de página */
+
   /* Raios. --r-card e --r-sm vêm do app de referência; --r-xs, --r-pill e
      --r-sheet nomeiam valores que já eram usados de forma consistente em
      dezenas de lugares, só que cravados no componente. */

@@ -97,7 +97,7 @@
 }
 
 .titulo {
-  font-size: 1.05rem;
+  font-size: var(--fs-heading);
   font-weight: 700;
   margin-bottom: 14px;
 }

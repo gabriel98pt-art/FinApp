@@ -106,7 +106,7 @@
 
 .formTitulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
 }
 
 .campo {
@@ -234,7 +234,7 @@
 /* Cada aba diz o que é, em vez de um cabeçalho genérico (item 4) */
 .tituloSecao {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
 }
 
 /* Alternador Mês / Semana (item 10) */
@@ -287,7 +287,7 @@
 
 .gerirTitulo {
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 

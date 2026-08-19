@@ -54,7 +54,7 @@
 
 .secaoTitulo {
   padding: 4px 12px 6px;
-  font-size: 0.76rem;
+  font-size: var(--fs-label);
   font-weight: 700;
   color: var(--mut);
   text-transform: uppercase;

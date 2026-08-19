@@ -14,7 +14,7 @@
 }
 
 .titulo {
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-weight: 700;
 }
 

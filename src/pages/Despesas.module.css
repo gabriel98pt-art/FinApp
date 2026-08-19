@@ -104,7 +104,7 @@
 
 .tituloSecao {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
 }
 
 /* Mesmo estilo do "+ Evento" do Calendário (item 2) */
@@ -219,7 +219,7 @@
 
 .formTitulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
 }
 
 .campo {

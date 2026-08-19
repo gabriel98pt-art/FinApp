@@ -37,7 +37,7 @@
 .grupoTitulo {
   padding: 8px 8px 0;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
 }
 
 .nota {

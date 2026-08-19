@@ -43,7 +43,7 @@
 
 .titulo {
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: var(--fs-title);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

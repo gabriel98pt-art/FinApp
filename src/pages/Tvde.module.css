@@ -91,7 +91,7 @@
 }
 
 .subtitulo {
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-weight: 700;
 }
 
@@ -274,7 +274,7 @@
 
 .blocoTitulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
 }
 
 .blocoNota {

@@ -91,7 +91,7 @@
 }
 
 .ano {
-  font-size: 1.05rem;
+  font-size: var(--fs-heading);
   font-weight: 700;
   min-width: 68px;
   text-align: center;

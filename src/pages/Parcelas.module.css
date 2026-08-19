@@ -15,7 +15,7 @@
 }
 
 .subtitulo {
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -276,7 +276,15 @@
 
 .gerirTitulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
+}
+
+/* Uma linha a dizer o que a lista é: sem ela o título tinha de explicar-se
+   sozinho, e era aí que entrava o jargão. */
+.gerirNota {
+  font-size: var(--fs-label);
+  color: var(--mut);
+  margin-top: -6px;
 }
 
 .chips {

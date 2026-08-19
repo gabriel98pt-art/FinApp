@@ -47,7 +47,7 @@
 
 .resumoTitulo {
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
 }
 
 .vazio {

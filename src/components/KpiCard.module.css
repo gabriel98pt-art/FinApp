@@ -57,7 +57,7 @@
 }
 
 .rotulo {
-  font-size: var(--kpi-rotulo-fs, 0.78rem);
+  font-size: var(--kpi-rotulo-fs, var(--fs-label));
   font-weight: 600;
   color: var(--mut);
   white-space: nowrap;
@@ -78,7 +78,7 @@
    também. */
 .valor {
   color: var(--txt);
-  font-size: var(--kpi-valor-fs, 1.25rem);
+  font-size: var(--kpi-valor-fs, var(--fs-display));
   text-align: center;
   /* sem isto o valor pode ficar mais largo que o card (o card tem
      overflow:hidden) e sair cortado no meio do número */
@@ -103,7 +103,7 @@
 
 /* Detalhe por baixo do valor, quando o valor principal é um nome. */
 .sub {
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   font-weight: 700;
   color: var(--mut);
   text-align: center;
