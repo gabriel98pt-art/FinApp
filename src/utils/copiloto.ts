@@ -626,8 +626,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // cartão específico
+  //
+  // Bug corrigido: normalizarPergunta troca "õ" por "o" mas não "ão" por "ao"
+  // — "cartões" (plural) normaliza para "cartoes", que não contém "cartao".
+  // Só testar o singular fazia "quanto gastei nos cartões AB este mês?" não
+  // bater aqui e cair, sem avisar, no intent agregado (cartão mais usado),
+  // que responde outra pergunta.
   {
-    test: (q, ctx) => q.includes("cartao") && !!encontrarNaLista(q, ctx.cfg.contasCartoes, 5),
+    test: (q, ctx) => /cartao|cartoes/.test(q) && !!encontrarNaLista(q, ctx.cfg.contasCartoes, 5),
     run: (q, ref, ctx) => {
       const cartao = encontrarNaLista(q, ctx.cfg.contasCartoes, 5)!;
       const total = totalCartaoMes(ctx, cartao, ref.ym);

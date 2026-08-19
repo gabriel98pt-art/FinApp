@@ -453,6 +453,18 @@ describe("copiloto: cartões", () => {
     expect(r).toContain("183,45");
   });
 
+  // Bug corrigido: "cartões" (plural) normaliza para "cartoes", que não
+  // contém "cartao" — a pergunta caía no intent agregado (cartão mais usado)
+  // em vez do cartão pedido pelo nome.
+  test("cartão específico também reconhece 'cartões' no plural", () => {
+    const r = responderPergunta(
+      "quanto gastei nos cartões AB Gold este mes",
+      ctx({ cfg, despesas: [despesa({ contaCartao: "AB Gold (C)", valor: 12345 })] }),
+    );
+    expect(r).toContain("123,45");
+    expect(r).toContain("AB Gold (C)");
+  });
+
   test("cartões agregado conta um cartão só com fixa/parcela, sem despesa corrente", () => {
     const fixa: DespesaFixa = {
       id: "f1",
