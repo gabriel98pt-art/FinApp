@@ -143,7 +143,11 @@ export default function Metas() {
 
       <div className={styles.cardMeta}>
         <div className={styles.cardMetaTopo}>
-          <p className={styles.cardMetaTitulo}>Meta — {rotuloMes(real)}</p>
+          {/* O mês do TÍTULO é o mesmo que gerou os números por baixo dele
+              (`mesVisivel`, o do seletor do header), nunca o mês real: com
+              julho escolhido, o cartão dizia "Meta — Agosto 2026" por cima de
+              receitas, despesas e saldo de julho. */}
+          <p className={styles.cardMetaTitulo}>Meta — {rotuloMes(mesVisivel)}</p>
           <span className={`${styles.badge} ${meta.atingiu ? styles.badgeOk : styles.badgeAlerta}`}>
             {badgeIcone && createElement(badgeIcone, { size: 13, "aria-hidden": true })}
             {badgeTexto}

@@ -40,8 +40,11 @@ vi.mock("../stores/cfgStore", () => ({
   useCfgStore: (s: (e: unknown) => unknown) =>
     s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
 }));
+// Mutável: um teste precisa de um mês visível DIFERENTE do mês real para
+// apanhar o cartão a rotular-se com o mês errado.
+let mesVisivel = "2026-08";
 vi.mock("../stores/mesVisivelStore", () => ({
-  useMesVisivelStore: (s: (e: unknown) => unknown) => s({ mes: "2026-08" }),
+  useMesVisivelStore: (s: (e: unknown) => unknown) => s({ mes: mesVisivel }),
 }));
 vi.mock("../stores/authStore", () => ({
   useAuthStore: (s: (e: unknown) => unknown) => s({ sessao: { uid: "u1" } }),
@@ -61,6 +64,7 @@ const fundo = (extra: Partial<Fundo> = {}): Fundo => ({
 beforeEach(() => {
   fundos = lista<Fundo>();
   receitas = lista<Receita>();
+  mesVisivel = "2026-08";
 });
 
 describe("Metas", () => {
@@ -88,6 +92,15 @@ describe("Metas", () => {
 
     expect(screen.getByText("Viagem")).toBeInTheDocument();
     expect(screen.getByText(/os dados podem estar desatualizados/)).toBeInTheDocument();
+  });
+
+  test("o cartão da meta é rotulado com o mês que gerou os números", () => {
+    // Bug: o título usava o mês REAL e os números o mês do seletor. Com julho
+    // escolhido, lia-se "Meta — Agosto 2026" por cima do saldo de julho.
+    mesVisivel = "2026-07";
+    render(<Metas />);
+
+    expect(screen.getByText("Meta — julho 2026")).toBeInTheDocument();
   });
 
   test("a percentagem do fundo aparece em texto, não só na barra", () => {
