@@ -10,7 +10,7 @@ import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Receita } from "
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "./copiloto";
 import { progressoFundo, responderPergunta } from "./copiloto";
-import { buildFinanceSnapshot, gerarPlano } from "./copilotoPlano";
+import { buildFinanceSnapshot, gerarPlano, responderPlano } from "./copilotoPlano";
 
 function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
   return {
@@ -371,5 +371,37 @@ describe("gerarPlano", () => {
       expect(c.separar).toBe(0);
       expect(c.sobra).toBe(0);
     }
+  });
+});
+
+describe("responderPlano", () => {
+  test("sem gatilho de plano na pergunta, não responde nada", () => {
+    expect(responderPlano("quanto gastei em mercado?", ctx())).toBeNull();
+  });
+
+  test("com gatilho, devolve o passo mais urgente do plano", () => {
+    const resp = responderPlano(
+      "o que eu devo fazer este mês?",
+      ctx({
+        cfg: cfgCom({ orcamentos: { Alimentação: 20000 }, saldosIniciais: { Conta: 500000 } }),
+        despesas: [despesa("2026-07-03", 30000)],
+      }),
+    );
+
+    expect(resp).toMatch(/Alimentação/);
+    expect(resp).toMatch(/<b>/);
+  });
+
+  test("sem nada a apontar, diz que está tudo dentro do previsto", () => {
+    const resp = responderPlano("qual o meu plano?", ctx());
+
+    expect(resp).toMatch(/dentro do previsto/);
+  });
+
+  test("reconhece outros gatilhos: conselho, sugestão, alerta", () => {
+    expect(responderPlano("me dá um conselho", ctx())).not.toBeNull();
+    expect(responderPlano("alguma sugestão?", ctx())).not.toBeNull();
+    expect(responderPlano("tenho algum alerta?", ctx())).not.toBeNull();
+    expect(responderPlano("qual o próximo passo?", ctx())).not.toBeNull();
   });
 });

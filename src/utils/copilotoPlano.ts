@@ -17,13 +17,16 @@ import { calcularFatura } from "./fatura";
 import {
   categoriasDoMes,
   dadosFaturaDoContexto,
+  escaparHtml,
   mediasPorCategoria,
+  normalizarPergunta,
   progressoFundo,
   totaisDoMes,
   type ContextoCopiloto,
   type MediaCategoria,
   type ProgressoFundo,
 } from "./copiloto";
+import { formatMoney } from "./money";
 import { vencimentosDeFaturas, vencimentosDeFixas, vencimentosDeParcelas } from "./vencimentos";
 
 /** Um compromisso já datado dentro da janela de 30 dias. */
@@ -385,4 +388,43 @@ function gerarCenarios(snapshot: FinanceSnapshot, margem: Cents): CenarioPlano[]
       sobra: folga - acelerar,
     },
   ];
+}
+
+// ---------------------------------------------------------------------------
+// Pergunta ao plano
+// ---------------------------------------------------------------------------
+
+/** Pistas de que a pergunta quer o PRÓXIMO PASSO, não um número do passado —
+ *  é o que separa "quanto gastei" (responderPergunta) de "o que eu faço
+ *  agora". Só entra depois da camada 1 de sempre já ter tentado e falhado:
+ *  ver a nota em `responderPlano`. */
+const GATILHOS_PLANO =
+  /\bplano\b|proximo passo|conselho|sugestao|algum alerta|o que (eu )?(devo|faco)( fazer)?/;
+
+/** Traduz o passo mais urgente do plano (`gerarPlano`) em texto — a mesma
+ *  fronteira texto/números que `responderPergunta` já respeita: aqui só se
+ *  formata o que o motor de plano já calculou, nada é inventado nem somado
+ *  de novo.
+ *
+ *  Vive nesta camada, e não dentro de `INTENTS_COPILOTO` (utils/copiloto.ts),
+ *  porque `gerarPlano`/`buildFinanceSnapshot` importam DESTE módulo — pôr o
+ *  intent lá criaria um import circular entre os dois ficheiros. Continua a
+ *  ser camada 1: zero rede, zero IA. Quem chama tenta isto DEPOIS de
+ *  `responderPergunta` devolver `RESPOSTA_PADRAO` e ANTES de ir à camada 2,
+ *  pela mesma razão de sempre — um número/plano que a app já tem vale mais
+ *  do que texto gerado. */
+export function responderPlano(pergunta: string, ctx: ContextoCopiloto): string | null {
+  const q = normalizarPergunta(pergunta);
+  if (!GATILHOS_PLANO.test(q)) return null;
+
+  const passo = gerarPlano(buildFinanceSnapshot(ctx)).passos[0];
+  const moeda = ctx.cfg.currency;
+  const dados = passo.dados
+    .slice(0, 2)
+    .map((d) => `${d.rotulo}: ${formatMoney(d.valor, moeda)}`)
+    .join(", ");
+
+  const titulo = `<b>${escaparHtml(passo.titulo)}</b>`;
+  const porque = escaparHtml(passo.porque);
+  return dados ? `${titulo}. ${porque} (${escaparHtml(dados)})` : `${titulo}. ${porque}`;
 }

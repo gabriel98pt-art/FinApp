@@ -15,6 +15,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { despesasNosTotais, hojeIso, mesAtual, receitasNosTotais } from "../utils/calculos";
 import { responderPergunta, RESPOSTA_PADRAO } from "../utils/copiloto";
+import { responderPlano } from "../utils/copilotoPlano";
 import { responderComIA } from "../services/copilotoIA";
 import styles from "./CopilotoCard.module.css";
 
@@ -23,14 +24,17 @@ const SUGESTOES = [
   "o que está pesando?",
   "estou dentro do orçamento?",
   "qual meu saldo?",
+  "o que eu devo fazer?",
 ];
 
 /** Copiloto (seção 3.9): pergunta em linguagem natural, em duas camadas.
  *
- *  A camada 1 (`responderPergunta`) responde localmente, na hora e sem rede —
- *  é ela que trata de tudo o que a app sabe calcular. Só quando nenhum intent
- *  souber responder é que a camada 2 (IA) entra, e mesmo essa nunca produz um
- *  número: recebe o resumo já calculado e limita-se a escrevê-lo. */
+ *  A camada 1 responde localmente, na hora e sem rede — é ela que trata de
+ *  tudo o que a app sabe calcular, tanto números do passado
+ *  (`responderPergunta`) quanto o passo mais urgente do plano
+ *  (`responderPlano`). Só quando nenhuma das duas souber responder é que a
+ *  camada 2 (IA) entra, e mesmo essa nunca produz um número: recebe o resumo
+ *  já calculado e limita-se a escrevê-lo. */
 export default function CopilotoCard() {
   const receitas = receitasNosTotais(useReceitasStore((s) => s.itens));
   const despesas = despesasNosTotais(useDespesasStore((s) => s.itens));
@@ -85,6 +89,17 @@ export default function CopilotoCard() {
     if (local !== RESPOSTA_PADRAO) {
       setAPensar(false);
       setResposta(local);
+      return;
+    }
+
+    // Ainda camada 1: "o que eu devo fazer?" não é uma pergunta sobre um
+    // número do passado, é sobre o passo mais urgente do plano. Zero rede
+    // também, só que o motor vive noutro módulo (ver a nota em
+    // `responderPlano`).
+    const doPlano = responderPlano(q, ctx);
+    if (doPlano !== null) {
+      setAPensar(false);
+      setResposta(doPlano);
       return;
     }
 
