@@ -33,7 +33,7 @@ function Secao({
           onClick={() => aoMudar("")}
         >
           <span>Todas</span>
-          {valor === "" && <Check size={16} aria-hidden />}
+          {valor === "" && <Check size={14} aria-hidden />}
         </button>
         {opcoes.map((o) => {
           const ativa = valor === o;
@@ -47,10 +47,10 @@ function Secao({
               onClick={() => aoMudar(o)}
             >
               <span className={styles.opcaoNome}>
-                {comIcone && <CategoriaBolha categoria={o} tamanho={22} />}
+                {comIcone && <CategoriaBolha categoria={o} tamanho={20} />}
                 {o}
               </span>
-              {ativa && <Check size={16} aria-hidden />}
+              {ativa && <Check size={14} aria-hidden />}
             </button>
           );
         })}
@@ -109,14 +109,22 @@ export default function FiltroTransacoes({
         titulo="Filtrar transações"
         ancoraRef={gatilhoRef}
       >
-        <Secao
-          titulo="Categoria"
-          opcoes={opcoesCategoria}
-          valor={filtroCategoria}
-          aoMudar={aoMudarCategoria}
-          comIcone
-        />
-        <Secao titulo="Conta/cartão" opcoes={contas} valor={filtroConta} aoMudar={aoMudarConta} />
+        {/* As duas seções lado a lado, cada uma a rolar por si. Empilhadas, a
+            folha somava as duas listas (só a de categoria tem ~12 linhas de
+            40px) e ficava mais alta do que o ecrã: era preciso rolar tudo
+            antes de alcançar o pegador para a fechar. Em paralelo, as listas
+            competem pela mesma altura em vez de a somarem, e o cabeçalho da
+            folha (e o "Limpar filtros" embaixo) ficam sempre à vista. */}
+        <div className={styles.colunas}>
+          <Secao
+            titulo="Categoria"
+            opcoes={opcoesCategoria}
+            valor={filtroCategoria}
+            aoMudar={aoMudarCategoria}
+            comIcone
+          />
+          <Secao titulo="Conta/cartão" opcoes={contas} valor={filtroConta} aoMudar={aoMudarConta} />
+        </div>
         {ativos > 0 && (
           <button
             type="button"
