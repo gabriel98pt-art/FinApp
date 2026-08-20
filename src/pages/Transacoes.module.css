@@ -11,6 +11,7 @@
 }
 
 .lista {
+  composes: listaLegivel from "../styles/listas.module.css";
   display: flex;
   flex-direction: column;
   gap: 6px;
