@@ -182,6 +182,11 @@ export default function RegistroRapido() {
       setErro(null);
       // Cada abertura começa no lado que o lançamento tem de facto.
       setTipoTrocado(null);
+      // Fora do if/else: a folha do parcelamento é FILHA desta, e nenhuma
+      // abertura — nova ou edição — deve herdá-la aberta da vez anterior. O
+      // ramo da edição não a fechava, e uma folha aninhada a nascer por cima de
+      // um formulário de edição não tem nada que fazer ali.
+      setFolhaParcelamento(false);
       if (editando) {
         setDescricao(editando.descricao);
         setNota(editando.nota ?? "");
@@ -206,7 +211,11 @@ export default function RegistroRapido() {
         setParcelada(false);
         setNumParcelas("3");
         setDiaVencimentoParcela("");
-        setFolhaParcelamento(false);
+        // O intermediador não era limpo em lado nenhum, e é GRAVADO na parcela
+        // (ver `salvar`): criar uma compra parcelada pela Klarna deixava a
+        // Klarna escolhida para sempre, e a compra parcelada seguinte nascia
+        // com um intermediador que ninguém tinha escolhido.
+        setIntermediador("");
         setModoValorParcela("total");
         setAutoDebitEscolhido(null);
         setReembolso(false);
@@ -221,6 +230,8 @@ export default function RegistroRapido() {
       setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
+      // Desmarcar o parcelamento apaga também o que só a ele pertence.
+      setIntermediador("");
       // Sair de Despesa apaga a escolha de reembolso: ela só existe deste lado.
       setReembolso(false);
       setReembolsoDe("");
