@@ -30,6 +30,15 @@ export default function PainelCoresApp({
   const [editando, setEditando] = useState<TokenCorApp | null>(null);
   const escolhidas = cfg.coresApp?.[tema] ?? {};
 
+  /** Fechar o painel fecha também a grade de cores que ele abre. Ela vive num
+   *  portal próprio, fora do `inert` desta folha: deixá-la marcada como aberta
+   *  deixava-a a flutuar sozinha depois de o painel sair. Mesma forma do
+   *  `fechar()` do FormTeto e da FolhaOrcamentoTotal. */
+  function fechar() {
+    setEditando(null);
+    aoFechar();
+  }
+
   async function escolher(cor: string | null) {
     if (!editando) return;
     const token = editando;
@@ -42,7 +51,7 @@ export default function PainelCoresApp({
   }
 
   return (
-    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Editar cores">
+    <BottomSheet aberta={aberta} aoFechar={fechar} titulo="Editar cores">
       <div className={styles.painel}>
         {/* Amostra só ilustrativa: como as cores são aplicadas no <html>, ela
             (e o app por trás da folha) já mudam sozinhas ao escolher. */}
