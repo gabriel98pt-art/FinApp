@@ -145,6 +145,18 @@ export default function Planejamento() {
   const [contribuindo, setContribuindo] = useState<string | null>(null);
   const [contribValor, setContribValor] = useState<Cents | null>(null);
 
+  /** Cada abertura recomeça em branco — o mesmo que "Contribuir" aqui ao lado
+   *  já fazia com o valor. Sem isto, escrever "Viagem ao Japão", fechar a folha
+   *  sem criar e tocar outra vez em "+ Novo fundo" reabria com "Viagem ao
+   *  Japão" lá dentro: os campos só eram limpos depois de um `criarFundo` bem
+   *  sucedido, nunca no fecho. */
+  function abrirNovoFundo() {
+    setNome("");
+    setAlvo(null);
+    setPrazo("");
+    setNovoAberto(true);
+  }
+
   async function salvarFundo(e: FormEvent) {
     e.preventDefault();
     const valorAlvo = alvo;
@@ -321,7 +333,7 @@ export default function Planejamento() {
                 {fundos.length > 0 &&
                   `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
               </h3>
-              <button className={styles.adicionar} onClick={() => setNovoAberto(true)}>
+              <button className={styles.adicionar} onClick={abrirNovoFundo}>
                 <Plus size={15} aria-hidden /> Novo fundo
               </button>
             </div>
