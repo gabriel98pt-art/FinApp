@@ -140,6 +140,20 @@ export default function Calendario() {
   const aPagar7 = totalAVencer(vencimentos7) + totalEventos(eventosComValor7);
   const qtd7 = vencimentos7.length + eventosComValor7.length;
 
+  /** Cada abertura recomeça em branco, no dia pedido (o da grelha) ou em hoje.
+   *  Sem isto os campos só eram limpos depois de um `criarEvento` bem sucedido:
+   *  escrever "Dentista", fechar a folha sem gravar e tocar outra vez em
+   *  "+ Evento" reabria com "Dentista" já escrito — e a data ficava presa no
+   *  último dia aberto pela grelha, portanto o "+ Evento" do topo propunha 5 de
+   *  agosto muito depois de se ter saído desse dia. */
+  function abrirNovoEvento(data: string = hoje) {
+    setTitulo("");
+    setNota("");
+    setValorTexto(null);
+    setDataNovo(data);
+    setNovoAberto(true);
+  }
+
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
     if (!titulo.trim()) return mostrarToast("Título obrigatório.");
@@ -183,7 +197,7 @@ export default function Calendario() {
       </Kpis>
 
       <div className={styles.linhaMes}>
-        <Botao variante="primaria" onClick={() => setNovoAberto(true)}>
+        <Botao variante="primaria" onClick={() => abrirNovoEvento()}>
           <Plus size={15} aria-hidden /> Evento
         </Botao>
       </div>
@@ -337,9 +351,8 @@ export default function Calendario() {
         <button
           className={styles.novoNoDiaBotao}
           onClick={() => {
-            setDataNovo(diaSelecionado ?? hoje);
             setDiaSelecionado(null);
-            setNovoAberto(true);
+            abrirNovoEvento(diaSelecionado ?? hoje);
           }}
         >
           <Plus size={15} aria-hidden /> Novo evento neste dia
