@@ -1,5 +1,4 @@
 .cartao {
-  composes: listaLegivel from "../styles/listas.module.css";
   background: var(--s1);
   border: 1px solid var(--brd);
   border-radius: var(--r-card);

@@ -72,6 +72,19 @@ describe("Tvde", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(4);
   });
 
+  test("a última aba não promete só metade do que guarda", async () => {
+    // Chamava-se "Seg. Social & Despesas" e lá dentro estão quatro coisas —
+    // as duas do nome mais a conta destino e a fonte da receita.
+    render(<Tvde />);
+    const aba = screen.getByRole("tab", { name: "Extras e definições" });
+    await userEvent.click(aba);
+
+    expect(screen.getByText("Conta destino da receita")).toBeInTheDocument();
+    expect(screen.getByText("Fonte da receita")).toBeInTheDocument();
+    expect(screen.getByText(/Segurança Social/)).toBeInTheDocument();
+    expect(screen.getByText("Despesas do TVDE")).toBeInTheDocument();
+  });
+
   test("sem semanas registadas: estado vazio que diz qual é a semana atual", () => {
     render(<Tvde />);
     expect(screen.getByText("Nenhuma semana registrada")).toBeInTheDocument();

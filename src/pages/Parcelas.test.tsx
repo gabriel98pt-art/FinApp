@@ -30,7 +30,17 @@ vi.mock("../stores/authStore", () => ({
   useAuthStore: (s: (e: unknown) => unknown) => s({ sessao: { uid: "u1" } }),
 }));
 
-vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
+// Fora da fábrica para os testes poderem ler o que foi perguntado ao usuário:
+// no caso do "Pagar tudo", o TEXTO da confirmação é a única coisa que separa
+// pagar um mês de quitar a compra inteira sem volta.
+const confirmar = vi.hoisted(() => vi.fn(async () => true));
+vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => confirmar }));
+
+const quitarParcela = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("../services/parcelasService", async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  quitarParcela,
+}));
 
 const Parcelas = (await import("./Parcelas")).default;
 
@@ -55,6 +65,8 @@ const quitada = () =>
 
 beforeEach(() => {
   estado = { itens: [], carregado: true, erro: false };
+  confirmar.mockClear();
+  quitarParcela.mockClear();
 });
 
 describe("Parcelas", () => {
@@ -109,6 +121,30 @@ describe("Parcelas", () => {
     const folha = screen.getByRole("dialog", { name: /Quitadas/ });
     expect(folha).toBeInTheDocument();
     expect(screen.getByText("Telemóvel")).toBeInTheDocument();
+  });
+
+  test("os dois botões da linha dizem-se ao lado um do outro: um mês ou tudo", () => {
+    // Lado a lado estavam "Pagar julho" e "Quitar", sem nada que dissesse que
+    // o segundo lança a compra toda de uma vez e não tem volta.
+    estado = { itens: [parcela()], carregado: true, erro: false };
+    render(<Parcelas />);
+
+    // Junho é o primeiro mês em aberto desta parcela — o botão paga ESSE mês.
+    expect(screen.getByRole("button", { name: "Pagar junho" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pagar tudo" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
+  });
+
+  test("pagar tudo avisa que quita a compra inteira e não dá para desfazer", async () => {
+    estado = { itens: [parcela()], carregado: true, erro: false };
+    render(<Parcelas />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Pagar tudo" }));
+
+    const texto = confirmar.mock.calls[0][0] as unknown as string;
+    expect(texto).toContain("€ 300,00");
+    expect(texto).toMatch(/não dá para desfazer/i);
+    expect(quitarParcela).toHaveBeenCalledTimes(1);
   });
 
   test("a folha fechada não deixa o Tab entrar nos botões dela", () => {
