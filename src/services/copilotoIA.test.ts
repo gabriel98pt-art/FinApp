@@ -144,17 +144,37 @@ describe("responderComIA — quando responde", () => {
 });
 
 describe("o que sai da app", () => {
-  test("vai a pergunta e o resumo agregado, não lançamentos", async () => {
-    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+  test("vai a pergunta e o resumo agregado — as últimas compras vão, conta/cartão e id nunca", async () => {
+    // ultimasTransacoes (copilotoResumo.ts) leva descrição de propósito, desde
+    // 5d1f2bd — é o que permite responder "qual foi a minha última compra em
+    // X". A fronteira real não é "nenhuma descrição", é "nunca conta/cartão
+    // nem id do lançamento": testar com despesas vazias, como este teste fazia
+    // antes, não verificava isso e ficava a afirmar o contrário do que o
+    // código faz de propósito.
+    const c = ctx({
+      despesas: [
+        {
+          id: "id-unico-nao-pode-sair",
+          descricao: "Compra no Continente",
+          categoria: "Mercado",
+          valor: 5000,
+          data: "2026-07-10",
+          contaCartao: "Visa terminado em 4321",
+        },
+      ],
+    });
+    await s.responderComIA("e agora?", c, "u1", "2026-07-15");
     const corpo = corpoEnviado();
 
     expect(corpo.pergunta).toBe("e agora?");
     expect(corpo.resumo).toBeTruthy();
-    // Nada de listas de lançamentos, descrições ou datas soltas.
     const cru = JSON.stringify(corpo);
+    expect(cru).toContain("Compra no Continente");
     expect(cru).not.toMatch(/"despesas":\s*\[/);
     expect(cru).not.toMatch(/"receitas":\s*\[/);
-    expect(cru).not.toMatch(/contaCartao|descricao/);
+    expect(cru).not.toContain("Visa");
+    expect(cru).not.toContain("4321");
+    expect(cru).not.toContain("id-unico-nao-pode-sair");
   });
 
   test("o tom por omissão da camada 2 é acolhedor, não o directo da camada 1", async () => {
