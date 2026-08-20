@@ -23,7 +23,6 @@ const Parcelas = lazy(() => import("./pages/Parcelas"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
 const Transacoes = lazy(() => import("./pages/Transacoes"));
-const Metas = lazy(() => import("./pages/Metas"));
 const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
@@ -83,7 +82,14 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/planejamento" element={<Planejamento />} />
           <Route path="/transacoes" element={<Transacoes />} />
-          <Route path="/metas" element={<Metas />} />
+          {/* Metas passou a ser uma aba de Planejamento (as duas telas
+              respondiam à mesma pergunta). A rota antiga continua a existir e
+              leva à aba certa — links guardados, o ecrã inicial do PWA e
+              qualquer atalho antigo continuam a funcionar. */}
+          <Route
+            path="/metas"
+            element={<Navigate to="/planejamento" replace state={{ aba: "metas" }} />}
+          />
           <Route path="/importar" element={<Importar />} />
           <Route path="/tvde" element={<RotaTvde />} />
           <Route path="/definicoes" element={<Definicoes />} />

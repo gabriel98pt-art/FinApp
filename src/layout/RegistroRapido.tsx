@@ -34,6 +34,7 @@ import { totalDaCompra } from "../utils/parcelas";
 import { kwhPeloCusto, precoKwhDoLocal } from "../utils/veiculo";
 
 import styles from "./RegistroRapido.module.css";
+import Botao from "../components/Botao";
 
 /** Três escolhas de primeiro nível. "Veículo" não é um `TipoRegistro`: é o
  *  guarda-chuva de carga + despesa do veículo, que se resolve na sub-escolha
@@ -774,9 +775,9 @@ export default function RegistroRapido() {
         )}
 
         <div className={styles.acoes}>
-          <button type="submit" className={styles.salvar} disabled={salvando}>
+          <Botao type="submit" variante="submeter" disabled={salvando}>
             {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Adicionar"}
-          </button>
+          </Botao>
 
           {editando && (
             <button type="button" className={styles.excluir} onClick={excluir} disabled={salvando}>

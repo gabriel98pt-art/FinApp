@@ -164,15 +164,6 @@
   color: var(--bg);
 }
 
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 11px;
-  font-size: 0.95rem;
-}
-
 /* Corpo clicável da linha: abre a caixa de edição (itens 5 e 7). Fica dentro
    do .item pra que o selo Pago/Pendente continue sendo um botão irmão —
    botão dentro de botão não é HTML válido. */
@@ -200,20 +191,6 @@
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-/* Mesmo estilo do "+ Evento" do Calendário (item 2) */
-.botaoAdicionar {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 0.82rem;
-  border-radius: var(--r-sm);
-  padding: 8px 14px;
-  white-space: nowrap;
 }
 
 /* Formulário dentro da folha: a folha já é o cartão, então sem fundo/borda */

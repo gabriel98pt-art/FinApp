@@ -21,19 +21,6 @@
   font-size: var(--fs-title);
 }
 
-.botaoAdicionar {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 0.78rem;
-  border-radius: var(--r-sm);
-  padding: 7px 12px;
-  white-space: nowrap;
-}
-
 .vazio {
   color: var(--mut);
   font-size: 0.85rem;
@@ -168,15 +155,6 @@
   outline: 2px solid var(--blu);
   outline-offset: 0;
   border-color: transparent;
-}
-
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: 1rem;
 }
 
 .remover {

@@ -30,6 +30,12 @@
   font-size: 0.82rem;
 }
 
+/* Terminar sessão. Mesmo tratamento do `perigo` de Botao.module.css — texto
+   vermelho, sem fundo, para acção destrutiva com volta possível — mas aplicado
+   a uma `.linha` da lista de definições em vez de ao componente: aqui o botão é
+   uma linha de largura inteira alinhada com as outras da secção, não uma
+   pílula. O componente continua a ser a referência do desenho; se o vermelho de
+   perigo mudar, muda nos dois. */
 .sair {
   color: var(--red);
 }

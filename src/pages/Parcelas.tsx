@@ -37,6 +37,7 @@ import {
   valorQuitacao,
 } from "../utils/parcelas";
 import styles from "./Parcelas.module.css";
+import Botao from "../components/Botao";
 
 function LinhaParcela({
   p,
@@ -348,13 +349,13 @@ function FormParcela({
             {erro}
           </p>
         )}
-        <button type="submit" className={styles.salvar}>
+        <Botao type="submit" variante="submeter">
           {editando ? "Salvar alterações" : "Criar parcela"}
-        </button>
+        </Botao>
         {editando && (
-          <button type="button" className={styles.excluirParcela} onClick={() => void excluir()}>
+          <Botao variante="perigo" onClick={() => void excluir()}>
             Excluir parcela
-          </button>
+          </Botao>
         )}
       </form>
     </BottomSheet>
@@ -475,9 +476,9 @@ export default function Parcelas() {
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
-          <button className={styles.adicionar} onClick={abrirNova}>
+          <Botao variante="texto" onClick={abrirNova}>
             <Plus size={15} aria-hidden /> Nova parcela
-          </button>
+          </Botao>
         </div>
       </div>
 

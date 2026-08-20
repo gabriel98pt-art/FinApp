@@ -44,6 +44,7 @@ import { hojeIso, mesAtual, rotuloMes, somarDias, somarMeses } from "../utils/ca
 import { formatMoney } from "../utils/money";
 import type { Cents, YearMonth } from "../types";
 import styles from "./Calendario.module.css";
+import Botao from "../components/Botao";
 
 export default function Calendario() {
   const uid = useAuthStore((s) => s.sessao?.uid);
@@ -182,9 +183,9 @@ export default function Calendario() {
       </Kpis>
 
       <div className={styles.linhaMes}>
-        <button className={styles.novoBotao} onClick={() => setNovoAberto(true)}>
+        <Botao variante="primaria" onClick={() => setNovoAberto(true)}>
           <Plus size={15} aria-hidden /> Evento
-        </button>
+        </Botao>
       </div>
 
       <div className={styles.grid}>
@@ -368,9 +369,9 @@ export default function Calendario() {
             Nota (opcional)
             <input value={nota} onChange={(e) => setNota(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             Adicionar evento
-          </button>
+          </Botao>
         </form>
       </BottomSheet>
     </Pagina>

@@ -67,6 +67,7 @@ import {
 } from "../utils/contas";
 import { formatMoney } from "../utils/money";
 import styles from "./Cartoes.module.css";
+import Botao from "../components/Botao";
 
 /** Controles de fatura do cartão de crédito — agora vivem DENTRO da folha de
  *  detalhes da conta (item 13), não mais como quadro solto na tela. */
@@ -157,9 +158,9 @@ function ControlesFatura({
 
       <div className={styles.acoes}>
         {fatura.restante > 0 && (
-          <button className={styles.acaoPrimaria} onClick={aoPagar}>
+          <Botao variante="primaria" onClick={aoPagar}>
             Pagar
-          </button>
+          </Botao>
         )}
         <button className={styles.acao} onClick={aoAjustar}>
           Ajustar valor
@@ -709,9 +710,9 @@ export default function Cartoes() {
 
       <div className={styles.cabecalhoLista}>
         <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
-        <button className={styles.botaoAdicionar} onClick={abrirNovaTransferencia}>
+        <Botao variante="primaria" onClick={abrirNovaTransferencia}>
           <Plus size={15} aria-hidden /> Adicionar transferência
-        </button>
+        </Botao>
       </div>
 
       <div className={styles.lista}>
@@ -858,9 +859,9 @@ export default function Cartoes() {
             {contasDebito.length === 0 && (
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
             )}
-            <button type="submit" className={styles.salvar} disabled={contasDebito.length === 0}>
+            <Botao type="submit" variante="submeter" disabled={contasDebito.length === 0}>
               Registrar pagamento
-            </button>
+            </Botao>
           </form>
         )}
       </BottomSheet>
@@ -879,9 +880,9 @@ export default function Cartoes() {
               Valor manual (€) — vazio volta ao automático
               <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} placeholder="automático" />
             </label>
-            <button type="submit" className={styles.salvar}>
+            <Botao type="submit" variante="submeter">
               Salvar
-            </button>
+            </Botao>
           </form>
         )}
       </BottomSheet>
@@ -906,9 +907,9 @@ export default function Cartoes() {
               Os lançamentos não mudam — o que se acerta é o ponto de partida da conta, para o saldo
               bater com o do banco.
             </p>
-            <button type="submit" className={styles.salvar}>
+            <Botao type="submit" variante="submeter">
               Salvar
-            </button>
+            </Botao>
           </form>
         )}
       </BottomSheet>
@@ -945,9 +946,9 @@ export default function Cartoes() {
             Descrição (opcional)
             <input value={tfNota} onChange={(e) => setTfNota(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {tfEditandoId ? "Salvar alterações" : "Registrar transferência"}
-          </button>
+          </Botao>
           {tfEditandoId && (
             <button
               type="button"

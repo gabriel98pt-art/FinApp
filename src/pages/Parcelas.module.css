@@ -52,21 +52,6 @@
   color: var(--txt);
 }
 
-.adicionar {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--blu);
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 6px 10px;
-  border-radius: var(--r-sm);
-}
-
-.adicionar:hover {
-  background: var(--s2);
-}
-
 .lista {
   display: flex;
   flex-direction: column;
@@ -236,24 +221,8 @@
   text-align: center;
 }
 
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: 1rem;
-}
-
 .preenchido {
   display: block;
-}
-
-.excluirParcela {
-  color: var(--red);
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 6px;
 }
 
 .proxima {

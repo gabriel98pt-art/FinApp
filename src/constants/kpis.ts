@@ -36,10 +36,19 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     titulo: "Despesas",
     rotulos: ["Total do mês", "Maior categoria", "vs mês passado", "Média (3 meses)"],
   },
+  // As duas entradas seguintes são as duas ABAS da página Planejamento (que
+  // fundiu a antiga tela Metas). Os `id` ficam como estavam, senão a escolha já
+  // gravada de cada pessoa deixava de casar; só o título diz agora de que aba
+  // se está a falar.
   {
     id: "planejamento",
-    titulo: "Planejamento",
+    titulo: "Planejamento — Orçamento",
     rotulos: ["Total", "Restam", "% usado", "Valor/dia"],
+  },
+  {
+    id: "metas",
+    titulo: "Planejamento — Metas",
+    rotulos: ["Meta Mensal", "Taxa de Poupança", "Total em Fundos", "Poupado (12m)"],
   },
   {
     id: "cartoes",
@@ -63,10 +72,5 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     id: "transacoes",
     titulo: "Transações",
     rotulos: ["Entradas", "Saídas", "Saldo"],
-  },
-  {
-    id: "metas",
-    titulo: "Metas",
-    rotulos: ["Meta Mensal", "Taxa de Poupança", "Total em Fundos", "Poupado (12m)"],
   },
 ];

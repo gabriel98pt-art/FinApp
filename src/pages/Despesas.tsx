@@ -52,6 +52,7 @@ import { formatMoney } from "../utils/money";
 import type { Cents, DespesaFixa, Id } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Despesas.module.css";
+import Botao from "../components/Botao";
 
 type Aba = "correntes" | "fixas";
 
@@ -421,12 +422,13 @@ export default function Despesas() {
               )}
               {/* Já se está na aba "Correntes" — o título "Despesas correntes"
                   do cartão de baixo era redundante. O botão sobe pra cá. */}
-              <button
+              <Botao
+                variante="primaria"
                 className={styles.botaoAdicionarTopo}
                 onClick={() => abrirRegistro("despesa")}
               >
                 <Plus size={15} aria-hidden /> Adicionar
-              </button>
+              </Botao>
             </div>
 
             <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
@@ -489,9 +491,9 @@ export default function Despesas() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
+              <Botao variante="primaria" onClick={abrirNovaFixa}>
                 <Plus size={15} aria-hidden /> Adicionar despesa fixa
-              </button>
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -648,9 +650,9 @@ export default function Despesas() {
             {dfAutoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
             Débito automático
           </button>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
-          </button>
+          </Botao>
           {dfEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
               Excluir despesa fixa

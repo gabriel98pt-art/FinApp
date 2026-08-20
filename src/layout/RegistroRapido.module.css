@@ -154,20 +154,6 @@
   gap: 10px;
 }
 
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sheet); /* o mesmo raio da própria folha */
-  padding: 12px;
-  font-size: 1rem;
-}
-
-.salvar:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
 .excluir {
   color: var(--red);
   font-size: 0.88rem;

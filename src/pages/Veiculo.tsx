@@ -55,6 +55,7 @@ import {
 import type { CargaEletrica, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Veiculo.module.css";
+import Botao from "../components/Botao";
 
 type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
 
@@ -590,9 +591,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Carregamentos</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovaCarga}>
+              <Botao variante="primaria" onClick={abrirNovaCarga}>
                 <Plus size={15} aria-hidden /> Adicionar carregamento
-              </button>
+              </Botao>
             </div>
 
             <div className={styles.linhaVisao}>
@@ -702,9 +703,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovaDespesa}>
+              <Botao variante="primaria" onClick={abrirNovaDespesa}>
                 <Plus size={15} aria-hidden /> Adicionar despesa
-              </button>
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -785,9 +786,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovaFixa}>
+              <Botao variante="primaria" onClick={abrirNovaFixa}>
                 <Plus size={15} aria-hidden /> Adicionar despesa fixa
-              </button>
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -857,9 +858,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
-              <button className={styles.botaoAdicionar} onClick={abrirNovoKm}>
+              <Botao variante="primaria" onClick={abrirNovoKm}>
                 <Plus size={15} aria-hidden /> Adicionar quilometragem
-              </button>
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -970,9 +971,9 @@ export default function Veiculo() {
             Descrição (opcional)
             <input value={cgNota} onChange={(e) => setCgNota(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {cgEditandoId ? "Salvar alterações" : "Registar carregamento"}
-          </button>
+          </Botao>
           {cgEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
               Excluir carregamento
@@ -1009,9 +1010,9 @@ export default function Veiculo() {
             Descrição (opcional)
             <input value={dvNota} onChange={(e) => setDvNota(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {dvEditandoId ? "Salvar alterações" : "Adicionar despesa"}
-          </button>
+          </Botao>
           {dvEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirDespesa()}>
               Excluir despesa
@@ -1055,9 +1056,9 @@ export default function Veiculo() {
             opcoes={cfg.categoriasVeiculo}
             aoMudar={setDfCategoria}
           />
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
-          </button>
+          </Botao>
           {dfEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
               Excluir despesa fixa
@@ -1087,9 +1088,9 @@ export default function Veiculo() {
             Descrição (opcional)
             <input value={kmNota} onChange={(e) => setKmNota(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao type="submit" variante="submeter">
             {kmEditandoId ? "Salvar alterações" : "Registar"}
-          </button>
+          </Botao>
           {kmEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirKm()}>
               Excluir registo

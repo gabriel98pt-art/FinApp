@@ -116,7 +116,13 @@ export default function Inicio() {
       </Kpis>
       <AvisoOrcamento />
       <DonutCategoriaCard />
-      <ResumoAnual meses={6} titulo="Resumo Anual" ate={mes} />
+      {/* "Últimos 6 meses", e não "Resumo Anual": Planejamento → Metas mostra o
+          MESMO quadro com uma janela de 12 meses. Os dois chamavam-se "Resumo
+          Anual" e somavam períodos diferentes — quem comparava as duas telas
+          via dois totais a discordar sem nada que explicasse porquê. O título
+          passa a dizer a janela que cada um soma. (Aqui a janela ainda termina
+          no mês do seletor, ao contrário da de 12 meses, que fica em hoje.) */}
+      <ResumoAnual meses={6} titulo="Últimos 6 meses" ate={mes} />
       <CopilotoCard />
     </Pagina>
   );

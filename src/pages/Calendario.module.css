@@ -6,18 +6,6 @@
   flex-wrap: wrap;
 }
 
-.novoBotao {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 0.82rem;
-  border-radius: var(--r-sm);
-  padding: 8px 14px;
-}
-
 .grid {
   background: var(--s1);
   border: 1px solid var(--brd);
@@ -53,6 +41,33 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--txt);
+}
+
+/* O `aspect-ratio: 1` é o certo no telemóvel, onde a célula tem ~48px de lado.
+   Numa coluna de 1280px cada célula passava a 176px e a grade a ~900px de
+   altura quase toda vazia — o número do dia perdido no meio do quadrado e o mês
+   inteiro sem caber no ecrã. O teto trava a altura nos MESMOS degraus que o
+   resto do app usa (barra lateral em tokens.css, coluna em AppShell.module.css,
+   donut em DonutCategoriaCard.module.css); a célula continua quadrada até lá e
+   só depois vira retângulo largo. Cada altura é a do quadrado no início do seu
+   degrau (~88px a 768px, ~104px a 1024px), por isso o teto nunca faz a célula
+   crescer — só a impede de continuar a esticar. Os `.marcadores` são absolutos
+   ao fundo da célula, portanto acompanham sozinhos. */
+@media (min-width: 768px) {
+  .dia {
+    /* `max-height` sozinho não serve: com o `aspect-ratio` de pé a célula
+       encolhe também de largura e passa a flutuar no meio da coluna. Trocar a
+       proporção por uma altura fixa mantém-na colada às vizinhas, como numa
+       vista de mês de secretária. */
+    aspect-ratio: auto;
+    height: 88px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dia {
+    height: 104px;
+  }
 }
 
 .dia:hover {
@@ -225,13 +240,4 @@
   outline: 2px solid var(--blu);
   outline-offset: 0;
   border-color: transparent;
-}
-
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: 1rem;
 }

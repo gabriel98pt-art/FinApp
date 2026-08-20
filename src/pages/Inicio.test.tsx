@@ -104,6 +104,9 @@ describe("Inicio", () => {
     // Eram <p>: quem navega por cabeçalhos não conseguia saltar de um quadro
     // para o outro nesta página, que é a primeira que se abre.
     desenhar();
-    expect(screen.getByRole("heading", { name: "Resumo Anual" })).toBeInTheDocument();
+    // "Últimos 6 meses" e não "Resumo Anual": o mesmo quadro aparece em
+    // Planejamento → Metas com uma janela de 12 meses, e os dois chamavam-se
+    // igual somando períodos diferentes. O título diz agora a janela.
+    expect(screen.getByRole("heading", { name: "Últimos 6 meses" })).toBeInTheDocument();
   });
 });

@@ -107,20 +107,6 @@
   font-size: var(--fs-title);
 }
 
-/* Mesmo estilo do "+ Evento" do Calendário (item 2) */
-.botaoAdicionar {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 0.82rem;
-  border-radius: var(--r-sm);
-  padding: 8px 14px;
-  white-space: nowrap;
-}
-
 .remover {
   color: var(--red);
   font-size: 1.1rem;
@@ -255,15 +241,6 @@
   gap: 10px;
 }
 
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 11px;
-  font-size: 0.95rem;
-}
-
 .cancelar {
   color: var(--mut);
   font-weight: 700;
@@ -295,18 +272,9 @@
   flex-wrap: wrap;
 }
 
+/* Só posição: o desenho do botão vem de <Botao variante="primaria">. */
 .botaoAdicionarTopo {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
   margin-left: auto;
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  font-size: 0.82rem;
-  border-radius: var(--r-sm);
-  padding: 8px 14px;
-  white-space: nowrap;
 }
 
 .alternadorVisao {

@@ -22,6 +22,7 @@ import {
 import type { Transacao } from "../utils/transacoes";
 import type { Cents, Currency } from "../types";
 import styles from "./OrcamentoCard.module.css";
+import Botao from "./Botao";
 
 /** Caixa única de teto: define (escolhendo a categoria) ou edita/remove (a
  *  categoria já vem fixa). Vive aqui, junto do que ele afeta — era um
@@ -151,9 +152,9 @@ function FormTeto({
           Teto mensal
           <CampoMoeda valor={valor} aoMudar={setValor} required disabled={salvando} />
         </label>
-        <button type="submit" className={styles.salvar} disabled={salvando}>
+        <Botao type="submit" variante="submeter" disabled={salvando}>
           {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Definir teto"}
-        </button>
+        </Botao>
         {editando && (
           <button
             type="button"
@@ -205,9 +206,9 @@ export default function OrcamentoCard() {
     <div className={styles.card}>
       <div className={styles.cabecalho}>
         <p className={styles.titulo}>Orçamento por categoria</p>
-        <button className={styles.botaoAdicionar} onClick={abrirNovo}>
+        <Botao variante="primaria" onClick={abrirNovo}>
           <Plus size={15} aria-hidden /> Definir teto
-        </button>
+        </Botao>
       </div>
 
       {status.length === 0 ? (

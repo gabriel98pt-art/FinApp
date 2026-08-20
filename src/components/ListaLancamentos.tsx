@@ -9,6 +9,7 @@ import type { Cents, Currency, Id, IsoDate } from "../types";
 import { total as somar } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import styles from "./ListaLancamentos.module.css";
+import Botao from "./Botao";
 
 /** Itens por página — mesmo valor do app de referência (DC_PGS = 15). */
 export const ITENS_POR_PAGINA = 15;
@@ -91,9 +92,9 @@ export default function ListaLancamentos({
       {titulo && (
         <div className={styles.cabecalho}>
           <h3 className={styles.titulo}>{titulo}</h3>
-          <button className={styles.adicionar} onClick={aoAdicionar}>
+          <Botao variante="texto" onClick={aoAdicionar}>
             <Plus size={15} aria-hidden /> Adicionar
-          </button>
+          </Botao>
         </div>
       )}
 

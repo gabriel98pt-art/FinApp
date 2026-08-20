@@ -27,15 +27,6 @@
   border-color: transparent;
 }
 
-.salvar {
-  background: var(--blu);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: 1rem;
-}
-
 .resumo {
   display: flex;
   flex-direction: column;

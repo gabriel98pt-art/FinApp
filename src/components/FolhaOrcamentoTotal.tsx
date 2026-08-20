@@ -9,6 +9,7 @@ import { formatMoney } from "../utils/money";
 import type { StatusOrcamento } from "../utils/orcamento";
 import type { Cents } from "../types";
 import styles from "./FolhaOrcamentoTotal.module.css";
+import Botao from "./Botao";
 
 /** O plano do mês inteiro: define-se aqui o total, e vê-se quanto dele já foi
  *  repartido pelos tetos por categoria.
@@ -77,9 +78,9 @@ export default function FolhaOrcamentoTotal({
           Quanto pretende gastar por mês
           <CampoMoeda valor={valor} aoMudar={setValor} disabled={salvando} />
         </label>
-        <button type="submit" className={styles.salvar} disabled={salvando}>
+        <Botao type="submit" variante="submeter" disabled={salvando}>
           {salvando ? "Aguarde…" : "Salvar"}
-        </button>
+        </Botao>
       </form>
 
       <div className={styles.resumo}>

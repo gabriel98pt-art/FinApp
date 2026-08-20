@@ -1,3 +1,35 @@
+/* Abas da página (Orçamento | Metas) — mesmo desenho de Despesas, Veículo e
+   TVDE, para a barra de abas ser sempre a mesma coisa em qualquer tela. */
+.abas {
+  display: flex;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.abaBotao {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--r-xs);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.abaAtiva {
+  background: var(--blu);
+  color: var(--bg);
+}
+
 .cardMeta {
   background: var(--s1);
   border: 1px solid var(--brd);

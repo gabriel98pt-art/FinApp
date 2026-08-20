@@ -19,13 +19,14 @@ const ROTAS_COM_MES = [
   "/veiculo",
   "/calendario",
   "/transacoes",
+  // Planejamento manda no seletor nas duas abas: o teto do mês é do mês
+  // escolhido, e a meta de poupança também (foi /metas até serem fundidas).
   "/planejamento",
-  // Estas três tinham ficado de fora por "terem conceito próprio de período".
+  // Estas duas tinham ficado de fora por "terem conceito próprio de período".
   // Têm — mas o mês do header é a referência de topo do app, e não o ter aqui
   // obrigava a adivinhar de que mês era o que se estava a ver.
   "/parcelas",
   "/tvde",
-  "/metas",
 ];
 
 export default function Header() {

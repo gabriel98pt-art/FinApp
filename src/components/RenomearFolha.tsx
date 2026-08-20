@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import BottomSheet from "./BottomSheet";
 import styles from "./RenomearFolha.module.css";
+import Botao from "./Botao";
 
 /** Folha de renomear, partilhada por cartões, categorias, fontes e locais.
  *  Só recolhe o nome novo — quem sabe o que renomear (e a cascata que isso
@@ -56,9 +57,9 @@ export default function RenomearFolha({
         <p className={styles.aviso}>
           {aviso ?? "Os lançamentos que já usam este nome passam a usar o novo."}
         </p>
-        <button type="submit" className={styles.salvar}>
+        <Botao type="submit" variante="submeter">
           Renomear
-        </button>
+        </Botao>
       </form>
     </BottomSheet>
   );

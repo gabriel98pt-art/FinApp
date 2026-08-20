@@ -1,0 +1,79 @@
+/* Base comum a todas as variantes. O reset de <button> vive em base.css
+   (font/cor herdadas, sem fundo nem borda, :active a 0.97), por isso aqui só
+   fica o que distingue um botão de um <button> qualquer. */
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+}
+
+.base:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Ação principal de um ecrã: "Adicionar despesa", "Novo evento", "Pagar".
+   0.82rem/8px 14px era o desenho com mais votos entre as seis cópias à mão que
+   existiam; o tamanho arredondou para --fs-body (0.85rem, meio pixel acima) ao
+   entrar na escala. */
+.primaria {
+  background: var(--blu);
+  color: var(--bg);
+  font-size: var(--fs-body);
+  padding: 8px 14px;
+}
+
+/* Confirmar um formulário dentro de uma folha inferior. Mesma cor da primária,
+   mas larga e alta: é o único destino da folha, e o polegar chega-lhe em
+   qualquer sítio da largura do ecrã. */
+.submeter {
+  background: var(--blu);
+  color: var(--bg);
+  font-size: var(--fs-title);
+  padding: 12px;
+  width: 100%;
+}
+
+/* Ação de cabeçalho de secção ("adicionar" ao lado do título do quadro): é
+   texto, não botão, porque compete com o título ao lado e não deve ganhar. */
+.texto {
+  color: var(--blu);
+  font-size: var(--fs-body);
+  padding: 6px 10px;
+}
+
+.texto:hover {
+  background: var(--s2);
+}
+
+/* Ações destrutivas, em dois pesos — porque não são todas igualmente graves e
+   antes eram: "excluir parcela" era texto vermelho, "sair" era texto vermelho
+   com ícone, e "apagar conta" (a única sem volta possível) era um botão cinzento
+   neutro, ou seja, a acção mais grave da app era a que menos parecia.
+
+   .perigo — desfazível ou recuperável: excluir uma parcela, terminar a sessão.
+   Vermelho só no texto: assinala sem interromper. */
+.perigo {
+  color: var(--red);
+  font-size: var(--fs-body);
+  padding: 6px 10px;
+}
+
+.perigo:hover {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+/* .perigoForte — irreversível e total: apagar a conta e tudo o que ela guarda.
+   Vermelho cheio, o mesmo do "Confirmar" do diálogo de confirmação, que é o
+   outro sítio da app onde já não há como voltar atrás. Deliberadamente pesado:
+   quem chega aqui deve reconhecer o botão pelo que ele é antes de o ler. */
+.perigoForte {
+  background: var(--red);
+  color: var(--bg);
+  font-size: var(--fs-body);
+  padding: 8px 14px;
+}

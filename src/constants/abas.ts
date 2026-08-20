@@ -8,7 +8,6 @@ import {
   ListTree,
   Layers,
   Settings,
-  Target,
   TrendingDown,
   TrendingUp,
   Upload,
@@ -25,7 +24,6 @@ export type AbaId =
   | "calendario"
   | "planejamento"
   | "transacoes"
-  | "metas"
   | "importar"
   | "tvde"
   | "definicoes";
@@ -46,9 +44,11 @@ export const ABAS: AbaDef[] = [
   { id: "cartoes", rota: "/cartoes", titulo: "Cartões", Icone: CreditCard },
   { id: "parcelas", rota: "/parcelas", titulo: "Parcelas", Icone: Layers },
   { id: "calendario", rota: "/calendario", titulo: "Calendário", Icone: CalendarDays },
+  // Uma entrada só para o plano inteiro: "Planejamento" e "Metas" eram dois
+  // itens do menu a responder à mesma pergunta ("o meu plano está a
+  // aguentar?"), e agora são duas abas dentro desta página.
   { id: "planejamento", rota: "/planejamento", titulo: "Planejamento", Icone: ClipboardList },
   { id: "transacoes", rota: "/transacoes", titulo: "Transações", Icone: ListTree },
-  { id: "metas", rota: "/metas", titulo: "Metas", Icone: Target },
   { id: "importar", rota: "/importar", titulo: "Importar", Icone: Upload },
   { id: "tvde", rota: "/tvde", titulo: "TVDE", Icone: CarTaxiFront },
   { id: "definicoes", rota: "/definicoes", titulo: "Definições", Icone: Settings },
@@ -71,7 +71,6 @@ export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("planejamento"),
   aba("veiculo"),
   aba("parcelas"),
-  aba("metas"),
   aba("importar"),
   aba("tvde"),
   aba("definicoes"),

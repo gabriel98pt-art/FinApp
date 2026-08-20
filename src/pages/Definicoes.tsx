@@ -52,6 +52,7 @@ import { useThemeStore } from "../stores/themeStore";
 import type { ConfigConta, Currency, TomCopiloto } from "../types";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import styles from "./Definicoes.module.css";
+import Botao from "../components/Botao";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -642,13 +643,9 @@ function ApagarConta() {
           autoComplete="current-password"
           required
         />
-        <button
-          type="submit"
-          className={`${styles.botaoPequeno} ${styles.sair}`}
-          disabled={apagando}
-        >
+        <Botao type="submit" variante="perigoForte" disabled={apagando}>
           <Trash2 size={14} aria-hidden /> {apagando ? "A apagar…" : "Apagar conta"}
-        </button>
+        </Botao>
       </div>
     </form>
   );
