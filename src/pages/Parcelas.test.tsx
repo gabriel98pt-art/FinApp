@@ -33,7 +33,7 @@ vi.mock("../stores/authStore", () => ({
 // Fora da fábrica para os testes poderem ler o que foi perguntado ao usuário:
 // no caso do "Pagar tudo", o TEXTO da confirmação é a única coisa que separa
 // pagar um mês de quitar a compra inteira sem volta.
-const confirmar = vi.hoisted(() => vi.fn(async () => true));
+const confirmar = vi.hoisted(() => vi.fn<(mensagem: string) => Promise<boolean>>(async () => true));
 vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => confirmar }));
 
 const quitarParcela = vi.hoisted(() => vi.fn(async () => {}));
@@ -141,7 +141,7 @@ describe("Parcelas", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Pagar tudo" }));
 
-    const texto = confirmar.mock.calls[0][0] as unknown as string;
+    const [texto] = confirmar.mock.calls[0];
     expect(texto).toContain("€ 300,00");
     expect(texto).toMatch(/não dá para desfazer/i);
     expect(quitarParcela).toHaveBeenCalledTimes(1);
