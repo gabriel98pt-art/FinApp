@@ -1,3 +1,13 @@
+/* Escala da folha-mãe quando outra folha abre por cima dela. Declarada com
+   `@property` para ser ANIMÁVEL: transitar a custom property, e não o
+   `transform` inteiro, é o que permite recuar a folha sem entrar em conflito
+   com o `--folha-y` que a mola escreve a cada frame. */
+@property --folha-escala {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
 .veu {
   position: fixed;
   inset: 0;
@@ -17,6 +27,14 @@
   backdrop-filter: blur(4px);
 }
 
+/* Enquanto a mola manda, o véu desvanece frame a frame junto com a folha (o
+   JS escreve a opacidade). A transição CSS tem de sair do caminho, senão o
+   navegador tenta interpolar entre valores já defasados e o véu arrasta-se
+   atrás da folha. */
+.veu[data-mola="true"] {
+  transition: none;
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .veuVisivel {
     background: rgba(0, 0, 0, 0.55);
@@ -24,12 +42,27 @@
 }
 
 /* Superfície sólida (não vidro): sheet carrega conteúdo denso e o material
-   translúcido é reservado a header/tabs/nav (seção 6) */
+   translúcido é reservado a header/tabs/nav (seção 6).
+
+   POSIÇÃO: o repouso fechado é FORA da janela (`--folha-y: 100vh`), não um
+   deslocamento de 24px com fade. Uma folha de ~700px tem de entrar deslizando
+   de fora para dentro, não aparecer no lugar.
+
+   E não há transição de `transform` nenhuma aqui, de propósito: quem anima a
+   folha — a abrir, a fechar por toque/Esc e a fechar por arrasto — é sempre a
+   mesma mola por rAF (useDragToClose), que escreve `--folha-y`. Uma transição
+   CSS não é uma simulação contínua: não se pode agarrar a meio nem herdar a
+   velocidade do dedo, e era ela que fazia a folha sair de duas maneiras
+   diferentes conforme a pessoa a fechasse com o dedo ou com o véu. */
 .folha {
+  --folha-y: 100vh;
   position: fixed;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(24px);
+  transform: translateX(-50%) translateY(var(--folha-y)) scale(var(--folha-escala));
+  /* A folha recua a partir da borda de baixo: encolher pelo centro descolava-a
+     do fundo do ecrã e abria uma faixa de fundo por baixo dela. */
+  transform-origin: 50% 100%;
   width: min(100vw, 480px);
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
@@ -41,11 +74,29 @@
   box-shadow: var(--sh-card);
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   opacity: 0;
+  /* `visibility` e não `display:none`: o conteúdo fica montado (ver
+     BottomSheet.tsx), mas fora da janela a sombra ainda espreitava pela borda
+     de baixo. A troca é instantânea e só acontece com a folha já fora da
+     janela, portanto nunca se vê. */
+  visibility: hidden;
   pointer-events: none;
-  /* fechado = base: sair acelera e é mais rápido (motion.css) */
-  transition:
-    opacity var(--dur-exit) var(--ease-exit),
-    transform var(--dur-exit) var(--ease-exit);
+  transition: --folha-escala var(--dur-enter) var(--ease-enter);
+}
+
+/* Apresentada: no lugar e visível. Vale durante TODA a saída também — quem a
+   tira é a mola, quando assenta fora da janela. */
+.presente {
+  --folha-y: 0px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Folha-mãe com outra folha aberta por cima: recua e encolhe um pouco, como
+   as folhas empilhadas do iOS. O escurecimento já vem do véu da folha-filha,
+   que fica por cima desta (z-index 45 + nível×2 contra 46 + (nível−1)×2). */
+.recuada {
+  --folha-escala: 0.94;
 }
 
 /* O foco entra na folha por código quando ela abre (useFocoModal), só para
@@ -54,16 +105,6 @@
    folha não é um controle. Os botões e campos lá dentro mantêm o deles. */
 .folha:focus {
   outline: none;
-}
-
-.aberta {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-  /* aberto: entrar desacelera e é mais lento */
-  transition:
-    opacity var(--dur-enter-lg) var(--ease-enter),
-    transform var(--dur-enter-lg) var(--ease-enter);
 }
 
 .pegador {
@@ -87,27 +128,44 @@
   cursor: grabbing;
 }
 
-/* Durante o arrasto, o JS escreve o transform a cada frame (física de mola
-   por rAF) — a transition CSS tem que sair do caminho, senão o navegador
-   tenta animar entre valores já defasados (lag atrás do dedo). Ver nota em
-   base.css: escape hatch próprio, não a regra genérica de reduced-motion. */
-.folha[data-dragging="true"] {
-  transition: none !important;
+/* Marca de "o JS manda na posição desta folha" — está a ser arrastada ou tem
+   uma mola no ar. Serve de aviso ao compositor e de escape hatch da regra de
+   reduced-motion mais abaixo. */
+.folha[data-mola="true"] {
   will-change: transform;
 }
 
 .titulo {
-  font-size: var(--fs-heading);
+  font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 14px;
 }
 
-/* Reduced motion: abre/fecha só por opacidade curta, sem deslizar.
-   (O futuro drag físico NÃO passa por aqui — ver nota em base.css.) */
+/* Reduced motion: a folha não desliza — aparece e desaparece no lugar, por
+   opacidade curta. Como o repouso fechado passou a ser fora da janela, é aqui
+   que ele volta a ser 0.
+
+   O `:not([data-mola="true"])` é o escape hatch prometido em base.css: o
+   arrasto é manipulação direta do dedo, não decoração, e continua a
+   acompanhar a mão mesmo neste modo (a regra antiga, com `transform`
+   `!important`, ganhava ao inline e travava a folha debaixo do dedo). */
 @media (prefers-reduced-motion: reduce) {
-  .folha {
-    transition: opacity var(--dur-fast) var(--ease-exit) !important;
-    transform: translateX(-50%) !important;
+  .folha:not([data-mola="true"]) {
+    --folha-y: 0px;
+    transition:
+      opacity var(--dur-fast) var(--ease-exit),
+      visibility 0s linear var(--dur-fast);
+  }
+
+  .presente:not([data-mola="true"]) {
+    transition:
+      opacity var(--dur-fast) var(--ease-enter),
+      visibility 0s;
+  }
+
+  /* Recuar a folha-mãe também é movimento: fica só o escurecimento do véu. */
+  .recuada {
+    --folha-escala: 1;
   }
 }
 
@@ -152,11 +210,10 @@
     border-radius: var(--r-sheet);
     /* Sem o pegador, o título precisa do respiro que ele dava. */
     padding-top: 24px;
-    transform: translate(-50%, calc(-50% + 24px));
-  }
-
-  .folhaGrande.aberta {
-    transform: translate(-50%, -50%);
+    /* Mesma custom property, composta de outra maneira: é por isto que a mola
+       escreve `--folha-y` em vez do `transform` inteiro. Centrado, `--folha-y`
+       continua a ser "quanto falta para sair pela borda de baixo". */
+    transform: translate(-50%, calc(-50% + var(--folha-y))) scale(var(--folha-escala));
   }
 
   /* Arrastar para fechar é gesto de dedo: o Registro Rápido tira o
@@ -164,13 +221,5 @@
      não existe. Fecha-se pelo véu, como nas outras folhas não-arrastáveis. */
   .folhaGrande .pegador {
     display: none;
-  }
-}
-
-/* A regra de reduced-motion acima zera o transform para `translateX(-50%)`,
-   o que aqui deixaria o diálogo pendurado abaixo do centro. */
-@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
-  .folhaGrande {
-    transform: translate(-50%, -50%) !important;
   }
 }
