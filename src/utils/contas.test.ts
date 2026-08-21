@@ -153,6 +153,20 @@ describe("saldo por caixa com fixa em débito automático", () => {
     const conta = resumoDaConta("Conta", comVencimento, cfg, "2026-07");
     expect(conta.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 5);
   });
+
+  it("navegar para um mês passado não esconde meses já debitados até hoje", () => {
+    const comVencimento: DadosContas = {
+      ...comAutoDebit,
+      despesasFixas: [{ ...comAutoDebit.despesasFixas[0], diaVencimento: 27 }],
+    };
+    // Hoje é agosto, depois do vencimento: março a agosto (6 meses) já saíram
+    // da conta. O usuário está só a ver julho no Cartões — o saldo é o mesmo
+    // dinheiro, não pode depender de qual mês está na tela.
+    const vendoJulho = resumoDaConta("Conta", comVencimento, cfg, "2026-07", "2026-08-30");
+    const vendoAgosto = resumoDaConta("Conta", comVencimento, cfg, "2026-08", "2026-08-30");
+    expect(vendoJulho.saldoAtual).toBe(100000 + 250000 - 8000 - 10000 - 50000 * 6);
+    expect(vendoJulho.saldoAtual).toBe(vendoAgosto.saldoAtual);
+  });
 });
 
 describe("resumosDasContas", () => {

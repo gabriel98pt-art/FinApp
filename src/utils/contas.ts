@@ -133,6 +133,11 @@ export function resumoDaConta(
     veiculoMes.length;
   const receitasMes = receitasMesLista.length + entradasMes.length;
 
+  // O saldo é caixa "de hoje" (ver `ResumoConta.saldoAtual`): quais fixas em
+  // débito automático já saíram tem de olhar para o mês corrente real, não
+  // para o mês que o usuário está a navegar em `mes` — senão o saldo mudava
+  // consoante a tela exibida, em vez de ser sempre o mesmo dinheiro na conta.
+  const mesReferenciaPagas = hoje ? mesDe(hoje) : mes;
   const saldoAtual =
     (cfg.saldosIniciais?.[conta] ?? 0) +
     dados.receitas.filter((r) => r.conta === conta).reduce((s, r) => s + r.valor, 0) +
@@ -141,8 +146,8 @@ export function resumoDaConta(
       .filter((d) => d.contaCartao === conta)
       .reduce((s, d) => s + d.valor, 0) -
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
-    fixasPagas(dados.despesasFixas, conta, mes, hoje) -
-    fixasPagas(dados.despesasFixasVeiculo, conta, mes, hoje) -
+    fixasPagas(dados.despesasFixas, conta, mesReferenciaPagas, hoje) -
+    fixasPagas(dados.despesasFixasVeiculo, conta, mesReferenciaPagas, hoje) -
     (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
     (dados.despesasVeiculo ?? [])
       .filter((d) => d.contaCartao === conta)
