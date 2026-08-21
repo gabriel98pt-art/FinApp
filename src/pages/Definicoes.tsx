@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  CarTaxiFront,
   ChevronDown,
   Copy,
   Download,
-  EyeOff,
   KeyRound,
   LogOut,
   Moon,
@@ -53,6 +51,7 @@ import type { ConfigConta, Currency, TomCopiloto } from "../types";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import styles from "./Definicoes.module.css";
 import Botao from "../components/Botao";
+import SettingsSwitchRow from "../components/settings/SettingsSwitchRow";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -753,14 +752,16 @@ export default function Definicoes() {
           {theme === "dark" ? <Sun size={18} aria-hidden /> : <Moon size={18} aria-hidden />}
           Tema: {theme === "dark" ? "escuro" : "claro"} (tocar para alternar)
         </button>
-        <button className={styles.linha} onClick={() => void alternarTvde()}>
-          <CarTaxiFront size={18} aria-hidden />
-          Módulo TVDE: {cfg.showTvde ? "ligado" : "desligado"} (tocar para alternar)
-        </button>
-        <button className={styles.linha} onClick={() => void alternarModoDiscreto()}>
-          <EyeOff size={18} aria-hidden />
-          Modo discreto: {cfg.modoDiscreto ? "ligado" : "desligado"} (tocar para alternar)
-        </button>
+        <SettingsSwitchRow
+          titulo="Módulo TVDE"
+          checked={cfg.showTvde}
+          onChange={() => void alternarTvde()}
+        />
+        <SettingsSwitchRow
+          titulo="Modo discreto"
+          checked={cfg.modoDiscreto}
+          onChange={() => void alternarModoDiscreto()}
+        />
         <button className={styles.linha} onClick={() => setCoresAbertas(true)}>
           <Palette size={18} aria-hidden />
           Editar cores (destaque, positivo, negativo, alerta, roxo)
