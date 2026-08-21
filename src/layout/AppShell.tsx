@@ -12,10 +12,12 @@ import ConfirmarAcao from "../components/ConfirmarAcao";
 import IndicadorPull from "../components/IndicadorPull";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useSyncConta } from "../hooks/useSyncConta";
+import { useAbrirRegistroPorUrl } from "../hooks/useAbrirRegistroPorUrl";
 import styles from "./AppShell.module.css";
 
 export default function AppShell() {
   useSyncConta();
+  useAbrirRegistroPorUrl();
   const { estado, limite, manipuladores } = usePullToRefresh();
 
   return (
