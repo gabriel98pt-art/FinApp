@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { LogOut, Moon, Palette, Pencil, Shapes, Sparkles, Sun, Trash2, X } from "lucide-react";
+import { LogOut, Moon, Palette, Pencil, Shapes, Sun, Trash2, X } from "lucide-react";
 import Pagina from "../components/Pagina";
 import CategoriaBolha from "../components/CategoriaBolha";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
@@ -14,7 +14,6 @@ import {
   atualizarConfig,
   definirCorCategoria,
   definirIconeCategoria,
-  definirPreferenciasCopiloto,
   removerItemLista,
   renomearCategoria,
   renomearFonte,
@@ -24,7 +23,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
-import type { ConfigConta, Currency, TomCopiloto } from "../types";
+import type { ConfigConta, Currency } from "../types";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import styles from "./Definicoes.module.css";
 import Botao from "../components/Botao";
@@ -33,6 +32,7 @@ import SettingsRow from "../components/settings/SettingsRow";
 import FolhaSenha from "./definicoes/FolhaSenha";
 import FolhaBackup from "./definicoes/FolhaBackup";
 import FolhaDiagnostico from "./definicoes/FolhaDiagnostico";
+import FolhaCopiloto from "./definicoes/FolhaCopiloto";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -332,85 +332,6 @@ function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
   );
 }
 
-const TONS: { valor: TomCopiloto; rotulo: string }[] = [
-  { valor: "direto", rotulo: "Direto" },
-  { valor: "acolhedor", rotulo: "Acolhedor" },
-];
-
-/** Personalização do Copiloto.
- *
- *  Fica desligada até alguém a ligar de propósito, e o botão de desligar
- *  apaga o nó inteiro em vez de o esvaziar — quem escreveu o nome tem de
- *  conseguir tirá-lo de lá, não só deixá-lo em branco. */
-function PersonalizarCopiloto({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
-  const [nome, setNome] = useState(cfg.copiloto?.nome ?? "");
-  const [tom, setTom] = useState<TomCopiloto>(cfg.copiloto?.tom ?? "direto");
-  const [salvando, setSalvando] = useState(false);
-  const configurado = cfg.copiloto !== undefined;
-
-  async function guardar(e: FormEvent) {
-    e.preventDefault();
-    if (salvando) return;
-    setSalvando(true);
-    try {
-      await definirPreferenciasCopiloto(uid, { nome: nome.trim() || undefined, tom });
-      mostrarToast("✓ Copiloto personalizado");
-    } catch {
-      mostrarToast("Não foi possível guardar.");
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  async function desligar() {
-    try {
-      await definirPreferenciasCopiloto(uid, null);
-      setNome("");
-      setTom("direto");
-      mostrarToast("Personalização removida");
-    } catch {
-      mostrarToast("Não foi possível remover.");
-    }
-  }
-
-  return (
-    <form className={styles.grupo} onSubmit={(e) => void guardar(e)}>
-      <p className={styles.grupoTitulo}>Copiloto</p>
-      <p className={styles.nota}>
-        Opcional. Com um nome, o Copiloto trata-o por ele; o tom muda só o jeito das frases, nunca
-        os números. Fica guardado na sua conta e sai daqui quando quiser.
-      </p>
-      <div className={styles.linhaAdicionar}>
-        <input
-          className={styles.inputPequeno}
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Como quer ser tratado"
-          aria-label="Nome para o Copiloto"
-          maxLength={40}
-        />
-        <Seletor
-          variante="inline"
-          rotulo="Tom do Copiloto"
-          nivel={0}
-          valor={tom}
-          opcoes={TONS.map((t) => t.valor)}
-          rotuloOpcao={(v) => TONS.find((t) => t.valor === v)?.rotulo ?? v}
-          aoMudar={(v) => setTom(v as TomCopiloto)}
-        />
-        <button type="submit" className={styles.botaoPequeno} disabled={salvando}>
-          <Sparkles size={14} aria-hidden /> {salvando ? "A guardar…" : "Guardar"}
-        </button>
-        {configurado && (
-          <button type="button" className={styles.botaoPequeno} onClick={() => void desligar()}>
-            <X size={14} aria-hidden /> Desligar
-          </button>
-        )}
-      </div>
-    </form>
-  );
-}
-
 /** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
  *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
  *
@@ -477,6 +398,7 @@ export default function Definicoes() {
   const [coresAbertas, setCoresAbertas] = useState(false);
   const [senhaAberta, setSenhaAberta] = useState(false);
   const [backupAberto, setBackupAberto] = useState(false);
+  const [copilotoAberto, setCopilotoAberto] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -600,7 +522,14 @@ export default function Definicoes() {
 
       <EscolhaKpis cfg={cfg} uid={uid} />
 
-      <PersonalizarCopiloto cfg={cfg} uid={uid} />
+      <div className={styles.grupo}>
+        <SettingsRow
+          titulo="Copiloto"
+          valor={cfg.copiloto !== undefined ? "Configurado" : undefined}
+          navegavel
+          onClick={() => setCopilotoAberto(true)}
+        />
+      </div>
 
       <div className={styles.grupo}>
         <SettingsRow titulo="Backup" navegavel onClick={() => setBackupAberto(true)} />
@@ -629,6 +558,12 @@ export default function Definicoes() {
       />
       <FolhaSenha aberta={senhaAberta} aoFechar={() => setSenhaAberta(false)} />
       <FolhaBackup uid={uid} aberta={backupAberto} aoFechar={() => setBackupAberto(false)} />
+      <FolhaCopiloto
+        cfg={cfg}
+        uid={uid}
+        aberta={copilotoAberto}
+        aoFechar={() => setCopilotoAberto(false)}
+      />
     </Pagina>
   );
 }

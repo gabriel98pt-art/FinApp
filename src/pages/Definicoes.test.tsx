@@ -108,11 +108,14 @@ describe("Definicoes", () => {
 
   test("dá para personalizar o Copiloto", () => {
     render(<Definicoes />);
+    // Também vive numa folha própria — mesmo motivo do teste de senha.
+    fireEvent.click(screen.getByRole("button", { name: "Copiloto" }));
     expect(screen.getByLabelText("Nome para o Copiloto")).toBeInTheDocument();
   });
 
   test("sem personalização guardada, não oferece desligar o que não está ligado", () => {
     render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: "Copiloto" }));
     expect(screen.queryByRole("button", { name: /Desligar/ })).not.toBeInTheDocument();
   });
 
