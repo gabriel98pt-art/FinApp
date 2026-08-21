@@ -80,7 +80,8 @@ describe("Definicoes", () => {
 
   test("as categorias configuradas aparecem para poderem ser geridas", () => {
     render(<Definicoes />);
-    // A primeira categoria do padrão tem de estar visível em algum lado.
+    // Categorias também viraram folha própria — abre antes de procurar.
+    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
     expect(screen.getAllByText(CONFIG_PADRAO.categoriasDespesa[0]).length).toBeGreaterThan(0);
   });
 
