@@ -429,6 +429,22 @@ export function responderPlano(pergunta: string, ctx: ContextoCopiloto): string 
   return dados ? `${titulo}. ${porque} (${escaparHtml(dados)})` : `${titulo}. ${porque}`;
 }
 
+/** A ação por trás do passo mais urgente do plano — quando existe, é o que dá
+ *  a quem chama a possibilidade de a executar de verdade (ex.: um botão
+ *  "Separar X para o fundo Y"), em vez de a app só descrever o que dava para
+ *  fazer. Mesmo gatilho de `responderPlano`, e devolve `null` nos dois casos
+ *  em que não há nada a oferecer: a pergunta não é sobre o plano, ou o passo
+ *  mais urgente não tem ação executável por trás (ver `gerarPlano` — só
+ *  fundos com folga suficiente ganham uma). Quem chama ainda precisa
+ *  confirmar explicitamente antes de executar; isto só identifica QUE ação
+ *  seria essa. */
+export function acaoDoPlano(pergunta: string, ctx: ContextoCopiloto): AcaoPlano | null {
+  const q = normalizarPergunta(pergunta);
+  if (!GATILHOS_PLANO.test(q)) return null;
+
+  return gerarPlano(buildFinanceSnapshot(ctx)).passos[0].acao ?? null;
+}
+
 /** Pistas de que a pergunta quer os TRÊS CENÁRIOS de poupança do mês, não o
  *  passo mais urgente — `gerarCenarios` (dentro de `gerarPlano`) já os
  *  calcula e já era testado, mas até aqui não havia forma de chegar a eles

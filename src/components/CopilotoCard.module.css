@@ -67,6 +67,20 @@
   line-height: 1.5;
 }
 
+.acaoPlano {
+  align-self: flex-start;
+  background: var(--blu);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+}
+
+.acaoPlano:disabled {
+  opacity: 0.6;
+}
+
 .sugestoes {
   display: flex;
   flex-wrap: wrap;

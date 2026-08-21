@@ -15,8 +15,17 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { despesasNosTotais, hojeIso, mesAtual, receitasNosTotais } from "../utils/calculos";
 import { responderPergunta, RESPOSTA_PADRAO } from "../utils/copiloto";
-import { responderCenarios, responderPlano } from "../utils/copilotoPlano";
+import {
+  acaoDoPlano,
+  responderCenarios,
+  responderPlano,
+  type AcaoPlano,
+} from "../utils/copilotoPlano";
 import { responderComIA } from "../services/copilotoIA";
+import { contribuirFundo } from "../services/fundosService";
+import { confirmarAcao } from "../stores/confirmarStore";
+import { mostrarToast } from "../stores/toastStore";
+import { formatMoney } from "../utils/money";
 import styles from "./CopilotoCard.module.css";
 
 const SUGESTOES = [
@@ -51,6 +60,12 @@ export default function CopilotoCard() {
   const [pergunta, setPergunta] = useState("");
   const [resposta, setResposta] = useState<string | null>(null);
   const [aPensar, setAPensar] = useState(false);
+  // Só preenchido quando a resposta em cima veio de `responderPlano` E o
+  // passo mais urgente tinha uma ação executável por trás (ver
+  // `acaoDoPlano`). Some sempre que uma pergunta nova é feita ou executada
+  // com sucesso — nunca fica pendurado a apontar para uma resposta antiga.
+  const [acaoPendente, setAcaoPendente] = useState<AcaoPlano | null>(null);
+  const [aExecutar, setAExecutar] = useState(false);
   // Roda o fraseado a cada pergunta, para a mesma pergunta duas vezes seguidas
   // não devolver a frase idêntica. Vive na sessão: recarregar a página começa
   // outra vez pela frase de sempre, o que é o comportamento certo por omissão.
@@ -82,6 +97,9 @@ export default function CopilotoCard() {
       diaDeHoje: parseInt(hoje.slice(8, 10), 10),
     };
     setVariante((v) => v + 1);
+    // Uma pergunta nova invalida qualquer ação pendente da anterior — só a
+    // resposta que está prestes a ser calculada pode reabri-la.
+    setAcaoPendente(null);
 
     // Camada 1: local e imediata. Se soube responder, acabou aqui — nunca se
     // paga uma ida à rede por uma resposta que a app já tem.
@@ -100,6 +118,9 @@ export default function CopilotoCard() {
     if (doPlano !== null) {
       setAPensar(false);
       setResposta(doPlano);
+      // O mesmo passo pode trazer uma ação executável (hoje só
+      // "contribuirFundo") — ver a nota em `acaoDoPlano`.
+      setAcaoPendente(acaoDoPlano(q, ctx));
       return;
     }
 
@@ -121,6 +142,34 @@ export default function CopilotoCard() {
     if (pedidoAtual.current !== pedido) return;
     setAPensar(false);
     setResposta(daIA);
+  }
+
+  /** Executa a ação pendente, sempre com confirmação explícita antes — nunca
+   *  a partir só de uma pergunta em texto livre. Hoje só existe
+   *  "contribuirFundo"; o `tipo` fica pronto para outras ações que o plano
+   *  venha a ganhar. */
+  async function executarAcao() {
+    if (!acaoPendente || aExecutar) return;
+    const uid = sessao?.uid;
+    const fundo = fundos.find((f) => f.id === acaoPendente.fundoId);
+    if (!uid || !fundo) return;
+
+    const moeda = cfg.currency;
+    const ok = await confirmarAcao(
+      `Separar ${formatMoney(acaoPendente.valor, moeda)} para ${acaoPendente.nomeFundo}?`,
+    );
+    if (!ok) return;
+
+    setAExecutar(true);
+    try {
+      await contribuirFundo(uid, fundo, acaoPendente.valor);
+      mostrarToast(`✓ ${formatMoney(acaoPendente.valor, moeda)} separado(s) para ${fundo.nome}`);
+      setAcaoPendente(null);
+    } catch {
+      mostrarToast("Não foi possível separar agora.");
+    } finally {
+      setAExecutar(false);
+    }
   }
 
   function aoSubmeter(e: FormEvent) {
@@ -156,6 +205,19 @@ export default function CopilotoCard() {
         // escapado por inteiro em services/copilotoIA.ts — texto gerado não
         // ganha o direito de emitir HTML só por ter passado por um modelo.
         <p className={styles.resposta} dangerouslySetInnerHTML={{ __html: resposta }} />
+      )}
+
+      {acaoPendente && (
+        <button
+          type="button"
+          className={styles.acaoPlano}
+          disabled={aExecutar}
+          onClick={() => void executarAcao()}
+        >
+          {aExecutar
+            ? "A separar…"
+            : `Separar ${formatMoney(acaoPendente.valor, cfg.currency)} para ${acaoPendente.nomeFundo}`}
+        </button>
       )}
 
       <div className={styles.sugestoes}>

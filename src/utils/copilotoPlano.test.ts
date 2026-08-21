@@ -11,6 +11,7 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "./copiloto";
 import { progressoFundo, responderPergunta } from "./copiloto";
 import {
+  acaoDoPlano,
   buildFinanceSnapshot,
   gerarPlano,
   responderCenarios,
@@ -408,6 +409,38 @@ describe("responderPlano", () => {
     expect(responderPlano("alguma sugestão?", ctx())).not.toBeNull();
     expect(responderPlano("tenho algum alerta?", ctx())).not.toBeNull();
     expect(responderPlano("qual o próximo passo?", ctx())).not.toBeNull();
+  });
+});
+
+describe("acaoDoPlano", () => {
+  test("sem gatilho de plano na pergunta, não responde nada", () => {
+    expect(acaoDoPlano("quanto gastei em mercado?", ctx())).toBeNull();
+  });
+
+  test("com gatilho mas sem ação executável no passo mais urgente, devolve null", () => {
+    // Mesmo cenário de "gerarPlano: nunca sugere separar dinheiro que não
+    // existe" — o passo é levantado, mas sem ação por trás.
+    expect(
+      acaoDoPlano("o que eu devo fazer?", ctx({ fundos: [fundo({ prazo: "2026-12-31" })] })),
+    ).toBeNull();
+  });
+
+  test("com folga suficiente, devolve a mesma ação que gerarPlano calculou", () => {
+    const c = ctx({
+      cfg: cfgCom({ saldosIniciais: { Conta: 500000 } }),
+      fundos: [fundo({ prazo: "2026-12-31" })],
+    });
+
+    const acao = acaoDoPlano("qual o meu plano?", c);
+    const doPlano = gerarPlano(buildFinanceSnapshot(c)).passos[0].acao;
+
+    expect(acao).toMatchObject({
+      tipo: "contribuirFundo",
+      fundoId: "f1",
+      nomeFundo: "Viagem",
+      valor: 25000,
+    });
+    expect(acao).toEqual(doPlano);
   });
 });
 
