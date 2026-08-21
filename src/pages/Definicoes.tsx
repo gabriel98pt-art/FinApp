@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ChevronDown,
   Copy,
-  Download,
   LogOut,
   Moon,
   Palette,
@@ -11,7 +10,6 @@ import {
   Sparkles,
   Sun,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
 import Pagina from "../components/Pagina";
@@ -22,7 +20,6 @@ import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
-import { exportarBackup, importarBackup } from "../services/backupService";
 import { apagarConta, mensagemDeErroSenhaAtual, sair } from "../services/authService";
 import { limparErros, observarErros, type ErroRegistado } from "../services/erroService";
 import {
@@ -47,6 +44,7 @@ import Botao from "../components/Botao";
 import SettingsSwitchRow from "../components/settings/SettingsSwitchRow";
 import SettingsRow from "../components/settings/SettingsRow";
 import FolhaSenha from "./definicoes/FolhaSenha";
+import FolhaBackup from "./definicoes/FolhaBackup";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -588,13 +586,11 @@ export default function Definicoes() {
   const theme = useThemeStore((s) => s.theme);
   const alternarTema = useThemeStore((s) => s.alternarTema);
   const cfg = useCfgStore((s) => s.cfg);
-  const arquivoRef = useRef<HTMLInputElement>(null);
-  const [importando, setImportando] = useState(false);
   const [coresAbertas, setCoresAbertas] = useState(false);
   const [senhaAberta, setSenhaAberta] = useState(false);
+  const [backupAberto, setBackupAberto] = useState(false);
 
   const uid = sessao?.uid;
-  const confirmar = useConfirmar();
 
   async function alternarTvde() {
     if (!uid) return;
@@ -633,48 +629,6 @@ export default function Definicoes() {
     } catch {
       mostrarToast("Não foi possível alterar.");
     }
-  }
-
-  async function exportar() {
-    if (!uid) return;
-    try {
-      const json = await exportarBackup(uid);
-      const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `finapp-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      mostrarToast("✓ Backup baixado");
-    } catch {
-      mostrarToast("Não foi possível exportar.");
-    }
-  }
-
-  async function aoEscolherArquivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
-    e.target.value = "";
-    if (!arquivo || !uid) return;
-    if (
-      !(await confirmar(
-        "Importar backup? Isto SOBRESCREVE todos os dados atuais desta conta — a ação não pode ser desfeita.",
-      ))
-    )
-      return;
-    const leitor = new FileReader();
-    leitor.onload = async () => {
-      setImportando(true);
-      try {
-        await importarBackup(uid, String(leitor.result ?? ""));
-        mostrarToast("✓ Backup importado");
-      } catch (err) {
-        mostrarToast(err instanceof Error ? err.message : "Backup inválido.");
-      } finally {
-        setImportando(false);
-      }
-    };
-    leitor.readAsText(arquivo);
   }
 
   if (!uid) return null;
@@ -761,29 +715,7 @@ export default function Definicoes() {
       <PersonalizarCopiloto cfg={cfg} uid={uid} />
 
       <div className={styles.grupo}>
-        <p className={styles.grupoTitulo}>Backup</p>
-        <p className={styles.nota}>
-          Exporte todos os dados desta conta, ou restaure de um arquivo.
-        </p>
-        <div className={styles.linhaAdicionar}>
-          <button className={styles.botaoPequeno} onClick={() => void exportar()}>
-            <Download size={14} aria-hidden /> Exportar dados
-          </button>
-          <button
-            className={styles.botaoPequeno}
-            onClick={() => arquivoRef.current?.click()}
-            disabled={importando}
-          >
-            <Upload size={14} aria-hidden /> {importando ? "Importando…" : "Importar dados"}
-          </button>
-          <input
-            ref={arquivoRef}
-            type="file"
-            accept=".json"
-            className={styles.arquivoOculto}
-            onChange={(e) => void aoEscolherArquivo(e)}
-          />
-        </div>
+        <SettingsRow titulo="Backup" navegavel onClick={() => setBackupAberto(true)} />
       </div>
 
       <ErrosRecentes uid={uid} />
@@ -808,6 +740,7 @@ export default function Definicoes() {
         uid={uid}
       />
       <FolhaSenha aberta={senhaAberta} aoFechar={() => setSenhaAberta(false)} />
+      <FolhaBackup uid={uid} aberta={backupAberto} aoFechar={() => setBackupAberto(false)} />
     </Pagina>
   );
 }
