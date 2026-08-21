@@ -428,3 +428,25 @@ export function responderPlano(pergunta: string, ctx: ContextoCopiloto): string 
   const porque = escaparHtml(passo.porque);
   return dados ? `${titulo}. ${porque} (${escaparHtml(dados)})` : `${titulo}. ${porque}`;
 }
+
+/** Pistas de que a pergunta quer os TRÊS CENÁRIOS de poupança do mês, não o
+ *  passo mais urgente — `gerarCenarios` (dentro de `gerarPlano`) já os
+ *  calcula e já era testado, mas até aqui não havia forma de chegar a eles
+ *  pelo chat: `responderPlano` só devolvia o primeiro passo. Verificado
+ *  DEPOIS de `responderPlano` para não roubar as perguntas que já eram dele
+ *  ("conselho", "sugestão"...), mas continua camada 1: zero rede, zero IA. */
+const GATILHOS_CENARIOS = /\bcenarios?\b|quanto (devo |posso )?(guardar|poupar|separar)/;
+
+/** Traduz os três cenários do plano em texto — mesma fronteira texto/números
+ *  de `responderPlano`: só formata o que `gerarPlano` já calculou. */
+export function responderCenarios(pergunta: string, ctx: ContextoCopiloto): string | null {
+  const q = normalizarPergunta(pergunta);
+  if (!GATILHOS_CENARIOS.test(q)) return null;
+
+  const plano = gerarPlano(buildFinanceSnapshot(ctx));
+  const moeda = ctx.cfg.currency;
+  const partes = plano.cenarios
+    .map((c) => `${c.titulo}: ${formatMoney(c.separar, moeda)}`)
+    .join(", ");
+  return `<b>Cenários para este mês</b>: ${escaparHtml(partes)}.`;
+}

@@ -10,7 +10,12 @@ import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Receita } from "
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "./copiloto";
 import { progressoFundo, responderPergunta } from "./copiloto";
-import { buildFinanceSnapshot, gerarPlano, responderPlano } from "./copilotoPlano";
+import {
+  buildFinanceSnapshot,
+  gerarPlano,
+  responderCenarios,
+  responderPlano,
+} from "./copilotoPlano";
 
 function ctx(extra: Partial<ContextoCopiloto> = {}): ContextoCopiloto {
   return {
@@ -403,5 +408,46 @@ describe("responderPlano", () => {
     expect(responderPlano("alguma sugestão?", ctx())).not.toBeNull();
     expect(responderPlano("tenho algum alerta?", ctx())).not.toBeNull();
     expect(responderPlano("qual o próximo passo?", ctx())).not.toBeNull();
+  });
+});
+
+describe("responderCenarios", () => {
+  test("sem gatilho de cenários na pergunta, não responde nada", () => {
+    expect(responderCenarios("quanto gastei em mercado?", ctx())).toBeNull();
+  });
+
+  test("não rouba os gatilhos que já eram do responderPlano", () => {
+    // "conselho"/"sugestão"/"o que devo fazer" continuam a ser respondidos
+    // pelo passo mais urgente, não pelos cenários — são perguntas diferentes.
+    expect(responderCenarios("me dá um conselho", ctx())).toBeNull();
+    expect(responderCenarios("o que eu devo fazer?", ctx())).toBeNull();
+  });
+
+  test("com 'quanto devo guardar', devolve os três cenários", () => {
+    const resp = responderCenarios(
+      "quanto devo guardar este mês?",
+      ctx({ cfg: cfgCom({ saldosIniciais: { Conta: 100000 } }) }),
+    );
+
+    expect(resp).toMatch(/Conservador/);
+    expect(resp).toMatch(/Equilibrado/);
+    expect(resp).toMatch(/Acelerar metas/);
+    expect(resp).toMatch(/<b>/);
+  });
+
+  test("reconhece variações: poupar, separar, cenários", () => {
+    expect(responderCenarios("quanto posso poupar?", ctx())).not.toBeNull();
+    expect(responderCenarios("quanto separar este mês?", ctx())).not.toBeNull();
+    expect(responderCenarios("quais os cenários?", ctx())).not.toBeNull();
+  });
+
+  test("os valores batem com os de gerarPlano para o mesmo contexto", () => {
+    const c = ctx({ cfg: cfgCom({ saldosIniciais: { Conta: 250000 } }) });
+    const plano = gerarPlano(buildFinanceSnapshot(c));
+    const resp = responderCenarios("cenários?", c)!;
+
+    for (const cenario of plano.cenarios) {
+      expect(resp).toContain(cenario.titulo);
+    }
   });
 });
