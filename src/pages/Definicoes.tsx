@@ -3,7 +3,6 @@ import {
   ChevronDown,
   Copy,
   Download,
-  KeyRound,
   LogOut,
   Moon,
   Palette,
@@ -24,13 +23,7 @@ import Seletor from "../components/Seletor";
 import SeletorCor from "../components/SeletorCor";
 import SeletorIcone from "../components/SeletorIcone";
 import { exportarBackup, importarBackup } from "../services/backupService";
-import {
-  alterarSenha,
-  apagarConta,
-  mensagemDeErroSenhaAtual,
-  sair,
-  SENHA_MINIMA,
-} from "../services/authService";
+import { apagarConta, mensagemDeErroSenhaAtual, sair } from "../services/authService";
 import { limparErros, observarErros, type ErroRegistado } from "../services/erroService";
 import {
   adicionarItemLista,
@@ -52,6 +45,8 @@ import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import styles from "./Definicoes.module.css";
 import Botao from "../components/Botao";
 import SettingsSwitchRow from "../components/settings/SettingsSwitchRow";
+import SettingsRow from "../components/settings/SettingsRow";
+import FolhaSenha from "./definicoes/FolhaSenha";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -530,68 +525,6 @@ function PersonalizarCopiloto({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
   );
 }
 
-/** Troca de senha. Pede a atual porque o Firebase exige login recente para
- *  operações sensíveis — e porque é ela que impede que uma sessão deixada
- *  aberta num telemóvel emprestado vire uma conta perdida. */
-function MudarSenha() {
-  const [atual, setAtual] = useState("");
-  const [nova, setNova] = useState("");
-  const [salvando, setSalvando] = useState(false);
-
-  async function submeter(e: FormEvent) {
-    e.preventDefault();
-    if (salvando) return;
-    setSalvando(true);
-    try {
-      await alterarSenha(atual, nova);
-      // Limpar antes do toast: a senha nova não fica à vista de quem estiver
-      // ao lado, e o formulário não convida a submeter outra vez.
-      setAtual("");
-      setNova("");
-      mostrarToast("✓ Senha alterada");
-    } catch (err) {
-      mostrarToast(mensagemDeErroSenhaAtual(err));
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  return (
-    <form className={styles.grupo} onSubmit={(e) => void submeter(e)}>
-      <p className={styles.grupoTitulo}>Senha</p>
-      <p className={styles.nota}>
-        Mínimo de {SENHA_MINIMA} caracteres. Pedimos a senha atual para confirmar que é mesmo você.
-      </p>
-      <div className={styles.linhaAdicionar}>
-        <input
-          className={styles.inputPequeno}
-          type="password"
-          value={atual}
-          onChange={(e) => setAtual(e.target.value)}
-          placeholder="Senha atual"
-          aria-label="Senha atual"
-          autoComplete="current-password"
-          required
-        />
-        <input
-          className={styles.inputPequeno}
-          type="password"
-          value={nova}
-          onChange={(e) => setNova(e.target.value)}
-          placeholder="Senha nova"
-          aria-label="Senha nova"
-          autoComplete="new-password"
-          minLength={SENHA_MINIMA}
-          required
-        />
-        <button type="submit" className={styles.botaoPequeno} disabled={salvando}>
-          <KeyRound size={14} aria-hidden /> {salvando ? "A alterar…" : "Alterar senha"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
 /** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
  *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
  *
@@ -658,6 +591,7 @@ export default function Definicoes() {
   const arquivoRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
   const [coresAbertas, setCoresAbertas] = useState(false);
+  const [senhaAberta, setSenhaAberta] = useState(false);
 
   const uid = sessao?.uid;
   const confirmar = useConfirmar();
@@ -854,7 +788,9 @@ export default function Definicoes() {
 
       <ErrosRecentes uid={uid} />
 
-      <MudarSenha />
+      <div className={styles.grupo}>
+        <SettingsRow titulo="Trocar senha" navegavel onClick={() => setSenhaAberta(true)} />
+      </div>
 
       <div className={styles.grupo}>
         <p className={styles.conta}>Sessão: {sessao?.email ?? "—"}</p>
@@ -871,6 +807,7 @@ export default function Definicoes() {
         cfg={cfg}
         uid={uid}
       />
+      <FolhaSenha aberta={senhaAberta} aoFechar={() => setSenhaAberta(false)} />
     </Pagina>
   );
 }

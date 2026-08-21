@@ -6,7 +6,7 @@
 // a única coisa entre um toque errado e dados perdidos.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
@@ -91,12 +91,16 @@ describe("Definicoes", () => {
 
   test("dá para trocar a senha sem sair da conta", () => {
     render(<Definicoes />);
+    // A troca de senha vive numa folha própria (redesign em índice+folhas) —
+    // abre pelo gatilho antes de os campos existirem no DOM.
+    fireEvent.click(screen.getByRole("button", { name: "Trocar senha" }));
     expect(screen.getByLabelText("Senha atual")).toBeInTheDocument();
     expect(screen.getByLabelText("Senha nova")).toBeInTheDocument();
   });
 
   test("a senha nova exige o mínimo da app, não o do Firebase", () => {
     render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: "Trocar senha" }));
     // 6 é o que o Firebase aceita; a app pede mais por guardar dados
     // financeiros. Se este mínimo cair, cai em silêncio — daí o teste.
     expect(screen.getByLabelText("Senha nova")).toHaveAttribute("minLength", "8");
