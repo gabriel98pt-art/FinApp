@@ -1,21 +1,19 @@
 import { useState, type FormEvent } from "react";
-import { LogOut, Moon, Palette, Sun, Trash2 } from "lucide-react";
+import { Moon, Sun, Trash2 } from "lucide-react";
 import Pagina from "../components/Pagina";
-import { KPIS_POR_PAGINA } from "../constants/kpis";
 import PainelCoresApp from "../components/PainelCoresApp";
 import Seletor from "../components/Seletor";
-import SeletorCor from "../components/SeletorCor";
 import { apagarConta, mensagemDeErroSenhaAtual, sair } from "../services/authService";
-import { atualizarConfig, definirCorCategoria } from "../services/cfgService";
+import { atualizarConfig } from "../services/cfgService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
-import type { ConfigConta, Currency } from "../types";
-import { corDaCategoriaVisual } from "../utils/categoriaVisual";
+import type { Currency } from "../types";
 import styles from "./Definicoes.module.css";
 import Botao from "../components/Botao";
+import SettingsSection from "../components/settings/SettingsSection";
 import SettingsSwitchRow from "../components/settings/SettingsSwitchRow";
 import SettingsRow from "../components/settings/SettingsRow";
 import FolhaSenha from "./definicoes/FolhaSenha";
@@ -23,6 +21,8 @@ import FolhaBackup from "./definicoes/FolhaBackup";
 import FolhaDiagnostico from "./definicoes/FolhaDiagnostico";
 import FolhaCopiloto from "./definicoes/FolhaCopiloto";
 import FolhaCategorias from "./definicoes/FolhaCategorias";
+import FolhaCorBotao from "./definicoes/FolhaCorBotao";
+import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -44,127 +44,15 @@ const DIAS_SEMANA_NOMES = [
 ];
 const OPCOES_INICIO_SEMANA = DIAS_SEMANA_NOMES.map((_, i) => String(i));
 
-/** Cor do botão flutuante em Despesas, Receitas e Veículo. Não é um campo
- *  novo em cfg: estes 3 nomes entram no mesmo `categoriaCor` das categorias,
- *  então o picker e o serviço são exatamente os que já existiam. */
-const PAGINAS_COLORIDAS = ["Despesa", "Receita", "Veículo"] as const;
-
-function CorBotaoFlutuante({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
-  const [corDe, setCorDe] = useState<string | null>(null);
-
-  async function escolher(cor: string | null) {
-    if (!corDe) return;
-    const alvo = corDe;
-    setCorDe(null);
-    try {
-      await definirCorCategoria(uid, alvo, cor);
-    } catch {
-      mostrarToast("Não foi possível salvar a cor.");
-    }
-  }
-
-  return (
-    <div className={styles.grupo}>
-      <p className={styles.grupoTitulo}>Cor do botão flutuante</p>
-      <p className={styles.nota}>
-        O botão de registro rápido veste esta cor quando você está na página. Nas outras fica no
-        azul do app.
-      </p>
-      <ul className={styles.listaCategorias}>
-        {PAGINAS_COLORIDAS.map((nome) => (
-          <li key={nome} className={styles.linhaCategoria}>
-            <span
-              className={styles.amostraCor}
-              style={{ background: corDaCategoriaVisual(cfg, nome) }}
-              aria-hidden
-            />
-            <span className={styles.nomeCategoria}>{nome}</span>
-            <button
-              className={styles.acaoCategoria}
-              onClick={() => setCorDe(nome)}
-              aria-label={`Cor do botão em ${nome}`}
-              title="Cor"
-            >
-              <Palette size={16} aria-hidden />
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <SeletorCor
-        aberta={corDe !== null}
-        aoFechar={() => setCorDe(null)}
-        titulo={corDe ? `Cor do botão em ${corDe}` : "Cor"}
-        valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
-        aoEscolher={(c) => void escolher(c)}
-      />
-    </div>
-  );
-}
-
-/** Escolha dos 2 KPIs que a página mostra no mobile (item 8). No desktop
- *  continuam todos visíveis; TVDE fica de fora, sempre com os 4. */
-function EscolhaKpis({ cfg, uid }: { cfg: ConfigConta; uid: string }) {
-  async function alternar(paginaId: string, rotulo: string, atuais: string[]) {
-    let novos: string[];
-    if (atuais.includes(rotulo)) {
-      // Não deixa ficar com menos de 2 — desmarcar o 3º é o que troca.
-      if (atuais.length <= 2) return mostrarToast("São sempre 2 KPIs — escolha outro para trocar.");
-      novos = atuais.filter((r) => r !== rotulo);
-    } else {
-      // Já tem 2: o mais antigo sai e o novo entra.
-      novos = [...atuais, rotulo].slice(-2);
-    }
-    try {
-      await atualizarConfig(uid, {
-        kpisMobile: { ...cfg.kpisMobile, [paginaId]: [novos[0], novos[1]] },
-      });
-    } catch {
-      mostrarToast("Não foi possível salvar.");
-    }
-  }
-
-  return (
-    <div className={styles.grupo}>
-      <p className={styles.grupoTitulo}>KPIs no mobile</p>
-      <p className={styles.nota}>
-        Cada página mostra 2 cartões no telemóvel — escolha quais. No computador continuam
-        aparecendo todos.
-      </p>
-      {KPIS_POR_PAGINA.map((pag) => {
-        const atuais = cfg.kpisMobile?.[pag.id] ?? pag.rotulos.slice(0, 2);
-        return (
-          <div key={pag.id} className={styles.grupoKpis}>
-            <p className={styles.nomePagina}>{pag.titulo}</p>
-            <div className={styles.chipsKpis}>
-              {pag.rotulos.map((r) => {
-                const ativo = atuais.includes(r);
-                return (
-                  <button
-                    key={r}
-                    className={`${styles.chipKpi} ${ativo ? styles.chipKpiAtivo : ""}`}
-                    aria-pressed={ativo}
-                    onClick={() => void alternar(pag.id, r, [...atuais])}
-                  >
-                    {/* O chip mostra o mesmo texto do cartão na página; `r` é
-                        a chave guardada, que às vezes já não é esse texto. */}
-                    {pag.textos?.[r] ?? r}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 /** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
  *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
  *
  *  Pede a senha e ainda assim confirma: é a única ação da app que destrói
- *  dados sem qualquer forma de recuperar, nem por backup. */
+ *  dados sem qualquer forma de recuperar, nem por backup.
+ *
+ *  Fica fora das folhas de propósito: ao contrário das outras configurações,
+ *  esta continua sempre visível na tela principal, nunca escondida atrás de
+ *  navegação — é a ação mais grave da app. */
 function ApagarConta() {
   const [senha, setSenha] = useState("");
   const [apagando, setApagando] = useState(false);
@@ -229,6 +117,8 @@ export default function Definicoes() {
   const [copilotoAberto, setCopilotoAberto] = useState(false);
   const [categoriasAberto, setCategoriasAberto] = useState(false);
   const [fontesAberto, setFontesAberto] = useState(false);
+  const [corBotaoAberto, setCorBotaoAberto] = useState(false);
+  const [kpisAberto, setKpisAberto] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -275,11 +165,7 @@ export default function Definicoes() {
 
   return (
     <Pagina titulo="Definições">
-      <div className={styles.grupo}>
-        <button className={styles.linha} onClick={alternarTema}>
-          {theme === "dark" ? <Sun size={18} aria-hidden /> : <Moon size={18} aria-hidden />}
-          Tema: {theme === "dark" ? "escuro" : "claro"} (tocar para alternar)
-        </button>
+      <SettingsSection titulo="Geral">
         <SettingsSwitchRow
           titulo="Módulo TVDE"
           checked={cfg.showTvde}
@@ -290,13 +176,34 @@ export default function Definicoes() {
           checked={cfg.modoDiscreto}
           onChange={() => void alternarModoDiscreto()}
         />
-        <button className={styles.linha} onClick={() => setCoresAbertas(true)}>
-          <Palette size={18} aria-hidden />
-          Editar cores (destaque, positivo, negativo, alerta, roxo)
-        </button>
-      </div>
+      </SettingsSection>
 
-      <div className={styles.grupo}>
+      <SettingsSection titulo="Aparência">
+        <button className={styles.linha} onClick={alternarTema}>
+          {theme === "dark" ? <Sun size={18} aria-hidden /> : <Moon size={18} aria-hidden />}
+          Tema: {theme === "dark" ? "escuro" : "claro"} (tocar para alternar)
+        </button>
+        <SettingsRow titulo="Cores do aplicativo" navegavel onClick={() => setCoresAbertas(true)} />
+        <SettingsRow
+          titulo="Cor do botão flutuante"
+          navegavel
+          onClick={() => setCorBotaoAberto(true)}
+        />
+      </SettingsSection>
+
+      <SettingsSection titulo="Registo">
+        <SettingsRow
+          titulo="Categorias de despesa"
+          valor={`${cfg.categoriasDespesa.length} ativas`}
+          navegavel
+          onClick={() => setCategoriasAberto(true)}
+        />
+        <SettingsRow
+          titulo="Fontes de receita"
+          valor={`${cfg.fontesReceita.length} ativas`}
+          navegavel
+          onClick={() => setFontesAberto(true)}
+        />
         <div className={styles.linhaSelect}>
           <span>Moeda da conta</span>
           <Seletor
@@ -309,12 +216,6 @@ export default function Definicoes() {
             aoMudar={(v) => void mudarMoeda(v)}
           />
         </div>
-        <p className={styles.nota}>
-          Só o símbolo muda — a formatação de milhar/decimal é a mesma para todas.
-        </p>
-      </div>
-
-      <div className={styles.grupo}>
         <div className={styles.linhaSelect}>
           <span>Início da semana</span>
           <Seletor
@@ -327,61 +228,31 @@ export default function Definicoes() {
             aoMudar={(v) => void mudarInicioSemana(v)}
           />
         </div>
-        <p className={styles.nota}>
-          Vale para o Calendário, o seletor de data e a visão "Semana" de Despesas e Veículo — todos
-          seguem o mesmo dia.
-        </p>
-      </div>
+      </SettingsSection>
 
-      <div className={styles.grupo}>
-        <SettingsRow
-          titulo="Categorias de despesa"
-          valor={`${cfg.categoriasDespesa.length} ativas`}
-          navegavel
-          onClick={() => setCategoriasAberto(true)}
-        />
-      </div>
-      <div className={styles.grupo}>
-        <SettingsRow
-          titulo="Fontes de receita"
-          valor={`${cfg.fontesReceita.length} ativas`}
-          navegavel
-          onClick={() => setFontesAberto(true)}
-        />
-      </div>
-
-      <CorBotaoFlutuante cfg={cfg} uid={uid} />
-
-      <EscolhaKpis cfg={cfg} uid={uid} />
-
-      <div className={styles.grupo}>
+      <SettingsSection titulo="Personalização">
+        <SettingsRow titulo="KPIs no telemóvel" navegavel onClick={() => setKpisAberto(true)} />
         <SettingsRow
           titulo="Copiloto"
           valor={cfg.copiloto !== undefined ? "Configurado" : undefined}
           navegavel
           onClick={() => setCopilotoAberto(true)}
         />
-      </div>
+      </SettingsSection>
 
-      <div className={styles.grupo}>
+      <SettingsSection titulo="Dados">
         <SettingsRow titulo="Backup" navegavel onClick={() => setBackupAberto(true)} />
-      </div>
+        <FolhaDiagnostico uid={uid} />
+      </SettingsSection>
 
-      <FolhaDiagnostico uid={uid} />
-
-      <div className={styles.grupo}>
-        <SettingsRow titulo="Trocar senha" navegavel onClick={() => setSenhaAberta(true)} />
-      </div>
-
-      <div className={styles.grupo}>
+      <SettingsSection titulo="Conta">
         <p className={styles.conta}>Sessão: {sessao?.email ?? "—"}</p>
-        <button className={`${styles.linha} ${styles.sair}`} onClick={() => void sair()}>
-          <LogOut size={18} aria-hidden />
-          Sair da conta
-        </button>
-      </div>
+        <SettingsRow titulo="Trocar senha" navegavel onClick={() => setSenhaAberta(true)} />
+        <SettingsRow titulo="Sair da conta" tone="perigo" onClick={() => void sair()} />
+      </SettingsSection>
 
       <ApagarConta />
+
       <PainelCoresApp
         aberta={coresAbertas}
         aoFechar={() => setCoresAbertas(false)}
@@ -413,6 +284,18 @@ export default function Definicoes() {
         uid={uid}
         aberta={fontesAberto}
         aoFechar={() => setFontesAberto(false)}
+      />
+      <FolhaCorBotao
+        cfg={cfg}
+        uid={uid}
+        aberta={corBotaoAberto}
+        aoFechar={() => setCorBotaoAberto(false)}
+      />
+      <FolhaKpisMobile
+        cfg={cfg}
+        uid={uid}
+        aberta={kpisAberto}
+        aoFechar={() => setKpisAberto(false)}
       />
     </Pagina>
   );

@@ -61,14 +61,12 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
 
   return (
     <>
-      <div className={styles.grupo}>
-        <SettingsRow
-          titulo="Diagnóstico"
-          valor={`${erros.length} ${erros.length === 1 ? "erro" : "erros"}`}
-          navegavel
-          onClick={() => setAberta(true)}
-        />
-      </div>
+      <SettingsRow
+        titulo="Diagnóstico"
+        valor={`${erros.length} ${erros.length === 1 ? "erro" : "erros"}`}
+        navegavel
+        onClick={() => setAberta(true)}
+      />
       <BottomSheet aberta={aberta} aoFechar={() => setAberta(false)} titulo="Diagnóstico">
         <p className={styles.nota}>
           Se algo correu mal, copie o erro e envie — evita ter de o descrever de memória.
