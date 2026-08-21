@@ -1,0 +1,29 @@
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Overline discreto — de propósito menor que o título de uma linha lá dentro
+   (fs-label vs. o corpo normal), para a hierarquia pedida no redesign: título
+   de secção nunca compete com o nome da configuração. */
+.titulo {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mut);
+  padding: 0 4px;
+}
+
+.cartao {
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card-hi);
+  overflow: hidden;
+}
+
+.cartao > *:not(:last-child) {
+  border-bottom: 1px solid var(--brd);
+}

@@ -1,0 +1,57 @@
+.linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  min-height: 24px;
+  text-align: left;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--txt);
+}
+
+button.linha:hover {
+  background: var(--s2);
+}
+
+.titulo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.direita {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.valor {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--mut);
+  white-space: nowrap;
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  color: var(--mut);
+  opacity: 0.85;
+  flex: none;
+}
+
+/* Ação destrutiva/de saída: mesmo tratamento de texto vermelho do `.perigo`
+   de Botao.module.css, sem fundo — assinala sem interromper. */
+.perigo {
+  color: var(--red);
+}
+
+.perigo:hover {
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}

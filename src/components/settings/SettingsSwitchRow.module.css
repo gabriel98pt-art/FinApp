@@ -1,0 +1,61 @@
+.linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  min-height: 24px;
+}
+
+.titulo {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--txt);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Trilho + polegar — não existe switch nativo com este desenho, então o
+   controlo inteiro é um <button>; o estado é a posição do polegar (flex
+   justify-content) mais a cor do trilho, nunca só a cor (regra de
+   acessibilidade do redesign, seção 13). */
+.switch {
+  flex: none;
+  width: 46px;
+  height: 26px;
+  padding: 2px;
+  box-sizing: border-box;
+  border-radius: var(--r-pill);
+  background: var(--s3);
+  border: 1px solid var(--brd);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  transition:
+    background var(--dur-fast) var(--ease-exit),
+    border-color var(--dur-fast) var(--ease-exit);
+}
+
+.switch.ligado {
+  background: var(--blu);
+  border-color: var(--blu);
+  justify-content: flex-end;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+}
+
+.polegar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--mut);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.ligado .polegar {
+  background: #fff;
+}
