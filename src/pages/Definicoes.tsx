@@ -23,6 +23,7 @@ import FolhaCopiloto from "./definicoes/FolhaCopiloto";
 import FolhaCategorias from "./definicoes/FolhaCategorias";
 import FolhaCorBotao from "./definicoes/FolhaCorBotao";
 import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
+import FolhaNotificacoes from "./definicoes/FolhaNotificacoes";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -125,6 +126,7 @@ export default function Definicoes() {
   const [fontesAberto, setFontesAberto] = useState(false);
   const [corBotaoAberto, setCorBotaoAberto] = useState(false);
   const [kpisAberto, setKpisAberto] = useState(false);
+  const [notificacoesAberto, setNotificacoesAberto] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -254,6 +256,10 @@ export default function Definicoes() {
         />
       </SettingsSection>
 
+      <SettingsSection titulo="Notificações">
+        <SettingsRow titulo="Notificações" navegavel onClick={() => setNotificacoesAberto(true)} />
+      </SettingsSection>
+
       <SettingsSection titulo="Dados">
         <SettingsRow titulo="Backup" navegavel onClick={() => setBackupAberto(true)} />
         <FolhaDiagnostico uid={uid} />
@@ -310,6 +316,12 @@ export default function Definicoes() {
         uid={uid}
         aberta={kpisAberto}
         aoFechar={() => setKpisAberto(false)}
+      />
+      <FolhaNotificacoes
+        cfg={cfg}
+        uid={uid}
+        aberta={notificacoesAberto}
+        aoFechar={() => setNotificacoesAberto(false)}
       />
     </Pagina>
   );

@@ -7,6 +7,18 @@
   min-height: 24px;
 }
 
+.tituloComIcone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.icone {
+  flex: none;
+  color: var(--mut);
+}
+
 .titulo {
   font-size: var(--fs-body);
   font-weight: 600;

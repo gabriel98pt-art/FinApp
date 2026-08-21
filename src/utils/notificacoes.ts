@@ -19,6 +19,7 @@ import type {
   DespesaFixa,
   IsoDate,
   Parcela,
+  TipoNotificacao,
   YearMonth,
 } from "../types";
 import { diasEntre } from "./calculos";
@@ -27,7 +28,13 @@ import { diaVencimentoEfetivo, proximoMesEmAberto, valorDaParcela } from "./parc
 import { statusOrcamentoMes } from "./orcamento";
 import { diaDoMes } from "./vencimentos";
 
-export type TipoNotificacao = "parcela" | "fixa" | "fatura" | "orcamento";
+// Reexportado por conveniência — quem já importava TipoNotificacao daqui
+// (NotificacoesSino.tsx) continua a funcionar sem mudar o import.
+export type { TipoNotificacao };
+
+/** Ordem estável usada quando `cfg.notificacoesAtivas` está ausente — conta
+ *  nova nasce com os 4 tipos ativos, sem precisar marcar nada. */
+export const TIPOS_NOTIFICACAO: TipoNotificacao[] = ["parcela", "fixa", "fatura", "orcamento"];
 
 export interface Notificacao {
   id: string;
@@ -197,5 +204,6 @@ export function todasNotificacoes(
     mes,
     hoje,
   ).sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0));
-  return [...vencidas, ...estouradas];
+  const ativos = cfg.notificacoesAtivas ?? TIPOS_NOTIFICACAO;
+  return [...vencidas, ...estouradas].filter((n) => ativos.includes(n.tipo));
 }

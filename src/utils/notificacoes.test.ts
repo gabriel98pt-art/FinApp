@@ -221,6 +221,48 @@ describe("todasNotificacoes", () => {
     expect(n.map((x) => x.tipo)).toEqual(["fixa", "orcamento"]);
     expect(n[1]).toMatchObject({ refId: "Mercado", valor: 5000, pct: 150 });
   });
+
+  test("sem preferência salva (cfg.notificacoesAtivas ausente), todos os tipos aparecem", () => {
+    // Conta nova nasce assim — não pode virar silêncio total por engano.
+    const n = todasNotificacoes(
+      HOJE,
+      MES,
+      semDados,
+      cfg,
+      [parcela({ diaVencimento: 15, pagoPorMes: { "2026-06": true, "2026-07": true } })],
+      [fixa({ diaVencimento: 2 })],
+    );
+    expect(n.map((x) => x.tipo).sort()).toEqual(["fixa", "parcela"]);
+  });
+
+  test("desativar um tipo tira só ele da lista, sem mexer nos outros", () => {
+    const cfgSemFixa: ConfigConta = {
+      ...cfg,
+      notificacoesAtivas: ["parcela", "fatura", "orcamento"],
+    };
+    const n = todasNotificacoes(
+      HOJE,
+      MES,
+      semDados,
+      cfgSemFixa,
+      [parcela({ diaVencimento: 15, pagoPorMes: { "2026-06": true, "2026-07": true } })],
+      [fixa({ diaVencimento: 2 })],
+    );
+    expect(n.map((x) => x.tipo)).toEqual(["parcela"]);
+  });
+
+  test("todos os tipos desativados dá lista vazia, mesmo com pendências reais", () => {
+    const cfgSemNada: ConfigConta = { ...cfg, notificacoesAtivas: [] };
+    const n = todasNotificacoes(
+      HOJE,
+      MES,
+      semDados,
+      cfgSemNada,
+      [parcela({ diaVencimento: 15, pagoPorMes: { "2026-06": true, "2026-07": true } })],
+      [fixa({ diaVencimento: 2 })],
+    );
+    expect(n).toEqual([]);
+  });
 });
 
 describe("notificacoesDeOrcamento", () => {

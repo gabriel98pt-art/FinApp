@@ -21,6 +21,10 @@ export interface PreferenciasCopiloto {
   tom: TomCopiloto;
 }
 
+/** Os 4 tipos de notificação que o sino do topo reconhece (ver
+ *  `utils/notificacoes.ts`, que reexporta este tipo). */
+export type TipoNotificacao = "parcela" | "fixa" | "fatura" | "orcamento";
+
 /** Configuração por conta (antigo `S.cfg`). */
 export interface ConfigConta {
   theme: Theme;
@@ -109,4 +113,8 @@ export interface ConfigConta {
    *  já são diferentes entre claro e escuro, então um valor só não serviria
    *  aos dois. Sem entrada, vale o valor de `tokens.css`. */
   coresApp?: CoresApp;
+
+  /** Quais tipos de notificação aparecem no sino do topo. Ausente = todos
+   *  ativos — o estado com que toda conta nasce, sem precisar marcar nada. */
+  notificacoesAtivas?: TipoNotificacao[];
 }
