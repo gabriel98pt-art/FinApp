@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Moon, Sun, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Pagina from "../components/Pagina";
 import PainelCoresApp from "../components/PainelCoresApp";
 import Seletor from "../components/Seletor";
@@ -10,7 +10,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
-import type { Currency } from "../types";
+import type { Currency, Theme } from "../types";
 import styles from "./Definicoes.module.css";
 import Botao from "../components/Botao";
 import SettingsSection from "../components/settings/SettingsSection";
@@ -43,6 +43,12 @@ const DIAS_SEMANA_NOMES = [
   "Sábado",
 ];
 const OPCOES_INICIO_SEMANA = DIAS_SEMANA_NOMES.map((_, i) => String(i));
+
+const OPCOES_TEMA: { valor: Theme; rotulo: string }[] = [
+  { valor: "system", rotulo: "Sistema" },
+  { valor: "dark", rotulo: "Escuro" },
+  { valor: "light", rotulo: "Claro" },
+];
 
 /** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
  *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
@@ -109,7 +115,7 @@ function ApagarConta() {
 export default function Definicoes() {
   const sessao = useAuthStore((s) => s.sessao);
   const theme = useThemeStore((s) => s.theme);
-  const alternarTema = useThemeStore((s) => s.alternarTema);
+  const definirTema = useThemeStore((s) => s.definirTema);
   const cfg = useCfgStore((s) => s.cfg);
   const [coresAbertas, setCoresAbertas] = useState(false);
   const [senhaAberta, setSenhaAberta] = useState(false);
@@ -179,10 +185,18 @@ export default function Definicoes() {
       </SettingsSection>
 
       <SettingsSection titulo="Aparência">
-        <button className={styles.linha} onClick={alternarTema}>
-          {theme === "dark" ? <Sun size={18} aria-hidden /> : <Moon size={18} aria-hidden />}
-          Tema: {theme === "dark" ? "escuro" : "claro"} (tocar para alternar)
-        </button>
+        <div className={styles.linhaSelect}>
+          <span>Tema</span>
+          <Seletor
+            variante="inline"
+            rotulo="Tema"
+            nivel={0}
+            valor={theme}
+            opcoes={OPCOES_TEMA.map((t) => t.valor)}
+            rotuloOpcao={(v) => OPCOES_TEMA.find((t) => t.valor === v)?.rotulo ?? v}
+            aoMudar={(v) => definirTema(v as Theme)}
+          />
+        </div>
         <SettingsRow titulo="Cores do aplicativo" navegavel onClick={() => setCoresAbertas(true)} />
         <SettingsRow
           titulo="Cor do botão flutuante"

@@ -5,6 +5,7 @@ import SeletorMes from "../components/SeletorMes";
 import { useHistoricoStore } from "../stores/historicoStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useThemeStore } from "../stores/themeStore";
+import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
 import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./Header.module.css";
 
@@ -34,8 +35,8 @@ export default function Header() {
   const mes = useMesVisivelStore((s) => s.mes);
   const setMes = useMesVisivelStore((s) => s.setMes);
   const mostrarMes = ROTAS_COM_MES.includes(pathname);
-  const theme = useThemeStore((s) => s.theme);
-  const alternarTema = useThemeStore((s) => s.alternarTema);
+  const temaEfetivo = useTemaEfetivo();
+  const definirTema = useThemeStore((s) => s.definirTema);
   const podeUndo = useHistoricoStore((s) => podeDesfazer(s.pilha));
   const podeRedo = useHistoricoStore((s) => podeRefazer(s.pilha));
   const desfazer = useHistoricoStore((s) => s.desfazer);
@@ -72,10 +73,11 @@ export default function Header() {
         </button>
         <button
           className={styles.acao}
-          onClick={alternarTema}
-          aria-label={theme === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          onClick={() => definirTema(temaEfetivo === "dark" ? "light" : "dark")}
+          aria-label={temaEfetivo === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
+          title="Este atalho fixa o tema, mesmo se estiver em Sistema — ajustável em Definições"
         >
-          {theme === "dark" ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
+          {temaEfetivo === "dark" ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
         </button>
         <NotificacoesSino />
       </div>

@@ -14,4 +14,7 @@ export type YearMonth = string;
 
 export type Currency = "EUR" | "BRL" | "USD" | "GBP";
 
-export type Theme = "dark" | "light";
+/** "system" segue o SO; as outras duas são escolha explícita. Nunca é o que
+ *  se aplica de fato — isso é sempre "dark"|"light", resolvido por
+ *  `useTemaEfetivo`. */
+export type Theme = "system" | "dark" | "light";

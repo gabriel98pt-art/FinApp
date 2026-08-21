@@ -5,7 +5,7 @@ import SeletorCor from "./SeletorCor";
 import { ROTULO_TOKEN, TOKENS_COR_APP } from "../hooks/useAplicarCoresPersonalizadas";
 import { definirCorApp } from "../services/cfgService";
 import { mostrarToast } from "../stores/toastStore";
-import { useThemeStore } from "../stores/themeStore";
+import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
 import type { ConfigConta, TokenCorApp } from "../types";
 import styles from "./PainelCoresApp.module.css";
 
@@ -26,7 +26,7 @@ export default function PainelCoresApp({
   cfg: ConfigConta;
   uid: string;
 }) {
-  const tema = useThemeStore((s) => s.theme);
+  const tema = useTemaEfetivo();
   const [editando, setEditando] = useState<TokenCorApp | null>(null);
   const escolhidas = cfg.coresApp?.[tema] ?? {};
 

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useCfgStore } from "../stores/cfgStore";
-import { useThemeStore } from "../stores/themeStore";
+import { useTemaEfetivo } from "./useTemaEfetivo";
 import { hexParaRgb } from "../utils/categoriaVisual";
 import type { TokenCorApp } from "../types";
 
@@ -24,7 +24,7 @@ export const ROTULO_TOKEN: Record<TokenCorApp, string> = {
  *  exemplo) leem esse, e sem atualizá-lo ficariam com a cor antiga. */
 export function useAplicarCoresPersonalizadas() {
   const coresApp = useCfgStore((s) => s.cfg.coresApp);
-  const tema = useThemeStore((s) => s.theme);
+  const tema = useTemaEfetivo();
 
   useEffect(() => {
     const estilo = document.documentElement.style;
