@@ -5,7 +5,7 @@
 // decisão — e os filtros foram o quarto sítio a receber o padrão de abas.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { LinhaAnalisada, LinhaExtrato } from "../types";
 import { analisarLinha } from "../utils/importacao";
@@ -13,6 +13,12 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, veiculoVazio } from "../testes/dobras";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+
+const extrairExtratoPdf = vi.hoisted(() => vi.fn());
+vi.mock("../utils/extrairExtratoPdf", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  extrairExtratoPdf,
+}));
 vi.mock("../services/importacaoService", () => ({
   apagarExistentes: vi.fn(async () => {}),
   construirExistentes: () => [],
@@ -22,7 +28,7 @@ vi.mock("../services/importacaoService", () => ({
   pagamentoDaLinha: vi.fn(),
 }));
 
-let linhas: LinhaAnalisada[] = [];
+let linhas: LinhaAnalisada[] | null = [];
 const setLinhas = vi.fn();
 const setTexto = vi.fn();
 
@@ -76,6 +82,7 @@ const linha = (extra: Partial<LinhaExtrato> = {}): LinhaAnalisada =>
 beforeEach(() => {
   linhas = [];
   setLinhas.mockClear();
+  extrairExtratoPdf.mockReset();
 });
 
 describe("Importar", () => {
@@ -127,5 +134,29 @@ describe("Importar", () => {
 
     await userEvent.click(screen.getByRole("tab", { name: /Prováveis duplicatas/ }));
     expect(screen.queryByDisplayValue("MERCADO CONTINENTE")).not.toBeInTheDocument();
+  });
+
+  test("aria-busy fica true enquanto lê o PDF — achado da auditoria de Acessibilidade: o toast some sozinho antes de PDFs grandes terminarem", async () => {
+    linhas = null;
+    let resolver: (v: unknown[]) => void = () => {};
+    extrairExtratoPdf.mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolver = r;
+        }),
+    );
+
+    const { container } = render(<Importar />);
+    const entrada = screen.getByText("Colar ou carregar extrato").parentElement!;
+    expect(entrada).toHaveAttribute("aria-busy", "false");
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const arquivo = new File(["conteudo"], "extrato.pdf", { type: "application/pdf" });
+    await userEvent.upload(input, arquivo);
+
+    await waitFor(() => expect(entrada).toHaveAttribute("aria-busy", "true"));
+
+    resolver([]);
+    await waitFor(() => expect(entrada).toHaveAttribute("aria-busy", "false"));
   });
 });

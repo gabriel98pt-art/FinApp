@@ -428,6 +428,11 @@ export default function Importar() {
           onDragLeave={aoSairDoArrasto}
           onDrop={aoSoltar}
           onPaste={aoColar}
+          // Achado da auditoria de Acessibilidade: o toast "Lendo o PDF…"
+          // some sozinho em 2,4s (toastStore), bem antes de um PDF grande
+          // terminar — sem aria-busy, quem usa leitor de tela perde o sinal
+          // de "ainda a processar" no meio do caminho.
+          aria-busy={lendoPdf}
         >
           <p id="importar-entrada-titulo" className={styles.entradaTitulo}>
             Colar ou carregar extrato
