@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { Fundo } from "../types";
 
 /** Persistido localmente (seção 6.1) — ver nota em cfgStore.ts. */
@@ -23,6 +24,6 @@ export const useFundosStore = create<FundosState>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-fundos", partialize: semErro },
+    { name: "finapp-fundos", partialize: semErro, storage: persistenciaAdiada },
   ),
 );

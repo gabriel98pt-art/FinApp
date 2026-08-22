@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { DadosVeiculo } from "../types";
 import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 
@@ -25,6 +26,6 @@ export const useVeiculoStore = create<VeiculoState>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-veiculo", partialize: semErro },
+    { name: "finapp-veiculo", partialize: semErro, storage: persistenciaAdiada },
   ),
 );

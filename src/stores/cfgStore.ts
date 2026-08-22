@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ConfigConta } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 
 /** Espelho da config da conta — alimentado só pelo syncService. Persistido
  *  localmente (seção 6.1): RTDB sincroniza por WebSocket, que o service
@@ -29,6 +30,6 @@ export const useCfgStore = create<CfgState>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-cfg", partialize: semErro },
+    { name: "finapp-cfg", partialize: semErro, storage: persistenciaAdiada },
   ),
 );

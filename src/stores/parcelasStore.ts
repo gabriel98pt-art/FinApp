@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { Parcela } from "../types";
 
 /** Espelho do RTDB — alimentado só pelo syncService. Persistido localmente
@@ -24,6 +25,6 @@ export const useParcelasStore = create<ParcelasState>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-parcelas", partialize: semErro },
+    { name: "finapp-parcelas", partialize: semErro, storage: persistenciaAdiada },
   ),
 );

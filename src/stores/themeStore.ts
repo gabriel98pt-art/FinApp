@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { Theme } from "../types";
 
 interface ThemeState {
@@ -17,6 +18,6 @@ export const useThemeStore = create<ThemeState>()(
       theme: "dark",
       definirTema: (theme) => set({ theme }),
     }),
-    { name: "finapp-tema" },
+    { name: "finapp-tema", storage: persistenciaAdiada },
   ),
 );

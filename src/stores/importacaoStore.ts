@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { LinhaAnalisada } from "../types";
 
 type AtualizadorLinhas =
@@ -37,6 +38,6 @@ export const useImportacaoStore = create<ImportacaoState>()(
         })),
       resetar: () => set({ texto: "", linhas: null }),
     }),
-    { name: "finapp-importacao-rascunho", version: 1 },
+    { name: "finapp-importacao-rascunho", version: 1, storage: persistenciaAdiada },
   ),
 );

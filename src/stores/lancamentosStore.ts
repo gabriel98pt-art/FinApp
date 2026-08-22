@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../types";
 
 /** Estado espelho do RTDB — alimentado só pelo syncService, nunca por
@@ -26,7 +27,7 @@ export const useReceitasStore = create<ListaState<Receita>>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-receitas", partialize: semErro },
+    { name: "finapp-receitas", partialize: semErro, storage: persistenciaAdiada },
   ),
 );
 
@@ -37,7 +38,7 @@ export const useDespesasStore = create<ListaState<DespesaCorrente>>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-despesas", partialize: semErro },
+    { name: "finapp-despesas", partialize: semErro, storage: persistenciaAdiada },
   ),
 );
 
@@ -48,7 +49,7 @@ export const useDespesasFixasStore = create<ListaState<DespesaFixa>>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-despesasFixas", partialize: semErro },
+    { name: "finapp-despesasFixas", partialize: semErro, storage: persistenciaAdiada },
   ),
 );
 
@@ -59,6 +60,6 @@ export const useTransferenciasStore = create<ListaState<Transferencia>>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-transferencias", partialize: semErro },
+    { name: "finapp-transferencias", partialize: semErro, storage: persistenciaAdiada },
   ),
 );

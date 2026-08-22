@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { persistenciaAdiada } from "./persistenciaAdiada";
 import type { DadosTvde } from "../types";
 import { TVDE_VAZIO } from "../constants/tvdePadrao";
 
@@ -25,6 +26,6 @@ export const useTvdeStore = create<TvdeState>()(
       carregado: false,
       erro: false,
     }),
-    { name: "finapp-tvde", partialize: semErro },
+    { name: "finapp-tvde", partialize: semErro, storage: persistenciaAdiada },
   ),
 );
