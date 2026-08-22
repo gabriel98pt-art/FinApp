@@ -262,4 +262,43 @@ describe("mensagemDeErroAuth", () => {
   test("o que nem é erro do Firebase continua a ter mensagem", () => {
     expect(s.mensagemDeErroAuth("string solta")).toBeTruthy();
   });
+
+  // Os 5 casos abaixo não tinham teste nenhum — um switch quebrado (case
+  // caído por engano, string trocada) passaria em branco até alguém ver o
+  // texto errado na tela.
+  test.each([
+    ["auth/invalid-credential", /e-mail ou senha/i],
+    ["auth/wrong-password", /e-mail ou senha/i],
+    ["auth/user-not-found", /e-mail ou senha/i],
+    ["auth/invalid-email", /e-mail inválido/i],
+    ["auth/too-many-requests", /muitas tentativas/i],
+    ["auth/requires-recent-login", /saia e entre de novo/i],
+  ] as const)("%s → %s", (codigo, esperado) => {
+    expect(s.mensagemDeErroAuth(new FirebaseError(codigo, ""))).toMatch(esperado);
+  });
+
+  test("auth/weak-password cita o mínimo de caracteres exigido", () => {
+    const msg = s.mensagemDeErroAuth(new FirebaseError("auth/weak-password", ""));
+    expect(msg).toContain(String(s.SENHA_MINIMA));
+  });
+});
+
+describe("wrappers do Firebase Auth: a ordem dos argumentos importa", () => {
+  test("entrar passa (auth, email, senha) — trocar a ordem tranca todo mundo fora", async () => {
+    const chamado = vi.mocked((await import("firebase/auth")).signInWithEmailAndPassword);
+    await s.entrar("eu@exemplo.pt", "minhasenha");
+    expect(chamado).toHaveBeenCalledWith(auth, "eu@exemplo.pt", "minhasenha");
+  });
+
+  test("cadastrar passa (auth, email, senha)", async () => {
+    const chamado = vi.mocked((await import("firebase/auth")).createUserWithEmailAndPassword);
+    await s.cadastrar("nova@exemplo.pt", "outrasenha");
+    expect(chamado).toHaveBeenCalledWith(auth, "nova@exemplo.pt", "outrasenha");
+  });
+
+  test("sair encerra a sessão do Firebase", async () => {
+    const chamado = vi.mocked((await import("firebase/auth")).signOut);
+    await s.sair();
+    expect(chamado).toHaveBeenCalledWith(auth);
+  });
 });

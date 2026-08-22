@@ -27,16 +27,29 @@ vi.mock("firebase/database", () => ({
 }));
 
 const { iniciarSyncConta } = await import("./syncService");
-const { useReceitasStore, useDespesasFixasStore } = await import("../stores/lancamentosStore");
+const { useReceitasStore, useDespesasFixasStore, useTransferenciasStore } =
+  await import("../stores/lancamentosStore");
+const { useParcelasStore } = await import("../stores/parcelasStore");
 const { useCfgStore } = await import("../stores/cfgStore");
+const { useTvdeStore } = await import("../stores/tvdeStore");
 const { useVeiculoStore } = await import("../stores/veiculoStore");
+const { useEventosStore } = await import("../stores/eventosStore");
+const { useFundosStore } = await import("../stores/fundosStore");
 
 const UID = "u1";
 const P = {
   receitas: `users/${UID}/fin_v5/receitas`,
   despesasFixas: `users/${UID}/fin_v5/despesasFixas`,
+  transferencias: `users/${UID}/fin_v5/transferencias`,
+  parcelas: `users/${UID}/fin_v5/parcelas`,
   cfg: `users/${UID}/fin_v5/cfg`,
+  tvde: `users/${UID}/fin_v5/tvde`,
+  eventos: `users/${UID}/fin_v5/eventos`,
+  fundos: `users/${UID}/fin_v5/fundos`,
   cargas: `users/${UID}/fin_v5/veiculo/cargas`,
+  vDespesas: `users/${UID}/fin_v5/veiculo/despesas`,
+  vDespesasFixas: `users/${UID}/fin_v5/veiculo/despesasFixas`,
+  vQuilometragem: `users/${UID}/fin_v5/veiculo/quilometragem`,
 };
 
 /** Dispara o callback de sucesso daquele caminho com um valor cru do RTDB. */
@@ -123,6 +136,71 @@ describe("erro para de esperar sem se disfarçar de 'sem dados'", () => {
 test("o sucesso repõe pagoPorMes que o RTDB omite quando está vazio", () => {
   emitir(P.despesasFixas, { f1: { descricao: "Aluguel", valor: 45000, categoria: "Casa" } });
   expect(useDespesasFixasStore.getState().itens[0].pagoPorMes).toEqual({});
+});
+
+test("parcelas também repõe pagoPorMes que o RTDB omite quando está vazio", () => {
+  emitir(P.parcelas, {
+    p1: { descricao: "Sofá", total: 300000, numParcelas: 6, primeiroMes: "2026-07" },
+  });
+  expect(useParcelasStore.getState().itens[0].pagoPorMes).toEqual({});
+});
+
+describe("sucesso liga cada domínio à store certa (achado: um nome de campo trocado passaria em branco)", () => {
+  test("cfg", () => {
+    emitir(P.cfg, { currency: "USD" });
+    const s = useCfgStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+    expect(s.cfg.currency).toBe("USD");
+  });
+
+  test("tvde", () => {
+    emitir(P.tvde, null);
+    const s = useTvdeStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+  });
+
+  test("eventos", () => {
+    emitir(P.eventos, { e1: { titulo: "Consulta", data: "2026-07-10" } });
+    const s = useEventosStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+    expect(s.itens).toHaveLength(1);
+  });
+
+  test("fundos", () => {
+    emitir(P.fundos, { f1: { nome: "Viagem", alvo: 500000, atual: 100000 } });
+    const s = useFundosStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+    expect(s.itens).toHaveLength(1);
+  });
+
+  test("transferências", () => {
+    emitir(P.transferencias, {
+      t1: { data: "2026-07-05", de: "Conta A", para: "Conta B", valor: 10000 },
+    });
+    const s = useTransferenciasStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+    expect(s.itens).toHaveLength(1);
+  });
+
+  test("veículo: só actualiza a store depois de as 4 sub-coleções responderem", () => {
+    // Parte de erro:true (teste anterior derrubou P.cargas) — sem as 4
+    // respostas, notificar() ainda não chama o cb que limparia o erro.
+    expect(useVeiculoStore.getState().erro).toBe(true);
+    emitir(P.cargas, null);
+    emitir(P.vDespesas, null);
+    expect(useVeiculoStore.getState().erro).toBe(true);
+
+    emitir(P.vDespesasFixas, null);
+    emitir(P.vQuilometragem, null);
+    const s = useVeiculoStore.getState();
+    expect(s.carregado).toBe(true);
+    expect(s.erro).toBe(false);
+  });
 });
 
 test("logout limpa dados e também o erro da subscrição que morreu", () => {
