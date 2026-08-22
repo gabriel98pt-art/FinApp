@@ -11,6 +11,7 @@ import type { ContextoCopiloto } from "../utils/copiloto";
 import { escaparHtml } from "../utils/copiloto";
 import { montarResumoParaIA } from "../utils/copilotoResumo";
 import { consumirCotaIA } from "./iaUsoService";
+import { auth } from "./firebase";
 
 /** A ÚNICA mensagem de insucesso da camada 2.
  *
@@ -45,6 +46,12 @@ export async function responderComIA(
   if (!uid) return MENSAGEM_IA_INDISPONIVEL;
   if (!(await consumirCotaIA(uid, hoje))) return MENSAGEM_IA_INDISPONIVEL;
 
+  // `api/copiloto-ia.ts` agora exige um ID token válido — sem ele, ou com
+  // sessão a expirar entre o clique e o pedido, o servidor recusa com 401 e
+  // a pessoa vê a mesma mensagem única de sempre.
+  const token = await auth.currentUser?.getIdToken().catch(() => null);
+  if (!token) return MENSAGEM_IA_INDISPONIVEL;
+
   // A camada 1 assume "direto" por omissão porque é o fraseado histórico dela.
   // Aqui o padrão é outro: quem chega à camada 2 fez uma pergunta que a app
   // não soube responder, e nesse momento um tom acolhedor cai melhor do que um
@@ -57,7 +64,7 @@ export async function responderComIA(
   try {
     const r = await fetch("/api/copiloto-ia", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ pergunta, resumo: montarResumoParaIA(ctx), tom }),
       signal: controlador.signal,
     });

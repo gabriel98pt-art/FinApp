@@ -28,7 +28,11 @@ export default defineConfig({
       // sobe sem que nada tenha ficado mais protegido. O relatório serve para
       // decidir onde escrever o próximo teste, e para isso tem de continuar a
       // falar da lógica.
-      include: ["src/utils/**", "src/services/**"],
+      // `api/**` entrou junto da autenticação do Copiloto (achado da
+      // auditoria de Segurança e de Testes/QA: "fora do include de
+      // cobertura... nem aparece no relatório") — é código com a mesma
+      // exigência de teste que services/, só que fora de src/.
+      include: ["src/utils/**", "src/services/**", "api/**"],
       // `firebase.ts` é só a inicialização do SDK (não há lógica para cobrir) e
       // os próprios testes não se medem a si mesmos.
       exclude: ["src/services/firebase.ts", "**/*.test.ts"],

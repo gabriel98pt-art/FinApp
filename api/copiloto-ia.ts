@@ -10,6 +10,49 @@
 // Este ficheiro é deliberadamente autónomo — não importa nada de `src/`. Corre
 // noutro sítio, com outro tsconfig, e o que entra aqui vem de um pedido HTTP:
 // mesmo que o cliente seja nosso, o que chega é validado como se não fosse.
+//
+// AUTENTICAÇÃO (achado da auditoria de Segurança): até este commit, este
+// endpoint não verificava QUEM estava a chamar — qualquer pessoa na internet
+// podia fazer o POST à mão e gastar a GEMINI_API_KEY do projeto, sem estar
+// logada no FinApp. A cota de 20 perguntas/dia (`iaUsoService.ts`) é só do
+// lado do cliente, então não protegia nada contra isso.
+//
+// Agora exige um ID token do Firebase (`Authorization: Bearer <token>`) e
+// verifica a assinatura contra as chaves públicas do Google — sem precisar do
+// firebase-admin (pesado, exige service account): o ID token é um JWT comum,
+// e `jose` já sabe buscar e cachear JWKS remoto. Continua sem mover a CONTA da
+// cota para o servidor — isso protegeria contra uma conta real chamando além
+// do seu próprio limite, um problema bem menor do que "qualquer estranho
+// gasta a chave inteira". Fica como próximo passo, não parte deste commit.
+
+import { createRemoteJWKSet, jwtVerify } from "jose";
+
+/** O mesmo projectId de `src/services/firebase.ts` — duplicado aqui de
+ *  propósito: este ficheiro não importa de `src/` (ver nota acima). */
+const FIREBASE_PROJECT_ID = "finapp1-20d00";
+
+/** JWKS público do Firebase Auth (chaves de assinatura dos ID tokens) — o
+ *  `jose` busca e cacheia entre invocações a frio, sem precisar de rede a
+ *  cada pedido. */
+const JWKS = createRemoteJWKSet(
+  new URL(
+    "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+  ),
+);
+
+/** Verifica um ID token do Firebase. Devolve o uid quando válido, `null`
+ *  quando não — nunca lança, para o handler poder tratar tudo como 401. */
+async function uidDoToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWKS, {
+      issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+      audience: FIREBASE_PROJECT_ID,
+    });
+    return typeof payload.sub === "string" && payload.sub ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Flash: o escalão que existe no nível gratuito e é largamente suficiente
  *  para escrever três frases sobre números que já vão prontos. Configurável
@@ -124,6 +167,10 @@ async function perguntarAoGemini(
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") return json({ erro: "metodo" }, 405);
+
+  const cabecalho = req.headers.get("authorization") ?? "";
+  const token = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7) : "";
+  if (!token || !(await uidDoToken(token))) return json({ erro: "naoAutenticado" }, 401);
 
   const chave = process.env.GEMINI_API_KEY;
   // Sem chave configurada a app não parte: o cliente trata qualquer resposta

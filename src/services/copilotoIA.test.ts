@@ -9,13 +9,24 @@ import type { ContextoCopiloto } from "../utils/copiloto";
 
 let cotaDisponivel = true;
 let uidsQueConsumiram: string[] = [];
+/** `undefined` simula sessão sem token válido (ex. expirou entre o clique e
+ *  o pedido) — api/copiloto-ia.ts agora exige esse token, então sem ele a
+ *  chamada nem deve sair. */
+let tokenAtual: string | undefined = "token-falso";
 
 const consumirCotaIA = vi.fn(async (uid: string) => {
   uidsQueConsumiram.push(uid);
   return cotaDisponivel;
 });
 
-vi.mock("./firebase", () => ({ db: {}, auth: {} }));
+vi.mock("./firebase", () => ({
+  db: {},
+  auth: {
+    get currentUser() {
+      return tokenAtual ? { getIdToken: async () => tokenAtual } : null;
+    },
+  },
+}));
 vi.mock("./iaUsoService", () => ({ consumirCotaIA, LIMITE_DIARIO_IA: 20 }));
 
 const s = await import("./copilotoIA");
@@ -52,6 +63,7 @@ function respondeCom(dados: unknown, ok = true) {
 beforeEach(() => {
   cotaDisponivel = true;
   uidsQueConsumiram = [];
+  tokenAtual = "token-falso";
   consumirCotaIA.mockClear();
   respondeCom({ resposta: "Aqui vai a resposta." });
 });
@@ -99,6 +111,17 @@ describe("responderComIA — quando não responde", () => {
     expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
       s.MENSAGEM_IA_INDISPONIVEL,
     );
+  });
+
+  test("sem token do Firebase (sessão a expirar entre o clique e o pedido) nem chama a API", async () => {
+    // api/copiloto-ia.ts (achado da auditoria de Segurança) passou a exigir
+    // um ID token válido — o cliente tem de ter um pra sequer tentar.
+    tokenAtual = undefined;
+
+    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
+      s.MENSAGEM_IA_INDISPONIVEL,
+    );
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   test("todos os motivos dão exactamente o mesmo texto", async () => {
@@ -175,6 +198,14 @@ describe("o que sai da app", () => {
     expect(cru).not.toContain("Visa");
     expect(cru).not.toContain("4321");
     expect(cru).not.toContain("id-unico-nao-pode-sair");
+  });
+
+  test("manda o ID token do Firebase no cabeçalho Authorization", async () => {
+    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+
+    const chamada = vi.mocked(globalThis.fetch).mock.calls[0];
+    const cabecalhos = (chamada[1] as RequestInit).headers as Record<string, string>;
+    expect(cabecalhos.Authorization).toBe("Bearer token-falso");
   });
 
   test("o tom por omissão da camada 2 é acolhedor, não o directo da camada 1", async () => {
