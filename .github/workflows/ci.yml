@@ -31,8 +31,8 @@ jobs:
       - name: Build (tsc + vite)
         run: npm run build
 
-      - name: Validar JSON (manifest, firebase config, rules)
+      - name: Validar JSON (manifest, firebase config, rules, vercel)
         run: |
-          for f in public/manifest.json firebase.json database.rules.json .firebaserc; do
+          for f in public/manifest.json firebase.json database.rules.json .firebaserc vercel.json; do
             node -e "JSON.parse(require('fs').readFileSync('$f', 'utf8'))"
           done
