@@ -429,8 +429,10 @@ export default function Importar() {
           onDrop={aoSoltar}
           onPaste={aoColar}
         >
-          <p className={styles.entradaTitulo}>Colar ou carregar extrato</p>
-          <p className={styles.entradaSub}>
+          <p id="importar-entrada-titulo" className={styles.entradaTitulo}>
+            Colar ou carregar extrato
+          </p>
+          <p id="importar-entrada-sub" className={styles.entradaSub}>
             PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
             descrição e valor — exportado do banco ou colado direto de uma folha de cálculo. O
             ficheiro também pode ser arrastado para aqui, ou colado com ⌘V.
@@ -441,6 +443,8 @@ export default function Importar() {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             rows={8}
+            aria-labelledby="importar-entrada-titulo"
+            aria-describedby="importar-entrada-sub"
           />
           <div className={styles.entradaAcoes}>
             <button

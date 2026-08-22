@@ -31,6 +31,16 @@ function rotuloCurto(iso: string): string {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 }
 
+/** Nome acessível de um dia da grade — achado da auditoria de Acessibilidade:
+ *  o botão só mostrava o número do dia (ex.: "1"), sem mês nem ano. Como a
+ *  grade mostra dias fora do mês (fim do anterior/início do seguinte), dois
+ *  botões podiam anunciar o mesmo número sem nada que os diferenciasse para
+ *  quem usa leitor de tela. */
+function rotuloDiaCompleto(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} de ${MESES[m - 1]} de ${y}`;
+}
+
 /** Escolha de data no visual do app (item 16): "Hoje" e "Ontem" num toque, e
  *  "Escolher data" abrindo um calendário em grade numa folha sólida — em vez
  *  do `<input type="date">`, que abre o seletor do sistema. */
@@ -135,6 +145,9 @@ export default function SeletorData({
               ]
                 .filter(Boolean)
                 .join(" ")}
+              aria-label={rotuloDiaCompleto(data)}
+              aria-current={data === hoje ? "date" : undefined}
+              aria-pressed={data === valor}
               onClick={() => {
                 aoMudar(data);
                 setAberta(false);
