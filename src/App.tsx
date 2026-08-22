@@ -1,6 +1,5 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import AppShell from "./layout/AppShell";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Login from "./pages/Login";
 import { useAuthStore } from "./stores/authStore";
@@ -12,6 +11,13 @@ import { usePwaUpdate } from "./hooks/usePwaUpdate";
 import { useRecarregarChunkFalho } from "./hooks/useRecarregarChunkFalho";
 import { useIgnorarArquivoSolto } from "./hooks/useIgnorarArquivoSolto";
 import { useCapturarErros } from "./hooks/useCapturarErros";
+
+// Achado da auditoria de Performance & PWA: AppShell (menu, sidebar, registro
+// rápido) era importado estático, então o bundle de quem só vê a tela de
+// Login (nunca chega a AppShell) incluía tudo isso — 606 KB de JS medidos ao
+// vivo, boa parte deles nem usados. Lazy como as páginas: só entra no
+// carregamento inicial de quem já está logado.
+const AppShell = lazy(() => import("./layout/AppShell"));
 
 // Lazy loading por página (seção 8 — performance)
 const Inicio = lazy(() => import("./pages/Inicio"));
@@ -71,31 +77,37 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<Inicio />} />
-          <Route path="/receitas" element={<Receitas />} />
-          <Route path="/despesas" element={<Despesas />} />
-          <Route path="/veiculo" element={<Veiculo />} />
-          <Route path="/cartoes" element={<Cartoes />} />
-          <Route path="/parcelas" element={<Parcelas />} />
-          <Route path="/calendario" element={<Calendario />} />
-          <Route path="/planejamento" element={<Planejamento />} />
-          <Route path="/transacoes" element={<Transacoes />} />
-          {/* Metas passou a ser uma aba de Planejamento (as duas telas
-              respondiam à mesma pergunta). A rota antiga continua a existir e
-              leva à aba certa — links guardados, o ecrã inicial do PWA e
-              qualquer atalho antigo continuam a funcionar. */}
-          <Route
-            path="/metas"
-            element={<Navigate to="/planejamento" replace state={{ aba: "metas" }} />}
-          />
-          <Route path="/importar" element={<Importar />} />
-          <Route path="/tvde" element={<RotaTvde />} />
-          <Route path="/definicoes" element={<Definicoes />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      {/* AppShell agora é lazy (ver comentário acima) — precisa de um
+          Suspense por cima. `fallback={null}`, mesma escolha do Suspense
+          interno do próprio AppShell para as páginas: nada de piscar um
+          spinner num carregamento que normalmente é quase instantâneo. */}
+      <Suspense fallback={null}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route index element={<Inicio />} />
+            <Route path="/receitas" element={<Receitas />} />
+            <Route path="/despesas" element={<Despesas />} />
+            <Route path="/veiculo" element={<Veiculo />} />
+            <Route path="/cartoes" element={<Cartoes />} />
+            <Route path="/parcelas" element={<Parcelas />} />
+            <Route path="/calendario" element={<Calendario />} />
+            <Route path="/planejamento" element={<Planejamento />} />
+            <Route path="/transacoes" element={<Transacoes />} />
+            {/* Metas passou a ser uma aba de Planejamento (as duas telas
+                respondiam à mesma pergunta). A rota antiga continua a existir
+                e leva à aba certa — links guardados, o ecrã inicial do PWA e
+                qualquer atalho antigo continuam a funcionar. */}
+            <Route
+              path="/metas"
+              element={<Navigate to="/planejamento" replace state={{ aba: "metas" }} />}
+            />
+            <Route path="/importar" element={<Importar />} />
+            <Route path="/tvde" element={<RotaTvde />} />
+            <Route path="/definicoes" element={<Definicoes />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

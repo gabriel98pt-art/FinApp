@@ -72,7 +72,22 @@ export default defineConfig({
             // Leituras do Firebase RTDB: network-first — tenta a rede, mas
             // cai no cache se offline, então o último sync continua visível
             // (ainda que desatualizado). Nunca cachear escritas (só GET).
-            urlPattern: ({ url }) => url.hostname.includes("firebaseio.com"),
+            //
+            // Achado da auditoria de Performance & PWA: a regra procurava
+            // `firebaseio.com`, mas este banco (criado numa região específica,
+            // europe-west1) usa o domínio mais novo `*.firebasedatabase.app`
+            // (ver databaseURL em services/firebase.ts) — a regra nunca
+            // disparava, config morta desde sempre.
+            //
+            // Mesmo corrigida, isto só protege o FALLBACK de long-polling: o
+            // SDK do Firebase sincroniza por WebSocket por padrão, que não é
+            // uma requisição que o service worker intercepte — só cai pra
+            // long-polling (HTTP, GET, interceptável) quando o WebSocket é
+            // bloqueado (proxy corporativo, rede restrita). Vale a pena
+            // corrigir mesmo assim: é grátis quando dispara, e esse
+            // fallback existe precisamente nas redes onde a app mais precisa
+            // dele.
+            urlPattern: ({ url }) => url.hostname.endsWith(".firebasedatabase.app"),
             handler: "NetworkFirst",
             method: "GET",
             options: {

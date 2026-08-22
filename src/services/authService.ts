@@ -13,7 +13,6 @@ import {
   type User,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { ref, remove } from "firebase/database";
 import { auth, db } from "./firebase";
 
 export interface Sessao {
@@ -99,9 +98,17 @@ export async function alterarSenha(senhaAtual: string, senhaNova: string): Promi
  *  Não há transação entre RTDB e Auth para evitar isso, então o que se faz é
  *  não deixar acontecer em silêncio — o erro abaixo diz exatamente em que
  *  estado ficou. Repetir a ação resolve: apagar de novo uma árvore já vazia
- *  não faz mal nenhum, e o `deleteUser` volta a ser tentado. */
+ *  não faz mal nenhum, e o `deleteUser` volta a ser tentado.
+ *
+ *  `firebase/database` importado aqui dentro, e não no topo do arquivo
+ *  (achado da auditoria de Performance & PWA): authService.ts é carregado
+ *  sempre, até na tela de Login, pra saber se há sessão — um `import`
+ *  estático do SDK inteiro do Realtime Database só por causa deste único
+ *  `remove()`, usado uma vez na vida de uma conta, ia parar no mesmo bundle
+ *  que ninguém deslogado precisa. */
 export async function apagarConta(senha: string): Promise<void> {
   const user = await reautenticar(senha);
+  const { ref, remove } = await import("firebase/database");
   await remove(ref(db, `users/${user.uid}`));
 
   try {
