@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { DadosVeiculo } from "../types";
-import { VEICULO_VAZIO } from "../services/veiculoService";
+import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 
 /** Espelho do veículo — alimentado só pelo syncService. Persistido
  *  localmente (seção 6.1) — ver nota em cfgStore.ts. */

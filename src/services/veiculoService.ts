@@ -6,6 +6,7 @@ import { onValue, push, ref, remove, set } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
+import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 import type {
   CargaEletrica,
   DadosVeiculo,
@@ -27,12 +28,10 @@ function paraLista<T extends { id: Id }>(val: Record<string, Omit<T, "id">> | nu
   return Object.entries(val).map(([id, dados]) => ({ ...dados, id }) as T);
 }
 
-export const VEICULO_VAZIO: DadosVeiculo = {
-  cargas: [],
-  despesas: [],
-  despesasFixas: [],
-  quilometragem: [],
-};
+// Movida para constants/veiculoPadrao.ts (quebra de ciclo de import com
+// stores/veiculoStore.ts — achado da auditoria de Arquitetura & Código);
+// re-exportada daqui porque é onde o resto do app já a importava.
+export { VEICULO_VAZIO };
 
 /** Observa as 4 sub-coleções e chama `cb` com o DadosVeiculo combinado
  *  sempre que qualquer uma mudar. `aoErro` vai nas 4: se qualquer uma cair,

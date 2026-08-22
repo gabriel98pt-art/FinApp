@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VEICULO_VAZIO } from "../services/veiculoService";
+import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 import type { DespesaCorrente, Parcela } from "../types";
 import {
   entraDinheiro,

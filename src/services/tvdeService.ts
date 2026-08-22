@@ -6,6 +6,7 @@ import { onValue, push, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
+import { TVDE_CFG_PADRAO, TVDE_VAZIO } from "../constants/tvdePadrao";
 import type {
   Cents,
   ConfigTvde,
@@ -21,22 +22,10 @@ import { hojeIso } from "../utils/calculos";
 
 const raiz = (uid: string) => `users/${uid}/fin_v5/tvde`;
 
-/** Defaults do app de origem (TVD_SEEDCFG, valores em centavos). */
-export const TVDE_CFG_PADRAO: ConfigTvde = {
-  inicioSemana1: "2026-03-02",
-  pctFrota: 6,
-  aluguel: 26000,
-  metaSem: 32000,
-  metaMes: 130000,
-};
-
-export const TVDE_VAZIO: DadosTvde = {
-  cfg: TVDE_CFG_PADRAO,
-  semanas: {},
-  segPorMes: {},
-  lancamentos: {},
-  despesas: [],
-};
+// Constantes movidas para constants/tvdePadrao.ts (quebra de ciclo de import
+// com stores/tvdeStore.ts — achado da auditoria de Arquitetura & Código);
+// re-exportadas daqui porque é onde o resto do app já as importava.
+export { TVDE_CFG_PADRAO, TVDE_VAZIO };
 
 /** O RTDB transforma objetos de chaves numéricas em arrays (com buracos) e
  *  remove {} vazios — reverte para mapa, igual ao _fixMap da origem. */
