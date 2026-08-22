@@ -24,6 +24,7 @@ export default function CampoMoeda({
   className,
   aoSairDoCampo,
   "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedby,
 }: {
   /** `null` = campo vazio. Só onde ficar por preencher significa algo (o
    *  ajuste manual da fatura, por exemplo); nos outros a validação do submit
@@ -38,6 +39,7 @@ export default function CampoMoeda({
   /** Para quem grava ao sair do campo, em vez de num botão. */
   aoSairDoCampo?: () => void;
   "aria-label"?: string;
+  "aria-describedby"?: string;
 }) {
   function aoTeclar(e: KeyboardEvent<HTMLInputElement>) {
     // Deixa passar os atalhos do sistema (copiar, colar, selecionar tudo).
@@ -68,6 +70,7 @@ export default function CampoMoeda({
       disabled={disabled}
       className={className}
       aria-label={ariaLabel}
+      aria-describedby={ariaDescribedby}
       onKeyDown={aoTeclar}
       onPaste={aoColar}
       onBlur={aoSairDoCampo}

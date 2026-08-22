@@ -157,4 +157,26 @@ describe("Parcelas", () => {
     const folha = screen.getByRole("dialog", { hidden: true, name: /Quitadas/ });
     expect(folha).toHaveAttribute("inert");
   });
+
+  test("erro de validação associa os campos relevantes via aria-describedby — achado da auditoria de Acessibilidade", async () => {
+    render(<Parcelas />);
+    await userEvent.click(screen.getByRole("button", { name: "Nova parcela" }));
+
+    await userEvent.type(screen.getByLabelText("Nome"), "Portátil");
+    await userEvent.type(screen.getByLabelText("Total (€)"), "50000");
+    // Nº parcelas já nasce em "3", válido — não precisa mexer.
+    // "Dia do vencimento" não tem min/max no HTML — é o único jeito de
+    // chegar ao erro de JS sem o navegador bloquear o submit antes.
+    await userEvent.type(screen.getByLabelText("Dia do vencimento"), "99");
+    await userEvent.click(screen.getByRole("button", { name: "Criar parcela" }));
+
+    const alerta = await screen.findByRole("alert");
+    expect(alerta).toHaveTextContent("Dia do vencimento deve ser entre 1 e 31.");
+
+    const idErro = alerta.id;
+    expect(idErro).toBeTruthy();
+    expect(screen.getByLabelText("Total (€)")).toHaveAttribute("aria-describedby", idErro);
+    expect(screen.getByLabelText("Nº parcelas")).toHaveAttribute("aria-describedby", idErro);
+    expect(screen.getByLabelText("Dia do vencimento")).toHaveAttribute("aria-describedby", idErro);
+  });
 });

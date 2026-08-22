@@ -280,7 +280,18 @@ function FormParcela({
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
             Total (€)
-            <CampoMoeda valor={totalTexto} aoMudar={setTotalTexto} required />
+            <CampoMoeda
+              valor={totalTexto}
+              aoMudar={setTotalTexto}
+              required
+              // Cada mensagem de erro já descreve UM campo ("Valor total
+              // inválido.", "Nº de parcelas inválido.", "Dia do vencimento
+              // deve ser entre 1 e 31."), mas o estado não guarda QUAL foi —
+              // aria-describedby nos três, não aria-invalid (que exigiria
+              // saber exatamente qual, achado da auditoria de Acessibilidade,
+              // mesmo raciocínio do Login).
+              aria-describedby={erro !== null ? "erro-parcela" : undefined}
+            />
           </label>
           <label className={styles.campo}>
             Nº parcelas
@@ -291,6 +302,7 @@ function FormParcela({
               value={num}
               onChange={(e) => setNum(e.target.value)}
               required
+              aria-describedby={erro !== null ? "erro-parcela" : undefined}
             />
           </label>
         </div>
@@ -311,6 +323,7 @@ function FormParcela({
               placeholder="1-31"
               value={dia}
               onChange={(e) => setDia(e.target.value)}
+              aria-describedby={erro !== null ? "erro-parcela" : undefined}
             />
           </label>
         </div>
@@ -346,7 +359,7 @@ function FormParcela({
           </label>
         )}
         {erro !== null && (
-          <p className={styles.erro} role="alert">
+          <p id="erro-parcela" className={styles.erro} role="alert">
             {erro}
           </p>
         )}

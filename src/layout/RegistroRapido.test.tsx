@@ -195,3 +195,23 @@ describe("gravação do reembolso", () => {
     expect(dados.valor).toBe(-7500);
   });
 });
+
+describe("erro de validação — achado da auditoria de Acessibilidade", () => {
+  test("valor zero associa o campo de valor ao erro via aria-describedby", async () => {
+    render(<RegistroRapido />);
+
+    // "0,00" passa a validação HTML5 required (não está vazio) mas falha a
+    // checagem de JS (valor <= 0) — é o único jeito de chegar no erro sem o
+    // navegador bloquear o submit antes.
+    await preencher("0");
+    await userEvent.click(screen.getByRole("button", { name: /Salvar|Adicionar/i }));
+
+    const alerta = await screen.findByRole("alert");
+    expect(alerta).toHaveTextContent("Valor inválido");
+    expect(criarDespesa).not.toHaveBeenCalled();
+
+    const idErro = alerta.id;
+    expect(idErro).toBeTruthy();
+    expect(screen.getByLabelText(/Valor/i)).toHaveAttribute("aria-describedby", idErro);
+  });
+});

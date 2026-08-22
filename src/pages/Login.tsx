@@ -70,6 +70,12 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             required
+            // A mensagem de erro não diz QUAL campo está errado ("E-mail ou
+            // senha incorretos" cobre os dois) — por isso aria-describedby
+            // nos dois, não aria-invalid: marcar um campo específico como
+            // inválido seria afirmar algo que não se sabe (achado da
+            // auditoria de Acessibilidade).
+            aria-describedby={erro !== null ? "erro-login" : undefined}
           />
         </label>
 
@@ -85,12 +91,13 @@ export default function Login() {
               autoComplete={modo === "entrar" ? "current-password" : "new-password"}
               minLength={modo === "cadastrar" ? SENHA_MINIMA : 6}
               required
+              aria-describedby={erro !== null ? "erro-login" : undefined}
             />
           </label>
         )}
 
         {erro !== null && (
-          <p className={styles.erro} role="alert">
+          <p id="erro-login" className={styles.erro} role="alert">
             {erro}
           </p>
         )}

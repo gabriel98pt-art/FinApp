@@ -632,6 +632,13 @@ export default function RegistroRapido() {
                   if (tipo === "carga" && !kwhTocado) palpitarKwh(v, descricao);
                 }}
                 required
+                // As mensagens de erro deste formulário já descrevem UM
+                // campo cada ("Valor inválido...", "kWh inválido.", "Escolha
+                // em quantas parcelas...", "Dia do vencimento..."), mas o
+                // estado só guarda o texto, não qual campo — aria-describedby
+                // nos campos relevantes, não aria-invalid (exigiria saber
+                // exatamente qual — achado da auditoria de Acessibilidade).
+                aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
             </label>
           )}
@@ -648,6 +655,7 @@ export default function RegistroRapido() {
                   setKwh(e.target.value);
                 }}
                 required
+                aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
             </label>
           )}
@@ -821,7 +829,7 @@ export default function RegistroRapido() {
         )}
 
         {erro !== null && (
-          <p className={styles.erro} role="alert">
+          <p id="erro-registro" className={styles.erro} role="alert">
             {erro}
           </p>
         )}
@@ -916,7 +924,11 @@ export default function RegistroRapido() {
 
           <label className={styles.campo}>
             {modoValorParcela === "parcela" ? "Valor parcela (€)" : "Valor total (€)"}
-            <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} />
+            <CampoMoeda
+              valor={valorTexto}
+              aoMudar={setValorTexto}
+              aria-describedby={erro !== null ? "erro-registro" : undefined}
+            />
           </label>
 
           <div className={styles.campo}>
@@ -953,6 +965,7 @@ export default function RegistroRapido() {
               placeholder="1-31"
               value={diaVencimentoParcela}
               onChange={(e) => setDiaVencimentoParcela(e.target.value)}
+              aria-describedby={erro !== null ? "erro-registro" : undefined}
             />
           </label>
         </div>
