@@ -61,6 +61,30 @@
   width: 24px;
   height: 36px;
   flex: none;
+  position: relative;
+}
+
+/* Área de toque real por volta de 44px (achado da auditoria de Design & Cor:
+   "setas de mês a 24×36px" — abaixo do mínimo recomendado), sem alargar a
+   caixa VISUAL, que é estreita de propósito pra "setembro 2026" caber ao
+   lado do logo no header a 375px. Só pro lado de FORA — nunca pro lado do
+   rótulo entre as duas setas, senão a área invisível roubava toques do
+   botão vizinho. */
+.compacto .seta::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+}
+
+.compacto .seta:first-child::before {
+  left: -10px;
+  right: 0;
+}
+
+.compacto .seta:last-child::before {
+  left: 0;
+  right: -10px;
 }
 
 /* O SeletorSemana reusa este módulo; as setas dele podem ficar desativadas
