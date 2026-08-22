@@ -5,7 +5,7 @@
    hover em Despesas.module.css) por cima do que é `composes` daqui. */
 
 .badgeToggle {
-  font-size: 0.68rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   border-radius: var(--r-pill);
   padding: 4px 10px;

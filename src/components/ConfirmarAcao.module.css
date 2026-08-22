@@ -52,7 +52,7 @@
 
 .mensagem {
   color: var(--txt);
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   line-height: 1.45;
   /* As mensagens trazem \n quando têm um aviso na segunda linha. */
   white-space: pre-line;

@@ -15,7 +15,7 @@
   padding: 14px 12px;
   border-radius: var(--r-card);
   background: var(--s2);
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   font-weight: 700;
 }
 

@@ -179,7 +179,7 @@
   align-self: flex-start;
   background: var(--s2);
   color: var(--mut);
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   border-radius: var(--r-pill);
   padding: 9px 14px;
@@ -212,7 +212,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--mut);
   flex: 1;
   min-width: 0;
@@ -245,7 +245,7 @@
   color: var(--mut);
   font-weight: 700;
   padding: 8px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   text-align: center;
 }
 

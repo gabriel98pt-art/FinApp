@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--mut);
   flex: 1;
   min-width: 0;

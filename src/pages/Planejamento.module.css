@@ -141,7 +141,7 @@
 .linhaValor {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
 }
 
 .linhaValor span:first-child {
@@ -171,7 +171,7 @@
 }
 
 .subtitulo {
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-weight: 700;
 }
 
@@ -180,7 +180,7 @@
   align-items: center;
   gap: 5px;
   color: var(--blu);
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   padding: 6px 10px;
   border-radius: var(--r-sm);
@@ -237,7 +237,7 @@
 
 .fundoAtual {
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-variant-numeric: tabular-nums;
 }
 
@@ -280,7 +280,7 @@
   background: var(--s2);
   color: var(--txt);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   border-radius: var(--r-sm);
   padding: 9px;
   margin-top: 4px;
@@ -301,7 +301,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 

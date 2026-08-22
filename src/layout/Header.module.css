@@ -34,7 +34,7 @@
    sem isto as ações saltariam pro meio nas outras telas. */
 .logo {
   grid-column: 1;
-  font-size: 1.25rem;
+  font-size: var(--fs-display);
   font-weight: 800;
   letter-spacing: -0.02em;
 }

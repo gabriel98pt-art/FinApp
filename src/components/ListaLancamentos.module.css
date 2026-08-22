@@ -102,7 +102,7 @@
 }
 
 .rodapeValor {
-  font-size: 0.95rem;
+  font-size: var(--fs-title);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--track-display);

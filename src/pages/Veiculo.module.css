@@ -114,7 +114,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--mut);
   flex: 1;
   min-width: 0;
@@ -287,7 +287,7 @@
   color: var(--mut);
   border-radius: var(--r-pill);
   padding: 4px 10px;
-  font-size: 0.76rem;
+  font-size: var(--fs-label);
   font-weight: 600;
 }
 
