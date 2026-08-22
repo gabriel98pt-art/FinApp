@@ -52,13 +52,18 @@
   font-size: var(--fs-label);
 }
 
+/* Mesma tipografia/padding de SettingsRow.module.css (.linha) — estas 3
+   linhas (Tema/Moeda da conta/Início da semana) usam markup ad-hoc porque
+   têm um `Seletor` inline à direita em vez de chevron, mas vivem no mesmo
+   cartão que as linhas de SettingsRow e precisam do mesmo ritmo visual. */
 .linhaSelect {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px;
-  font-size: var(--fs-title);
+  gap: 12px;
+  padding: 14px 16px;
+  min-height: 24px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 

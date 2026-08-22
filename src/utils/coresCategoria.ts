@@ -40,8 +40,20 @@ const COR_SEMANTICA: Record<string, string> = {
   // Compras / crédito
   Compras: "#f43f5e",
   Parcelas: "#f43f5e",
-  // Veículo (fatia agregada do domínio Veículo)
-  Veículo: "#84cc16",
+  // Veículo (fatia agregada do domínio Veículo). Era #84cc16 (verde-lima,
+  // H≈131°) — a 21° de Receita (H≈152°) no OKLCH, a menor distância
+  // perceptual (OKLab) de toda a paleta (0,080) depois das que já eram
+  // aceites de propósito (Saúde/Manutenção, Alimentação/TVDE). No donut de
+  // categorias isso é tolerável (nome no rótulo, separador entre fatias —
+  // ver comentário da paleta abaixo); no seletor de 3 estados do Registro
+  // Rápido (Despesa/Receita/Veículo, `RegistroRapido.tsx`), onde as três
+  // cores aparecem sozinhas lado a lado sem rótulo por perto, as duas liam
+  // como "dois verdes" (achado da auditoria de Design & Cor, 22/08). Verde-
+  // azulado abre a distância de Receita sem invadir Transporte/Casa/Seguro/
+  // Assinaturas nem colidir pior que os pares já aceites sob protanopia/
+  // deuteranopia/tritanopia (checado com as matrizes de Machado/Oliveira/
+  // Fialho 2009 contra as 17 cores fixas + a paleta de fallback).
+  Veículo: "#14b8a6",
   // "Despesa" e "Receita" não são categorias: entram aqui pra o botão
   // flutuante poder pegar carona no mesmo sistema de cor (semântica por
   // nome + override em cfg.categoriaCor). São os mesmos --red e --grn.
