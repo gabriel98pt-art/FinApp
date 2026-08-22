@@ -16,8 +16,7 @@
   animation: entradaAba var(--dur-fast) var(--ease-enter) both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .entrada {
-    animation: none;
-  }
-}
+/* Sem bloco de reduced-motion aqui, de propósito (achado da auditoria de
+   Design): `entradaAba` já é só opacidade, sem transform nenhum — não há
+   movimento pra reduzir. Desligar a animação inteira só trocava um fade
+   suave por um "aparece de golpe", sem nenhum ganho de acessibilidade. */

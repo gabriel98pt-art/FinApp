@@ -40,35 +40,44 @@ export function usePullToRefresh() {
   const puxando = useRef(false);
   const animId = useRef<number | null>(null);
   const yRef = useRef(0);
+  /** Histórico de (tempo, y) dos últimos ~100ms do gesto — mesma janela do
+   *  useDragToClose, pra calcular velocidade INSTANTÂNEA no solto, não a
+   *  média do puxão inteiro. Sem isto a mola de volta sempre partia de v=0,
+   *  parecendo travar em seco antes de recuar — mesmo num puxão rápido
+   *  largado ainda em movimento (achado da auditoria de Design). */
+  const hist = useRef<[number, number][]>([]);
 
   const aplicar = useCallback((y: number) => {
     yRef.current = y;
     setEstado((e) => ({ ...e, y, armado: y >= LIMITE }));
   }, []);
 
-  const voltar = useCallback(() => {
-    const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduzido) {
-      aplicar(0);
-      return;
-    }
-    let m = { x: yRef.current, v: 0 };
-    let ultimo: number | null = null;
-    const passo = (agora: number) => {
-      if (ultimo === null) ultimo = agora;
-      const dt = Math.min(0.032, (agora - ultimo) / 1000);
-      ultimo = agora;
-      m = passoMola(m, 0, RESPOSTA_VOLTA, AMORT_VOLTA, dt);
-      if (molaAssentou(m, 0)) {
+  const voltar = useCallback(
+    (v0 = 0) => {
+      const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduzido) {
         aplicar(0);
-        animId.current = null;
         return;
       }
-      aplicar(m.x);
+      let m = { x: yRef.current, v: v0 };
+      let ultimo: number | null = null;
+      const passo = (agora: number) => {
+        if (ultimo === null) ultimo = agora;
+        const dt = Math.min(0.032, (agora - ultimo) / 1000);
+        ultimo = agora;
+        m = passoMola(m, 0, RESPOSTA_VOLTA, AMORT_VOLTA, dt);
+        if (molaAssentou(m, 0)) {
+          aplicar(0);
+          animId.current = null;
+          return;
+        }
+        aplicar(m.x);
+        animId.current = requestAnimationFrame(passo);
+      };
       animId.current = requestAnimationFrame(passo);
-    };
-    animId.current = requestAnimationFrame(passo);
-  }, [aplicar]);
+    },
+    [aplicar],
+  );
 
   const aoPointerDown = useCallback((e: React.PointerEvent) => {
     // Só com toque, e só quando a página já está no topo — no meio da lista
@@ -81,6 +90,7 @@ export function usePullToRefresh() {
     }
     inicioY.current = e.clientY;
     puxando.current = true;
+    hist.current = [[performance.now(), 0]];
   }, []);
 
   const aoPointerMove = useCallback(
@@ -99,10 +109,23 @@ export function usePullToRefresh() {
         if (yRef.current !== 0) aplicar(0);
         return;
       }
-      aplicar(delta <= LIMITE ? delta : LIMITE + rubberBand(delta - LIMITE, MAX - LIMITE));
+      const y = delta <= LIMITE ? delta : LIMITE + rubberBand(delta - LIMITE, MAX - LIMITE);
+      aplicar(y);
+      const agora = performance.now();
+      hist.current.push([agora, y]);
+      while (hist.current.length > 2 && agora - hist.current[0][0] > 100) hist.current.shift();
     },
     [aplicar],
   );
+
+  /** Velocidade instantânea (px/s) da janela recente do histórico — mesma
+   *  conta do useDragToClose. */
+  const velocidadeAtual = useCallback(() => {
+    const h = hist.current;
+    if (h.length < 2) return 0;
+    const dt = h[h.length - 1][0] - h[0][0];
+    return dt > 0 ? ((h[h.length - 1][1] - h[0][1]) / dt) * 1000 : 0;
+  }, []);
 
   /** Havendo versão nova, quem aplica e recarrega é o usePwaUpdate — não há um
    *  segundo caminho de atualização aqui. O reload é só o desfecho de "já
@@ -115,16 +138,17 @@ export function usePullToRefresh() {
   const soltar = useCallback(() => {
     if (!puxando.current) return;
     puxando.current = false;
+    const v = velocidadeAtual();
     if (yRef.current >= LIMITE) {
       setEstado((e) => ({ ...e, recarregando: true }));
       // A checagem demora — o conteúdo volta ao lugar e fica só o indicador a
       // girar, em vez de a tela ficar presa a meio do puxão.
-      voltar();
+      voltar(v);
       void atualizar();
       return;
     }
-    voltar();
-  }, [voltar, atualizar]);
+    voltar(v);
+  }, [voltar, atualizar, velocidadeAtual]);
 
   /** `pointercancel` é o sistema a tomar conta do gesto (virou scroll, o dedo
    *  saiu do ecrã…), não uma confirmação — recarregar aqui seria recarregar
