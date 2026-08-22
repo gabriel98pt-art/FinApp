@@ -225,6 +225,12 @@ export default function Definicoes() {
           navegavel
           onClick={() => setCorBotaoAberto(true)}
         />
+        <SettingsRow
+          titulo="Cor do Veículo"
+          valor={cfg.categoriaCor?.["Veículo"] ? "Personalizada" : "Padrão"}
+          navegavel
+          onClick={() => setCorVeiculoAberto(true)}
+        />
       </SettingsSection>
 
       <SettingsSection titulo="Registo">
@@ -239,12 +245,6 @@ export default function Definicoes() {
           valor={`${cfg.fontesReceita.length} ativas`}
           navegavel
           onClick={() => setFontesAberto(true)}
-        />
-        <SettingsRow
-          titulo="Cor do Veículo"
-          valor={cfg.categoriaCor?.["Veículo"] ? "Personalizada" : "Padrão"}
-          navegavel
-          onClick={() => setCorVeiculoAberto(true)}
         />
         <div className={styles.linhaSelect}>
           <span>Moeda da conta</span>
