@@ -105,7 +105,7 @@
   width: 100%;
   padding: 9px 8px;
   border-radius: var(--r-sm);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
   text-align: left;
@@ -142,7 +142,7 @@
   .opcao {
     gap: 4px;
     padding: 8px 6px;
-    font-size: 0.75rem;
+    font-size: var(--fs-label);
   }
 
   .opcaoNome {

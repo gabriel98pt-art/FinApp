@@ -62,7 +62,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   min-width: 0;
 }
 
@@ -110,7 +110,7 @@
 }
 
 .selo {
-  font-size: 0.72rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   border-radius: var(--r-pill);
   padding: 2px 8px;
@@ -148,7 +148,7 @@
   border-radius: var(--r-sm);
   padding: 10px 12px;
   color: var(--txt);
-  font-size: 1rem;
+  font-size: var(--fs-title);
 }
 
 .campo input:focus {
@@ -159,7 +159,7 @@
 
 .remover {
   color: var(--red);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   padding: 6px;
   align-self: center;

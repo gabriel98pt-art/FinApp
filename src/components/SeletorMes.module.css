@@ -24,7 +24,7 @@
 }
 
 .rotulo {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   min-width: 122px;
   text-align: center;
@@ -48,7 +48,7 @@
 
 .compacto .rotulo {
   min-width: 0;
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -133,7 +133,7 @@
   border-radius: var(--r-sm);
   background: var(--s2);
   color: var(--txt);
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 700;
   text-transform: capitalize;
 }

@@ -68,7 +68,7 @@
 .confirmar {
   border-radius: var(--r-sm);
   padding: 10px 18px;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 700;
 }
 

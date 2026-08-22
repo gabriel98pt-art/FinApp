@@ -16,7 +16,7 @@
   background: color-mix(in srgb, var(--ylw) 16%, var(--bg));
   border-bottom: 1px solid var(--tint-ylw-30);
   color: var(--ylw);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   font-weight: 700;
 }
 
@@ -27,7 +27,7 @@
 .botao {
   color: var(--ylw);
   font-weight: 800;
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   text-decoration: underline;
   text-underline-offset: 2px;
   padding: 2px 4px;

@@ -37,7 +37,7 @@
 }
 
 .valor {
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--mut);
@@ -67,7 +67,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px 14px;
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
   color: var(--mut);
 }
 

@@ -39,7 +39,7 @@
   border: 1px solid color-mix(in srgb, var(--ylw) 40%, transparent);
   border-radius: var(--r-pill);
   padding: 4px 10px;
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
 }
 
 .roxo {
@@ -51,7 +51,7 @@
 
 .nota {
   color: var(--mut);
-  font-size: 0.8rem;
+  font-size: var(--fs-label);
 }
 
 .lista {
@@ -86,14 +86,14 @@
 .nome {
   flex: 1;
   min-width: 0;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   color: var(--txt);
 }
 
 .marca {
   color: var(--mut);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 700;
 }
 

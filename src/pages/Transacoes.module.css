@@ -6,7 +6,7 @@
 }
 
 .contagem {
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 
@@ -52,7 +52,7 @@
 
 .detalhe {
   color: var(--mut);
-  font-size: 0.74rem;
+  font-size: var(--fs-label);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -61,7 +61,7 @@
 .valor {
   flex: none;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -88,7 +88,7 @@
   gap: 10px;
   padding: 10px 2px;
   border-bottom: 1px solid var(--brd);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 
@@ -107,7 +107,7 @@
   background: var(--s2);
   color: var(--txt);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   border-radius: var(--r-sm);
   padding: 12px;
 }
@@ -121,7 +121,7 @@
 .mover {
   margin-top: 8px;
   color: var(--mut);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   border-radius: var(--r-sm);
   padding: 10px;
@@ -146,7 +146,7 @@
   background: var(--blu);
   color: var(--bg);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   border-radius: var(--r-sm);
   padding: 12px;
 }

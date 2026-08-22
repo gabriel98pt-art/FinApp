@@ -34,7 +34,7 @@
 
 .ciclo {
   color: var(--mut);
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   text-transform: capitalize;
 }
 
@@ -48,7 +48,7 @@
    estava dava 4,1:1 sobre --s1 e 3,7:1 sobre --s2 no tema claro. Ver a nota em
    tokens.css. */
 .estado {
-  font-size: 0.72rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   color: var(--selo-pendente-txt);
   background: var(--selo-pendente-bg);
@@ -70,13 +70,13 @@
 
 .rotuloValor {
   color: var(--mut);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 600;
 }
 
 .valor {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: var(--fs-title);
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
 }
@@ -111,7 +111,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 
@@ -145,7 +145,7 @@
 /* Secundárias ("Ajustar valor", "Reabrir", "Ajustar saldo"): acompanham o
    `.acaoPrimaria`, que é o "Pagar" e esse sim fica com o acento. */
 .acao {
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   font-weight: 700;
   color: var(--txt);
   background: var(--s2);
@@ -190,13 +190,13 @@
   background: var(--s2);
   border-radius: var(--r-pill);
   padding: 5px 12px;
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
 .chipTipo {
   color: var(--mut);
-  font-size: 0.7rem;
+  font-size: var(--fs-micro);
 }
 
 .chipAcao {
@@ -229,7 +229,7 @@
   border-radius: var(--r-sm);
   padding: 9px 12px;
   color: var(--txt);
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   flex: 1;
   min-width: 120px;
 }
@@ -272,7 +272,7 @@
   border-radius: var(--r-sm);
   padding: 10px 12px;
   color: var(--txt);
-  font-size: 1rem;
+  font-size: var(--fs-title);
   width: 100%;
 }
 
@@ -285,7 +285,7 @@
 
 .aviso {
   color: var(--ylw);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
 }
 
 /* Lista de quadros, um por conta/cartão — débito e crédito (item 13).
@@ -330,7 +330,7 @@
 
 .tipoBadge {
   flex: none;
-  font-size: 0.66rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   color: var(--mut);
   background: var(--s2);
@@ -342,7 +342,7 @@
    Colado ao número que descreve — daí o gap negativo contra o `gap: 6px` da
    coluna: os dois são uma coisa só, e o resto do quadro respira à volta. */
 .quadroRotulo {
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   font-weight: 600;
   color: var(--mut);
   margin-bottom: -4px;
@@ -361,7 +361,7 @@
 /* Entre o valor grande e a nota: pesa mais do que a contagem de transações,
    menos do que a manchete. */
 .quadroEstado {
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   color: var(--txt);
   opacity: 0.72;
@@ -369,7 +369,7 @@
 }
 
 .quadroNota {
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   color: var(--mut);
 }
 
@@ -388,7 +388,7 @@
   gap: 10px;
   padding: 10px 2px;
   border-bottom: 1px solid var(--brd);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   color: var(--mut);
 }
 
@@ -416,7 +416,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.7rem;
+  font-size: var(--fs-micro);
   color: var(--mut);
 }
 
@@ -427,7 +427,7 @@
   border-radius: var(--r-xs);
   background: var(--s1);
   color: var(--txt);
-  font-size: 0.72rem;
+  font-size: var(--fs-micro);
   text-align: center;
 }
 
@@ -482,12 +482,12 @@
 
 .itemNome {
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
 }
 
 .itemDetalhe {
   color: var(--mut);
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
 }
 
 .itemValor {
@@ -503,7 +503,7 @@
 
 .excluir {
   color: var(--red);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   padding: 6px;
 }

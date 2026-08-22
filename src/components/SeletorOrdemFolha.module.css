@@ -36,7 +36,7 @@
   width: 100%;
   padding: 12px;
   border-radius: var(--r-sm);
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 700;
   color: var(--mut);
   text-align: left;

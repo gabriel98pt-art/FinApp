@@ -27,7 +27,7 @@
 .conta {
   padding: 10px 12px 2px;
   color: var(--mut);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
 }
 
 /* Terminar sessão. Mesmo tratamento do `perigo` de Botao.module.css — texto
@@ -49,7 +49,7 @@
 .nota {
   padding: 0 8px 4px;
   color: var(--mut);
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
 }
 
 .linhaSelect {
@@ -58,7 +58,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 8px;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 
@@ -91,7 +91,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
@@ -130,7 +130,7 @@
   background: var(--s2);
   border-radius: var(--r-pill);
   padding: 5px 6px 5px 12px;
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
@@ -179,7 +179,7 @@
   background: var(--s2);
   color: var(--txt);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   border-radius: var(--r-sm);
   padding: 8px 12px;
   white-space: nowrap;
@@ -203,7 +203,7 @@
 }
 
 .nomePagina {
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
   padding-bottom: 5px;
@@ -254,7 +254,7 @@
   justify-content: space-between;
   width: 100%;
   padding: 8px;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 700;
   border-radius: var(--r-sm);
 }
@@ -300,13 +300,13 @@
 }
 
 .erroQuando {
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   color: var(--mut);
   font-weight: 600;
 }
 
 .erroMensagem {
-  font-size: 0.84rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   /* Mensagens de erro são longas: duas linhas e corta. O texto inteiro
      continua a ir no "Copiar". */

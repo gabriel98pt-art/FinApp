@@ -22,7 +22,7 @@
   flex: 1;
   padding: 8px 10px;
   border-radius: var(--r-xs);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
   white-space: nowrap;
@@ -54,12 +54,12 @@
 
 .itemNome {
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
 }
 
 .itemDetalhe {
   color: var(--mut);
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
 }
 
 .itemValor {
@@ -76,7 +76,7 @@
 
 .remover {
   color: var(--red);
-  font-size: 1.1rem;
+  font-size: var(--fs-heading);
   line-height: 1;
   padding: 0 4px;
 }
@@ -127,7 +127,7 @@
   border-radius: var(--r-sm);
   padding: 9px 12px;
   color: var(--txt);
-  font-size: 0.92rem;
+  font-size: var(--fs-title);
   width: 100%;
 }
 
@@ -155,7 +155,7 @@
 .tipoBotao {
   padding: 8px;
   border-radius: var(--r-xs);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
 }
@@ -204,7 +204,7 @@
 
 .excluir {
   color: var(--red);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   padding: 6px;
 }
@@ -234,7 +234,7 @@
 .visaoBotao {
   padding: 7px 14px;
   border-radius: var(--r-xs);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
 }
@@ -302,7 +302,7 @@
 }
 .chipRemover {
   color: var(--mut);
-  font-size: 1rem;
+  font-size: var(--fs-title);
   line-height: 1;
   padding: 0 2px;
 }
@@ -323,7 +323,7 @@
   border-radius: var(--r-sm);
   padding: 7px 10px;
   color: var(--txt);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   flex: 1;
   min-width: 120px;
 }
@@ -335,7 +335,7 @@
   border: 1px solid var(--brd);
   color: var(--mut);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   border-radius: var(--r-sm);
   padding: 7px 12px;
 }

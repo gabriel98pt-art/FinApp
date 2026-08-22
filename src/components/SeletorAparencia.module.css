@@ -79,7 +79,7 @@
   background: var(--s2);
   color: var(--mut);
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   border-radius: var(--r-sm);
   padding: 10px;
   margin-bottom: 4px;

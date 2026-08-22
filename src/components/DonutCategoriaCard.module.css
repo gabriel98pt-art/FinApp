@@ -126,7 +126,7 @@
 
 .categoria {
   flex: 1;
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -134,7 +134,7 @@
 }
 
 .pct {
-  font-size: 0.74rem;
+  font-size: var(--fs-label);
   color: var(--mut);
   min-width: 34px;
   text-align: right;
@@ -142,7 +142,7 @@
 }
 
 .valor {
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   font-weight: 700;
   color: var(--red);
   min-width: 68px;
@@ -210,7 +210,7 @@
   flex: 1;
   padding: 8px;
   border-radius: var(--r-xs);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
   white-space: nowrap;
@@ -262,7 +262,7 @@
 .categoriaCompleta {
   flex: 1;
   min-width: 0;
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;

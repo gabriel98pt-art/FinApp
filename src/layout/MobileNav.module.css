@@ -190,7 +190,7 @@
   padding: 11px 12px;
   border-radius: var(--r-sm);
   color: var(--txt);
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-weight: 600;
 }
 

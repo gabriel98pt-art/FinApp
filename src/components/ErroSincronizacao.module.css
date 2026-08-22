@@ -64,7 +64,7 @@
   border: 1px solid var(--tint-ylw-30);
   border-radius: var(--r-sm);
   color: var(--ylw);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
 }
 
@@ -77,7 +77,7 @@
 .tiraBotao {
   color: var(--ylw);
   font-weight: 800;
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   text-decoration: underline;
   text-underline-offset: 2px;
   padding: 2px 4px;

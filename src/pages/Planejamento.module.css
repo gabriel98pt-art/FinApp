@@ -19,7 +19,7 @@
   flex: 1;
   padding: 8px 10px;
   border-radius: var(--r-xs);
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
   white-space: nowrap;
@@ -50,7 +50,7 @@
 
 .cardMetaTitulo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   text-transform: capitalize;
 }
 
@@ -58,7 +58,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   border-radius: var(--r-pill);
   padding: 4px 10px;
@@ -100,7 +100,7 @@
 
 .cardMetaSub {
   color: var(--mut);
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   margin: 4px 0 8px;
 }
 
@@ -221,7 +221,7 @@
 
 .fundoNome {
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: var(--fs-title);
 }
 
 .remover {
@@ -243,7 +243,7 @@
 
 .fundoPct {
   margin-left: auto;
-  font-size: 0.7rem;
+  font-size: var(--fs-micro);
   color: var(--mut);
   background: var(--s2);
   border-radius: var(--r-pill);
@@ -251,7 +251,7 @@
 }
 
 .fundoFalta {
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   color: var(--mut);
 }
 
@@ -260,13 +260,13 @@
 }
 
 .fundoAtingido {
-  font-size: 0.78rem;
+  font-size: var(--fs-label);
   color: var(--grn);
   font-weight: 600;
 }
 
 .fundoProj {
-  font-size: 0.72rem;
+  font-size: var(--fs-label);
   color: var(--mut);
 }
 
@@ -311,7 +311,7 @@
   border-radius: var(--r-sm);
   padding: 10px 12px;
   color: var(--txt);
-  font-size: 1rem;
+  font-size: var(--fs-title);
   width: 100%;
 }
 
@@ -327,5 +327,5 @@
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: 12px;
-  font-size: 1rem;
+  font-size: var(--fs-title);
 }

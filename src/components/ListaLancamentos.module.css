@@ -21,7 +21,7 @@
 
 .vazio {
   color: var(--mut);
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
   text-align: center;
   padding: 22px 10px;
 }
@@ -58,7 +58,7 @@
 }
 
 .descricao {
-  font-size: 0.92rem;
+  font-size: var(--fs-title);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -66,7 +66,7 @@
 }
 
 .detalhe {
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
   color: var(--mut);
 }
 
@@ -75,13 +75,13 @@
    sentido da linha (paguei 100, mas fiquei com 25), e no cinzento do detalhe
    passava despercebida ao lado do valor cheio. */
 .sub {
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
   color: var(--grn);
   font-variant-numeric: tabular-nums;
 }
 
 .valor {
-  font-size: 0.92rem;
+  font-size: var(--fs-title);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -96,7 +96,7 @@
   margin-top: 4px;
   padding: 10px;
   border-top: 1px solid var(--brd);
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
   font-weight: 600;
   color: var(--mut);
 }

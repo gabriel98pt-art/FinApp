@@ -82,13 +82,13 @@
 
 .detalhe {
   color: var(--mut);
-  font-size: 0.75rem;
+  font-size: var(--fs-label);
 }
 
 .valor {
   flex: none;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: var(--fs-title);
   font-variant-numeric: tabular-nums;
   color: var(--red);
 }
