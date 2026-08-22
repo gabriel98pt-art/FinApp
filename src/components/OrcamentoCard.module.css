@@ -118,7 +118,7 @@
 
 .seloPerto {
   color: var(--ylw);
-  background: color-mix(in srgb, var(--ylw) 16%, transparent);
+  background: var(--tint-ylw-14);
 }
 
 .seloEstourado {

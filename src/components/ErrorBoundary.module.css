@@ -31,7 +31,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--red) 14%, transparent);
+  background: var(--tint-red-16);
   color: var(--red);
   margin-bottom: 6px;
 }
