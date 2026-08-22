@@ -35,20 +35,17 @@ de alguém desenhando ou de uma ferramenta de imagem.
 
 ---
 
-## Arquitetura
+## Resolvido (fica registrado por onde passou)
 
-### `usePullToRefresh` recalcula a tela a cada milímetro de arrasto
+### `usePullToRefresh` recalculava a tela a cada milímetro de arrasto
 
-**Por que ficou de fora**: `src/hooks/usePullToRefresh.ts` chama
-`setEstado(...)` (React) a cada evento de `touchmove` durante o gesto de puxar
-pra atualizar — o app recalcula a tela inteira dezenas de vezes por segundo
-enquanto a pessoa arrasta o dedo. Funciona, mas é desperdício de
-processamento; o jeito certo é escrever direto no visual (sem passar pelo
-React) durante o arrasto, e só avisar o React quando soltar o dedo.
-
-**Por que é separado dos outros itens**: é reescrever o hook inteiro, não um
-ajuste pontual — mistura mudança de arquitetura com o resto do código do
-arrasto, então precisa da sua própria etapa, validada sozinha.
+**Resolvido em 22/08/2026**: reescrito pra escrever direto nos nós do DOM
+(`refConteudo`/`refIndicador`/`refIcone`) a cada frame do arrasto, em vez de
+passar pelo `setState` do React — mesmo padrão já usado em `useDragToClose`.
+React só re-renderiza nas transições de verdade (mostrar/esconder o
+indicador, mudar de cor ao passar do limite, começar a recarregar).
+Verificado ao vivo com gestos de toque simulados: puxão pequeno volta com
+mola, puxão além do limite arma e recarrega.
 
 ---
 

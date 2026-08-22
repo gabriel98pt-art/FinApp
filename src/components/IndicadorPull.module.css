@@ -15,6 +15,12 @@
   box-shadow: var(--sh-card);
   color: var(--mut);
   pointer-events: none;
+  /* Estado inicial antes do primeiro frame escrito por usePullToRefresh
+     (o próprio JS assume a partir daqui) — sem isto, o primeiro paint do
+     componente (ele só monta quando o puxão já começou) mostrava um frame
+     descentrado e opaco antes do ref existir pra corrigir. */
+  transform: translateX(-50%);
+  opacity: 0;
 }
 
 /* Passou do limite: soltar agora recarrega, e a cor diz isso. */

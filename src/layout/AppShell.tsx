@@ -18,21 +18,24 @@ import styles from "./AppShell.module.css";
 export default function AppShell() {
   useSyncConta();
   useAbrirRegistroPorUrl();
-  const { estado, limite, manipuladores } = usePullToRefresh();
+  const { visivel, armado, recarregando, refConteudo, refIndicador, refIcone, manipuladores } =
+    usePullToRefresh();
 
   return (
     <>
       <Header />
       <FaixaErroSync />
       <Sidebar />
-      <IndicadorPull estado={estado} limite={limite} />
+      <IndicadorPull
+        visivel={visivel}
+        armado={armado}
+        recarregando={recarregando}
+        refIndicador={refIndicador}
+        refIcone={refIcone}
+      />
       {/* O gesto vive só na tela principal: folhas e modais estão fora deste
           <main>, então puxar dentro delas não dispara nada. */}
-      <main
-        className={styles.conteudo}
-        style={estado.y > 0 ? { transform: `translateY(${estado.y}px)` } : undefined}
-        {...manipuladores}
-      >
+      <main ref={refConteudo} className={styles.conteudo} {...manipuladores}>
         <Suspense fallback={null}>
           <PaginaTransicao>
             <Outlet />

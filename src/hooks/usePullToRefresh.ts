@@ -10,6 +10,14 @@ import { checarVersaoNova } from "../stores/pwaStore";
 // exatamente essa suposição que deixou o app preso na versão velha e deu origem
 // ao usePwaUpdate. Aqui pede-se a checagem à mão pelo mesmo caminho já provado
 // (`checarVersaoNova`); só se recarrega quando já se estava na última versão.
+//
+// Achado da auditoria de Arquitetura & Código: a versão anterior chamava
+// `setEstado` (React) a cada evento de `touchmove` do arrasto — a tela
+// inteira recalculava dezenas de vezes por segundo enquanto o dedo se movia.
+// Agora, como o useDragToClose, o deslocamento/opacidade/rotação são
+// escritos DIRETO no DOM a cada frame (bypass do React); o React só entra
+// quando algo precisa mudar de verdade — mostrar/esconder o indicador, ou
+// começar/acabar o "recarregando".
 
 /** Quanto é preciso puxar para o gesto valer. */
 const LIMITE = 76;
@@ -20,21 +28,24 @@ const MAX = 150;
 const RESPOSTA_VOLTA = 0.3;
 const AMORT_VOLTA = 1;
 
-export interface EstadoPull {
-  /** Deslocamento atual em px (0 = nada puxado). */
-  y: number;
-  /** Passou do limite: soltar agora recarrega. */
-  armado: boolean;
-  /** Já soltou acima do limite e está a recarregar. */
-  recarregando: boolean;
-}
-
 export function usePullToRefresh() {
-  const [estado, setEstado] = useState<EstadoPull>({
-    y: 0,
-    armado: false,
-    recarregando: false,
-  });
+  /** Só o que precisa de re-render: mostrar/esconder o indicador (`visivel`),
+   *  a cor de "passou do limite" (`armado`) e o estado de "já soltou acima do
+   *  limite" (`recarregando`) — os três mudam só um punhado de vezes por
+   *  gesto, não a cada frame. O deslocamento em si (`y`), a opacidade e a
+   *  rotação nunca passam pelo React — ver `aplicar`. */
+  const [visivel, setVisivel] = useState(false);
+  const [armado, setArmado] = useState(false);
+  const [recarregando, setRecarregando] = useState(false);
+  /** Espelhos síncronos, pra `aplicar` ler o valor atual sem esperar o
+   *  commit do React (o mesmo motivo do `yRef` abaixo). */
+  const recarregandoRef = useRef(false);
+  const visivelRef = useRef(false);
+  const armadoRef = useRef(false);
+
+  const refConteudo = useRef<HTMLElement | null>(null);
+  const refIndicador = useRef<HTMLDivElement | null>(null);
+  const refIcone = useRef<SVGSVGElement | null>(null);
 
   const inicioY = useRef(0);
   const puxando = useRef(false);
@@ -47,9 +58,52 @@ export function usePullToRefresh() {
    *  largado ainda em movimento (achado da auditoria de Design). */
   const hist = useRef<[number, number][]>([]);
 
+  /** Escreve o deslocamento atual — o conteúdo desce, o indicador acompanha
+   *  e gira. Chamado a cada frame do arrasto e da mola de volta; nenhuma
+   *  chamada aqui passa por `setState`. `visivel`/`recarregando` só mudam de
+   *  facto (com re-render) nas transições marcadas abaixo. */
   const aplicar = useCallback((y: number) => {
     yRef.current = y;
-    setEstado((e) => ({ ...e, y, armado: y >= LIMITE }));
+
+    if (y > 0 && !visivelRef.current) {
+      visivelRef.current = true;
+      setVisivel(true);
+    } else if (y <= 0 && !recarregandoRef.current && visivelRef.current) {
+      visivelRef.current = false;
+      setVisivel(false);
+    }
+
+    // Passou do limite: soltar agora recarrega, e a cor diz isso. Muda no
+    // máximo um punhado de vezes por gesto (cruzar o limiar pra cima, e de
+    // volta se o dedo recuar sem soltar) — vale a pena um re-render.
+    const armadoAgora = y >= LIMITE;
+    if (armadoAgora !== armadoRef.current) {
+      armadoRef.current = armadoAgora;
+      setArmado(armadoAgora);
+    }
+
+    if (refConteudo.current) {
+      refConteudo.current.style.transform = y > 0 ? `translateY(${y}px)` : "";
+    }
+
+    const progresso = Math.min(1, y / LIMITE);
+    const recarregandoAgora = recarregandoRef.current;
+    // Enquanto recarrega o conteúdo já voltou ao lugar (y = 0): o indicador
+    // fica sozinho, parado na altura do limite.
+    const alturaVisivel = recarregandoAgora ? LIMITE : y;
+    if (refIndicador.current) {
+      refIndicador.current.style.transform = `translateX(-50%) translateY(${Math.round(alturaVisivel * 0.6)}px)`;
+      refIndicador.current.style.opacity = String(
+        recarregandoAgora ? 1 : Math.min(1, progresso * 1.4),
+      );
+    }
+    if (refIcone.current) {
+      // Girando (recarregando) é a animação CSS de `.girando` — um transform
+      // inline por cima dela ia competir com o keyframe. Só se escreve a
+      // rotação manual fora desse estado.
+      if (recarregandoAgora) refIcone.current.style.transform = "";
+      else refIcone.current.style.transform = `rotate(${progresso * 360}deg)`;
+    }
   }, []);
 
   const voltar = useCallback(
@@ -140,7 +194,8 @@ export function usePullToRefresh() {
     puxando.current = false;
     const v = velocidadeAtual();
     if (yRef.current >= LIMITE) {
-      setEstado((e) => ({ ...e, recarregando: true }));
+      recarregandoRef.current = true;
+      setRecarregando(true);
       // A checagem demora — o conteúdo volta ao lugar e fica só o indicador a
       // girar, em vez de a tela ficar presa a meio do puxão.
       voltar(v);
@@ -160,8 +215,13 @@ export function usePullToRefresh() {
   }, [voltar]);
 
   return {
-    estado,
+    visivel,
+    armado,
+    recarregando,
     limite: LIMITE,
+    refConteudo,
+    refIndicador,
+    refIcone,
     manipuladores: {
       onPointerDown: aoPointerDown,
       onPointerMove: aoPointerMove,
