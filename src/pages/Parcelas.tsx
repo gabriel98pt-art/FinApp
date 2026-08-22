@@ -18,7 +18,7 @@ import {
 import { atualizarParcela } from "../services/lancamentosService";
 import { adicionarItemLista, removerItemLista } from "../services/cfgService";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -53,7 +53,7 @@ function LinhaParcela({
   mesRef: YearMonth;
   diaVencimentoFatura: Record<string, number> | undefined;
 }) {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const quitada = parcelaQuitada(p, mesRef);
   const { pagas, total } = progressoDaParcela(p, mesRef);
@@ -118,7 +118,7 @@ function LinhaParcela({
             className={styles.acao}
             onClick={() =>
               agir(
-                () => pagarMesParcela(uid!, p, proximo),
+                () => pagarMesParcela(uid, p, proximo),
                 `✓ ${p.descricao} — ${rotuloMes(proximo)} paga`,
               )
             }
@@ -144,7 +144,7 @@ function LinhaParcela({
                 )
                   return;
                 await agir(
-                  () => quitarParcela(uid!, p, mesRef),
+                  () => quitarParcela(uid, p, mesRef),
                   `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
                 );
               })();
@@ -168,7 +168,7 @@ function FormParcela({
   aoFechar: () => void;
   editando: Parcela | null;
 }) {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const [descricao, setDescricao] = useState("");
@@ -228,10 +228,10 @@ function FormParcela({
     };
     try {
       if (editando) {
-        await atualizarParcela(uid!, { ...editando, ...dados });
+        await atualizarParcela(uid, { ...editando, ...dados });
         mostrarToast("✓ Parcela atualizada");
       } else {
-        await criarParcela(uid!, { ...dados, pagoPorMes: {} });
+        await criarParcela(uid, { ...dados, pagoPorMes: {} });
         mostrarToast("✓ Parcela criada");
       }
       setSemeadoPara(null);
@@ -250,7 +250,7 @@ function FormParcela({
     )
       return;
     try {
-      await excluirParcela(uid!, editando);
+      await excluirParcela(uid, editando);
       mostrarToast("Parcela excluída");
       setSemeadoPara(null);
       aoFechar();
@@ -393,7 +393,7 @@ export default function Parcelas() {
   // rever o histórico sem misturar com o dia a dia nem rolar a página toda.
   const [quitadasAbertas, setQuitadasAbertas] = useState(false);
   const [novoIntermediador, setNovoIntermediador] = useState("");
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
 
   async function adicionarIntermediador(e: FormEvent) {
@@ -401,7 +401,7 @@ export default function Parcelas() {
     const nome = novoIntermediador.trim();
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
-      await adicionarItemLista(uid!, cfg, "intermediadoresParcelamento", nome);
+      await adicionarItemLista(uid, cfg, "intermediadoresParcelamento", nome);
       mostrarToast(`✓ "${nome}" adicionado`);
       setNovoIntermediador("");
     } catch (err) {
@@ -412,7 +412,7 @@ export default function Parcelas() {
   async function removerIntermediador(nome: string) {
     if (!(await confirmar(`Remover "${nome}"? Parcelas já criadas não mudam.`))) return;
     try {
-      await removerItemLista(uid!, cfg, "intermediadoresParcelamento", nome);
+      await removerItemLista(uid, cfg, "intermediadoresParcelamento", nome);
       mostrarToast(`"${nome}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");

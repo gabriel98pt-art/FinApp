@@ -24,7 +24,7 @@ import {
   removerTransferencia,
 } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
@@ -81,7 +81,7 @@ function ControlesFatura({
   aoPagar: () => void;
   aoAjustar: () => void;
 }) {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const paga = fatura.devido > 0 && fatura.restante === 0;
@@ -137,7 +137,7 @@ function ControlesFatura({
                     void (async () => {
                       if (!(await confirmar("Remover este pagamento?"))) return;
                       await removerPagamentoFatura(
-                        uid!,
+                        uid,
                         fatura.cartao,
                         fatura.mes,
                         p,
@@ -178,7 +178,7 @@ function ControlesFatura({
                   ))
                 )
                   return;
-                await reabrirFatura(uid!, fatura.cartao, fatura.mes, calcularPagamentos(fatura))
+                await reabrirFatura(uid, fatura.cartao, fatura.mes, calcularPagamentos(fatura))
                   .then(() => mostrarToast("↩ Fatura reaberta"))
                   .catch(() => mostrarToast("Não foi possível reabrir."));
               })();
@@ -259,7 +259,7 @@ function calcularPagamentos(fatura: FaturaCalculada) {
 }
 
 export default function Cartoes() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const cfgCarregada = useCfgStore((s) => s.carregado);
@@ -378,7 +378,7 @@ export default function Cartoes() {
     const nome = novoNome.trim();
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
-      await adicionarCartao(uid!, cfg, nome, novoTipo);
+      await adicionarCartao(uid, cfg, nome, novoTipo);
       mostrarToast(`✓ ${novoTipo === "credit" ? "Cartão de crédito" : "Conta/débito"} adicionado`);
       setNovoNome("");
     } catch (err) {
@@ -390,7 +390,7 @@ export default function Cartoes() {
     if (!renomeando) return;
     const alvo = renomeando;
     try {
-      await renomearCartao(uid!, cfg, alvo, nomeNovo);
+      await renomearCartao(uid, cfg, alvo, nomeNovo);
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
@@ -406,7 +406,7 @@ export default function Cartoes() {
     )
       return;
     try {
-      await removerCartao(uid!, cfg, nome);
+      await removerCartao(uid, cfg, nome);
       mostrarToast(`"${nome}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");
@@ -451,10 +451,10 @@ export default function Cartoes() {
     };
     try {
       if (tfEditandoId) {
-        await atualizarTransferencia(uid!, { ...dados, id: tfEditandoId });
+        await atualizarTransferencia(uid, { ...dados, id: tfEditandoId });
         mostrarToast("✓ Transferência atualizada");
       } else {
-        await criarTransferencia(uid!, dados);
+        await criarTransferencia(uid, dados);
         mostrarToast("✓ Transferência registrada");
       }
       setTfAberta(false);
@@ -469,7 +469,7 @@ export default function Cartoes() {
     const id = tfEditandoId;
     setTfAberta(false);
     try {
-      await removerTransferencia(uid!, id);
+      await removerTransferencia(uid, id);
       mostrarToast("Transferência excluída");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
@@ -483,7 +483,7 @@ export default function Cartoes() {
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     if (!pagarDe) return mostrarToast("Escolha de onde sai o dinheiro.");
     try {
-      await pagarFatura(uid!, {
+      await pagarFatura(uid, {
         cartao: pagando.cartao,
         mes: pagando.mes,
         valor,
@@ -507,7 +507,7 @@ export default function Cartoes() {
     // Vazio repõe o cálculo automático — é o que este campo quer dizer.
     const valor = valorTexto;
     try {
-      await definirFaturaManual(uid!, ajustando.cartao, ajustando.mes, valor);
+      await definirFaturaManual(uid, ajustando.cartao, ajustando.mes, valor);
       mostrarToast(
         valor === null
           ? "✓ Reposto para cálculo automático"
@@ -529,7 +529,7 @@ export default function Cartoes() {
       // O usuário diz quanto a conta tem hoje; o que se guarda é de onde ela
       // teve de partir para lá chegar com os movimentos já lançados.
       await definirSaldoInicial(
-        uid!,
+        uid,
         resumo.conta,
         saldoInicialParaAlvo(resumo, saldoInicial, alvo),
       );
@@ -643,7 +643,7 @@ export default function Cartoes() {
                         aria-label={`Dia de fechamento da fatura de ${c} — vazio é o último dia do mês`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaFechamentoFatura(uid!, c, Number.isFinite(n) ? n : null)
+                          void definirDiaFechamentoFatura(uid, c, Number.isFinite(n) ? n : null)
                             .then(() => mostrarToast("Dia de fechamento guardado"))
                             .catch(() => mostrarToast("Não foi possível guardar."));
                         }}
@@ -659,7 +659,7 @@ export default function Cartoes() {
                         aria-label={`Dia de vencimento da fatura de ${c}`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaVencimentoFatura(uid!, c, Number.isFinite(n) ? n : null)
+                          void definirDiaVencimentoFatura(uid, c, Number.isFinite(n) ? n : null)
                             .then(() => mostrarToast("Dia de vencimento guardado"))
                             .catch(() => mostrarToast("Não foi possível guardar."));
                         }}

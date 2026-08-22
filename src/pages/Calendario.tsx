@@ -7,7 +7,7 @@ import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import { criarEvento, removerEvento } from "../services/eventosService";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
 import {
@@ -47,7 +47,7 @@ import styles from "./Calendario.module.css";
 import Botao from "../components/Botao";
 
 export default function Calendario() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const eventos = useEventosStore((s) => s.itens);
@@ -158,7 +158,7 @@ export default function Calendario() {
     // Campo opcional: vazio grava sem valor, como sempre.
     const valor = valorTexto ?? undefined;
     try {
-      await criarEvento(uid!, { titulo, data: dataNovo, descricao: nota || undefined, valor });
+      await criarEvento(uid, { titulo, data: dataNovo, descricao: nota || undefined, valor });
       mostrarToast("✓ Evento adicionado");
       setNovoAberto(false);
       setTitulo("");
@@ -336,7 +336,7 @@ export default function Calendario() {
                     onClick={() => {
                       void (async () => {
                         if (!(await confirmar(`Excluir "${e.titulo}"?`))) return;
-                        await removerEvento(uid!, e.id)
+                        await removerEvento(uid, e.id)
                           .then(() => mostrarToast("Evento excluído"))
                           .catch(() => mostrarToast("Não foi possível excluir."));
                       })();

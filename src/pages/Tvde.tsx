@@ -18,7 +18,7 @@ import {
 } from "../services/tvdeService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -82,7 +82,7 @@ function FormSemana({
   n: number | null; // número da semana a editar/criar; null = fechado
   aoFechar: () => void;
 }) {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const dados = useTvdeStore((s) => s.dados);
   const cargas = useVeiculoStore((s) => s.dados.cargas);
@@ -201,7 +201,7 @@ function FormSemana({
                 if (!(await confirmar(`Excluir a semana ${n}?`))) return;
                 aoFechar();
                 setChave(null);
-                await removerSemana(uid!, n)
+                await removerSemana(uid, n)
                   .then(() => mostrarToast("Semana excluída"))
                   .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
               })();
@@ -216,7 +216,7 @@ function FormSemana({
 }
 
 export default function Tvde() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const dados = useTvdeStore((s) => s.dados);
   const carregado = useTvdeStore((s) => s.carregado);
@@ -371,7 +371,7 @@ export default function Tvde() {
                             className={styles.acaoMini}
                             onClick={() =>
                               agir(
-                                () => desfazerLancamentoSemana(uid!, nSem, lancada),
+                                () => desfazerLancamentoSemana(uid, nSem, lancada),
                                 "↩ Lançamento desfeito",
                               )
                             }
@@ -390,7 +390,7 @@ export default function Tvde() {
                                 )
                                   return;
                                 await agir(
-                                  () => lancarReceitaSemana(uid!, nSem, dados),
+                                  () => lancarReceitaSemana(uid, nSem, dados),
                                   "✓ Receita lançada nas finanças",
                                 );
                               })();
@@ -489,7 +489,7 @@ export default function Tvde() {
                     aria-label="Conta destino da receita"
                     onChange={(e) =>
                       void agir(
-                        () => salvarConfigTvde(uid!, { contaReceita: e.target.value }),
+                        () => salvarConfigTvde(uid, { contaReceita: e.target.value }),
                         "✓ Conta destino salva",
                       )
                     }
@@ -522,7 +522,7 @@ export default function Tvde() {
                   aria-label="Fonte da receita"
                   onChange={(e) =>
                     void agir(
-                      () => salvarConfigTvde(uid!, { fonteReceita: e.target.value }),
+                      () => salvarConfigTvde(uid, { fonteReceita: e.target.value }),
                       "✓ Fonte da receita salva",
                     )
                   }
@@ -543,7 +543,7 @@ export default function Tvde() {
                 // Zero remove o registo do mês; vazio não faz nada.
                 const v = segValor ?? 0;
                 void agir(
-                  () => definirSegMes(uid!, segMes, v === 0 ? null : v),
+                  () => definirSegMes(uid, segMes, v === 0 ? null : v),
                   v === 0 ? "Seg. Social removida" : "✓ Seg. Social registrada",
                 );
                 setSegValor(null);
@@ -582,7 +582,7 @@ export default function Tvde() {
                 if (v === null || v <= 0) return mostrarToast("Valor inválido.");
                 void agir(
                   () =>
-                    criarDespesaTvde(uid!, { data: hojeIso(), descricao: despDescricao, valor: v }),
+                    criarDespesaTvde(uid, { data: hojeIso(), descricao: despDescricao, valor: v }),
                   "✓ Despesa TVDE adicionada",
                 );
                 setDespDescricao("");
@@ -620,7 +620,7 @@ export default function Tvde() {
                             e.preventDefault();
                             void (async () => {
                               if (!(await confirmar(`Excluir "${d.descricao}"?`))) return;
-                              await agir(() => removerDespesaTvde(uid!, d.id), "Despesa excluída");
+                              await agir(() => removerDespesaTvde(uid, d.id), "Despesa excluída");
                             })();
                           }}
                           aria-label={`Excluir ${d.descricao}`}

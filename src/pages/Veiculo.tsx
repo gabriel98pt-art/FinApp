@@ -37,7 +37,7 @@ import {
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
@@ -78,7 +78,7 @@ function agir(acao: () => Promise<unknown>, ok: string) {
 }
 
 export default function Veiculo() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const dados = useVeiculoStore((s) => s.dados);
@@ -174,9 +174,9 @@ export default function Veiculo() {
     if (!Number.isFinite(km) || km <= 0) return mostrarToast("Km inválido.");
     const dados_ = { km, data: kmData || hojeIso(), nota: kmNota.trim() || undefined };
     if (kmEditandoId) {
-      await agir(() => atualizarKm(uid!, { ...dados_, id: kmEditandoId }), "✓ Registo atualizado");
+      await agir(() => atualizarKm(uid, { ...dados_, id: kmEditandoId }), "✓ Registo atualizado");
     } else {
-      await agir(() => criarKm(uid!, dados_), "✓ Quilometragem registada");
+      await agir(() => criarKm(uid, dados_), "✓ Quilometragem registada");
     }
     setKmAberta(false);
   }
@@ -186,7 +186,7 @@ export default function Veiculo() {
     if (!(await confirmar("Excluir este registo de km?"))) return;
     const id = kmEditandoId;
     setKmAberta(false);
-    await agir(() => removerKm(uid!, id), "Registo excluído");
+    await agir(() => removerKm(uid, id), "Registo excluído");
   }
 
   // ---- caixa de carga elétrica (criar/editar) ----
@@ -279,10 +279,10 @@ export default function Veiculo() {
     };
     try {
       if (cgEditandoId) {
-        await atualizarCarga(uid!, { ...dados_, id: cgEditandoId });
+        await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
         mostrarToast("✓ Carregamento atualizado");
       } else {
-        await criarCarga(uid!, dados_);
+        await criarCarga(uid, dados_);
         mostrarToast("✓ Carregamento registado");
       }
       setCgAberta(false);
@@ -299,7 +299,7 @@ export default function Veiculo() {
     const nome = novoLocal.trim();
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
-      await adicionarItemLista(uid!, cfg, "locaisCarregamento", nome);
+      await adicionarItemLista(uid, cfg, "locaisCarregamento", nome);
       mostrarToast(`✓ "${nome}" adicionado`);
       setNovoLocal("");
     } catch (err) {
@@ -310,7 +310,7 @@ export default function Veiculo() {
   async function removerLocal(nome: string) {
     if (!(await confirmar(`Remover "${nome}"? Carregamentos já registados não mudam.`))) return;
     try {
-      await removerItemLista(uid!, cfg, "locaisCarregamento", nome);
+      await removerItemLista(uid, cfg, "locaisCarregamento", nome);
       mostrarToast(`"${nome}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");
@@ -325,7 +325,7 @@ export default function Veiculo() {
     const nome = novaCategoria.trim();
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
-      await adicionarItemLista(uid!, cfg, "categoriasVeiculo", nome);
+      await adicionarItemLista(uid, cfg, "categoriasVeiculo", nome);
       mostrarToast(`✓ "${nome}" adicionada`);
       setNovaCategoria("");
     } catch (err) {
@@ -336,7 +336,7 @@ export default function Veiculo() {
   async function removerCategoria(nome: string) {
     if (!(await confirmar(`Remover "${nome}"? Despesas já registadas não mudam.`))) return;
     try {
-      await removerItemLista(uid!, cfg, "categoriasVeiculo", nome);
+      await removerItemLista(uid, cfg, "categoriasVeiculo", nome);
       mostrarToast(`"${nome}" removida`);
     } catch {
       mostrarToast("Não foi possível remover.");
@@ -354,8 +354,8 @@ export default function Veiculo() {
     if (!renomeando) return;
     const { tipo, nome } = renomeando;
     try {
-      if (tipo === "local") await renomearLocal(uid!, cfg, nome, nomeNovo);
-      else await renomearCategoria(uid!, cfg, "categoriasVeiculo", nome, nomeNovo);
+      if (tipo === "local") await renomearLocal(uid, cfg, nome, nomeNovo);
+      else await renomearCategoria(uid, cfg, "categoriasVeiculo", nome, nomeNovo);
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
@@ -368,7 +368,7 @@ export default function Veiculo() {
     if (!(await confirmar("Excluir este carregamento?"))) return;
     const id = cgEditandoId;
     setCgAberta(false);
-    await agir(() => removerCarga(uid!, id), "Carregamento excluído");
+    await agir(() => removerCarga(uid, id), "Carregamento excluído");
   }
 
   // ---- caixa de despesa variável do veículo (criar/editar) ----
@@ -413,11 +413,11 @@ export default function Veiculo() {
     };
     if (dvEditandoId) {
       await agir(
-        () => atualizarDespesaVeiculo(uid!, { ...dados_, id: dvEditandoId }),
+        () => atualizarDespesaVeiculo(uid, { ...dados_, id: dvEditandoId }),
         "✓ Despesa atualizada",
       );
     } else {
-      await agir(() => criarDespesaVeiculo(uid!, dados_), "✓ Despesa do veículo adicionada");
+      await agir(() => criarDespesaVeiculo(uid, dados_), "✓ Despesa do veículo adicionada");
     }
     setDvAberta(false);
   }
@@ -427,7 +427,7 @@ export default function Veiculo() {
     if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
     const id = dvEditandoId;
     setDvAberta(false);
-    await agir(() => removerDespesaVeiculo(uid!, id), "Despesa excluída");
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa excluída");
   }
 
   // ---- caixa de despesa fixa do veículo (criar/editar) ----
@@ -478,14 +478,11 @@ export default function Veiculo() {
       const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
       if (!atual) return;
       await agir(
-        () => atualizarFixaVeiculo(uid!, { ...atual, ...base }),
+        () => atualizarFixaVeiculo(uid, { ...atual, ...base }),
         "✓ Despesa fixa atualizada",
       );
     } else {
-      await agir(
-        () => criarFixaVeiculo(uid!, { ...base, pagoPorMes: {} }),
-        "✓ Despesa fixa criada",
-      );
+      await agir(() => criarFixaVeiculo(uid, { ...base, pagoPorMes: {} }), "✓ Despesa fixa criada");
     }
     setDfAberta(false);
   }
@@ -495,7 +492,7 @@ export default function Veiculo() {
     if (!atual) return;
     if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
-    await agir(() => removerFixaVeiculo(uid!, atual.id), "Despesa fixa excluída");
+    await agir(() => removerFixaVeiculo(uid, atual.id), "Despesa fixa excluída");
   }
 
   return (
@@ -850,7 +847,7 @@ export default function Veiculo() {
                           aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                           onClick={() =>
                             void agir(
-                              () => alternarPagoFixaVeiculo(uid!, f.id, mes, !paga),
+                              () => alternarPagoFixaVeiculo(uid, f.id, mes, !paga),
                               paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
                             )
                           }

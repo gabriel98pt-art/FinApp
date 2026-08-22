@@ -23,7 +23,7 @@ import {
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
@@ -72,7 +72,7 @@ function agir(acao: () => Promise<unknown>, ok: string) {
 }
 
 export default function Despesas() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const cfg = useCfgStore((s) => s.cfg);
@@ -286,12 +286,12 @@ export default function Despesas() {
       const atual = despesasFixas.find((f) => f.id === dfEditandoId);
       if (!atual) return;
       await agir(
-        () => atualizarDespesaFixa(uid!, { ...atual, ...dados }),
+        () => atualizarDespesaFixa(uid, { ...atual, ...dados }),
         "✓ Despesa fixa atualizada",
       );
     } else {
       await agir(
-        () => criarDespesaFixa(uid!, { ...dados, pagoPorMes: {} }),
+        () => criarDespesaFixa(uid, { ...dados, pagoPorMes: {} }),
         "✓ Despesa fixa criada",
       );
     }
@@ -303,7 +303,7 @@ export default function Despesas() {
     if (!atual) return;
     if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
-    await agir(() => removerDespesaFixa(uid!, atual.id), "Despesa fixa excluída");
+    await agir(() => removerDespesaFixa(uid, atual.id), "Despesa fixa excluída");
   }
 
   return (
@@ -577,7 +577,7 @@ export default function Despesas() {
                           aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                           onClick={() =>
                             void agir(
-                              () => alternarPagoDespesaFixa(uid!, f.id, mes, !paga),
+                              () => alternarPagoDespesaFixa(uid, f.id, mes, !paga),
                               paga ? "Marcado como pendente" : "✓ Pago",
                             )
                           }

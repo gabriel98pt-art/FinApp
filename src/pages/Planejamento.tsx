@@ -14,7 +14,7 @@ import type { Cents } from "../types";
 import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { useAuthStore } from "../stores/authStore";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useFundosStore } from "../stores/fundosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -64,7 +64,7 @@ const ABAS = [
  *  - **Metas**: a meta de poupança do mês, os fundos ("cofrinhos") e o resumo
  *    dos últimos 12 meses. */
 export default function Planejamento() {
-  const uid = useAuthStore((s) => s.sessao?.uid);
+  const uid = useUidSessao();
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const receitas = useReceitasStore((s) => s.itens);
@@ -163,7 +163,7 @@ export default function Planejamento() {
     if (!nome.trim()) return mostrarToast("Nome obrigatório.");
     if (valorAlvo === null || valorAlvo <= 0) return mostrarToast("Meta inválida.");
     try {
-      await criarFundo(uid!, { nome, alvo: valorAlvo, atual: 0, prazo: prazo || undefined });
+      await criarFundo(uid, { nome, alvo: valorAlvo, atual: 0, prazo: prazo || undefined });
       mostrarToast("✓ Fundo criado");
       setNovoAberto(false);
       setNome("");
@@ -181,7 +181,7 @@ export default function Planejamento() {
     const valor = contribValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     try {
-      await contribuirFundo(uid!, fundo, valor);
+      await contribuirFundo(uid, fundo, valor);
       mostrarToast(`✓ ${formatMoney(valor, moeda)} adicionado(s) a ${fundo.nome}`);
       setContribuindo(null);
       setContribValor(null);
@@ -392,7 +392,7 @@ export default function Planejamento() {
                           onClick={() => {
                             void (async () => {
                               if (!(await confirmar(`Excluir o fundo "${f.nome}"?`))) return;
-                              await removerFundo(uid!, f.id)
+                              await removerFundo(uid, f.id)
                                 .then(() => mostrarToast("Fundo excluído"))
                                 .catch(() => mostrarToast("Não foi possível excluir."));
                             })();
