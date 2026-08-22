@@ -30,6 +30,7 @@ import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
 import { rotuloMes, somarMeses } from "../utils/calculos";
+import { montarDadosFatura } from "../utils/fatura";
 import type {
   Confianca,
   Currency,
@@ -334,16 +335,14 @@ export default function Importar() {
         faturasPagas: cfg.faturasPagas,
         diaFechamentoFatura: cfg.diaFechamentoFatura,
         parcelas,
-        dados: {
+        dados: montarDadosFatura({
+          despesas,
           despesasFixas,
-          despesasFixasVeiculo: veiculo.despesasFixas,
-          despesasCorrentes: despesas,
-          parcelas,
           transferencias,
-          cargas: veiculo.cargas,
-          despesasVeiculo: veiculo.despesas,
+          parcelas,
+          veiculo,
           receitas,
-        },
+        }),
       });
       if (apagar.length) await apagarExistentes(uid, apagar, despesasFixas);
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);

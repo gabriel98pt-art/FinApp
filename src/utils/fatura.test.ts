@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import type {
   CargaEletrica,
+  DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
@@ -15,6 +16,7 @@ import {
   cicloDaFatura,
   fixaEfetivamentePaga,
   mesDoCiclo,
+  montarDadosFatura,
   pagamentosDaFatura,
   type DadosFatura,
 } from "./fatura";
@@ -660,5 +662,68 @@ describe("despesa fixa sem dia de vencimento", () => {
     // porque julho já acabou.
     const f = fixa({ inicio: "2026-08" });
     expect(fixaEfetivamentePaga(f, "2026-07", "2026-09", "2026-09-01")).toBe(false);
+  });
+});
+
+describe("montarDadosFatura — achado da auditoria de Arquitetura", () => {
+  // Antes desta função, o mapeamento era escrito à mão em 5 lugares
+  // diferentes (Cartões, Calendário, Importar, useNotificacoes, Copiloto) —
+  // esquecer um campo dava fatura errada sem erro de tipo, porque quase todo
+  // campo de DadosFatura além dos 4 obrigatórios é opcional.
+  const veiculo: DadosVeiculo = {
+    cargas: [{ id: "c1" } as CargaEletrica],
+    despesas: [{ id: "dv1" } as DespesaVeiculo],
+    despesasFixas: [{ id: "fv1" } as DespesaFixa],
+    quilometragem: [],
+  };
+
+  test("os 8 campos de DadosFatura, nem um a mais nem a menos", () => {
+    const dados = montarDadosFatura({
+      despesas: [],
+      despesasFixas: [],
+      transferencias: [],
+      parcelas: [],
+      veiculo,
+      receitas: [],
+    });
+
+    expect(Object.keys(dados).sort()).toEqual(
+      [
+        "despesasFixas",
+        "despesasFixasVeiculo",
+        "despesasCorrentes",
+        "parcelas",
+        "transferencias",
+        "cargas",
+        "despesasVeiculo",
+        "receitas",
+      ].sort(),
+    );
+  });
+
+  test("cada campo vem exatamente da parte certa — nada trocado", () => {
+    const despesas = [{ id: "d1" } as DespesaCorrente];
+    const despesasFixas = [{ id: "f1" } as DespesaFixa];
+    const transferencias = [{ id: "t1" } as Transferencia];
+    const parcelas = [{ id: "p1" } as Parcela];
+    const receitas = [{ id: "r1" } as Receita];
+
+    const dados = montarDadosFatura({
+      despesas,
+      despesasFixas,
+      transferencias,
+      parcelas,
+      veiculo,
+      receitas,
+    });
+
+    expect(dados.despesasCorrentes).toBe(despesas);
+    expect(dados.despesasFixas).toBe(despesasFixas);
+    expect(dados.despesasFixasVeiculo).toBe(veiculo.despesasFixas);
+    expect(dados.transferencias).toBe(transferencias);
+    expect(dados.parcelas).toBe(parcelas);
+    expect(dados.receitas).toBe(receitas);
+    expect(dados.cargas).toBe(veiculo.cargas);
+    expect(dados.despesasVeiculo).toBe(veiculo.despesas);
   });
 });

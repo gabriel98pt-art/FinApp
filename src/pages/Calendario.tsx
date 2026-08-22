@@ -20,7 +20,7 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { mostrarToast } from "../stores/toastStore";
-import { calcularFatura, type DadosFatura } from "../utils/fatura";
+import { calcularFatura, montarDadosFatura } from "../utils/fatura";
 import {
   naJanela,
   porDia,
@@ -86,16 +86,14 @@ export default function Calendario() {
 
   // Compromissos do mês que não são evento manual (item 11): fixas gerais e
   // do veículo, parcelas e faturas dos cartões de crédito.
-  const dadosFatura: DadosFatura = {
+  const dadosFatura = montarDadosFatura({
+    despesas,
     despesasFixas,
-    despesasFixasVeiculo: veiculo.despesasFixas,
-    despesasCorrentes: despesas,
-    parcelas,
     transferencias,
-    cargas: veiculo.cargas,
-    despesasVeiculo: veiculo.despesas,
+    parcelas,
+    veiculo,
     receitas,
-  };
+  });
   // `mesAtual()`/`hoje` dão a mesma precisão de dia que Transações e o
   // Orçamento já usam — sem eles, um compromisso já pago continuava a
   // aparecer no Calendário como se estivesse por fazer.

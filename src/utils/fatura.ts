@@ -12,6 +12,7 @@
 import type {
   CargaEletrica,
   Cents,
+  DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
@@ -125,6 +126,36 @@ export interface DadosFatura {
    *  sem elas, mas quem mostra fatura ao usuário TEM de as passar, senão a
    *  fatura pede mais do que o banco cobra. */
   receitas?: Receita[];
+}
+
+/** Os stores brutos que `montarDadosFatura` precisa — mesmos nomes, mesmo
+ *  formato de quem já lê tudo isso de `useXStore()`. */
+export interface PartesDadosFatura {
+  despesas: DespesaCorrente[];
+  despesasFixas: DespesaFixa[];
+  transferencias: Transferencia[];
+  parcelas: Parcela[];
+  veiculo: DadosVeiculo;
+  receitas: Receita[];
+}
+
+/** Monta o `DadosFatura` a partir dos stores — achado da auditoria de
+ *  Arquitetura: era feito à mão em 5 lugares (Cartões, Calendário, Importar,
+ *  useNotificacoes, e o Copiloto via `dadosFaturaDoContexto`), e esquecer um
+ *  campo aqui dá fatura errada sem erro de tipo (todos os campos além dos 3
+ *  obrigatórios são opcionais, então TypeScript não acusa nada faltando).
+ *  Uma função só, chamada em todo lugar, é a fonte única do mapeamento. */
+export function montarDadosFatura(p: PartesDadosFatura): DadosFatura {
+  return {
+    despesasFixas: p.despesasFixas,
+    despesasFixasVeiculo: p.veiculo.despesasFixas,
+    despesasCorrentes: p.despesas,
+    parcelas: p.parcelas,
+    transferencias: p.transferencias,
+    cargas: p.veiculo.cargas,
+    despesasVeiculo: p.veiculo.despesas,
+    receitas: p.receitas,
+  };
 }
 
 /** Débito automático das parcelas vinculadas ao cartão num mês do ciclo.

@@ -56,8 +56,8 @@ import {
 import {
   calcularFatura,
   cicloDaFatura,
+  montarDadosFatura,
   pagamentosDaFatura,
-  type DadosFatura,
 } from "../utils/fatura";
 import {
   resumosDasContas,
@@ -324,16 +324,14 @@ export default function Cartoes() {
   const [tfDescricao, setTfDescricao] = useState("");
   const [tfNota, setTfNota] = useState("");
 
-  const dados: DadosFatura = {
+  const dados = montarDadosFatura({
+    despesas,
     despesasFixas,
-    despesasFixasVeiculo: veiculo.despesasFixas,
-    despesasCorrentes: despesas,
-    parcelas,
     transferencias,
-    cargas: veiculo.cargas,
-    despesasVeiculo: veiculo.despesas,
+    parcelas,
+    veiculo,
     receitas,
-  };
+  });
 
   const dadosContas: DadosContas = {
     receitas,

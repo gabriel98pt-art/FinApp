@@ -26,7 +26,13 @@ import type {
 } from "../types";
 import { doMes, mesDe, mesesRecentes, rotuloMes, somarMeses, totalDoMes } from "./calculos";
 import { proximosEventos } from "./calendario";
-import { calcularFatura, fixaAtivaNoMes, fixaEfetivamentePaga, type DadosFatura } from "./fatura";
+import {
+  calcularFatura,
+  fixaAtivaNoMes,
+  fixaEfetivamentePaga,
+  montarDadosFatura,
+  type DadosFatura,
+} from "./fatura";
 import { contribuicaoFixasMes } from "./despesasFixas";
 import {
   contribuicaoParcelasMes,
@@ -462,16 +468,14 @@ function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
 }
 
 export function dadosFaturaDoContexto(ctx: ContextoCopiloto): DadosFatura {
-  return {
+  return montarDadosFatura({
+    despesas: ctx.despesas,
     despesasFixas: ctx.despesasFixas,
-    despesasFixasVeiculo: ctx.veiculo.despesasFixas,
-    despesasCorrentes: ctx.despesas,
-    parcelas: ctx.parcelas,
     transferencias: ctx.transferencias ?? [],
-    cargas: ctx.veiculo.cargas,
-    despesasVeiculo: ctx.veiculo.despesas,
+    parcelas: ctx.parcelas,
+    veiculo: ctx.veiculo,
     receitas: ctx.receitas,
-  };
+  });
 }
 
 /** '2026-07-05' → '05/07'. Dia e mês bastam onde o ano é o do contexto. */
