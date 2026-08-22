@@ -3,11 +3,19 @@
 // A captura NÃO vai à rede: lê as stores zustand já sincronizadas em memória
 // pelo syncService — exatamente como a origem fazia JSON.stringify(S) sobre
 // o objeto global em memória, sem custo de leitura no Firebase a cada ação.
-// A restauração sobrescreve a árvore inteira (mesma operação que
-// importarBackup); as stores se atualizam sozinhas via os listeners do
-// syncService assim que o Firebase confirma a escrita.
-
-import { ref, set } from "firebase/database";
+//
+// A restauração é um `update()` por domínio (receitas, despesasCorrentes,
+// veiculo, cfg...), NÃO um `set()` na raiz — achado da auditoria de
+// Arquitetura + Testes/QA: `iaUsoService.ts` grava a cota diária de IA em
+// `fin_v5/iaUso/{dia}`, um domínio que não tem store própria e por isso
+// NUNCA entra em `capturarEstadoAtual()` (não há de onde lê-lo sem ir à
+// rede). Um `set()` na raiz apaga qualquer domínio ausente do objeto
+// capturado — a cota de IA zerava a cada desfazer/refazer, em silêncio. Com
+// `update()`, cada chave de `arvore` é um filho direto de `fin_v5` que é
+// substituído inteiro; qualquer OUTRO filho (iaUso hoje, o que vier depois)
+// fica intocado — a mesma proteção vale para qualquer domínio futuro que
+// também não tenha store, sem precisar prever qual.
+import { ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { useCfgStore } from "../stores/cfgStore";
 import { useEventosStore } from "../stores/eventosStore";
@@ -56,8 +64,9 @@ export function capturarEstadoAtual(): string {
   return JSON.stringify(arvore);
 }
 
-/** Sobrescreve a árvore inteira da conta com um estado capturado antes. */
+/** Restaura os domínios capturados por `capturarEstadoAtual` — substitui
+ *  cada um por inteiro, mas nunca toca em nada fora dessa lista. */
 export async function restaurarEstado(uid: string, estadoSerializado: string): Promise<void> {
   const arvore = JSON.parse(estadoSerializado);
-  await set(ref(db, raiz(uid)), arvore);
+  await update(ref(db, raiz(uid)), arvore);
 }
