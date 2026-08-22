@@ -101,17 +101,64 @@ export function totalDasFatias(fatias: FatiaCategoria[]): Cents {
 
 /** Paradas do `conic-gradient` do donut, em % acumulado — calculadas dos
  *  valores exatos, não do `pct` arredondado, pra não sobrar/faltar fatia. A
- *  última fecha em 100% mesmo com resto de arredondamento. */
-export function paradasDonut(fatias: FatiaCategoria[], cores: string[]): string[] {
+ *  última fecha em 100% mesmo com resto de arredondamento.
+ *
+ *  `gapPct`, se passado, abre um respiro fino em CADA fronteira entre fatias
+ *  — inclusive a que fecha o círculo entre a última e a primeira — pintado
+ *  com `corSeparador`. Sem isso, duas categorias com cores parecidas viravam
+ *  uma fatia visualmente só (achado da auditoria de Design). `0` (padrão)
+ *  preserva o comportamento de sempre: fatias coladas, uma parada por fatia.
+ *  Fatia mais fina que o próprio gap não ganha separador — melhor ficar
+ *  inteira do que inverter a faixa (start > end quebra o conic-gradient). */
+export function paradasDonut(
+  fatias: FatiaCategoria[],
+  cores: string[],
+  gapPct = 0,
+  corSeparador = "var(--s1)",
+): string[] {
   const total = totalDasFatias(fatias);
   if (total <= 0) return [];
+
   let acumulado = 0;
-  return fatias.map((f, i) => {
+  const cortes = fatias.map((f, i) => {
     const inicio = acumulado;
     acumulado += (f.valor / total) * 100;
     const fim = i === fatias.length - 1 ? 100 : acumulado;
-    return `${cores[i]} ${inicio.toFixed(3)}% ${fim.toFixed(3)}%`;
+    return { inicio, fim };
   });
+
+  if (fatias.length < 2 || gapPct <= 0) {
+    return cortes.map((c, i) => `${cores[i]} ${c.inicio.toFixed(3)}% ${c.fim.toFixed(3)}%`);
+  }
+
+  // Bordas reais de cada fatia (encolhidas pro respiro, exceto a que for fina
+  // demais pra caber os dois lados). Numa lista à parte porque a fronteira
+  // "última ↔ primeira" (o círculo fecha) precisa ver a fatia 0 antes de
+  // decidir a própria borda final.
+  const metadeGap = gapPct / 2;
+  const reais = cortes.map((c) => {
+    const encolhida = c.fim - c.inicio > gapPct;
+    return {
+      inicio: encolhida ? c.inicio + metadeGap : c.inicio,
+      fim: encolhida ? c.fim - metadeGap : c.fim,
+    };
+  });
+
+  const paradas: string[] = [];
+  // Metade do respiro que fecha o círculo (100% ↔ 0%) fica no INÍCIO da
+  // lista — um conic-gradient só anda pra frente, não pode "voltar" a 0%
+  // depois de chegar em 100%.
+  if (reais[0].inicio > 0) {
+    paradas.push(`${corSeparador} 0.000% ${reais[0].inicio.toFixed(3)}%`);
+  }
+  reais.forEach((r, i) => {
+    paradas.push(`${cores[i]} ${r.inicio.toFixed(3)}% ${r.fim.toFixed(3)}%`);
+    const proximaInicio = i === reais.length - 1 ? 100 : reais[i + 1].inicio;
+    if (proximaInicio > r.fim) {
+      paradas.push(`${corSeparador} ${r.fim.toFixed(3)}% ${proximaInicio.toFixed(3)}%`);
+    }
+  });
+  return paradas;
 }
 
 /** Nomes que valem como "aluguel" — os mesmos sinónimos que

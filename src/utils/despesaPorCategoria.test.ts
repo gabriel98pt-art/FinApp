@@ -272,6 +272,57 @@ describe("paradasDonut", () => {
   test("sem fatias não gera gradiente", () => {
     expect(paradasDonut([], [])).toEqual([]);
   });
+
+  describe("com gapPct — separador entre fatias (achado da auditoria de Design)", () => {
+    test("abre respiro nas duas bordas de cada fatia, inclusive fechando o círculo", () => {
+      const fatias = [
+        { categoria: "Lazer", valor: 6000, pct: 60 },
+        { categoria: "Casa", valor: 4000, pct: 40 },
+      ];
+      expect(paradasDonut(fatias, ["#a", "#b"], 1)).toEqual([
+        "var(--s1) 0.000% 0.500%",
+        "#a 0.500% 59.500%",
+        "var(--s1) 59.500% 60.500%",
+        "#b 60.500% 99.500%",
+        "var(--s1) 99.500% 100.000%",
+      ]);
+    });
+
+    test("aceita uma cor de separador própria", () => {
+      const fatias = [
+        { categoria: "A", valor: 1, pct: 50 },
+        { categoria: "B", valor: 1, pct: 50 },
+      ];
+      const paradas = paradasDonut(fatias, ["#a", "#b"], 2, "#fundo");
+      expect(paradas.filter((p) => p.startsWith("#fundo"))).toHaveLength(3);
+    });
+
+    test("uma fatia só não ganha separador — não há fronteira nenhuma", () => {
+      const fatias = [{ categoria: "Único", valor: 100, pct: 100 }];
+      expect(paradasDonut(fatias, ["#a"], 1)).toEqual(["#a 0.000% 100.000%"]);
+    });
+
+    test("fatia mais fina que o gap fica inteira, sem inverter a faixa", () => {
+      const fatias = [
+        { categoria: "Grande", valor: 990, pct: 99 },
+        { categoria: "Minúscula", valor: 10, pct: 1 },
+      ];
+      const paradas = paradasDonut(fatias, ["#a", "#b"], 4);
+      // A fatia de 1% (menor que o gap de 4) aparece inteira — nenhuma parada
+      // com "#b" tem início maior que o fim.
+      const daMinuscula = paradas.find((p) => p.startsWith("#b"))!;
+      const [, inicio, fim] = daMinuscula.match(/([\d.]+)% ([\d.]+)%/)!;
+      expect(Number(inicio)).toBeLessThan(Number(fim));
+    });
+
+    test("gapPct=0 (padrão) continua idêntico ao comportamento de sempre", () => {
+      const fatias = [
+        { categoria: "Lazer", valor: 6000, pct: 60 },
+        { categoria: "Casa", valor: 4000, pct: 40 },
+      ];
+      expect(paradasDonut(fatias, ["#a", "#b"])).toEqual(paradasDonut(fatias, ["#a", "#b"], 0));
+    });
+  });
 });
 
 describe("maiorCategoriaRelevante — o que o card de Despesas mostra", () => {

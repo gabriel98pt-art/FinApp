@@ -95,9 +95,12 @@ export default function DonutCategoriaCard() {
   // a legenda bate sempre com o donut.
   const comCor = fatias.map((f) => ({ ...f, cor: corDaCategoriaVisual(cfg, f.categoria) }));
 
+  // Respiro fino entre fatias (achado da auditoria de Design & Cor): sem ele,
+  // duas categorias de cor parecida se fundiam numa fatia só, ilegível.
   const paradas = paradasDonut(
     fatias,
     comCor.map((f) => f.cor),
+    0.6,
   );
   const descricaoDonut = `Despesas de ${rotuloMes(mes)} por categoria: ${fatias
     .map((f) => `${f.categoria} ${f.pct}%`)
