@@ -562,7 +562,11 @@ export default function Cartoes() {
         <KpiCard
           rotulo="Saldo em contas"
           valor={formatMoney(saldoEmContas, cfg.currency)}
-          tom="laranja"
+          // Era "laranja" — a cor do TVDE (--lrj), que por design não é uma
+          // das 5 personalizáveis em Definições. "Saldo em contas" não tem
+          // nada a ver com TVDE; "acento" combina com "A pagar este mês" ao
+          // lado, outro total informativo (achado da auditoria de Design).
+          tom="acento"
         />
       </Kpis>
 

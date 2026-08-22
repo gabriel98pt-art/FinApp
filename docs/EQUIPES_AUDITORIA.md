@@ -4,19 +4,19 @@
 
 ## Por que isso existe
 
-Em 21-22/08/2026 rodamos uma auditoria completa do FinApp com 7 equipes especializadas em paralelo (subagentes, leitura apenas). O resultado ficou registrado num relatório visual (artefato), mas a *estrutura* das equipes — qual skill cobre qual área — só existia solta dentro do prompt da rotina agendada "FinApp Skill Scout". Este arquivo formaliza isso no próprio repositório, para não precisar reconstruir a estrutura do zero na próxima vez.
+Em 21-22/08/2026 rodamos uma auditoria completa do FinApp com 7 equipes especializadas em paralelo (subagentes, leitura apenas). O resultado ficou registrado num relatório visual (artefato), mas a _estrutura_ das equipes — qual skill cobre qual área — só existia solta dentro do prompt da rotina agendada "FinApp Skill Scout". Este arquivo formaliza isso no próprio repositório, para não precisar reconstruir a estrutura do zero na próxima vez.
 
 ## Equipes atuais
 
-| Equipe | Skills | Área do projeto |
-|---|---|---|
-| **Design & Cor** | `color-expert`, `dataviz`, `apple-design`, `impeccable` | `src/styles/tokens.css`, componentes visuais, gráficos, gestos/motion |
-| **Acessibilidade** | `fixing-accessibility` | Componentes interativos, formulários, navegação por teclado |
-| **Conversão/Comercial** | `dark-pattern-audit`, `webapp-paywall-implementation` *(novo, 22/08)* | Plano comercial TVDE-first (assinatura), paywall, feature gating |
-| **Arquitetura & Código** | `graphify`, `code-review`, `simplify`, `zustand` *(novo, 22/08)* | `src/services/`, `src/stores/`, `src/hooks/` |
-| **Segurança** | `supply-chain-risk-auditor` | Dependências, `authService.ts`, `firebase.ts`, `database.rules.json` |
-| **Performance & PWA** | `pwa-expert`, `web-perf` | Manifest, service worker, bundle, Core Web Vitals |
-| **Testes/QA** | `vitest` | Cobertura, qualidade dos testes existentes |
+| Equipe                   | Skills                                                                | Área do projeto                                                       |
+| ------------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Design & Cor**         | `color-expert`, `dataviz`, `apple-design`, `impeccable`               | `src/styles/tokens.css`, componentes visuais, gráficos, gestos/motion |
+| **Acessibilidade**       | `fixing-accessibility`                                                | Componentes interativos, formulários, navegação por teclado           |
+| **Conversão/Comercial**  | `dark-pattern-audit`, `webapp-paywall-implementation` _(novo, 22/08)_ | Plano comercial TVDE-first (assinatura), paywall, feature gating      |
+| **Arquitetura & Código** | `graphify`, `code-review`, `simplify`, `zustand` _(novo, 22/08)_      | `src/services/`, `src/stores/`, `src/hooks/`                          |
+| **Segurança**            | `supply-chain-risk-auditor`                                           | Dependências, `authService.ts`, `firebase.ts`, `database.rules.json`  |
+| **Performance & PWA**    | `pwa-expert`, `web-perf`                                              | Manifest, service worker, bundle, Core Web Vitals                     |
+| **Testes/QA**            | `vitest`                                                              | Cobertura, qualidade dos testes existentes                            |
 
 ## Skills novas — 22/08/2026
 

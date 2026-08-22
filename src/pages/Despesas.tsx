@@ -374,7 +374,9 @@ export default function Despesas() {
                 : `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de história`
               : "sem meses anteriores"
           }
-          tom="laranja"
+          // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um
+          // dado contextual, não um sinal de bom/mau (achado da auditoria).
+          tom="neutro"
         />
       </Kpis>
 

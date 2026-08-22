@@ -252,7 +252,10 @@ export default function Planejamento() {
                   definido ? formatMoney(Math.round(totalPlanejado / diasDoMes(mes)), moeda) : "—"
                 }
                 sub={definido ? `${diasDoMes(mes)} dias no mês` : undefined}
-                tom="laranja"
+                // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é
+                // um dado contextual, não um sinal de bom/mau (achado da
+                // auditoria de Design).
+                tom="neutro"
               />
             </Kpis>
 
@@ -273,7 +276,13 @@ export default function Planejamento() {
               <KpiCard
                 rotulo="Poupado (12m)"
                 valor={formatMoney(poupado12m, moeda)}
-                tom="amarelo"
+                // Era "amarelo" — destoava de "Taxa de Poupança" ao lado,
+                // sempre verde (achado da auditoria de Design: as duas KPIs
+                // de poupança desta MESMA tela usavam tons diferentes). Sem
+                // condicional: `poupancaMeses` já é `Math.max(0, ...)` por
+                // mês, nunca fica negativo — verde fixo é o tom correto, não
+                // só o mais conveniente.
+                tom="verde"
               />
             </Kpis>
 

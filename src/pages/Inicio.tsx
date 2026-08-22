@@ -110,7 +110,10 @@ export default function Inicio() {
         <KpiCard
           rotulo="Poupança"
           valor={formatMoney(acumulado, moeda)}
-          tom={acumulado >= 0 ? "amarelo" : "vermelho"}
+          // "amarelo" no positivo destoava de "Taxa de Poupança" (sempre
+          // verde, em Planejamento → Metas) — poupança positiva é um bom
+          // sinal, não um alerta (achado da auditoria de Design).
+          tom={acumulado >= 0 ? "verde" : "vermelho"}
           discreto={modoDiscreto}
         />
       </Kpis>

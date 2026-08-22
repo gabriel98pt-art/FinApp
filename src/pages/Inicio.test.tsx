@@ -100,6 +100,29 @@ describe("Inicio", () => {
     expect(screen.getByText("Saldo do mês")).toBeInTheDocument();
   });
 
+  test("Poupança positiva é verde, não amarela — combina com Taxa de Poupança em Planejamento", () => {
+    // Achado da auditoria de Design: "amarelo" no positivo destoava do
+    // "Taxa de Poupança" (sempre verde) na aba Metas.
+    desenhar();
+    const card = screen.getByText("Poupança").parentElement!;
+    expect(card.style.getPropertyValue("--_a")).toBe("var(--grn)");
+  });
+
+  test("Poupança negativa continua vermelha", () => {
+    despesas = lista<DespesaCorrente>([
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 999999,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+    const card = screen.getByText("Poupança").parentElement!;
+    expect(card.style.getPropertyValue("--_a")).toBe("var(--red)");
+  });
+
   test("os quadros têm cabeçalho de verdade, para se poder saltar entre eles", () => {
     // Eram <p>: quem navega por cabeçalhos não conseguia saltar de um quadro
     // para o outro nesta página, que é a primeira que se abre.

@@ -361,6 +361,17 @@ describe("aba Metas", () => {
     }
   });
 
+  test("Poupado (12m) é verde, como Taxa de Poupança ao lado", async () => {
+    // Achado da auditoria de Design: era "amarelo" fixo, destoando da Taxa
+    // de Poupança (sempre verde) na MESMA tela. Sempre verde é o tom certo
+    // aqui mesmo com muita despesa: `poupancaMeses` nunca soma negativo
+    // (`Math.max(0, ...)` por mês).
+    despesas = lista([despesa(999999999)]);
+    await montarNasMetas();
+    const card = screen.getByText("Poupado (12m)").parentElement!;
+    expect(card.style.getPropertyValue("--_a")).toBe("var(--grn)");
+  });
+
   test("sem fundos: estado vazio que ensina como criar o primeiro", async () => {
     await montarNasMetas();
     expect(screen.getByText("Nenhum fundo criado")).toBeInTheDocument();

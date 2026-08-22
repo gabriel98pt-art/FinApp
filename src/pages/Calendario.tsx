@@ -182,7 +182,11 @@ export default function Calendario() {
               ? "nada por vencer neste mês"
               : `${qtdNoMes} compromisso${qtdNoMes > 1 ? "s" : ""} em aberto`
           }
-          tom="laranja"
+          // Era "laranja" (cor exclusiva do TVDE, sem relação com o
+          // Calendário) — "amarelo" alinha com "Vence em 7 dias" logo ao
+          // lado: mesmo tipo de aviso (dinheiro por pagar), só que numa
+          // janela mais larga (achado da auditoria de Design).
+          tom="amarelo"
         />
         <KpiCard
           rotulo="Vence em 7 dias"

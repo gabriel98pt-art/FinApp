@@ -184,7 +184,10 @@ export default function Transacoes() {
           rotulo="Saldo"
           valor={formatMoney(saldo, cfg.currency)}
           sub={filtroAtivo ? "no filtro ativo" : undefined}
-          tom={saldo >= 0 ? "acento" : "amarelo"}
+          // "amarelo" era inconsistente com todo o resto do app (Início,
+          // Resumo Anual, Despesas, Receitas, Planejamento): saldo/variação
+          // negativos são sempre "vermelho" (achado da auditoria de Design).
+          tom={saldo >= 0 ? "acento" : "vermelho"}
         />
       </Kpis>
 
