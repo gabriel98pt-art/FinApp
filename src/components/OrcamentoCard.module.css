@@ -123,7 +123,7 @@
 
 .seloEstourado {
   color: var(--red);
-  background: color-mix(in srgb, var(--red) 16%, transparent);
+  background: var(--tint-red-16);
 }
 
 /* Folha de criar/editar teto */

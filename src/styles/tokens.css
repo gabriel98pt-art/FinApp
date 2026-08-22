@@ -82,6 +82,26 @@
   --pur-rgb: 176, 141, 252;
   --lrj-rgb: 251, 146, 60;
 
+  /* Tints (achado da auditoria de Design & Cor): 26 receitas distintas de
+     `color-mix()`, sem token nenhum, espalhadas por 20+ arquivos — a mesma
+     decisão ("fundo suave de aviso", "fundo suave de alerta") recriada
+     página a página. Aqui só as que se REPETEM (≥2 usos); as ~20 receitas
+     usadas uma vez só continuam inline, porque um token que só um lugar usa
+     não reduz inconsistência nenhuma.
+
+     Nome literal (cor + percentual), não por camada tipo "suave/forte": os
+     valores existentes não formam degraus limpos por cor (o amarelo usa
+     12/14/16/18/30/40%, o vermelho 10/12/14/16/18/30% — sem padrão comum),
+     e decidir qual percentual "é" suave/médio/forte exigiria comparar lado a
+     lado num navegador, que não dá pra fazer nesta sessão. Cada um aqui vale
+     EXATAMENTE a mesma fórmula que já existia — troca de nome, não de cor. */
+  --tint-ylw-30: color-mix(in srgb, var(--ylw) 30%, transparent);
+  --tint-ylw-14: color-mix(in srgb, var(--ylw) 14%, transparent);
+  --tint-ylw-12-s1: color-mix(in srgb, var(--ylw) 12%, var(--s1));
+  --tint-red-16: color-mix(in srgb, var(--red) 16%, transparent);
+  --tint-red-12: color-mix(in srgb, var(--red) 12%, transparent);
+  --tint-red-10: color-mix(in srgb, var(--red) 10%, transparent);
+
   /* Material translúcido (header/tabs/nav) */
   --material-bg: rgba(16, 30, 48, 0.72);
   --material-brd: rgba(255, 255, 255, 0.06);

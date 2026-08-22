@@ -14,7 +14,7 @@
   gap: 8px;
   padding: 8px 16px;
   background: color-mix(in srgb, var(--ylw) 16%, var(--bg));
-  border-bottom: 1px solid color-mix(in srgb, var(--ylw) 30%, transparent);
+  border-bottom: 1px solid var(--tint-ylw-30);
   color: var(--ylw);
   font-size: 0.82rem;
   font-weight: 700;
@@ -35,5 +35,5 @@
 }
 
 .botao:hover {
-  background: color-mix(in srgb, var(--ylw) 14%, transparent);
+  background: var(--tint-ylw-14);
 }

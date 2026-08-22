@@ -21,8 +21,8 @@
 }
 
 .perto {
-  background: color-mix(in srgb, var(--ylw) 12%, var(--s1));
-  border: 1px solid color-mix(in srgb, var(--ylw) 30%, transparent);
+  background: var(--tint-ylw-12-s1);
+  border: 1px solid var(--tint-ylw-30);
   color: var(--ylw);
 }
 

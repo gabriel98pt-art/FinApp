@@ -172,5 +172,5 @@
 }
 
 .limpar:hover {
-  background: color-mix(in srgb, var(--red) 10%, transparent);
+  background: var(--tint-red-10);
 }
