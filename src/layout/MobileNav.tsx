@@ -50,7 +50,15 @@ export default function MobileNav() {
         aria-hidden
       />
 
-      <div className={`${styles.menuMais} ${maisAberto ? styles.menuAberto : ""}`}>
+      <div
+        className={`${styles.menuMais} ${maisAberto ? styles.menuAberto : ""}`}
+        // `inert`, mesmo padrão do BottomSheet/ConfirmarAcao (achado da
+        // auditoria de Acessibilidade): fechado, o menu só ficava com
+        // opacity:0 — os links continuavam na ordem do Tab em TODA tela
+        // mobile do app, a plataforma principal dele. `inert` tira-os da
+        // navegação e da árvore de acessibilidade enquanto está fechado.
+        inert={!maisAberto}
+      >
         {abasMais.map(({ id, rota, titulo, Icone }) => (
           <NavLink
             key={id}

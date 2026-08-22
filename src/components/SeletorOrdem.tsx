@@ -1,4 +1,5 @@
 import { ORDENS, ROTULOS_ORDEM, type Ordem } from "../utils/ordem";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import styles from "./SeletorOrdem.module.css";
 
 /** Fileira de botões de ordenação acima da lista (item 14). Não persiste:
@@ -10,8 +11,15 @@ export default function SeletorOrdem({
   valor: Ordem;
   aoMudar: (o: Ordem) => void;
 }) {
+  const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
   return (
-    <div className={styles.fileira} role="radiogroup" aria-label="Ordenar por">
+    <div
+      className={styles.fileira}
+      role="radiogroup"
+      aria-label="Ordenar por"
+      ref={ref}
+      onKeyDown={onKeyDown}
+    >
       {ORDENS.map((o) => (
         <button
           key={o}

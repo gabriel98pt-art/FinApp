@@ -19,6 +19,7 @@ import { criarCarga, criarDespesaVeiculo } from "../services/veiculoService";
 import { criarParcela } from "../services/parcelasService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useMediaQuery } from "../hooks/useMediaQuery";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore, useReceitasStore } from "../stores/lancamentosStore";
@@ -75,6 +76,16 @@ export default function RegistroRapido() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
   const mobile = useMediaQuery(MOBILE);
+  const { ref: rgTipoRef, onKeyDown: aoTeclarTipo } = useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgSubVeiculoRef, onKeyDown: aoTeclarSubVeiculo } =
+    useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgNaturezaLancRef, onKeyDown: aoTeclarNaturezaLanc } =
+    useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgNaturezaRef, onKeyDown: aoTeclarNatureza } =
+    useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgCartaoRef, onKeyDown: aoTeclarCartao } = useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgComoValorRef, onKeyDown: aoTeclarComoValor } =
+    useRadiogroupTeclado<HTMLDivElement>();
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const parcelas = useParcelasStore((s) => s.itens);
@@ -478,7 +489,13 @@ export default function RegistroRapido() {
       <form className={styles.form} onSubmit={salvar}>
         {!editando && (
           <>
-            <div className={styles.seletorTipo} role="radiogroup" aria-label="Tipo de lançamento">
+            <div
+              className={styles.seletorTipo}
+              role="radiogroup"
+              aria-label="Tipo de lançamento"
+              ref={rgTipoRef}
+              onKeyDown={aoTeclarTipo}
+            >
               {TIPOS.map((t) => {
                 const ativo = t.valor === "veiculo" ? ehVeiculo : tipo === t.valor;
                 const fundo = corDaCategoriaVisual(cfg, t.rotulo);
@@ -499,7 +516,13 @@ export default function RegistroRapido() {
             </div>
 
             {ehVeiculo && (
-              <div className={styles.subTipos} role="radiogroup" aria-label="Lançamento do veículo">
+              <div
+                className={styles.subTipos}
+                role="radiogroup"
+                aria-label="Lançamento do veículo"
+                ref={rgSubVeiculoRef}
+                onKeyDown={aoTeclarSubVeiculo}
+              >
                 {SUB_VEICULO.map((s) => (
                   <button
                     key={s.valor}
@@ -521,7 +544,13 @@ export default function RegistroRapido() {
             o engano mais comum, e até aqui a única saída era apagar e lançar de
             novo. Só estes dois — os outros tipos vivem noutros domínios. */}
         {podeTrocarLado && (
-          <div className={styles.seletorTipo} role="radiogroup" aria-label="Receita ou despesa">
+          <div
+            className={styles.seletorTipo}
+            role="radiogroup"
+            aria-label="Receita ou despesa"
+            ref={rgNaturezaLancRef}
+            onKeyDown={aoTeclarNaturezaLanc}
+          >
             {(["despesa", "receita"] as const).map((t) => {
               const ativo = lado === t;
               const rotulo = t === "receita" ? "Receita" : "Despesa";
@@ -630,7 +659,13 @@ export default function RegistroRapido() {
             listas — é o segmentado que este app já usa para "duas vistas da
             mesma coisa", e um reembolso é isso: a mesma despesa, ao contrário. */}
         {lado === "despesa" && !ehVeiculo && (
-          <div className={styles.alternadorTipoDespesa} role="radiogroup" aria-label="Natureza">
+          <div
+            className={styles.alternadorTipoDespesa}
+            role="radiogroup"
+            aria-label="Natureza"
+            ref={rgNaturezaRef}
+            onKeyDown={aoTeclarNatureza}
+          >
             {/* "Gasto" e não "Despesa": o radiogroup de cima já tem uma opção
                 chamada "Despesa", e dois controles com o mesmo nome no mesmo
                 formulário deixam quem usa leitor de ecrã sem saber em qual
@@ -726,7 +761,13 @@ export default function RegistroRapido() {
         {cfg.contasCartoes.length > 0 && (
           <div className={styles.campo}>
             <span>Cartão</span>
-            <div className={styles.fileiraContas} role="radiogroup" aria-label="Cartão">
+            <div
+              className={styles.fileiraContas}
+              role="radiogroup"
+              aria-label="Cartão"
+              ref={rgCartaoRef}
+              onKeyDown={aoTeclarCartao}
+            >
               {cfg.contasCartoes.map((c) => (
                 <button
                   key={c}
@@ -850,6 +891,8 @@ export default function RegistroRapido() {
               className={`${styles.subTipos} ${styles.alternadorValor}`}
               role="radiogroup"
               aria-label="Como você sabe o valor"
+              ref={rgComoValorRef}
+              onKeyDown={aoTeclarComoValor}
             >
               {(
                 [

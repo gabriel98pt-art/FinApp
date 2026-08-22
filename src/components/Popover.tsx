@@ -114,6 +114,44 @@ export default function Popover({
     };
   }, [aberta, aoFechar, ancoraRef]);
 
+  // Gestão de foco (achado da auditoria de Acessibilidade): `role="dialog"`
+  // sem isto é meio-caminho — o foco nunca entrava na caixa, e por teclado
+  // ficava-se sem saber que ela tinha aberto. Foca a própria caixa (não um
+  // filho específico: `children` é livre, e adivinhar "o primeiro focável"
+  // erra dependendo do que cada um dos ~15 seletores inline da Importação
+  // renderiza lá dentro) só depois de `pos` definido — antes disso a caixa
+  // está fora da vista, só a ser medida. `jaFocou` evita repetir isto a cada
+  // `pos` novo (a caixa acompanha scroll/resize enquanto aberta).
+  const jaFocou = useRef(false);
+  useEffect(() => {
+    if (!aberta) {
+      jaFocou.current = false;
+      return;
+    }
+    if (!pos || jaFocou.current) return;
+    jaFocou.current = true;
+    caixaRef.current?.focus();
+  }, [aberta, pos]);
+
+  // Devolve o foco ao gatilho ao fechar — mas só quando fechar de facto
+  // "perdeu" o foco (o elemento focado foi desmontado com a caixa, e o
+  // browser já o moveu para <body> sozinho). Se o fecho veio de um clique
+  // fora que já focou outra coisa (outro seletor, por exemplo), essa escolha
+  // é a certa e não deve ser substituída. `aberta` sozinho no dep array (não
+  // `[aberta, ancoraRef]`): só interessa a TRANSIÇÃO pra fechado, e
+  // `ancoraRef` é sempre o mesmo objeto ao longo da vida do componente.
+  const estavaAberta = useRef(aberta);
+  useEffect(() => {
+    const foiFechada = estavaAberta.current && !aberta;
+    estavaAberta.current = aberta;
+    if (!foiFechada) return;
+    if (document.activeElement === document.body) ancoraRef.current?.focus();
+    // ancoraRef fora do array de propósito: é um RefObject estável (o mesmo
+    // objeto durante toda a vida do componente), incluí-lo não muda quando o
+    // efeito corre, só engana o leitor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberta]);
+
   if (!aberta) return null;
 
   return createPortal(
@@ -123,6 +161,9 @@ export default function Popover({
       style={pos ? { top: pos.top, left: pos.left, maxHeight: pos.maxAltura } : undefined}
       role="dialog"
       aria-label={titulo}
+      // Focável por programa (o useEffect acima), sem entrar na ordem normal
+      // do Tab — mesmo padrão do tabIndex={-1} já usado no BottomSheet.
+      tabIndex={-1}
     >
       {children}
     </div>,

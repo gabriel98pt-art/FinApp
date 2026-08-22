@@ -7,6 +7,7 @@ import CategoriaBolha from "./CategoriaBolha";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
@@ -38,6 +39,7 @@ export default function DonutCategoriaCard() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const [aberta, setAberta] = useState(false);
+  const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
   const [ordem, setOrdem] = useState<OrdemFatias>("maiorValor");
 
   // Segue o seletor do header, como os KPIs ao lado — senão o donut ficaria
@@ -177,7 +179,13 @@ export default function DonutCategoriaCard() {
           <span className={styles.buracoGrande} />
         </div>
 
-        <div className={styles.fileiraOrdem} role="radiogroup" aria-label="Ordenar por">
+        <div
+          className={styles.fileiraOrdem}
+          role="radiogroup"
+          aria-label="Ordenar por"
+          ref={radiogroupRef}
+          onKeyDown={aoTeclarRadio}
+        >
           {(["maiorValor", "menorValor", "nome"] as OrdemFatias[]).map((o) => (
             <button
               key={o}

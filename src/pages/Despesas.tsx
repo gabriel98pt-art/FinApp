@@ -22,6 +22,7 @@ import {
 } from "../services/lancamentosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -83,6 +84,7 @@ export default function Despesas() {
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
+  const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
 
   // Chegar de Transações "Abrir em Despesas → Fixas" (item 4.6) já abre na
   // aba certa — a rota manda o destino pelo state da navegação, porque a aba
@@ -401,7 +403,13 @@ export default function Despesas() {
         {aba === "correntes" && (
           <>
             <div className={styles.linhaVisao}>
-              <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
+              <div
+                className={styles.alternadorVisao}
+                role="radiogroup"
+                aria-label="Período"
+                ref={radiogroupRef}
+                onKeyDown={aoTeclarRadio}
+              >
                 {(
                   [
                     ["mes", "Mês"],

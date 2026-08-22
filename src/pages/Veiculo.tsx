@@ -36,6 +36,7 @@ import {
 } from "../services/cfgService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -83,6 +84,10 @@ export default function Veiculo() {
   const dados = useVeiculoStore((s) => s.dados);
   const carregado = useVeiculoStore((s) => s.carregado);
   const erro = useVeiculoStore((s) => s.erro);
+  const { ref: radiogroupPeriodoRef, onKeyDown: aoTeclarPeriodo } =
+    useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: radiogroupCustoRef, onKeyDown: aoTeclarCusto } =
+    useRadiogroupTeclado<HTMLDivElement>();
 
   // Chegar de Transações "Abrir em Veículo → Carregamentos/Despesas" (item
   // 4.6) já abre na aba certa — a rota manda o destino pelo state da
@@ -598,7 +603,13 @@ export default function Veiculo() {
             </div>
 
             <div className={styles.linhaVisao}>
-              <div className={styles.alternadorVisao} role="radiogroup" aria-label="Período">
+              <div
+                className={styles.alternadorVisao}
+                role="radiogroup"
+                aria-label="Período"
+                ref={radiogroupPeriodoRef}
+                onKeyDown={aoTeclarPeriodo}
+              >
                 {(
                   [
                     ["mes", "Mês"],
@@ -913,7 +924,13 @@ export default function Veiculo() {
             />
           </label>
           <SeletorData valor={cgData} aoMudar={setCgData} />
-          <div className={styles.seletorTipo} role="radiogroup" aria-label="Como informar o custo">
+          <div
+            className={styles.seletorTipo}
+            role="radiogroup"
+            aria-label="Como informar o custo"
+            ref={radiogroupCustoRef}
+            onKeyDown={aoTeclarCusto}
+          >
             <button
               type="button"
               className={`${styles.tipoBotao} ${modoCusto === "total" ? styles.tipoAtivo : ""}`}

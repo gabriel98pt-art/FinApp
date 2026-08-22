@@ -1,3 +1,4 @@
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import styles from "./SeletorLocal.module.css";
 
 /** Local de carregamento como fileira de chips — mesma experiência no Registro
@@ -16,6 +17,7 @@ export default function SeletorLocal({
   // Ao editar uma carga antiga, o local pode já ter saído da lista — mostra-o
   // mesmo assim, senão a edição perderia o valor sem avisar.
   const lista = valor && !opcoes.includes(valor) ? [valor, ...opcoes] : opcoes;
+  const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
 
   return (
     <div className={styles.campo}>
@@ -25,7 +27,13 @@ export default function SeletorLocal({
           Ainda não há locais guardados — adicione um na aba Veículo, em Carregamentos.
         </p>
       ) : (
-        <div className={styles.fileira} role="radiogroup" aria-label="Local do carregamento">
+        <div
+          className={styles.fileira}
+          role="radiogroup"
+          aria-label="Local do carregamento"
+          ref={ref}
+          onKeyDown={onKeyDown}
+        >
           {lista.map((l) => (
             <button
               key={l}

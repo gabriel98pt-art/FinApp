@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Check, ListFilter } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
 import FolhaAncorada from "./FolhaAncorada";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { FILTRO_DESPESA, FILTRO_RECEITA, FILTRO_TRANSFERENCIA } from "../utils/transacoes";
 import styles from "./FiltroTransacoes.module.css";
 
@@ -21,10 +22,17 @@ function Secao({
   /** Categoria/tipo tem a bolha colorida da seção 4.6; conta não. */
   comIcone?: boolean;
 }) {
+  const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
   return (
     <div className={styles.secao}>
       <p className={styles.secaoTitulo}>{titulo}</p>
-      <div className={styles.opcoes} role="radiogroup" aria-label={titulo}>
+      <div
+        className={styles.opcoes}
+        role="radiogroup"
+        aria-label={titulo}
+        ref={ref}
+        onKeyDown={onKeyDown}
+      >
         <button
           type="button"
           role="radio"

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Check, ListFilter } from "lucide-react";
 import FolhaAncorada from "./FolhaAncorada";
+import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import type { LinhaOrdem } from "../utils/ordem";
 import styles from "./SeletorOrdemFolha.module.css";
 
@@ -41,6 +42,7 @@ export default function SeletorOrdemFolha<T extends string>({
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
+  const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
   const atual = rotuloDaOrdem(linhas, valor);
 
   function escolher(o: T) {
@@ -69,7 +71,13 @@ export default function SeletorOrdemFolha<T extends string>({
         titulo="Ordenar por"
         ancoraRef={gatilhoRef}
       >
-        <div className={styles.opcoes} role="radiogroup" aria-label="Ordenar por">
+        <div
+          className={styles.opcoes}
+          role="radiogroup"
+          aria-label="Ordenar por"
+          ref={radiogroupRef}
+          onKeyDown={aoTeclarRadio}
+        >
           {linhas.map((linha) => {
             if (linha.tipo === "simples") {
               const ativa = valor === linha.valor;
