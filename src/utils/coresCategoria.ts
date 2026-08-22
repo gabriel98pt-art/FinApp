@@ -10,7 +10,13 @@ const COR_SEMANTICA: Record<string, string> = {
   Alimentação: "#f97316",
   Supermercado: "#f97316",
   Mercado: "#f97316",
-  Restaurante: "#fb923c",
+  // Terracota, não um segundo laranja: era byte-a-byte igual ao "#fb923c" do
+  // TVDE (achado da auditoria de Design & Cor — as duas categorias podem
+  // aparecer juntas no mesmo donut se a conta tiver despesas pessoais e de
+  // TVDE no mesmo mês) e ficava perto demais de Alimentação sob
+  // deuteranopia. Reaproveita o terracota já usado na paleta de
+  // personalização (constants/aparenciaCategoria.ts).
+  Restaurante: "#c2410c",
   // Casa / habitação
   Casa: "#a78bfa",
   Habitação: "#a78bfa",
@@ -20,10 +26,13 @@ const COR_SEMANTICA: Record<string, string> = {
   Transporte: "#3b82f6",
   Transportes: "#3b82f6",
   Combustível: "#3b82f6",
-  // Saúde
-  Saúde: "#00d4e0",
-  Farmácia: "#00d4e0",
-  Médico: "#00d4e0",
+  // Saúde: era ciano (#00d4e0) — sob protanopia caía quase exatamente sobre
+  // Transporte (#3b82f6): as duas colapsavam pra praticamente a mesma cor
+  // (achado da auditoria). Verde também é uma associação comum pra
+  // saúde/farmácia, então a mudança não perde legibilidade semântica.
+  Saúde: "#16a34a",
+  Farmácia: "#16a34a",
+  Médico: "#16a34a",
   // Lazer
   Lazer: "#ec4899",
   Entretenimento: "#ec4899",
@@ -47,9 +56,12 @@ const COR_SEMANTICA: Record<string, string> = {
   // Assinaturas / tecnologia
   Assinaturas: "#06b6d4",
   Tecnologia: "#06b6d4",
-  // Seguros
-  Seguro: "#60a5fa",
-  Seguros: "#60a5fa",
+  // Seguro: era azul claro (#60a5fa), indistinguível de Casa (#a78bfa) sob
+  // deuteranopia — o achado principal da auditoria de Design & Cor. Petróleo
+  // escuro em vez de mais um tom de azul/roxo — já usado como um dos "tons
+  // profundos" da paleta de personalização.
+  Seguro: "#0f766e",
+  Seguros: "#0f766e",
   // Outros
   Outros: "#94a3b8",
 };

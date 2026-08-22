@@ -16,6 +16,21 @@ describe("corSemanticaDaCategoria", () => {
   test("categoria personalizada não tem — é aí que entra o fallback", () => {
     expect(corSemanticaDaCategoria("Fidelidade")).toBeUndefined();
   });
+
+  // Achados da auditoria de Design & Cor (daltonismo): as duas categorias de
+  // cada par abaixo podem aparecer juntas no mesmo donut, e cores iguais ou
+  // quase-indistinguíveis viravam uma fatia só.
+  test("Restaurante não é mais idêntico ao laranja do TVDE (--lrj: #fb923c)", () => {
+    expect(corSemanticaDaCategoria("Restaurante")).not.toBe("#fb923c");
+  });
+
+  test("Seguro não colide mais com Casa sob deuteranopia", () => {
+    expect(corSemanticaDaCategoria("Seguro")).not.toBe(corSemanticaDaCategoria("Casa"));
+  });
+
+  test("Saúde não colide mais com Transporte sob protanopia (as duas colapsavam quase a zero)", () => {
+    expect(corSemanticaDaCategoria("Saúde")).not.toBe(corSemanticaDaCategoria("Transporte"));
+  });
 });
 
 describe("corFallbackDaCategoria — pelo nome, não pela posição", () => {

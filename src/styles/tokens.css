@@ -31,13 +31,6 @@
   --lrj: #fb923c;
   --lrj-grad: linear-gradient(135deg, #fdba74, #ea580c);
 
-  /* Série de cores dos gráficos */
-  --ch-blu: #0a836f;
-  --ch-grn: #31aa5d;
-  --ch-ylw: #c09013;
-  --ch-red: #e93650;
-  --ch-pur: #9b6de8;
-
   /* Escala tipográfica. Antes destes tokens a app tinha 32 tamanhos de fonte
      diferentes, 14 deles numa única página, com degraus de 0,02rem (0,32px) —
      invisíveis ao olho, mas suficientes para que o tamanho deixasse de
