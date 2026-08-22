@@ -18,6 +18,7 @@ vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 let receitas = lista<Receita>();
 let despesas = lista<DespesaCorrente>();
 let fixas = lista();
+let parcelas = lista();
 let veiculo = veiculoVazio();
 
 vi.mock("../stores/lancamentosStore", () => ({
@@ -27,7 +28,7 @@ vi.mock("../stores/lancamentosStore", () => ({
   useTransferenciasStore: (s: (e: unknown) => unknown) => s(lista()),
 }));
 vi.mock("../stores/parcelasStore", () => ({
-  useParcelasStore: (s: (e: unknown) => unknown) => s(lista()),
+  useParcelasStore: (s: (e: unknown) => unknown) => s(parcelas),
 }));
 vi.mock("../stores/veiculoStore", () => ({
   useVeiculoStore: (s: (e: unknown) => unknown) => s(veiculo),
@@ -57,6 +58,7 @@ beforeEach(() => {
   receitas = lista<Receita>();
   despesas = lista<DespesaCorrente>();
   fixas = lista();
+  parcelas = lista();
   veiculo = veiculoVazio();
 });
 
@@ -86,6 +88,18 @@ describe("Inicio", () => {
     // São cinco domínios a alimentar os mesmos quatro números. Olhar só ao
     // primeiro deixava passar em claro uma falha nas parcelas ou no veículo.
     veiculo = { ...veiculoVazio(), erro: true };
+    desenhar();
+    expect(screen.getByText(/Alguns dados não sincronizaram/)).toBeInTheDocument();
+  });
+
+  test("o aviso também apanha a falha das fixas — achado da auditoria de Testes/QA: fixture criada e nunca usada", () => {
+    fixas = listaComErro();
+    desenhar();
+    expect(screen.getByText(/Alguns dados não sincronizaram/)).toBeInTheDocument();
+  });
+
+  test("o aviso também apanha a falha das parcelas", () => {
+    parcelas = listaComErro();
     desenhar();
     expect(screen.getByText(/Alguns dados não sincronizaram/)).toBeInTheDocument();
   });

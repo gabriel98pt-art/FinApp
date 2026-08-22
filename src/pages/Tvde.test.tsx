@@ -42,9 +42,10 @@ vi.mock("../stores/tvdeStore", () => ({
 vi.mock("../stores/veiculoStore", () => ({
   useVeiculoStore: (s: (e: unknown) => unknown) => s(veiculoVazio()),
 }));
+let cfg = CONFIG_PADRAO;
+
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) =>
-    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg, carregado: true, erro: false }),
 }));
 vi.mock("../stores/mesVisivelStore", () => ({
   useMesVisivelStore: (s: (e: unknown) => unknown) => s({ mes: "2026-08" }),
@@ -59,6 +60,7 @@ const Tvde = (await import("./Tvde")).default;
 beforeEach(() => {
   dados = vazio();
   erro = false;
+  cfg = CONFIG_PADRAO;
 });
 
 describe("Tvde", () => {
@@ -100,10 +102,15 @@ describe("Tvde", () => {
 
   test("os valores saem em euros mesmo com a conta noutra moeda", async () => {
     // Regra da seção 4.4: este módulo não segue `cfg.currency`. Se um dia
-    // seguisse, os números do TVDE deixavam de bater com os recibos.
+    // seguisse, os números do TVDE deixavam de bater com os recibos. O
+    // CONFIG_PADRAO já é EUR — testar só com ele não provava nada (achado da
+    // auditoria de Testes/QA: "testa 'moeda diferente' usando a moeda
+    // padrão"). Aqui a conta está em USD e o TVDE tem de ignorar isso.
+    cfg = { ...CONFIG_PADRAO, currency: "USD" };
     render(<Tvde />);
     const texto = document.body.textContent ?? "";
     expect(texto).toContain("€");
+    expect(texto).not.toContain("$");
   });
 
   test("setas percorrem as abas", async () => {
