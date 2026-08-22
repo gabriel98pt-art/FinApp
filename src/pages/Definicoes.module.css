@@ -24,8 +24,11 @@
   background: var(--s2);
 }
 
+/* Mesmo padding horizontal/vertical de SettingsRow.module.css (.linha) —
+   linha estática (sem botão/chevron), mas vive no mesmo cartão que
+   Trocar senha/Sair da conta e precisa da mesma altura de "barra". */
 .conta {
-  padding: 10px 12px 2px;
+  padding: 14px 16px;
   color: var(--mut);
   font-size: var(--fs-body);
 }
@@ -52,16 +55,22 @@
   font-size: var(--fs-label);
 }
 
-/* Mesma tipografia/padding de SettingsRow.module.css (.linha) — estas 3
-   linhas (Tema/Moeda da conta/Início da semana) usam markup ad-hoc porque
-   têm um `Seletor` inline à direita em vez de chevron, mas vivem no mesmo
-   cartão que as linhas de SettingsRow e precisam do mesmo ritmo visual. */
+/* Mesma tipografia de SettingsRow.module.css (.linha) — estas 3 linhas
+   (Tema/Moeda da conta/Início da semana) usam markup ad-hoc porque têm um
+   `Seletor` inline à direita em vez de chevron, mas vivem no mesmo cartão
+   que as linhas de SettingsRow e precisam do mesmo ritmo visual.
+   Padding vertical menor que o de SettingsRow (14px) de propósito: o
+   gatilho do Seletor (Seletor.module.css .inline .gatilho) já tem
+   min-height própria de 36px — com os mesmos 14px em cima/embaixo a linha
+   ficava 65px de alto, 16px mais que as outras (achado do usuário, 22/08).
+   6px fecha a conta pra bater a mesma altura total sem mexer no Seletor,
+   que é partilhado com Cartões/Importar/Copiloto e não pode encolher lá. */
 .linhaSelect {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 6px 16px;
   min-height: 24px;
   font-size: var(--fs-body);
   font-weight: 600;
