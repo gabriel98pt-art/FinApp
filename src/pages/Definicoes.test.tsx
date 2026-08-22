@@ -18,6 +18,7 @@ const exportarBackup = vi.fn(async () => {});
 const importarBackup = vi.fn(async () => {});
 const limparErros = vi.fn(async () => {});
 const definirPreferenciasCopiloto = vi.fn(async () => {});
+const definirCorCategoria = vi.fn(async () => {});
 
 vi.mock("../services/authService", () => ({
   sair,
@@ -39,7 +40,7 @@ vi.mock("../services/cfgService", () => ({
   renomearCategoria: vi.fn(async () => {}),
   renomearFonte: vi.fn(async () => {}),
   definirIconeCategoria: vi.fn(async () => {}),
-  definirCorCategoria: vi.fn(async () => {}),
+  definirCorCategoria,
   definirCorApp: vi.fn(async () => {}),
   definirPreferenciasCopiloto,
 }));
@@ -65,6 +66,7 @@ beforeEach(() => {
   sair.mockClear();
   alterarSenha.mockClear();
   apagarConta.mockClear();
+  definirCorCategoria.mockClear();
 });
 
 describe("Definicoes", () => {
@@ -83,6 +85,14 @@ describe("Definicoes", () => {
     // Categorias também viraram folha própria — abre antes de procurar.
     fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
     expect(screen.getAllByText(CONFIG_PADRAO.categoriasDespesa[0]).length).toBeGreaterThan(0);
+  });
+
+  test("dá para recolorir o Veículo — não era uma categoria de cfg.categoriasDespesa, então não aparecia na folha de categorias", () => {
+    render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Cor do Veículo/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
+
+    expect(definirCorCategoria).toHaveBeenCalledWith("u1", "Veículo", "#ef4444");
   });
 
   test("tem saída da conta", () => {

@@ -73,20 +73,45 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
 }
 
 /** Paleta de reserva pra categorias personalizadas — a escolha dentro dela é
- *  pelo NOME (ver `corFallbackDaCategoria`). */
+ *  pelo NOME (ver `corFallbackDaCategoria`).
+ *
+ *  16 matizes (era 12), espaçadas em 22,5° ao redor da roda de cor, com
+ *  luminosidade alternada entre vizinhas (mesmo truque da paleta de
+ *  personalização em `constants/aparenciaCategoria.ts`: duas matizes perto
+ *  uma da outra ficam mais fáceis de separar quando uma é mais clara e a
+ *  outra mais escura). Nenhuma repete uma cor já fixa por nome em
+ *  `COR_SEMANTICA` — pra uma categoria automática nunca cair em cima de
+ *  "Alimentação" ou "Casa" no mesmo donut.
+ *
+ *  Verificado sob simulação de protanopia/deuteranopia/tritanopia: mesmo
+ *  assim, 8 dos 120 pares ficam pouco distinguíveis nalgum tipo de
+ *  daltonismo — com 16 cores simultâneas não dá pra evitar por completo (a
+ *  própria ciência de cor trata isso como praticamente impossível além de
+ *  3-4 cores ao mesmo tempo). O separador entre fatias do donut e o nome em
+ *  texto na legenda continuam sendo a defesa real contra esse resíduo, não
+ *  o matiz sozinho.
+ *
+ *  Mudar esta lista muda a cor AUTOMÁTICA de toda categoria personalizada
+ *  sem cor escolhida à mão — é o ponto: quem tem muitas categorias passa a
+ *  ter mais opções distintas entre elas. Não afeta ninguém que já escolheu
+ *  uma cor manualmente (isso fica em `cfg.categoriaCor`, à parte). */
 export const PALETA_FALLBACK = [
-  "#ef4444",
-  "#eab308",
-  "#22c55e",
-  "#10b981",
-  "#14b8a6",
-  "#0ea5e9",
-  "#6366f1",
-  "#8b5cf6",
-  "#a855f7",
-  "#d946ef",
-  "#f472b6",
-  "#f5a623",
+  "#e23636",
+  "#b45922",
+  "#e2b736",
+  "#a2b422",
+  "#8ce236",
+  "#34b422",
+  "#36e261",
+  "#22b47d",
+  "#36e2e2",
+  "#227db4",
+  "#3661e2",
+  "#3422b4",
+  "#8c36e2",
+  "#a222b4",
+  "#e236b7",
+  "#b42259",
 ];
 
 /** Índice estável na paleta, pelo nome — duas categorias sem cor escolhida
