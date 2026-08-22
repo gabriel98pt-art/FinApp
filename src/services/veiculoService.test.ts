@@ -151,6 +151,16 @@ describe("alternarPagoFixaVeiculo", () => {
 });
 
 describe("observarVeiculo", () => {
+  /** Dispara as 4 sub-coleções de uma vez, cada uma com `snap.val()` vazio a
+   *  não ser que `dados` diga o contrário — o "carregamento completo" que
+   *  os testes abaixo partem de. */
+  type SubDominioTeste = "cargas" | "despesas" | "despesasFixas" | "quilometragem";
+  function completarCarga(dados: Partial<Record<SubDominioTeste, unknown>> = {}) {
+    for (const sub of ["cargas", "despesas", "despesasFixas", "quilometragem"] as const) {
+      observadores.get(`${RAIZ}/${sub}`)!({ val: () => dados[sub] ?? null });
+    }
+  }
+
   test("junta as 4 sub-coleções num DadosVeiculo só", () => {
     const recebidos: { cargas: unknown[]; quilometragem: unknown[] }[] = [];
     s.observarVeiculo(
@@ -159,9 +169,9 @@ describe("observarVeiculo", () => {
       () => {},
     );
 
-    observadores.get(`${RAIZ}/cargas`)!({ val: () => ({ c1: carga }) });
-    observadores.get(`${RAIZ}/quilometragem`)!({
-      val: () => ({ q1: { data: "2026-08-03", km: 41230 } }),
+    completarCarga({
+      cargas: { c1: carga },
+      quilometragem: { q1: { data: "2026-08-03", km: 41230 } },
     });
 
     const ultimo = recebidos[recebidos.length - 1];
@@ -176,10 +186,81 @@ describe("observarVeiculo", () => {
       (d) => (ultimo = d),
       () => {},
     );
-    observadores.get(`${RAIZ}/despesasFixas`)!({
-      val: () => ({ f1: { descricao: "Seguro", valor: 4500, categoria: "Seguro" } }),
+    completarCarga({
+      despesasFixas: { f1: { descricao: "Seguro", valor: 4500, categoria: "Seguro" } },
     });
     expect(ultimo!.despesasFixas[0].pagoPorMes).toEqual({});
+  });
+
+  // Achado da auditoria de Arquitetura: syncService.ts marca "carregado" na
+  // primeira vez que cb() dispara — com só 1 das 4 sub-coleções respondida,
+  // isso era um DadosVeiculo pela metade sendo tratado como o definitivo.
+  describe("cb() só dispara depois das 4 sub-coleções responderem (achado da auditoria)", () => {
+    test("responder só 1, 2 ou 3 das 4 não chama cb() nenhuma vez", () => {
+      const recebidos: unknown[] = [];
+      s.observarVeiculo(
+        UID,
+        (d) => recebidos.push(d),
+        () => {},
+      );
+
+      observadores.get(`${RAIZ}/cargas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(0);
+      observadores.get(`${RAIZ}/despesas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(0);
+      observadores.get(`${RAIZ}/despesasFixas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(0);
+    });
+
+    test("a 4ª resposta completa a carga e chama cb() pela primeira vez", () => {
+      const recebidos: unknown[] = [];
+      s.observarVeiculo(
+        UID,
+        (d) => recebidos.push(d),
+        () => {},
+      );
+
+      observadores.get(`${RAIZ}/cargas`)!({ val: () => null });
+      observadores.get(`${RAIZ}/despesas`)!({ val: () => null });
+      observadores.get(`${RAIZ}/despesasFixas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(0);
+
+      observadores.get(`${RAIZ}/quilometragem`)!({ val: () => null });
+      expect(recebidos).toHaveLength(1);
+    });
+
+    test("ordem de resposta não importa — a última das 4, seja qual for, completa a carga", () => {
+      const recebidos: unknown[] = [];
+      s.observarVeiculo(
+        UID,
+        (d) => recebidos.push(d),
+        () => {},
+      );
+
+      // Desta vez "cargas" é a ÚLTIMA a responder, não a primeira.
+      observadores.get(`${RAIZ}/quilometragem`)!({ val: () => null });
+      observadores.get(`${RAIZ}/despesasFixas`)!({ val: () => null });
+      observadores.get(`${RAIZ}/despesas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(0);
+      observadores.get(`${RAIZ}/cargas`)!({ val: () => null });
+      expect(recebidos).toHaveLength(1);
+    });
+
+    test("depois da carga inicial completa, qualquer uma das 4 mudando sozinha dispara cb() na hora", () => {
+      const recebidos: { cargas: unknown[] }[] = [];
+      s.observarVeiculo(
+        UID,
+        (d) => recebidos.push(d),
+        () => {},
+      );
+      completarCarga();
+      expect(recebidos).toHaveLength(1);
+
+      // Só "cargas" muda depois — não precisa esperar as outras 3 de novo.
+      observadores.get(`${RAIZ}/cargas`)!({ val: () => ({ c1: carga }) });
+      expect(recebidos).toHaveLength(2);
+      expect(recebidos[1].cargas).toEqual([{ ...carga, id: "c1" }]);
+    });
   });
 
   test("cancelar desliga as 4 subscrições", () => {

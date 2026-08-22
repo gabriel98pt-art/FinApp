@@ -26,6 +26,7 @@ import { mostrarToast } from "../stores/toastStore";
 import type { Cents, Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { mensagemDeErroDados } from "../utils/erroDados";
 import {
   mesesNaoPagos,
   diaVencimentoEfetivo,
@@ -391,7 +392,7 @@ export default function Parcelas() {
       mostrarToast(`✓ "${nome}" adicionado`);
       setNovoIntermediador("");
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
     }
   }
 

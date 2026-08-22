@@ -66,6 +66,7 @@ import {
   type ResumoConta,
 } from "../utils/contas";
 import { formatMoney } from "../utils/money";
+import { mensagemDeErroDados } from "../utils/erroDados";
 import styles from "./Cartoes.module.css";
 import Botao from "../components/Botao";
 
@@ -383,7 +384,7 @@ export default function Cartoes() {
       mostrarToast(`✓ ${novoTipo === "credit" ? "Cartão de crédito" : "Conta/débito"} adicionado`);
       setNovoNome("");
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
     }
   }
 
@@ -395,7 +396,7 @@ export default function Cartoes() {
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
   }
 

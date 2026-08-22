@@ -15,6 +15,7 @@ import {
 } from "../../services/cfgService";
 import { useConfirmar } from "../../hooks/useConfirmar";
 import { mostrarToast } from "../../stores/toastStore";
+import { mensagemDeErroDados } from "../../utils/erroDados";
 import type { ConfigConta } from "../../types";
 import styles from "../Definicoes.module.css";
 
@@ -59,7 +60,7 @@ export default function FolhaCategorias({
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
   }
 
@@ -94,7 +95,7 @@ export default function FolhaCategorias({
       mostrarToast(`✓ "${nome}" adicionado`);
       setNovo("");
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
     }
   }
 

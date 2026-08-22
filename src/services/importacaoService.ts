@@ -13,6 +13,7 @@ import {
   semIndefinidos,
 } from "./lancamentosService";
 import { criarCarga, removerCarga, removerDespesaVeiculo } from "./veiculoService";
+import { snapshotHistorico } from "../stores/historicoStore";
 import { diaDoMes } from "../utils/vencimentos";
 import { calcularFaturaAutomatica, pagamentosDaFatura, type DadosFatura } from "../utils/fatura";
 import { pagarFatura } from "./faturaService";
@@ -201,6 +202,16 @@ export async function confirmarImportacao(
   linhas: LinhaAnalisada[],
   contextoFaturas?: ContextoFaturas,
 ) {
+  // Achado da auditoria de Arquitetura: era o único caminho de escrita do
+  // app que não passava por snapshotHistorico(). criarCarga/criarTransferencia/
+  // pagarFatura (chamados mais abaixo) já snapshottam sozinhos antes da
+  // própria escrita — mas o update() em lote de receitas/despesasCorrentes
+  // logo à frente não tinha nenhum, e era o único write de um extrato feito
+  // só de lançamentos comuns (o caso mais frequente). Um snapshot aqui, antes
+  // de qualquer escrita, garante que a importação inteira tem pelo menos um
+  // ponto de "desfazer" — mesmo com múltiplos writes internos.
+  snapshotHistorico();
+
   const raiz = `users/${uid}/fin_v5`;
   const atualizacoes: Record<string, unknown> = {};
 

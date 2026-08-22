@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 // O que interessa aqui é PARA ONDE cada linha vai, não o Firebase: a gravação
 // fica trocada por espiões.
 vi.mock("./firebase", () => ({ db: {} }));
+
+const snapshot = vi.fn();
+vi.mock("../stores/historicoStore", () => ({ snapshotHistorico: () => snapshot() }));
+
 vi.mock("firebase/database", () => ({
   ref: () => ({}),
   push: () => ({ key: `id-${Math.random().toString(36).slice(2, 8)}` }),
@@ -397,6 +401,27 @@ describe("confirmarImportacao com recarga", () => {
     expect(criarCarga).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
     expect(n).toBe(0);
+  });
+
+  // Achado da auditoria de Arquitetura: era o único caminho de escrita do
+  // app sem snapshotHistorico() — um extrato feito só de lançamentos comuns
+  // (o caso mais frequente) não deixava NENHUM ponto pra desfazer.
+  test("snapshotHistorico() é chamado mesmo quando a importação é só lançamentos comuns", async () => {
+    snapshot.mockClear();
+
+    await confirmarImportacao("u1", [
+      linha({ id: 1, descricao: "Mercadona", valor: -3200, categoriaEscolhida: "Alimentação" }),
+    ]);
+
+    expect(snapshot).toHaveBeenCalled();
+  });
+
+  test("snapshotHistorico() é chamado mesmo quando a importação é vazia (nada a fazer, mas nada quebra)", async () => {
+    snapshot.mockClear();
+
+    await confirmarImportacao("u1", []);
+
+    expect(snapshot).toHaveBeenCalled();
   });
 });
 

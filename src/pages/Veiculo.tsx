@@ -43,6 +43,7 @@ import { mostrarToast } from "../stores/toastStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { mensagemDeErroDados } from "../utils/erroDados";
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
@@ -297,7 +298,7 @@ export default function Veiculo() {
       mostrarToast(`✓ "${nome}" adicionado`);
       setNovoLocal("");
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
     }
   }
 
@@ -323,7 +324,7 @@ export default function Veiculo() {
       mostrarToast(`✓ "${nome}" adicionada`);
       setNovaCategoria("");
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
     }
   }
 
@@ -353,7 +354,7 @@ export default function Veiculo() {
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
-      mostrarToast(err instanceof Error ? err.message : "Não foi possível renomear.");
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
   }
 

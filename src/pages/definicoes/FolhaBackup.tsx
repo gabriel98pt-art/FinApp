@@ -4,6 +4,7 @@ import BottomSheet from "../../components/BottomSheet";
 import { exportarBackup, importarBackup } from "../../services/backupService";
 import { useConfirmar } from "../../hooks/useConfirmar";
 import { mostrarToast } from "../../stores/toastStore";
+import { mensagemDeErroDados } from "../../utils/erroDados";
 import styles from "../Definicoes.module.css";
 
 /** Exportar/importar o backup completo da conta (JSON de `fin_v5` inteiro).
@@ -58,7 +59,7 @@ export default function FolhaBackup({
         await importarBackup(uid, String(leitor.result ?? ""));
         mostrarToast("✓ Backup importado");
       } catch (err) {
-        mostrarToast(err instanceof Error ? err.message : "Backup inválido.");
+        mostrarToast(mensagemDeErroDados(err, "Backup inválido."));
       } finally {
         setImportando(false);
       }

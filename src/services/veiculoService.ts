@@ -37,19 +37,35 @@ export const VEICULO_VAZIO: DadosVeiculo = {
 /** Observa as 4 sub-coleções e chama `cb` com o DadosVeiculo combinado
  *  sempre que qualquer uma mudar. `aoErro` vai nas 4: se qualquer uma cair,
  *  o DadosVeiculo combinado fica incompleto, então a tela toda tem que
- *  avisar em vez de mostrar um veículo pela metade como se fosse o certo. */
+ *  avisar em vez de mostrar um veículo pela metade como se fosse o certo.
+ *
+ *  A PRIMEIRA chamada de `cb` só acontece depois que as 4 já responderam ao
+ *  menos uma vez (achado da auditoria de Arquitetura). Sem isto, `cb` disparava
+ *  assim que a mais rápida das 4 respondesse — e syncService.ts, que trata
+ *  qualquer disparo como "terminou de carregar" (mesma convenção usada pelas
+ *  stores de domínio único, que só têm 1 `onValue` cada), marcava
+ *  `carregado: true` com um DadosVeiculo pela metade: 3 das 4 sub-coleções
+ *  ainda no vazio inicial, indistinguível de "esta pessoa não tem nada
+ *  aqui". Depois da carga inicial completa, qualquer uma mudando sozinha
+ *  continua a disparar `cb` na hora, como sempre. */
 export function observarVeiculo(
   uid: string,
   cb: (dados: DadosVeiculo) => void,
   aoErro: (erro: Error) => void,
 ): () => void {
   const atual: DadosVeiculo = { ...VEICULO_VAZIO };
+  const respondeu = new Set<SubDominio>();
+  function notificar(sub: SubDominio) {
+    respondeu.add(sub);
+    if (respondeu.size < 4) return;
+    cb({ ...atual });
+  }
 
   const paraCargas = onValue(
     ref(db, caminho(uid, "cargas")),
     (snap) => {
       atual.cargas = paraLista<CargaEletrica>(snap.val());
-      cb({ ...atual });
+      notificar("cargas");
     },
     aoErro,
   );
@@ -57,7 +73,7 @@ export function observarVeiculo(
     ref(db, caminho(uid, "despesas")),
     (snap) => {
       atual.despesas = paraLista<DespesaVeiculo>(snap.val());
-      cb({ ...atual });
+      notificar("despesas");
     },
     aoErro,
   );
@@ -68,7 +84,7 @@ export function observarVeiculo(
         ...f,
         pagoPorMes: f.pagoPorMes ?? {},
       }));
-      cb({ ...atual });
+      notificar("despesasFixas");
     },
     aoErro,
   );
@@ -76,7 +92,7 @@ export function observarVeiculo(
     ref(db, caminho(uid, "quilometragem")),
     (snap) => {
       atual.quilometragem = paraLista<RegistroKm>(snap.val());
-      cb({ ...atual });
+      notificar("quilometragem");
     },
     aoErro,
   );
