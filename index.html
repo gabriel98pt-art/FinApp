@@ -16,6 +16,18 @@
          brilho por cima, e um ficheiro já arredondado ficaria cortado. -->
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-v2.png" />
     <link rel="manifest" href="/manifest.json" />
+    <!-- Achado da auditoria de Performance & PWA: nenhum preconnect pros
+         hosts do Firebase — a primeira chamada de auth/dados pagava DNS +
+         TLS do zero. Só os três hosts que o app realmente usa (email/senha,
+         sem OAuth por popup — authDomain não entra) e a base de dados desta
+         conta, na região europe-west1 (databaseURL em services/firebase.ts). -->
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://finapp1-20d00-default-rtdb.europe-west1.firebasedatabase.app"
+      crossorigin
+    />
     <title>FinApp</title>
   </head>
   <body>

@@ -50,7 +50,10 @@ export default defineConfig({
       workbox: {
         // Precache do app shell: todo HTML/JS/CSS gerado no build — abre
         // offline mostrando a interface mesmo sem nunca ter sincronizado.
-        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        // `json` entrou pelo manifest.json (achado da auditoria de
+        // Performance & PWA: ficava de fora do precache — sem ele, instalar
+        // o app offline na primeira visita perdia nome/ícone/theme-color).
+        globPatterns: ["**/*.{js,css,html,svg,woff2,json}"],
         // O PDF.js são ~430 kB e só servem para importar extrato em PDF: ficam
         // fora do precache, senão toda instalação carregava meio megabyte que a
         // maioria nunca usa (era 811 kB de shell, passaria a 1,2 MB). Entram
