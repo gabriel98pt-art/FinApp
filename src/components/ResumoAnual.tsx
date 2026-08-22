@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -60,24 +61,39 @@ export default function ResumoAnual({
   // `fixaEfetivamentePaga`/`estaEfetivamentePaga`.
   const hoje = hojeIso();
 
-  const celulas = janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
-    const r = totalDoMes(receitasNosTotais(receitas), ym);
-    const d = futuro
-      ? 0
-      : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real, hoje);
-    const [, mi] = ym.split("-").map(Number);
-    return { ym, futuro, receitas: r, despesas: d, saldo: r - d, rotulo: MESES_ABREV[mi - 1] };
-  });
-
-  const { totalReceitas, totalDespesas } = celulas
-    .filter((c) => !c.futuro)
-    .reduce(
-      (acc, c) => ({
-        totalReceitas: acc.totalReceitas + c.receitas,
-        totalDespesas: acc.totalDespesas + c.despesas,
+  // useMemo (achado da auditoria de Performance): cada célula chama
+  // despesaRealizadaMes, que soma os 4 domínios inteiros — para 12 meses
+  // (o quadro de Metas), isso é 12 varreduras completas a cada render,
+  // inclusive um toggle sem relação nenhuma com dinheiro, como o modo
+  // discreto. As referências dos arrays das stores só mudam quando os dados
+  // de fato mudam (todo service do app substitui o array, nunca muta em
+  // lugar), então a lista de dependências já é o sinal certo.
+  const celulas = useMemo(
+    () =>
+      janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
+        const r = totalDoMes(receitasNosTotais(receitas), ym);
+        const d = futuro
+          ? 0
+          : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real, hoje);
+        const [, mi] = ym.split("-").map(Number);
+        return { ym, futuro, receitas: r, despesas: d, saldo: r - d, rotulo: MESES_ABREV[mi - 1] };
       }),
-      { totalReceitas: 0, totalDespesas: 0 },
-    );
+    [meses, ate, real, receitas, despesas, despesasFixas, parcelas, veiculo, hoje],
+  );
+
+  const { totalReceitas, totalDespesas } = useMemo(
+    () =>
+      celulas
+        .filter((c) => !c.futuro)
+        .reduce(
+          (acc, c) => ({
+            totalReceitas: acc.totalReceitas + c.receitas,
+            totalDespesas: acc.totalDespesas + c.despesas,
+          }),
+          { totalReceitas: 0, totalDespesas: 0 },
+        ),
+    [celulas],
+  );
 
   return (
     <div className={styles.card}>

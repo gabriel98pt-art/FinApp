@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagina, { Kpis } from "../components/Pagina";
 import AvisoOrcamento from "../components/AvisoOrcamento";
@@ -60,28 +61,34 @@ export default function Inicio() {
   // depois de marcada como paga (ver resumoMensal.ts).
   const mes = useMesVisivelStore((s) => s.mes);
   const mesReal = mesAtual();
+  const hoje = hojeIso();
   // despesa do mês inclui fixas gerais + parcelas + veículo (Parte A) — fonte
   // única em utils/resumoMensal.ts
-  const resumo = resumoMesCompleto(
-    receitas,
-    despesas,
-    despesasFixas,
-    parcelas,
-    veiculo,
-    mes,
-    mesReal,
-    hojeIso(),
+  //
+  // useMemo (achado da auditoria de Performance): Início não tem lista
+  // própria, mas soma 5 domínios inteiros a cada render — inclusive um
+  // toggle sem relação nenhuma com dinheiro, como o modo discreto. As
+  // referências dos arrays das stores só mudam quando os dados de fato
+  // mudam (todo service do app substitui o array, nunca muta em lugar), então
+  // a lista de dependências já é o sinal certo de "recalcular ou não".
+  const resumo = useMemo(
+    () =>
+      resumoMesCompleto(receitas, despesas, despesasFixas, parcelas, veiculo, mes, mesReal, hoje),
+    [receitas, despesas, despesasFixas, parcelas, veiculo, mes, mesReal, hoje],
   );
   // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
   // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
   // pagamento de fatura contava como despesa por cima da compra original e a
   // parcela contava pelo espelho em vez do plano — dois números diferentes
   // para a mesma ideia, em duas telas.
-  const acumulado =
-    saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
-    totalFixasGeral(despesasFixas, mesReal) -
-    totalParcelasGeral(parcelas, mesReal) -
-    totalVeiculoGeral(veiculo, mesReal);
+  const acumulado = useMemo(
+    () =>
+      saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
+      totalFixasGeral(despesasFixas, mesReal) -
+      totalParcelasGeral(parcelas, mesReal) -
+      totalVeiculoGeral(veiculo, mesReal),
+    [receitas, despesas, despesasFixas, parcelas, veiculo, mesReal],
+  );
 
   return (
     <Pagina titulo="Início">
