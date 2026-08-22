@@ -5,7 +5,7 @@ import {
   corDaCategoriaVisual,
   corDoIconeSobre,
   iconeDaCategoria,
-  luminanciaRelativa,
+  razaoContraste,
 } from "./categoriaVisual";
 import { CORES_CATEGORIA, iconePorId } from "../constants/aparenciaCategoria";
 import { corFallbackDaCategoria } from "./coresCategoria";
@@ -61,14 +61,28 @@ describe("iconeDaCategoria", () => {
   });
 });
 
-/** Razão de contraste WCAG entre duas cores — só no teste, pra provar que a
- *  escolha do ícone nunca cai abaixo do limite legível. */
-function contraste(a: string, b: string): number {
-  const la = luminanciaRelativa(a);
-  const lb = luminanciaRelativa(b);
-  const [claro, escuro] = la > lb ? [la, lb] : [lb, la];
-  return (claro + 0.05) / (escuro + 0.05);
-}
+describe("razaoContraste", () => {
+  it("preto contra branco dá o máximo (21:1)", () => {
+    expect(razaoContraste("#000000", "#ffffff")).toBeCloseTo(21, 0);
+  });
+
+  it("uma cor contra ela mesma dá o mínimo (1:1)", () => {
+    expect(razaoContraste("#3b82f6", "#3b82f6")).toBeCloseTo(1, 5);
+  });
+
+  it("não importa a ordem dos argumentos", () => {
+    expect(razaoContraste("#0f172a", "#101e30")).toBeCloseTo(
+      razaoContraste("#101e30", "#0f172a"),
+      5,
+    );
+  });
+
+  it("caso real que motivou a validação: quase-preto sobre o fundo escuro do app reprova", () => {
+    // O achado da auditoria: #0f172a como cor de destaque deixava o
+    // :focus-visible (contra --s1: #101e30) praticamente invisível.
+    expect(razaoContraste("#0f172a", "#101e30")).toBeLessThan(1.5);
+  });
+});
 
 describe("corDoIconeSobre — contraste garantido contra a cor de fundo", () => {
   it("fundo escuro pede ícone branco", () => {
@@ -84,7 +98,7 @@ describe("corDoIconeSobre — contraste garantido contra a cor de fundo", () => 
 
   it("toda cor da paleta passa de 3:1 (mínimo WCAG pra elemento gráfico)", () => {
     for (const cor of CORES_CATEGORIA) {
-      expect(contraste(cor, corDoIconeSobre(cor)), cor).toBeGreaterThanOrEqual(3);
+      expect(razaoContraste(cor, corDoIconeSobre(cor)), cor).toBeGreaterThanOrEqual(3);
     }
   });
 
@@ -92,7 +106,9 @@ describe("corDoIconeSobre — contraste garantido contra a cor de fundo", () => 
     for (const cor of [...CORES_CATEGORIA, "#0f172a", "#ffffff", "#3b82f6", "#22c55e"]) {
       const escolhida = corDoIconeSobre(cor);
       const outra = escolhida === ICONE_SOBRE_CLARO ? ICONE_SOBRE_ESCURO : ICONE_SOBRE_CLARO;
-      expect(contraste(cor, escolhida), cor).toBeGreaterThanOrEqual(contraste(cor, outra));
+      expect(razaoContraste(cor, escolhida), cor).toBeGreaterThanOrEqual(
+        razaoContraste(cor, outra),
+      );
     }
   });
 

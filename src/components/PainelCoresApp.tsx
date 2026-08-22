@@ -9,6 +9,15 @@ import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
 import type { ConfigConta, TokenCorApp } from "../types";
 import styles from "./PainelCoresApp.module.css";
 
+/** Os dois fundos de cartão contra os quais as 5 cores personalizáveis
+ *  aparecem como texto/contorno pelo app (ver `useAplicarCoresPersonalizadas`
+ *  e o `:focus-visible` global em `--blu`). Lidos do DOM, não duplicados
+ *  aqui, pra nunca destoar do que `tokens.css` define pro tema atual. */
+function fundosDoTema(): string[] {
+  const estilo = getComputedStyle(document.documentElement);
+  return [estilo.getPropertyValue("--s1").trim(), estilo.getPropertyValue("--s2").trim()];
+}
+
 /** As cinco cores que se repetem no app inteiro. Editar aqui muda tudo de uma
  *  vez — o item ativo da navegação, os valores positivos/negativos, os avisos.
  *
@@ -94,6 +103,7 @@ export default function PainelCoresApp({
         valor={editando ? (escolhidas[editando] ?? "") : ""}
         aoEscolher={(c) => void escolher(c)}
         nivel={1}
+        corDeFundo={editando ? fundosDoTema() : undefined}
       />
     </BottomSheet>
   );

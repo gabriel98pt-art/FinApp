@@ -118,7 +118,7 @@ Fora esses três pontos específicos de PWA, não identifiquei problemas de UX/U
 ## 10. Riscos de segurança
 
 - **Config do Firebase exposta no client (`src/services/firebase.ts`)**: **isto é esperado e não é uma falha** — o próprio código já documenta isso corretamente ("a segurança real está nas Security Rules"). Confirmado que as regras (`database.rules.json`) exigem `auth != null && auth.uid === $uid` tanto pra leitura quanto escrita — isolamento correto entre contas.
-- **Falta de `.validate` na maior parte da árvore de dados.** Só `fin_v5/iaUso/$dia` tem validação de schema. O resto aceita qualquer estrutura que o client mandar, contanto que seja dentro do próprio `$uid`. Não é uma falha de segurança entre usuários (ninguém lê/escreve dado alheio), mas é uma falha de **integridade de dados** — um bug no client (ou uma chamada manual via devtools) pode gravar lixo estruturalmente inválido sem o servidor recusar. Vale mais atenção ainda quando o nó de billing for criado (ver item 6.3 — esse *precisa* ser `.write: false`).
+- **Falta de `.validate` na maior parte da árvore de dados.** Só `fin_v5/iaUso/$dia` tem validação de schema. O resto aceita qualquer estrutura que o client mandar, contanto que seja dentro do próprio `$uid`. Não é uma falha de segurança entre usuários (ninguém lê/escreve dado alheio), mas é uma falha de **integridade de dados** — um bug no client (ou uma chamada manual via devtools) pode gravar lixo estruturalmente inválido sem o servidor recusar. Vale mais atenção ainda quando o nó de billing for criado (ver item 6.3 — esse _precisa_ ser `.write: false`).
 - **Cota de IA "de cortesia"** (já documentado no próprio `iaUsoService.ts`, confirmado por memória): a proteção real de custo do Gemini está do lado da cota grátis do Google, não de uma verificação server-side do token Firebase. Não é novo, mas é uma dívida técnica que fica mais visível se o Copiloto virar feature paga (Premium) — nesse momento, contornar a cota client-side deixa de ser "alguém gastando cota de graça" pra ser "alguém usando feature paga sem pagar".
 - **Nenhum secret hardcoded fora do esperado** — não encontrei chave de API privada, token, ou credencial no código-fonte do `src/`.
 - **`erroService.ts`** grava erros (mensagem + stack + URL) na própria conta do Firebase, protegido pelas mesmas regras — não vaza pra fora do próprio usuário. Comportamento correto pra um app de uso pessoal, como o próprio comentário no código já justifica.
@@ -131,32 +131,32 @@ Fora esses três pontos específicos de PWA, não identifiquei problemas de UX/U
 
 ## 12. Dependências que precisam ser avaliadas
 
-| Pacote | Motivo de atenção |
-|---|---|
-| `pdfjs-dist` | Worker + WebView, ver item 8.1 |
-| `vite-plugin-pwa` | Só relevante pro shell Web — build Capacitor tipicamente não passa pelo Service Worker gerado por ele; precisa de config condicional (Web vs. Capacitor) na Fase 4 |
-| `firebase` (12.16.0) | SDK grande — vale checar se faz sentido trocar por `@capacitor-firebase/*` (plugins nativos) mais adiante pra ganhar push notification nativa e melhor performance de Auth persistente, mas **não agora** — o SDK JS puro funciona em WebView e a troca teria custo real sem ganho imediato |
+| Pacote                                  | Motivo de atenção                                                                                                                                                                                                                                                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pdfjs-dist`                            | Worker + WebView, ver item 8.1                                                                                                                                                                                                                                                                         |
+| `vite-plugin-pwa`                       | Só relevante pro shell Web — build Capacitor tipicamente não passa pelo Service Worker gerado por ele; precisa de config condicional (Web vs. Capacitor) na Fase 4                                                                                                                                     |
+| `firebase` (12.16.0)                    | SDK grande — vale checar se faz sentido trocar por `@capacitor-firebase/*` (plugins nativos) mais adiante pra ganhar push notification nativa e melhor performance de Auth persistente, mas **não agora** — o SDK JS puro funciona em WebView e a troca teria custo real sem ganho imediato            |
 | `react-router-dom` v7 (`BrowserRouter`) | Capacitor serve os assets de `capacitor://localhost` (iOS) / `https://localhost` (Android) — `BrowserRouter` funciona normalmente nesses schemes, mas vale confirmar que não há nenhuma dependência de `window.location.origin` sendo um domínio real em algum lugar do código (não encontrei nenhuma) |
 
 Todas as dependências diretas são de origem confiável (Firebase/Google, Vite/Vitejs, Meta/React, react-router oficial, Vitest oficial). Não identifiquei sinal de pacote abandonado ou de risco de supply chain nas dependências diretas listadas no `package.json` — uma auditoria completa da árvore de transitivas (via `npm audit` ou a skill `supply-chain-risk-auditor`) fica como recomendação de rotina, não como achado específico desta leitura.
 
 ## 13. Recursos nativos prováveis
 
-| Recurso | Necessário? | API Web já basta? | Plugin Capacitor |
-|---|---|---|---|
-| Notificações push | Sim (Fase 5) — hoje não existe nenhuma, só o sino in-app (`utils/notificacoes.ts`) | Não | `@capacitor/push-notifications` (+ backend de envio, ainda não existe) |
-| Notificações locais | Talvez — lembrar de fatura a vencer mesmo com app fechado | Não | `@capacitor/local-notifications` |
-| Câmera / scanner de recibos | Sim, roadmap já menciona (feature futura, ainda não implementada) | Parcial (`<input capture>` funciona mas sem controle fino) | `@capacitor/camera` |
-| Biometria / Face ID | Desejável (é dado financeiro — trava de app por biometria é expectativa comum) | Não | `@capacitor-community/biometric-auth` ou similar |
-| Storage seguro | Sim, se biometria/PIN entrar — token de sessão merece Keychain, não `localStorage` puro | Não | `@capacitor/preferences` (não-sensível) + `@capacitor/secure-storage` ou Keychain nativo pra sensível |
-| Compartilhar (share) | Sim, pra exportar backup/relatório (ver item 8.2) | Parcial (`navigator.share` existe mas comportamento inconsistente em WebView) | `@capacitor/share` |
-| Arquivos (salvar/ler) | Sim, backup import/export | Não de forma confiável | `@capacitor/filesystem` |
-| Deep links | **Já implementado no nível Web** (`useAbrirRegistroPorUrl.ts`, `?registro=despesa`) | Sim, hoje via URL comum | Em Capacitor, o mesmo padrão se estende com `@capacitor/app` (`appUrlOpen`) pra abrir via URL scheme custom em vez de só universal link — reaproveita a lógica existente, não recria |
-| Status bar | Sim (cor deve seguir `useTemaEfetivo`, ver item 8.5) | Não | `@capacitor/status-bar` |
-| Safe areas | **Já resolvido via CSS** (`env(safe-area-inset-*)`) | Sim | Nenhum — CSS puro já funciona igual dentro de Capacitor |
-| Teclado | Precisa de teste dedicado (item 9) | Parcial | `@capacitor/keyboard` (ajusta resize/scroll) |
-| Clipboard | Não identifiquei uso hoje que precise de plugin — não é prioridade | Sim, se necessário | `@capacitor/clipboard` só se surgir necessidade real |
-| Conectividade / offline | **Já tratado no nível de cache** (Workbox NetworkFirst) — Capacitor teria `@capacitor/network` só se precisar de lógica *ativa* baseada em estar online/offline (hoje é passivo, via cache) | Parcial | `@capacitor/network`, avaliar se compensa a complexidade extra |
+| Recurso                     | Necessário?                                                                                                                                                                                 | API Web já basta?                                                             | Plugin Capacitor                                                                                                                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Notificações push           | Sim (Fase 5) — hoje não existe nenhuma, só o sino in-app (`utils/notificacoes.ts`)                                                                                                          | Não                                                                           | `@capacitor/push-notifications` (+ backend de envio, ainda não existe)                                                                                                               |
+| Notificações locais         | Talvez — lembrar de fatura a vencer mesmo com app fechado                                                                                                                                   | Não                                                                           | `@capacitor/local-notifications`                                                                                                                                                     |
+| Câmera / scanner de recibos | Sim, roadmap já menciona (feature futura, ainda não implementada)                                                                                                                           | Parcial (`<input capture>` funciona mas sem controle fino)                    | `@capacitor/camera`                                                                                                                                                                  |
+| Biometria / Face ID         | Desejável (é dado financeiro — trava de app por biometria é expectativa comum)                                                                                                              | Não                                                                           | `@capacitor-community/biometric-auth` ou similar                                                                                                                                     |
+| Storage seguro              | Sim, se biometria/PIN entrar — token de sessão merece Keychain, não `localStorage` puro                                                                                                     | Não                                                                           | `@capacitor/preferences` (não-sensível) + `@capacitor/secure-storage` ou Keychain nativo pra sensível                                                                                |
+| Compartilhar (share)        | Sim, pra exportar backup/relatório (ver item 8.2)                                                                                                                                           | Parcial (`navigator.share` existe mas comportamento inconsistente em WebView) | `@capacitor/share`                                                                                                                                                                   |
+| Arquivos (salvar/ler)       | Sim, backup import/export                                                                                                                                                                   | Não de forma confiável                                                        | `@capacitor/filesystem`                                                                                                                                                              |
+| Deep links                  | **Já implementado no nível Web** (`useAbrirRegistroPorUrl.ts`, `?registro=despesa`)                                                                                                         | Sim, hoje via URL comum                                                       | Em Capacitor, o mesmo padrão se estende com `@capacitor/app` (`appUrlOpen`) pra abrir via URL scheme custom em vez de só universal link — reaproveita a lógica existente, não recria |
+| Status bar                  | Sim (cor deve seguir `useTemaEfetivo`, ver item 8.5)                                                                                                                                        | Não                                                                           | `@capacitor/status-bar`                                                                                                                                                              |
+| Safe areas                  | **Já resolvido via CSS** (`env(safe-area-inset-*)`)                                                                                                                                         | Sim                                                                           | Nenhum — CSS puro já funciona igual dentro de Capacitor                                                                                                                              |
+| Teclado                     | Precisa de teste dedicado (item 9)                                                                                                                                                          | Parcial                                                                       | `@capacitor/keyboard` (ajusta resize/scroll)                                                                                                                                         |
+| Clipboard                   | Não identifiquei uso hoje que precise de plugin — não é prioridade                                                                                                                          | Sim, se necessário                                                            | `@capacitor/clipboard` só se surgir necessidade real                                                                                                                                 |
+| Conectividade / offline     | **Já tratado no nível de cache** (Workbox NetworkFirst) — Capacitor teria `@capacitor/network` só se precisar de lógica _ativa_ baseada em estar online/offline (hoje é passivo, via cache) | Parcial                                                                       | `@capacitor/network`, avaliar se compensa a complexidade extra                                                                                                                       |
 
 ## 14. Estratégia Free/Premium existente
 
@@ -208,20 +208,24 @@ O princípio chave: **nenhum componente de UI deve importar `@capacitor/*` diret
 ## 17. Roadmap de implementação
 
 **Fase 1 — Correções arquiteturais**
+
 - Criar `domain/` (mover regras financeiras de `utils/`, sem alterar lógica — mesmo padrão já usado na refatoração de Definições).
 - Criar o modelo de dados de billing (`/billing/$uid`, `.write: false`) e a store de entitlement (`canUseFeature`).
 - Generalizar `RotaTvde` para um guarda de rota por `Feature`.
 
 **Fase 2 — Mobile readiness**
+
 - Auditar todas as telas com header/footer fixo além dos 4 arquivos que já usam `env(safe-area-inset-*)`.
 - Testar teclado virtual cobrindo campos em `RegistroRapido` e outras BottomSheets com formulário.
 - Confirmar tamanho de área de toque em botões/ícones pequenos (não auditado nesta rodada — recomendo passe dedicado com um dispositivo real).
 
 **Fase 3 — PWA hardening**
+
 - Corrigir `theme-color` estático → dinâmico conforme `useTemaEfetivo()`.
 - Adicionar ícone `maskable`, tamanhos PNG explícitos (192/512), `screenshots` no manifest.
 
 **Fase 4 — Capacitor**
+
 - `npx cap init`, configurar `webDir` apontando pro build do Vite.
 - Decidir e implementar estratégia de update (substituto do `usePwaUpdate` baseado em SW).
 - Criar `platform/backup.ts` (Filesystem + Share) substituindo o download via `<a download>`.
@@ -230,35 +234,42 @@ O princípio chave: **nenhum componente de UI deve importar `@capacitor/*` diret
 - Ligar `@capacitor/status-bar` a `useTemaEfetivo()`.
 
 **Fase 5 — Recursos nativos**
+
 - Notificações push/local (depende de decisão de backend de envio).
 - Scanner de recibos (câmera).
 - Biometria + storage seguro pra sessão.
 - Deep link nativo (`@capacitor/app`) reaproveitando `useAbrirRegistroPorUrl`.
 
 **Fase 6 — TestFlight**
+
 - Build de release iOS, ícones/splash finais, bundle identifier definido.
 - Teste real de gesto de voltar (swipe) vs. `BottomSheet`/`react-router`.
 - Teste de teclado, safe areas, update flow em dispositivo físico.
 
 **Fase 7 — App Store**
+
 - Metadata, privacy declarations (ver checklist item 20), screenshots, review.
 
 **Fase 8 — Android/Play Store**
+
 - Adaptive icon, splash, back button do sistema (Android tem semântica própria de voltar, distinta do gesto iOS), signing, Play Console.
 
 ## 18. Ordem de prioridade
 
 **Bloqueante, antes de qualquer coisa depender disso:**
+
 1. Modelo de billing + `.write: false` (Fase 1) — sem isso, qualquer feature paga fica vulnerável desde o primeiro dia que existir.
 2. Estratégia de update fora do Service Worker (Fase 4) — sem isso, o app nativo não tem como corrigir bugs entre releases de loja.
 3. `platform/backup.ts` (Fase 4) — backup é a única função de "salvar arquivo" que existe hoje; sem adapter, quebra silenciosamente em nativo.
 
 **Importante mas não bloqueante — pode andar em paralelo:**
+
 - `domain/` (reorganização, zero risco funcional).
 - Ajustes de manifest/theme-color (Fase 3).
 - Auditoria de touch targets e teclado (Fase 2).
 
 **Pode esperar até depois do primeiro TestFlight:**
+
 - Biometria, scanner de recibos, push notifications (Fase 5) — nenhum bloqueia a build nativa existir e ser testável; todos são feature nova, não infraestrutura.
 
 ## 19. O que NÃO deve ser alterado

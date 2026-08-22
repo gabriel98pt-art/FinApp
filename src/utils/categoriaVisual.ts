@@ -55,6 +55,15 @@ export function luminanciaRelativa(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** Razão de contraste WCAG entre duas cores (1 a 21). `>= 4.5` é o mínimo AA
+ *  para texto normal — o mesmo limite usado pra recusar cores na
+ *  personalização (ver `useAplicarCoresPersonalizadas`). */
+export function razaoContraste(hexA: string, hexB: string): number {
+  const claro = Math.max(luminanciaRelativa(hexA), luminanciaRelativa(hexB));
+  const escuro = Math.min(luminanciaRelativa(hexA), luminanciaRelativa(hexB));
+  return (claro + 0.05) / (escuro + 0.05);
+}
+
 /** Ponto em que o quase-preto passa a contrastar melhor que o branco: onde as
  *  duas razões de contraste (WCAG) se cruzam, dado o `ICONE_SOBRE_CLARO` acima
  *  (luminância ≈ 0,0088). Fica bem abaixo de 0,5 porque o olho — e a fórmula —

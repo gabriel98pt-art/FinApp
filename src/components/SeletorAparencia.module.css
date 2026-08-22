@@ -52,6 +52,23 @@
   outline-offset: 2px;
 }
 
+/* Reprovada em contraste (só quando o seletor recebe `corDeFundo`) — visível
+   como opção existente, mas claramente não-clicável, em vez de sumir da
+   grade e deixar a pessoa sem entender por que a contagem mudou. */
+.corReprovada {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.corReprovada::after {
+  content: "";
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: var(--bg);
+  opacity: 0.85;
+}
+
 .marca {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
