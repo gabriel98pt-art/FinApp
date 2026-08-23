@@ -39,8 +39,10 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import type {
   Cents,
   Currency,
+  DespesaCorrente,
   FaturaCalculada,
   Id,
+  Parcela,
   TipoCartao,
   Transferencia,
   YearMonth,
@@ -74,10 +76,14 @@ import Botao from "../components/Botao";
  *  detalhes da conta (item 13), não mais como quadro solto na tela. */
 function ControlesFatura({
   fatura,
+  parcelas,
+  despesas,
   aoPagar,
   aoAjustar,
 }: {
   fatura: FaturaCalculada;
+  parcelas: Parcela[];
+  despesas: DespesaCorrente[];
   aoPagar: () => void;
   aoAjustar: () => void;
 }) {
@@ -142,6 +148,9 @@ function ControlesFatura({
                         fatura.mes,
                         p,
                         calcularPagamentos(fatura),
+                        fatura.devido,
+                        parcelas,
+                        despesas,
                       )
                         .then(() => mostrarToast("↩ Pagamento removido"))
                         .catch(() => mostrarToast("Não foi possível remover."));
@@ -178,7 +187,14 @@ function ControlesFatura({
                   ))
                 )
                   return;
-                await reabrirFatura(uid, fatura.cartao, fatura.mes, calcularPagamentos(fatura))
+                await reabrirFatura(
+                  uid,
+                  fatura.cartao,
+                  fatura.mes,
+                  calcularPagamentos(fatura),
+                  parcelas,
+                  despesas,
+                )
                   .then(() => mostrarToast("↩ Fatura reaberta"))
                   .catch(() => mostrarToast("Não foi possível reabrir."));
               })();
@@ -823,6 +839,8 @@ export default function Cartoes() {
             {faturaAberta && (
               <ControlesFatura
                 fatura={faturaAberta}
+                parcelas={parcelas}
+                despesas={despesas}
                 aoPagar={() => {
                   setValorTexto(faturaAberta.restante);
                   setPagarDe(contasDebito[0] ?? "");

@@ -106,13 +106,53 @@ export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
   await update(ref(db, raiz(uid)), atualizacoes);
 }
 
-/** Remove um pagamento (e o lançamento origem 'fat' dele). */
+/** Desfaz, dentro de `atualizacoes`, a quitação que `pagarFatura` arrastou
+ *  para as parcelas autoDebit do ciclo: limpa o `pagoPorMes[ciclo] === "fatura"`
+ *  e apaga o lançamento espelho (origem 'parc') correspondente. Sem isto, ao
+ *  remover ou reabrir um pagamento que tinha quitado a fatura, a parcela
+ *  continuava marcada como paga e o lançamento dela ficava para sempre no
+ *  extrato — dinheiro "voltado" para a conta que a tela de Parcelas e o
+ *  extrato de Transações continuavam a dar como gasto. */
+function reverterQuitacaoDeParcelas(
+  cartao: string,
+  mes: YearMonth,
+  parcelas: Parcela[],
+  despesas: DespesaCorrente[],
+  atualizacoes: Record<string, unknown>,
+) {
+  const ciclo = cicloDaFatura(mes);
+  const idsQuitadosPelaFatura = new Set(
+    parcelas
+      .filter((p) => p.cartao === cartao && p.pagoPorMes[ciclo] === "fatura")
+      .map((p) => p.id),
+  );
+  for (const id of idsQuitadosPelaFatura) {
+    atualizacoes[`parcelas/${id}/pagoPorMes/${ciclo}`] = null;
+  }
+  for (const d of despesas) {
+    if (
+      d.origem === "parc" &&
+      d.parcelaMes === ciclo &&
+      d.parcelaId &&
+      idsQuitadosPelaFatura.has(d.parcelaId)
+    ) {
+      atualizacoes[`despesasCorrentes/${d.id}`] = null;
+    }
+  }
+}
+
+/** Remove um pagamento (e o lançamento origem 'fat' dele). Se, sem ele, a
+ *  fatura deixa de estar quitada, desfaz também a quitação que arrastou nas
+ *  parcelas autoDebit do ciclo (ver `reverterQuitacaoDeParcelas`). */
 export async function removerPagamentoFatura(
   uid: string,
   cartao: string,
   mes: YearMonth,
   pagamento: PagamentoFatura,
   pagamentosAtuais: PagamentoFatura[],
+  devido: Cents,
+  parcelas: Parcela[],
+  despesas: DespesaCorrente[],
 ) {
   snapshotHistorico();
   const restantes = pagamentosAtuais.filter((p) => p.id !== pagamento.id);
@@ -120,20 +160,26 @@ export async function removerPagamentoFatura(
     [`despesasCorrentes/${pagamento.id}`]: null,
     [`cfg/faturasPagas/${cartao}/${mes}`]: restantes.length ? { pagamentos: restantes } : null,
   };
+  const aindaQuitada = restantes.reduce((s, p) => s + p.valor, 0) >= devido;
+  if (!aindaQuitada) reverterQuitacaoDeParcelas(cartao, mes, parcelas, despesas, atualizacoes);
   await update(ref(db, raiz(uid)), atualizacoes);
 }
 
-/** Reabre a fatura: remove todos os pagamentos e os lançamentos deles. */
+/** Reabre a fatura: remove todos os pagamentos e os lançamentos deles, e
+ *  desfaz a quitação que eles arrastaram nas parcelas autoDebit do ciclo. */
 export async function reabrirFatura(
   uid: string,
   cartao: string,
   mes: YearMonth,
   pagamentos: PagamentoFatura[],
+  parcelas: Parcela[],
+  despesas: DespesaCorrente[],
 ) {
   snapshotHistorico();
   const atualizacoes: Record<string, unknown> = {
     [`cfg/faturasPagas/${cartao}/${mes}`]: null,
   };
   for (const p of pagamentos) atualizacoes[`despesasCorrentes/${p.id}`] = null;
+  reverterQuitacaoDeParcelas(cartao, mes, parcelas, despesas, atualizacoes);
   await update(ref(db, raiz(uid)), atualizacoes);
 }

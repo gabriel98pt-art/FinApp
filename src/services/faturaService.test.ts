@@ -240,7 +240,18 @@ describe("removerPagamentoFatura", () => {
   test("apaga o lançamento e mantém os outros pagamentos", async () => {
     const outro: PagamentoFatura = { ...pagamento, id: "dc2", valor: 3000 };
 
-    await s.removerPagamentoFatura(UID, "Cartão Gold", MES_FATURA, pagamento, [pagamento, outro]);
+    // Devido 80,00; sobram os 30,00 do outro pagamento — a fatura continua
+    // quitada, então não deve mexer em parcela nenhuma.
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamento,
+      [pagamento, outro],
+      8000,
+      [],
+      [],
+    );
 
     expect(updates).toHaveLength(1);
     expect(updates[0].mudancas["despesasCorrentes/dc1"]).toBeNull();
@@ -250,11 +261,70 @@ describe("removerPagamentoFatura", () => {
   });
 
   test("removendo o último pagamento, a fatura volta a não ter registo nenhum", async () => {
-    await s.removerPagamentoFatura(UID, "Cartão Gold", MES_FATURA, pagamento, [pagamento]);
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamento,
+      [pagamento],
+      5000,
+      [],
+      [],
+    );
 
     // null e não `{ pagamentos: [] }`: uma lista vazia deixava a fatura marcada
     // como "tem registo de pagamento" para sempre.
     expect(updates[0].mudancas[`cfg/faturasPagas/Cartão Gold/${MES_FATURA}`]).toBeNull();
+  });
+
+  test("removendo o pagamento que tinha quitado a fatura, desfaz a quitação das parcelas", async () => {
+    // A fatura foi paga por inteiro e arrastou a parcela p1 (marcada "fatura")
+    // e o lançamento espelho dc-parc dela. Removendo o único pagamento, a
+    // fatura deixa de estar quitada (0 < devido) — a quitação tem de voltar.
+    const parcelaQuitada: Parcela = { ...parcelaAuto, pagoPorMes: { [CICLO]: "fatura" } };
+    const lancamentoParcela = {
+      id: "dc-parc",
+      descricao: "Portátil",
+      valor: 10000,
+      data: "2026-08-05",
+      categoria: "Tecnologia",
+      origem: "parc" as const,
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+    };
+
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamento,
+      [pagamento],
+      10000,
+      [parcelaQuitada],
+      [lancamentoParcela],
+    );
+
+    expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBeNull();
+    expect(updates[0].mudancas["despesasCorrentes/dc-parc"]).toBeNull();
+  });
+
+  test("removendo um pagamento parcial que ainda deixa a fatura quitada, não mexe nas parcelas", async () => {
+    const outro: PagamentoFatura = { ...pagamento, id: "dc2", valor: 10000 };
+    const parcelaQuitada: Parcela = { ...parcelaAuto, pagoPorMes: { [CICLO]: "fatura" } };
+
+    // Devido 100,00; sobra o "outro" pagamento de 100,00 — continua quitada.
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamento,
+      [pagamento, outro],
+      10000,
+      [parcelaQuitada],
+      [],
+    );
+
+    expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBeUndefined();
   });
 });
 
@@ -265,7 +335,7 @@ describe("reabrirFatura", () => {
       { id: "dc2", data: "2026-08-09", valor: 5000, de: "Conta à ordem" },
     ];
 
-    await s.reabrirFatura(UID, "Cartão Gold", MES_FATURA, pagamentos);
+    await s.reabrirFatura(UID, "Cartão Gold", MES_FATURA, pagamentos, [], []);
 
     expect(updates).toHaveLength(1);
     expect(updates[0].mudancas[`cfg/faturasPagas/Cartão Gold/${MES_FATURA}`]).toBeNull();
@@ -274,7 +344,44 @@ describe("reabrirFatura", () => {
   });
 
   test("reabrir sem pagamentos nenhuns não rebenta", async () => {
-    await s.reabrirFatura(UID, "Cartão Gold", MES_FATURA, []);
+    await s.reabrirFatura(UID, "Cartão Gold", MES_FATURA, [], [], []);
     expect(updates[0].mudancas[`cfg/faturasPagas/Cartão Gold/${MES_FATURA}`]).toBeNull();
+  });
+
+  test("desfaz a quitação das parcelas autoDebit que a fatura tinha arrastado", async () => {
+    const parcelaQuitada: Parcela = { ...parcelaAuto, pagoPorMes: { [CICLO]: "fatura" } };
+    const lancamentoParcela = {
+      id: "dc-parc",
+      descricao: "Portátil",
+      valor: 10000,
+      data: "2026-08-05",
+      categoria: "Tecnologia",
+      origem: "parc" as const,
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+    };
+    const pagamentos: PagamentoFatura[] = [
+      { id: "dc1", data: "2026-08-05", valor: 10000, de: "Conta à ordem" },
+    ];
+
+    await s.reabrirFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamentos,
+      [parcelaQuitada],
+      [lancamentoParcela],
+    );
+
+    expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBeNull();
+    expect(updates[0].mudancas["despesasCorrentes/dc-parc"]).toBeNull();
+  });
+
+  test("não mexe em parcela marcada paga à mão (true), só na quitada pela fatura", async () => {
+    const parcelaManual: Parcela = { ...parcelaAuto, pagoPorMes: { [CICLO]: true } };
+
+    await s.reabrirFatura(UID, "Cartão Gold", MES_FATURA, [], [parcelaManual], []);
+
+    expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBeUndefined();
   });
 });
