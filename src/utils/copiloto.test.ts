@@ -200,6 +200,14 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/projec/i);
   });
 
+  test("plural 'metas' também aciona o intent, sem precisar da palavra 'poupança'", () => {
+    const resp = responderPergunta(
+      "como vão as minhas metas?",
+      ctx({ despesas, receitas, cfg: cfgCom({ metaPoupanca: 100000 }) }),
+    );
+    expect(resp).toMatch(/meta de poupança/i);
+  });
+
   test("parcela específica por nome (mesmo sem a palavra 'parcela' na pergunta)", () => {
     const parcela: Parcela = {
       id: "p1",

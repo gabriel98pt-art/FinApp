@@ -820,8 +820,15 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // poupança / meta (+ projeção no ritmo atual)
+  //
+  // Bug corrigido: \bmeta\b não bate no plural — "como vão as minhas metas?"
+  // não tinha "poupança" na frase e caía direto no RESPOSTA_PADRAO, embora o
+  // próprio parágrafo dos fundos logo abaixo já fosse escrito a pensar nessa
+  // pergunta ("quem pergunta 'como vão as minhas metas' quer saber dos
+  // dois"). `metas?` aceita as duas formas sem abrir mão da fronteira de
+  // palavra (continua a não bater dentro de "metade", por exemplo).
   {
-    test: (q) => /poupanc|\bmeta\b/.test(q),
+    test: (q) => /poupanc|\bmetas?\b/.test(q),
     run: (q, ref, ctx) => {
       const t = totaisDoMes(ctx, ref.ym);
       const saldo = t.receitas - t.despesas;
