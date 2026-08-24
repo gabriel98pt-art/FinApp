@@ -97,7 +97,7 @@ export function validarNomeNovo(lista: string[], de: string, para: string): stri
   return nome;
 }
 
-/** Conta/cartão: a lista, as 4 chaves de cfg indexadas pelo nome do cartão, e
+/** Conta/cartão: a lista, as 6 chaves de cfg indexadas pelo nome do cartão, e
  *  todo lançamento que aponte pra ele (incluindo as duas pontas da
  *  transferência e os lançamentos do veículo). */
 export function patchRenomearCartao(
@@ -113,6 +113,8 @@ export function patchRenomearCartao(
   moverChave(patch, "cfg/saldosIniciais", cfg.saldosIniciais, de, para);
   moverChave(patch, "cfg/faturaManual", cfg.faturaManual, de, para);
   moverChave(patch, "cfg/faturasPagas", cfg.faturasPagas, de, para);
+  moverChave(patch, "cfg/diaVencimentoFatura", cfg.diaVencimentoFatura, de, para);
+  moverChave(patch, "cfg/diaFechamentoFatura", cfg.diaFechamentoFatura, de, para);
 
   trocarCampo(patch, "despesasCorrentes", dados.despesas, "contaCartao", de, para);
   trocarCampo(patch, "despesasFixas", dados.despesasFixas, "contaCartao", de, para);

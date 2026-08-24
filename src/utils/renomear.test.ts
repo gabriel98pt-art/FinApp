@@ -60,6 +60,8 @@ describe("renomear conta/cartão", () => {
     faturasPagas: {
       [VELHO]: { "2026-06": { pagamentos: [{ id: "pg1", data: "2026-06-05", valor: 5000 }] } },
     },
+    diaVencimentoFatura: { [VELHO]: 15 },
+    diaFechamentoFatura: { [VELHO]: 20 },
   });
 
   const dados: DadosRenomear = {
@@ -163,6 +165,13 @@ describe("renomear conta/cartão", () => {
     expect(patch[`cfg/faturasPagas/${VELHO}`]).toBeNull();
     // a conta que não foi renomeada continua intocada
     expect(patch["cfg/tipoCartao/Conta Principal"]).toBeUndefined();
+  });
+
+  test("leva junto o dia de vencimento e o dia de fechamento da fatura", () => {
+    expect(patch[`cfg/diaVencimentoFatura/${NOVO}`]).toBe(15);
+    expect(patch[`cfg/diaVencimentoFatura/${VELHO}`]).toBeNull();
+    expect(patch[`cfg/diaFechamentoFatura/${NOVO}`]).toBe(20);
+    expect(patch[`cfg/diaFechamentoFatura/${VELHO}`]).toBeNull();
   });
 
   test("cada lançamento que apontava pro cartão passa a apontar pro nome novo", () => {
