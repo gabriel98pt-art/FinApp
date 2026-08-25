@@ -9,7 +9,7 @@
 // vira 175 € e ninguém percebe porquê.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -263,5 +263,35 @@ describe("erro de validação — achado da auditoria de Acessibilidade", () => 
     const idErro = alerta.id;
     expect(idErro).toBeTruthy();
     expect(screen.getByLabelText(/Valor/i)).toHaveAttribute("aria-describedby", idErro);
+  });
+});
+
+describe("nº de parcelas — atalhos e o seletor 'Outro número'", () => {
+  // Com "Parcelada" marcada apareciam os atalhos 3x/6x/9x/12x E, logo abaixo,
+  // um seletor "Outro número de parcelas" já a mostrar "3x". Os dois pareciam
+  // dois controlos a mandar no mesmo número ao mesmo tempo.
+  test("com um atalho aceso, o seletor não mostra número nenhum", async () => {
+    render(<RegistroRapido />);
+    await userEvent.click(screen.getByRole("checkbox", { name: /Parcelada/ }));
+
+    expect(screen.getByRole("button", { name: "3x", pressed: true })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Outro número de parcelas.*Escolher/ }),
+    ).toBeInTheDocument();
+  });
+
+  test("o seletor só oferece números que os atalhos não cobrem", async () => {
+    render(<RegistroRapido />);
+    await userEvent.click(screen.getByRole("checkbox", { name: /Parcelada/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Outro número de parcelas/ }));
+
+    const folha = screen.getByRole("dialog", { name: "Outro número de parcelas" });
+    const opcoes = within(folha)
+      .getAllByRole("button")
+      .map((b) => b.textContent);
+    expect(opcoes).toContain("2x");
+    expect(opcoes).toContain("5x");
+    expect(opcoes).not.toContain("3x");
+    expect(opcoes).not.toContain("12x");
   });
 });

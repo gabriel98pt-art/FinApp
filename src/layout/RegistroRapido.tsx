@@ -57,8 +57,15 @@ const TIPOS: { valor: TipoRegistro | "veiculo"; rotulo: string }[] = [
   { valor: "veiculo", rotulo: "Veículo" },
 ];
 
-/** Escape dos botões rápidos 3x/6x/9x/12x — cobre de 2x a 36x (3 anos). */
-const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => String(i + 2));
+/** Os 4 números de parcelas com botão próprio, o caminho rápido. */
+const ATALHOS_PARCELAS = [3, 6, 9, 12];
+
+/** Escape dos botões rápidos: de 2x a 36x (3 anos) MENOS os quatro que já têm
+ *  botão. Deixá-los na lista fazia o seletor parecer um segundo controlo para
+ *  a mesma coisa — tirados, ele é literalmente "os outros números". */
+const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => i + 2)
+  .filter((n) => !ATALHOS_PARCELAS.includes(n))
+  .map(String);
 
 const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
   { valor: "carga", rotulo: "Abastecimento" },
@@ -1088,7 +1095,7 @@ export default function RegistroRapido() {
           <div className={styles.campo}>
             <span>Nº de parcelas</span>
             <div className={styles.fileiraContas}>
-              {[3, 6, 9, 12].map((n) => (
+              {ATALHOS_PARCELAS.map((n) => (
                 <button
                   key={n}
                   type="button"
@@ -1100,10 +1107,17 @@ export default function RegistroRapido() {
                 </button>
               ))}
             </div>
+            {/* Enquanto o número escolhido for um dos atalhos, este seletor não
+                mostra número nenhum: mostrava "3x" ao mesmo tempo que o botão
+                "3x" estava aceso, e os dois pareciam dois controlos a mandar
+                na mesma coisa. Vazio, lê-se pelo que é — a saída para os
+                números que os atalhos não cobrem. Escolher aqui apaga o
+                atalho, e tocar num atalho volta a esvaziar isto: continua a
+                ser um valor só. */}
             <Seletor
               rotulo="Outro número de parcelas"
               nivel={2}
-              valor={numParcelas}
+              valor={ATALHOS_PARCELAS.includes(Number(numParcelas)) ? "" : numParcelas}
               opcoes={OPCOES_PARCELAS}
               rotuloOpcao={(n) => `${n}x`}
               aoMudar={setNumParcelas}
