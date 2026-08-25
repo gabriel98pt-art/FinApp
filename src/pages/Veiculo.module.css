@@ -6,16 +6,74 @@
 .abas {
   display: flex;
   gap: 4px;
-  background: var(--s1);
   border: 1px solid var(--brd);
   border-radius: var(--r-sm);
   padding: 4px;
+  background: var(--s1);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
 .abas::-webkit-scrollbar {
   display: none;
+}
+
+/* No telemóvel a fila de abas é mais larga que o ecrã e a última ("Km") ficava
+   escondida sem nada a indicar que dava para arrastar: "Fixas" ia até à borda
+   e a fila parecia acabar ali. O conteúdo passa a esbater-se do lado que ainda
+   tem aba por ver — e só desse lado, porque o esbatimento é animado ao ritmo
+   da própria rolagem, não fixo: ao chegar ao fim, "Km" fica nítida e quem
+   esbate é o início.
+
+   As duas medidas são `@property` só para poderem ser animadas como
+   comprimento — o mesmo truque que BottomSheet.module.css já usa. Sem JS a
+   medir larguras (regra do projeto). Com a fila inteira à vista (desktop) a
+   linha do tempo nem chega a correr e as medidas ficam nos 0px iniciais, ou
+   seja, sem esbatimento nenhum; num browser sem `animation-timeline` fica
+   simplesmente como estava. */
+@property --abas-fade-esq {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --abas-fade-dir {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll(self inline)) {
+  .abas {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--abas-fade-esq),
+      #000 calc(100% - var(--abas-fade-dir)),
+      transparent 100%
+    );
+    animation: abasEsbater linear;
+    animation-timeline: scroll(self inline);
+  }
+
+  @keyframes abasEsbater {
+    0% {
+      --abas-fade-esq: 0px;
+      --abas-fade-dir: 26px;
+    }
+    12% {
+      --abas-fade-esq: 26px;
+      --abas-fade-dir: 26px;
+    }
+    88% {
+      --abas-fade-esq: 26px;
+      --abas-fade-dir: 26px;
+    }
+    100% {
+      --abas-fade-esq: 26px;
+      --abas-fade-dir: 0px;
+    }
+  }
 }
 
 .abaBotao {
