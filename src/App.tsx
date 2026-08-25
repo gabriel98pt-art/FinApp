@@ -43,6 +43,17 @@ function RotaTvde() {
   return <Tvde />;
 }
 
+/** /veiculo segue a mesma regra do TVDE, com o default trocado: o módulo
+ *  Veículo nasce LIGADO (já existe há muito, há contas com dados lá dentro) e
+ *  o interruptor em Definições › Veículo serve para quem não tem carro o
+ *  esconder. Enquanto a cfg carrega, não redireciona — mesmo cuidado do TVDE. */
+function RotaVeiculo() {
+  const showVeiculo = useCfgStore((s) => s.cfg.showVeiculo);
+  const carregado = useCfgStore((s) => s.carregado);
+  if (carregado && !showVeiculo) return <Navigate to="/" replace />;
+  return <Veiculo />;
+}
+
 export default function App() {
   useAplicarTema();
   useAplicarModoDiscreto();
@@ -87,7 +98,7 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
             <Route index element={<Inicio />} />
             <Route path="/receitas" element={<Receitas />} />
             <Route path="/despesas" element={<Despesas />} />
-            <Route path="/veiculo" element={<Veiculo />} />
+            <Route path="/veiculo" element={<RotaVeiculo />} />
             <Route path="/cartoes" element={<Cartoes />} />
             <Route path="/parcelas" element={<Parcelas />} />
             <Route path="/calendario" element={<Calendario />} />

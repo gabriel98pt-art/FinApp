@@ -37,8 +37,12 @@ export default function MobileNav() {
   const cfg = useCfgStore((s) => s.cfg);
   // TVDE é opt-in por conta (seção 4.4)
   const showTvde = cfg.showTvde;
+  // Veículo é o contrário: vem ligado e desliga-se em Definições › Veículo.
+  const showVeiculo = cfg.showVeiculo;
 
-  const abasMais = ABAS_MENU_MAIS.filter((a) => a.id !== "tvde" || showTvde);
+  const abasMais = ABAS_MENU_MAIS.filter(
+    (a) => (a.id !== "tvde" || showTvde) && (a.id !== "veiculo" || showVeiculo),
+  );
   const maisAtivo = abasMais.some((a) => a.rota === pathname);
   const fecharMais = () => setMaisAberto(false);
 

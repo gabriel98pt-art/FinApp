@@ -33,6 +33,12 @@ export interface ConfigConta {
   currency: Currency;
   /** Módulo TVDE é opt-in por conta; convidados nascem com ele desligado. */
   showTvde: boolean;
+  /** Módulo Veículo, ligado por omissão — ao contrário do TVDE. Não é uma
+   *  novidade a estrear: já existe há muito e há contas com dados lá dentro,
+   *  por isso nasce LIGADO e o interruptor serve para quem não tem carro o
+   *  desligar. Nascer desligado faria o módulo desaparecer da tela de quem já
+   *  o usa. */
+  showVeiculo: boolean;
   /** Blur visual em elementos sensíveis (poupança, orçamento, resumo anual,
    *  breakdown por categoria) — seção 4.6. Não esconde o resto da navegação. */
   modoDiscreto: boolean;

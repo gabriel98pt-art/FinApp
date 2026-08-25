@@ -295,3 +295,25 @@ describe("nº de parcelas — atalhos e o seletor 'Outro número'", () => {
     expect(opcoes).not.toContain("12x");
   });
 });
+
+// O módulo Veículo pode ser desligado (Definições › Veículo). Ligado é o
+// estado normal — só quem não tem carro o desliga — e então o terceiro botão
+// do seletor de tipo tem de sair daqui também, senão o registro rápido
+// continuava a abrir um formulário cuja tela já não existe na navegação.
+describe("módulo Veículo desligado", () => {
+  test("ligado (padrão): o botão Veículo está no seletor de tipo", () => {
+    render(<RegistroRapido />);
+    const grupo = screen.getByRole("radiogroup", { name: "Tipo de lançamento" });
+    expect(within(grupo).getByRole("radio", { name: "Veículo" })).toBeInTheDocument();
+  });
+
+  test("desligado: o botão Veículo some, Despesa e Receita ficam", () => {
+    cfg = { ...CONFIG_PADRAO, showVeiculo: false };
+    render(<RegistroRapido />);
+
+    const grupo = screen.getByRole("radiogroup", { name: "Tipo de lançamento" });
+    expect(within(grupo).queryByRole("radio", { name: "Veículo" })).not.toBeInTheDocument();
+    expect(within(grupo).getByRole("radio", { name: "Despesa" })).toBeInTheDocument();
+    expect(within(grupo).getByRole("radio", { name: "Receita" })).toBeInTheDocument();
+  });
+});

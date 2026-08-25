@@ -6,13 +6,15 @@
 // (mesmo padrão já usado em BottomSheet/ConfirmarAcao): presente quando
 // fechado, ausente quando aberto.
 
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import type { ConfigConta } from "../types";
 
+let cfg: ConfigConta = CONFIG_PADRAO;
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg: CONFIG_PADRAO }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg }),
 }));
 vi.mock("../stores/uiStore", () => ({
   useUiStore: (s: (e: unknown) => unknown) => s({ abrirRegistro: vi.fn() }),
@@ -27,6 +29,27 @@ function desenhar() {
     </MemoryRouter>,
   );
 }
+
+beforeEach(() => {
+  cfg = CONFIG_PADRAO;
+});
+
+// O módulo Veículo desliga-se em Definições › Veículo. Ligado é o estado
+// normal (nasce `true`, ao contrário do TVDE): quem já usa o app não pode ver
+// a aba desaparecer só porque o interruptor passou a existir.
+describe("MobileNav — módulo Veículo", () => {
+  test("ligado (padrão): a aba Veículo está no menu Mais", () => {
+    desenhar();
+    expect(screen.getByRole("link", { name: /Veículo/ })).toBeInTheDocument();
+  });
+
+  test("desligado: a aba Veículo sai do menu Mais", () => {
+    cfg = { ...CONFIG_PADRAO, showVeiculo: false };
+    desenhar();
+    expect(screen.queryByRole("link", { name: /Veículo/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Transações/ })).toBeInTheDocument();
+  });
+});
 
 describe("MobileNav — menu Mais", () => {
   test("fechado por omissão: o menu é inert", () => {

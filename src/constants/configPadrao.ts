@@ -7,6 +7,10 @@ export const CONFIG_PADRAO: ConfigConta = {
   theme: "dark",
   currency: "EUR",
   showTvde: false,
+  // Ligado por omissão (e não `false` como o TVDE): o módulo Veículo já existe
+  // há muito, e como `normalizarConfig` só repõe defaults para campos ausentes,
+  // qualquer conta anterior a este interruptor continua a ver a aba.
+  showVeiculo: true,
   modoDiscreto: false,
   diaInicioSemana: 1, // segunda-feira
   fontesReceita: FONTES_RECEITA_PADRAO,

@@ -13,7 +13,11 @@ import styles from "./Sidebar.module.css";
 export default function Sidebar() {
   // TVDE é opt-in por conta (seção 4.4)
   const showTvde = useCfgStore((s) => s.cfg.showTvde);
-  const abas = ABAS.filter((a) => a.id !== "tvde" || showTvde);
+  // Veículo é o contrário: vem ligado e desliga-se em Definições › Veículo.
+  const showVeiculo = useCfgStore((s) => s.cfg.showVeiculo);
+  const abas = ABAS.filter(
+    (a) => (a.id !== "tvde" || showTvde) && (a.id !== "veiculo" || showVeiculo),
+  );
 
   return (
     <nav className={`${styles.barra} material`} aria-label="Navegação principal">

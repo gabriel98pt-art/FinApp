@@ -168,6 +168,14 @@ export default function RegistroRapido() {
 
   const ehVeiculo = tipo === "carga" || tipo === "despesaVeiculo";
 
+  /** Com o módulo Veículo desligado (Definições › Veículo), o registro rápido
+   *  deixa de oferecer o terceiro botão — a tela do módulo já não existe na
+   *  navegação, e um lançamento que só se pode ver lá não teria onde aparecer. */
+  const tipos = useMemo(
+    () => TIPOS.filter((t) => t.valor !== "veiculo" || cfg.showVeiculo),
+    [cfg.showVeiculo],
+  );
+
   /** Despesas que podem ter gerado este reembolso: as dos 30 dias ANTERIORES à
    *  data do reembolso, com as da categoria já escolhida à frente.
    *
@@ -590,7 +598,7 @@ export default function RegistroRapido() {
               ref={rgTipoRef}
               onKeyDown={aoTeclarTipo}
             >
-              {TIPOS.map((t) => {
+              {tipos.map((t) => {
                 const ativo = t.valor === "veiculo" ? ehVeiculo : tipo === t.valor;
                 const fundo = corDaCategoriaVisual(cfg, t.rotulo);
                 return (

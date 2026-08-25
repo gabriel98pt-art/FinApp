@@ -94,3 +94,34 @@ describe("FolhaVeiculo", () => {
     expect(screen.getByRole("button", { name: /Cor do Veículo/ })).toHaveTextContent("Padrão");
   });
 });
+
+// O interruptor do módulo mora aqui dentro, e não solto em Definições ao lado
+// do Módulo TVDE: é o sítio onde já vive tudo o que é do Veículo. Ao contrário
+// do TVDE, nasce LIGADO — o módulo já existe há muito e há contas com dados lá
+// dentro.
+describe("FolhaVeiculo — interruptor do módulo", () => {
+  test("nasce ligado", () => {
+    abrir();
+    expect(screen.getByRole("switch", { name: "Módulo Veículo" })).toBeChecked();
+  });
+
+  test("desligar grava showVeiculo: false", async () => {
+    abrir();
+    await userEvent.click(screen.getByRole("switch", { name: "Módulo Veículo" }));
+    expect(atualizarConfig).toHaveBeenCalledWith("u1", { showVeiculo: false });
+  });
+
+  test("voltar a ligar grava showVeiculo: true", async () => {
+    abrir({ ...CONFIG_PADRAO, showVeiculo: false });
+    await userEvent.click(screen.getByRole("switch", { name: "Módulo Veículo" }));
+    expect(atualizarConfig).toHaveBeenCalledWith("u1", { showVeiculo: true });
+  });
+
+  test("desligado, o resto da folha sai — só o interruptor fica", () => {
+    abrir({ ...CONFIG_PADRAO, showVeiculo: false });
+    expect(screen.getByRole("switch", { name: "Módulo Veículo" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tipo de veículo/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Categorias de despesa/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Cor do Veículo/ })).not.toBeInTheDocument();
+  });
+});
