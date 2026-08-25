@@ -111,6 +111,26 @@ describe("Calendario", () => {
     render(<Calendario />);
     expect(screen.getByRole("heading", { name: "Próximos 7 dias" })).toBeInTheDocument();
   });
+
+  test("'Próximos 7 dias' lista os vencimentos, não só os eventos manuais", () => {
+    // A tela contradizia-se: o KPI dizia "1 compromisso até 19/08" e a lista
+    // logo abaixo dizia "Nada agendado nos próximos 7 dias", porque a lista
+    // só olhava para eventos criados à mão.
+    fixas = lista([
+      {
+        id: "f1",
+        descricao: "Netflix",
+        valor: 1590,
+        categoria: "Assinaturas",
+        diaVencimento: 15,
+        pagoPorMes: {},
+      } as DespesaFixa,
+    ]);
+    render(<Calendario />);
+
+    expect(screen.queryByText("Nada agendado nos próximos 7 dias.")).not.toBeInTheDocument();
+    expect(screen.getByText("Netflix")).toBeInTheDocument();
+  });
 });
 
 describe("KPIs do Calendário", () => {
@@ -136,8 +156,10 @@ describe("KPIs do Calendário", () => {
     expect(screen.getByText("A pagar em agosto 2026")).toBeInTheDocument();
     expect(screen.getByText("€ 35,90")).toBeInTheDocument();
     expect(screen.getByText("Vence em 7 dias")).toBeInTheDocument();
-    // Só a de dia 15 cabe na janela — a de dia 20 fica de fora.
-    expect(screen.getByText("€ 20,00")).toBeInTheDocument();
+    // Só a de dia 15 cabe na janela — a de dia 20 fica de fora. Aparece duas
+    // vezes: no KPI e na lista de "Próximos 7 dias", que agora usa a mesma
+    // fonte de dados.
+    expect(screen.getAllByText("€ 20,00").length).toBeGreaterThanOrEqual(1);
     // E nada de "0": era isto que a tela dizia antes, com estas mesmas fixas.
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });

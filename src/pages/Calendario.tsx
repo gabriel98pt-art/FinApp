@@ -28,6 +28,7 @@ import {
   vencimentosDeFaturas,
   vencimentosDeFixas,
   vencimentosDeParcelas,
+  type TipoVencimento,
   type Vencimento,
 } from "../utils/vencimentos";
 import {
@@ -137,6 +138,36 @@ export default function Calendario() {
   const eventosComValor7 = eventosComValor(proximos7);
   const aPagar7 = totalAVencer(vencimentos7) + totalEventos(eventosComValor7);
   const qtd7 = vencimentos7.length + eventosComValor7.length;
+
+  // A secção "Próximos 7 dias" listava SÓ os eventos manuais, enquanto o KPI
+  // logo acima (e os pontos da grelha) já contavam também fixas, parcelas e
+  // faturas: a mesma tela dizia "6 compromissos até 01/09" e, dois dedos
+  // abaixo, "Nada agendado nos próximos 7 dias". Aqui a lista passa a usar
+  // exatamente as mesmas duas fontes do KPI, ordenadas por dia.
+  const itens7: {
+    chave: string;
+    data: string;
+    titulo: string;
+    detalhe?: string;
+    valor?: Cents;
+    tipo?: TipoVencimento;
+  }[] = [
+    ...vencimentos7.map((v, i) => ({
+      chave: `v-${v.tipo}-${v.dia}-${i}`,
+      data: v.dia,
+      titulo: v.titulo,
+      detalhe: v.detalhe,
+      valor: v.valor,
+      tipo: v.tipo,
+    })),
+    ...proximos7.map((e) => ({
+      chave: `e-${e.id}`,
+      data: e.data,
+      titulo: e.titulo,
+      detalhe: e.descricao,
+      valor: e.valor,
+    })),
+  ].sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
 
   /** Cada abertura recomeça em branco, no dia pedido (o da grelha) ou em hoje.
    *  Sem isto os campos só eram limpos depois de um `criarEvento` bem sucedido:
@@ -255,21 +286,31 @@ export default function Calendario() {
         {/* h3, como "Despesas fixas", "Carregamentos" e as outras secções do
             app. O .secaoTitulo já fixa tamanho e peso, então nada muda à vista. */}
         <h3 className={styles.secaoTitulo}>Próximos 7 dias</h3>
-        {proximos7.length === 0 ? (
+        {itens7.length === 0 ? (
           <p className={styles.vazio}>Nada agendado nos próximos 7 dias.</p>
         ) : (
           <div className={styles.lista}>
-            {proximos7.map((e) => (
-              <div key={e.id} className={styles.item}>
+            {itens7.map((it) => (
+              <div key={it.chave} className={styles.item}>
                 <div>
-                  <p className={styles.itemNome}>{e.titulo}</p>
+                  <p className={styles.itemNome}>
+                    {it.tipo && (
+                      <>
+                        <span
+                          className={`${styles.ponto} ${styles[`ponto_${it.tipo}`]}`}
+                          aria-hidden
+                        />{" "}
+                      </>
+                    )}
+                    {it.titulo}
+                  </p>
                   <p className={styles.itemDetalhe}>
-                    {e.data.slice(8, 10)}/{e.data.slice(5, 7)}
-                    {e.descricao ? ` · ${e.descricao}` : ""}
+                    {it.data.slice(8, 10)}/{it.data.slice(5, 7)}
+                    {it.detalhe ? ` · ${it.detalhe}` : ""}
                   </p>
                 </div>
-                {e.valor !== undefined && (
-                  <span className={styles.itemValor}>{formatMoney(e.valor, moeda)}</span>
+                {it.valor !== undefined && (
+                  <span className={styles.itemValor}>{formatMoney(it.valor, moeda)}</span>
                 )}
               </div>
             ))}
