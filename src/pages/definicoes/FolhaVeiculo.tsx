@@ -1,5 +1,8 @@
+import { useState } from "react";
 import BottomSheet from "../../components/BottomSheet";
 import Seletor from "../../components/Seletor";
+import SettingsRow from "../../components/settings/SettingsRow";
+import FolhaCategorias from "./FolhaCategorias";
 import { atualizarConfig } from "../../services/cfgService";
 import { mostrarToast } from "../../stores/toastStore";
 import { TIPOS_VEICULO, rotuloTipoVeiculo } from "../../constants/veiculoPadrao";
@@ -24,6 +27,8 @@ export default function FolhaVeiculo({
   aberta: boolean;
   aoFechar: () => void;
 }) {
+  const [categoriasAberto, setCategoriasAberto] = useState(false);
+
   async function mudarTipo(valor: string) {
     if (valor === cfg.tipoVeiculo) return;
     try {
@@ -52,6 +57,26 @@ export default function FolhaVeiculo({
           aoMudar={(v) => void mudarTipo(v)}
         />
       </div>
+      {/* Mesmo editor das categorias de despesa gerais — é a mesma coisa, só
+          noutra lista. De caminho ganha o que a versão de chips na página
+          Veículo nunca teve: ícone e cor por categoria. */}
+      <SettingsRow
+        titulo="Categorias de despesa"
+        valor={`${cfg.categoriasVeiculo.length} ativas`}
+        navegavel
+        onClick={() => setCategoriasAberto(true)}
+      />
+
+      <FolhaCategorias
+        titulo="Categorias do veículo"
+        itens={cfg.categoriasVeiculo}
+        lista="categoriasVeiculo"
+        cfg={cfg}
+        uid={uid}
+        aberta={categoriasAberto}
+        nivel={1}
+        aoFechar={() => setCategoriasAberto(false)}
+      />
     </BottomSheet>
   );
 }

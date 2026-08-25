@@ -11,6 +11,7 @@ export default function RenomearFolha({
   nomeAtual,
   titulo = "Renomear",
   aviso,
+  nivel = 1,
   aoFechar,
   aoConfirmar,
 }: {
@@ -20,6 +21,11 @@ export default function RenomearFolha({
   titulo?: string;
   /** Linha explicando o alcance da mudança nesta tela. */
   aviso?: string;
+  /** Quase sempre 1: abre-se de dentro de uma lista, que está numa folha ou
+   *  numa página. Só sobe quando essa própria lista já é uma folha aninhada
+   *  (Definições › Veículo › Categorias), senão as duas ficam no mesmo nível
+   *  e a de baixo não recua. */
+  nivel?: number;
   aoFechar: () => void;
   aoConfirmar: (nome: string) => void;
 }) {
@@ -41,7 +47,7 @@ export default function RenomearFolha({
       aberta={aberta}
       aoFechar={aoFechar}
       titulo={nomeAtual ? `${titulo} "${nomeAtual}"` : titulo}
-      nivel={1}
+      nivel={nivel}
     >
       <form className={styles.form} onSubmit={submeter}>
         <label className={styles.campo}>

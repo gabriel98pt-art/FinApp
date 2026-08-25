@@ -26,12 +26,7 @@ import {
   removerFixaVeiculo,
   removerKm,
 } from "../services/veiculoService";
-import {
-  adicionarItemLista,
-  removerItemLista,
-  renomearCategoria,
-  renomearLocal,
-} from "../services/cfgService";
+import { adicionarItemLista, removerItemLista, renomearLocal } from "../services/cfgService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
@@ -380,45 +375,16 @@ export default function Veiculo() {
     }
   }
 
-  // ---- gestão das categorias do veículo (mesmo molde dos locais) ----
-  const [novaCategoria, setNovaCategoria] = useState("");
-
-  async function adicionarCategoria(e: FormEvent) {
-    e.preventDefault();
-    const nome = novaCategoria.trim();
-    if (!nome) return mostrarToast("Escreva um nome primeiro.");
-    try {
-      await adicionarItemLista(uid, cfg, "categoriasVeiculo", nome);
-      mostrarToast(`✓ "${nome}" adicionada`);
-      setNovaCategoria("");
-    } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
-    }
-  }
-
-  async function removerCategoria(nome: string) {
-    if (!(await confirmar(`Remover "${nome}"? Despesas já registadas não mudam.`))) return;
-    try {
-      await removerItemLista(uid, cfg, "categoriasVeiculo", nome);
-      mostrarToast(`"${nome}" removida`);
-    } catch {
-      mostrarToast("Não foi possível remover.");
-    }
-  }
-
-  // Renomear (com cascata) tanto o local como a categoria — a folha é a mesma,
-  // o que muda é qual lista está a ser editada.
-  const [renomeando, setRenomeando] = useState<{
-    tipo: "local" | "categoria";
-    nome: string;
-  } | null>(null);
+  // Renomear um local (com cascata nos abastecimentos já registados). As
+  // categorias do veículo saíram daqui para Definições › Veículo, onde usam o
+  // mesmo editor das categorias de despesa gerais — sobrou só o local, que se
+  // escreve enquanto se regista um abastecimento e por isso fica junto dele.
+  const [renomeando, setRenomeando] = useState<string | null>(null);
 
   async function renomear(nomeNovo: string) {
     if (!renomeando) return;
-    const { tipo, nome } = renomeando;
     try {
-      if (tipo === "local") await renomearLocal(uid, cfg, nome, nomeNovo);
-      else await renomearCategoria(uid, cfg, "categoriasVeiculo", nome, nomeNovo);
+      await renomearLocal(uid, cfg, renomeando, nomeNovo);
       setRenomeando(null);
       mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
     } catch (err) {
@@ -742,7 +708,7 @@ export default function Veiculo() {
                         className={styles.chipAcao}
                         aria-label={`Renomear ${l}`}
                         title="Renomear"
-                        onClick={() => setRenomeando({ tipo: "local", nome: l })}
+                        onClick={() => setRenomeando(l)}
                       >
                         <Pencil size={14} aria-hidden />
                       </button>
@@ -807,49 +773,6 @@ export default function Veiculo() {
                   ))
               )}
             </div>
-
-            {/* Mesmo molde dos locais de abastecimento: a lista vive junto de quem
-                a usa. Antes era fixa, vinda do configPadrao, sem edição nenhuma. */}
-            <form className={styles.gerir} onSubmit={adicionarCategoria}>
-              <p className={styles.gerirTitulo}>Categorias do veículo</p>
-              {cfg.categoriasVeiculo.length > 0 && (
-                <ul className={styles.chips}>
-                  {cfg.categoriasVeiculo.map((c) => (
-                    <li key={c} className={styles.chip}>
-                      {c}
-                      <button
-                        type="button"
-                        className={styles.chipAcao}
-                        aria-label={`Renomear ${c}`}
-                        title="Renomear"
-                        onClick={() => setRenomeando({ tipo: "categoria", nome: c })}
-                      >
-                        <Pencil size={14} aria-hidden />
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.chipRemover}
-                        aria-label={`Remover ${c}`}
-                        onClick={() => void removerCategoria(c)}
-                      >
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className={styles.gerirLinha}>
-                <input
-                  placeholder="Nome (ex. Portagens)"
-                  aria-label="Nome da categoria do veículo"
-                  value={novaCategoria}
-                  onChange={(e) => setNovaCategoria(e.target.value)}
-                />
-                <button type="submit" className={styles.gerirBotao}>
-                  Adicionar
-                </button>
-              </div>
-            </form>
           </>
         )}
 
@@ -1211,14 +1134,10 @@ export default function Veiculo() {
 
       <RenomearFolha
         aberta={renomeando !== null}
-        nomeAtual={renomeando?.nome ?? null}
+        nomeAtual={renomeando}
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
-        aviso={
-          renomeando?.tipo === "local"
-            ? "Os abastecimentos já registados passam a mostrar o nome novo."
-            : "As despesas do veículo e o ícone/cor seguem para o nome novo."
-        }
+        aviso="Os abastecimentos já registados passam a mostrar o nome novo."
       />
     </Pagina>
   );

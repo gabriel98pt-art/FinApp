@@ -19,14 +19,14 @@ import { mensagemDeErroDados } from "../../utils/erroDados";
 import type { ConfigConta } from "../../types";
 import styles from "../Definicoes.module.css";
 
-/** Lista editável de categorias de despesa OU fontes de receita — o mesmo
- *  editor serve os dois (item 19: ícone, cor, renomear, remover).
+/** Lista editável de categorias de despesa, categorias do veículo OU fontes
+ *  de receita — o mesmo editor serve as três (item 19: ícone, cor, renomear,
+ *  remover).
  *
  *  Extraído de Definicoes.tsx sem mudar nada do comportamento — só o
  *  wrapper, que passa de `<div className={grupo}>` pra esta BottomSheet.
- *  SeletorIcone/SeletorCor ganham nivel={1} (antes usavam o default 0) pelo
- *  mesmo motivo do Copiloto: agora abrem de dentro de outra folha, não da
- *  página — RenomearFolha já tinha nivel=1 fixo, então não muda. */
+ *  SeletorIcone/SeletorCor abrem sempre um nível acima desta folha, pelo
+ *  mesmo motivo do Copiloto: abrem de dentro dela, não da página. */
 export default function FolhaCategorias({
   titulo,
   itens,
@@ -34,14 +34,18 @@ export default function FolhaCategorias({
   cfg,
   uid,
   aberta,
+  nivel = 0,
   aoFechar,
 }: {
   titulo: string;
   itens: string[];
-  lista: "categoriasDespesa" | "fontesReceita";
+  lista: "categoriasDespesa" | "categoriasVeiculo" | "fontesReceita";
   cfg: ConfigConta;
   uid: string;
   aberta: boolean;
+  /** 0 quando aberta do índice de Definições (o caso das duas listas gerais);
+   *  1 quando aberta de dentro de outra folha, como a do Veículo. */
+  nivel?: number;
   aoFechar: () => void;
 }) {
   const [novo, setNovo] = useState("");
@@ -111,7 +115,7 @@ export default function FolhaCategorias({
   }
 
   return (
-    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo}>
+    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
       {itens.length > 0 && (
         <ul className={styles.listaCategorias}>
           {itens.map((item) => (
@@ -173,7 +177,7 @@ export default function FolhaCategorias({
         titulo={iconeDe ? `Ícone de ${iconeDe}` : "Ícone"}
         valor={iconeDe ? (cfg.categoriaIcone?.[iconeDe] ?? "") : ""}
         aoEscolher={(i) => void escolherIcone(i)}
-        nivel={1}
+        nivel={nivel + 1}
       />
       <SeletorCor
         aberta={corDe !== null}
@@ -181,14 +185,21 @@ export default function FolhaCategorias({
         titulo={corDe ? `Cor de ${corDe}` : "Cor"}
         valor={corDe ? (cfg.categoriaCor?.[corDe] ?? "") : ""}
         aoEscolher={(c) => void escolherCor(c)}
-        nivel={1}
+        nivel={nivel + 1}
       />
       <RenomearFolha
         aberta={renomeando !== null}
         nomeAtual={renomeando}
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
-        aviso="Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
+        nivel={nivel + 1}
+        aviso={
+          // As categorias do veículo não entram no orçamento por categoria —
+          // prometer que ele segue o nome novo seria mentira aqui.
+          lista === "categoriasVeiculo"
+            ? "As despesas do veículo e o ícone/cor seguem para o nome novo."
+            : "Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
+        }
       />
     </BottomSheet>
   );

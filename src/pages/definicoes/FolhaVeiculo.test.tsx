@@ -12,9 +12,17 @@ import type { ConfigConta } from "../../types";
 
 vi.mock("../../services/firebase", () => ({ db: {}, auth: {} }));
 const atualizarConfig = vi.fn(async () => {});
+const adicionarItemLista = vi.fn(async () => {});
 vi.mock("../../services/cfgService", () => ({
   atualizarConfig: (...a: unknown[]) => atualizarConfig(...(a as [])),
+  adicionarItemLista: (...a: unknown[]) => adicionarItemLista(...(a as [])),
+  removerItemLista: vi.fn(async () => {}),
+  renomearCategoria: vi.fn(async () => {}),
+  renomearFonte: vi.fn(async () => {}),
+  definirCorCategoria: vi.fn(async () => {}),
+  definirIconeCategoria: vi.fn(async () => {}),
 }));
+vi.mock("../../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
 const FolhaVeiculo = (await import("./FolhaVeiculo")).default;
 
@@ -24,6 +32,7 @@ function abrir(cfg: ConfigConta = CONFIG_PADRAO) {
 
 beforeEach(() => {
   atualizarConfig.mockClear();
+  adicionarItemLista.mockClear();
 });
 
 describe("FolhaVeiculo", () => {
@@ -37,5 +46,32 @@ describe("FolhaVeiculo", () => {
     await userEvent.click(screen.getByRole("button", { name: /Tipo de veículo/ }));
     await userEvent.click(screen.getByRole("button", { name: "Combustão" }));
     expect(atualizarConfig).toHaveBeenCalledWith("u1", { tipoVeiculo: "combustao" });
+  });
+
+  // As categorias do veículo eram chips soltos na aba Despesas da página
+  // Veículo, sem ícone nem cor. Passam pelo mesmo FolhaCategorias das
+  // categorias gerais — o que se garante aqui é que a lista certa chega lá.
+  test("a linha das categorias abre a lista do veículo, não a de despesa geral", async () => {
+    abrir();
+    await userEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+
+    expect(screen.getByRole("dialog", { name: "Categorias do veículo" })).toBeInTheDocument();
+    for (const nome of CONFIG_PADRAO.categoriasVeiculo) {
+      expect(screen.getByText(nome)).toBeInTheDocument();
+    }
+  });
+
+  test("adicionar uma categoria grava na lista do veículo", async () => {
+    abrir();
+    await userEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+    await userEvent.type(screen.getByRole("textbox"), "Estacionamento");
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+
+    expect(adicionarItemLista).toHaveBeenCalledWith(
+      "u1",
+      CONFIG_PADRAO,
+      "categoriasVeiculo",
+      "Estacionamento",
+    );
   });
 });
