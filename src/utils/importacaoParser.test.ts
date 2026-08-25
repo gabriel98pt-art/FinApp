@@ -39,6 +39,26 @@ describe("parseExtratoCsv", () => {
     expect(parseExtratoCsv("")).toEqual([]);
     expect(parseExtratoCsv("Data;Descrição;Valor")).toEqual([]);
   });
+
+  // Extrato "consolidado" da Revolut: dezenas de linhas de metadados e saldos
+  // antes do cabeçalho real da tabela de transações, coluna de valor chamada
+  // "Dinheiro a entrar/sair" em vez de "Valor" — nenhum dos dois batia antes.
+  test("acha o cabeçalho da tabela mesmo fora da primeira linha (extrato consolidado)", () => {
+    const csv = [
+      "Contas-correntes Resumos,,,,",
+      '"Conta Pessoal (EUR)",,,,',
+      ',,"Saldo disponível inicial","187,46€",',
+      'Data,Descrição,Categoria,"Dinheiro a entrar/sair",Saldo',
+      '01/07/2026,Continente,Comerciante,"-12,40€","175,06€"',
+      '04/07/2026,"Carregamento com Apple Pay",Carregar,"100,00€","275,06€"',
+      'Total,,,"87,60€",',
+    ].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toEqual([
+      { data: "2026-07-01", descricao: "Continente", valor: -1240 },
+      { data: "2026-07-04", descricao: "Carregamento com Apple Pay", valor: 10000 },
+    ]);
+  });
 });
 
 // É o que come o texto reconstruído de um PDF genérico (extrairExtratoPdf):

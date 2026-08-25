@@ -95,27 +95,33 @@ export function parseExtratoTextoLivre(texto: string): LinhaExtrato[] {
   return linhasExtrato;
 }
 
-/** Parser genérico de CSV/texto delimitado (_impCSV). Detecta ; , ou tab;
- *  acha colunas de data/descrição/valor (ou débito+crédito separados) pelo
- *  nome do cabeçalho, em qualquer ordem. */
-export function parseExtratoCsv(texto: string): LinhaExtrato[] {
-  const linhas = texto
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-  if (linhas.length < 2) return [];
-
-  const primeira = linhas[0];
+function detectarDelim(linha: string): string {
   let delim = "\t";
-  const pontoVirgula = (primeira.match(/;/g) || []).length;
-  const virgula = (primeira.match(/,/g) || []).length;
+  const pontoVirgula = (linha.match(/;/g) || []).length;
+  const virgula = (linha.match(/,/g) || []).length;
   if (pontoVirgula >= virgula) delim = ";";
   else if (virgula > 1) delim = ",";
+  return delim;
+}
 
-  const cabecalho = dividirLinhaCsv(primeira, delim).map((h) =>
+interface CabecalhoAchado {
+  delim: string;
+  colData: number;
+  colDesc: number;
+  colValor: number;
+  colDebito: number;
+  colCredito: number;
+}
+
+/** Testa se UMA linha, sozinha, é um cabeçalho de colunas reconhecível. Só
+ *  qualifica com data E algum tipo de valor (valor único ou débito/crédito)
+ *  — sem isso, textos de metadados (ex.: "Data de abertura" numa linha de
+ *  info de conta) dariam falso positivo só pela palavra "data" sozinha. */
+function acharCabecalho(linha: string): CabecalhoAchado | null {
+  const delim = detectarDelim(linha);
+  const cabecalho = dividirLinhaCsv(linha, delim).map((h) =>
     h.toLowerCase().replace(/['"]/g, "").replace(/\s+/g, " ").trim(),
   );
-
   const colData = acharColuna(cabecalho, ["data movimento", "data valor", "data", "date", "datum"]);
   const colDesc = acharColuna(cabecalho, [
     "descrição",
@@ -134,13 +140,50 @@ export function parseExtratoCsv(texto: string): LinhaExtrato[] {
     "montante",
     "importância",
     "importancia",
+    // Revolut chama a coluna de valor "Dinheiro a entrar/sair" (extrato
+    // consolidado), não "valor" — sem isto a coluna nunca era achada.
+    "dinheiro a entrar/sair",
+    "dinheiro a entrar",
   ]);
   const colDebito = acharColuna(cabecalho, ["débito", "debito", "debit", "saída", "saida"]);
   const colCredito = acharColuna(cabecalho, ["crédito", "credito", "credit", "entrada"]);
+  if (colData < 0 || (colValor < 0 && colDebito < 0 && colCredito < 0)) return null;
+  return { delim, colData, colDesc, colValor, colDebito, colCredito };
+}
+
+/** Parser genérico de CSV/texto delimitado (_impCSV). Detecta ; , ou tab;
+ *  acha colunas de data/descrição/valor (ou débito+crédito separados) pelo
+ *  nome do cabeçalho, em qualquer ordem.
+ *
+ *  O cabeçalho não precisa estar na primeira linha: extratos "consolidados"
+ *  (ex.: Revolut) empilham várias tabelas num único ficheiro — conta em EUR,
+ *  conta em USD, cripto — cada uma com dezenas de linhas de metadados e
+ *  saldos antes do seu próprio cabeçalho de transações. O parser varre
+ *  TODA linha à procura de algo que bata como cabeçalho; ao achar um, passa
+ *  a usar as colunas dele até achar outro (nova tabela) ou uma linha "Total"
+ *  (fim da tabela). Sem isto, um ficheiro assim não reconhecia nenhuma
+ *  linha — o cabeçalho real nunca estava na linha 1. */
+export function parseExtratoCsv(texto: string): LinhaExtrato[] {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (linhas.length < 2) return [];
 
   const linhasExtrato: LinhaExtrato[] = [];
-  for (let i = 1; i < linhas.length; i++) {
-    const cols = dividirLinhaCsv(linhas[i], delim);
+  let cabecalhoAtual: CabecalhoAchado | null = null;
+
+  for (const linha of linhas) {
+    const possivelCabecalho = acharCabecalho(linha);
+    if (possivelCabecalho) {
+      cabecalhoAtual = possivelCabecalho;
+      continue;
+    }
+    if (!cabecalhoAtual) continue;
+    if (/^total\b/i.test(linha)) continue;
+
+    const { delim, colData, colDesc, colValor, colDebito, colCredito } = cabecalhoAtual;
+    const cols = dividirLinhaCsv(linha, delim);
     if (cols.length < 2) continue;
     const data = interpretarData(colData >= 0 ? cols[colData] : "");
     if (!data) continue;
