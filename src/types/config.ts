@@ -4,6 +4,56 @@ import type { TipoVeiculo } from "./veiculo";
 
 export type TipoCartao = "credit" | "debit";
 
+/** Como um método de pagamento se comporta. É o mesmo conceito de
+ *  `TipoCartao`, escrito na língua do resto do modelo novo — a conversão
+ *  entre os dois vive em `utils/instituicoes.ts`. */
+export type TipoMetodo = "debito" | "credito";
+
+/** Uma forma de pagar dentro de uma instituição: o cartão de crédito do Banco
+ *  X, o débito da mesma conta. O `id` é o identificador ESTÁVEL — é ele que
+ *  fica gravado em cada lançamento e nunca muda, nem quando a pessoa renomeia
+ *  a instituição. Na migração 1:1 do formato antigo, o `id` é o próprio nome
+ *  de hoje da conta/cartão, e é por isso que nenhum lançamento precisa de ser
+ *  tocado. */
+export interface MetodoPagamento {
+  id: string;
+  /** Rótulo escolhido à mão. Ausente = deriva-se de
+   *  "{instituicao.nome} · Débito/Crédito". */
+  nomeExibicao?: string;
+  tipo: TipoMetodo;
+  /** Só faz sentido em crédito (1-31). */
+  diaFechamentoFatura?: number;
+  /** Só faz sentido em crédito (1-31). */
+  diaVencimentoFatura?: number;
+}
+
+/** Um banco/emissor, com os métodos de pagamento que oferece. O `nome` é o
+ *  que se vê e o que se pode renomear à vontade; o `id` é o que não muda. */
+export interface Instituicao {
+  id: string;
+  nome: string;
+  metodos: MetodoPagamento[];
+}
+
+/** `MetodoPagamento` como vive no RTDB: sem `id`, porque o id é a CHAVE do
+ *  mapa (mesma convenção de `tipoCartao`/`saldosIniciais`). Guardar mapas
+ *  indexados por id, e não arrays, é o que permite um `update()` cirúrgico num
+ *  método só, sem reler e regravar a árvore inteira. */
+export type MetodoPagamentoBruto = Omit<MetodoPagamento, "id">;
+
+/** `Instituicao` como vive no RTDB — ver `MetodoPagamentoBruto`. */
+export interface InstituicaoBruta {
+  nome?: string;
+  metodos?: Record<string, MetodoPagamentoBruto>;
+}
+
+/** A config exactamente como o RTDB a devolve, antes de `normalizarConfig`:
+ *  campos podem faltar, e `instituicoes` chega indexada por id em vez de
+ *  array. */
+export type ConfigContaBruta = Partial<Omit<ConfigConta, "instituicoes">> & {
+  instituicoes?: Record<string, InstituicaoBruta>;
+};
+
 /** Os 5 tokens de cor que se repetem no app inteiro e podem ser trocados em
  *  Definições. Fora daqui, cada categoria tem a sua própria cor. */
 export type TokenCorApp = "blu" | "grn" | "red" | "ylw" | "pur";
@@ -55,6 +105,16 @@ export interface ConfigConta {
    *  ícone, cor e orçamento entre as duas, então a separação só duplicava a
    *  mesma categoria na tela de Definições sem separar nada de verdade). */
   categoriasDespesa: string[];
+  /** Instituições e os seus métodos de pagamento — o modelo a que os quatro
+   *  campos seguintes (`contasCartoes`/`tipoCartao`/`diaVencimentoFatura`/
+   *  `diaFechamentoFatura`) estão a ser reduzidos a VISTAS DERIVADAS.
+   *
+   *  `normalizarConfig` mantém os dois lados coerentes nos dois sentidos: se
+   *  isto existe no RTDB, os quatro campos saem daqui; se ainda não existe,
+   *  isto é sintetizado em memória a partir deles (uma instituição com um
+   *  método por conta/cartão). Nenhum código precisa de saber em que lado da
+   *  migração a conta está. */
+  instituicoes: Instituicao[];
   /** Contas/cartões de pagamento, ex. 'AB Gold (C)' (antigo `pay`). */
   contasCartoes: string[];
   /** Tipo de cada cartão (crédito entra no fluxo de fatura, seção 4.1). */

@@ -87,6 +87,231 @@ describe("normalizarConfig", () => {
   });
 });
 
+// A ponte entre `instituicoes` e os quatro campos antigos de conta/cartão.
+// Vale testes próprios (e não só de raspão, através de outra coisa) porque é
+// o único ponto do app que sabe em que lado da migração uma conta está: se
+// esta função se enganar num sentido, uma conta migrada perde os cartões de
+// TODAS as telas que ainda leem os campos antigos; se se enganar no outro,
+// uma conta por migrar aparece sem instituição nenhuma.
+describe("normalizarConfig — instituições", () => {
+  describe("conta ainda no formato antigo", () => {
+    test("sintetiza uma instituição com um método por conta/cartão", () => {
+      const c = s.normalizarConfig({
+        contasCartoes: ["Conta", "Gold"],
+        tipoCartao: { Conta: "debit", Gold: "credit" },
+        diaVencimentoFatura: { Gold: 8 },
+        diaFechamentoFatura: { Gold: 28 },
+      });
+
+      expect(c.instituicoes).toEqual([
+        { id: "Conta", nome: "Conta", metodos: [{ id: "Conta", tipo: "debito" }] },
+        {
+          id: "Gold",
+          nome: "Gold",
+          metodos: [
+            { id: "Gold", tipo: "credito", diaFechamentoFatura: 28, diaVencimentoFatura: 8 },
+          ],
+        },
+      ]);
+    });
+
+    test("o id do método é o nome de hoje — é isso que dispensa migrar lançamentos", () => {
+      const c = s.normalizarConfig({ contasCartoes: ["AB Gold (C)"] });
+      expect(c.instituicoes[0].metodos[0].id).toBe("AB Gold (C)");
+    });
+
+    test("os quatro campos antigos ficam exactamente como vieram", () => {
+      // Neste sentido é o formato antigo que manda: sintetizar não pode
+      // reordenar nem reescrever nada, senão a etapa muda comportamento.
+      const bruto = {
+        contasCartoes: ["Zeta", "Alfa"],
+        tipoCartao: { Zeta: "credit" as const },
+        diaVencimentoFatura: { Zeta: 3 },
+      };
+      const c = s.normalizarConfig(bruto);
+
+      expect(c.contasCartoes).toEqual(["Zeta", "Alfa"]);
+      expect(c.tipoCartao).toEqual({ Zeta: "credit" });
+      expect(c.diaVencimentoFatura).toEqual({ Zeta: 3 });
+      expect(c.diaFechamentoFatura).toEqual({});
+    });
+
+    test("cartão sem tipo gravado conta como débito", () => {
+      // É o que o resto do app já assume: só entra no fluxo de fatura quem
+      // tem `tipoCartao` a dizer "credit".
+      const c = s.normalizarConfig({ contasCartoes: ["Sem tipo"] });
+      expect(c.instituicoes[0].metodos[0].tipo).toBe("debito");
+    });
+
+    test("crédito sem dias de fatura não inventa dias", () => {
+      const c = s.normalizarConfig({
+        contasCartoes: ["Gold"],
+        tipoCartao: { Gold: "credit" },
+      });
+      const metodo = c.instituicoes[0].metodos[0];
+      expect(metodo).toEqual({ id: "Gold", tipo: "credito" });
+      expect("diaVencimentoFatura" in metodo).toBe(false);
+      expect("diaFechamentoFatura" in metodo).toBe(false);
+    });
+
+    test("dia fora de 1-31 é ignorado em vez de virar um método inválido", () => {
+      const c = s.normalizarConfig({
+        contasCartoes: ["Gold"],
+        tipoCartao: { Gold: "credit" },
+        // 0 é como as telas apagam o dia; 45 seria lixo gravado.
+        diaVencimentoFatura: { Gold: 0 },
+        diaFechamentoFatura: { Gold: 45 },
+      });
+      expect(c.instituicoes[0].metodos[0]).toEqual({ id: "Gold", tipo: "credito" });
+    });
+
+    test("conta sem cartão nenhum fica com lista vazia, não com undefined", () => {
+      expect(s.normalizarConfig(null).instituicoes).toEqual([]);
+      expect(s.normalizarConfig({ contasCartoes: [] }).instituicoes).toEqual([]);
+    });
+  });
+
+  describe("conta já migrada (instituições no RTDB)", () => {
+    test("converte o mapa indexado por id para lista e deriva os campos antigos", () => {
+      const c = s.normalizarConfig({
+        instituicoes: {
+          banco1: {
+            nome: "Banco Novo",
+            metodos: {
+              "Conta Velha": { tipo: "debito" },
+              "Gold Velho": {
+                tipo: "credito",
+                diaFechamentoFatura: 28,
+                diaVencimentoFatura: 8,
+              },
+            },
+          },
+        },
+      });
+
+      expect(c.instituicoes).toEqual([
+        {
+          id: "banco1",
+          nome: "Banco Novo",
+          metodos: [
+            { id: "Conta Velha", tipo: "debito" },
+            {
+              id: "Gold Velho",
+              tipo: "credito",
+              diaFechamentoFatura: 28,
+              diaVencimentoFatura: 8,
+            },
+          ],
+        },
+      ]);
+      // Os ids dos métodos — e não o nome da instituição — é que alimentam os
+      // campos antigos: é assim que renomear o banco não órfã lançamento
+      // nenhum.
+      expect(c.contasCartoes).toEqual(["Conta Velha", "Gold Velho"]);
+      expect(c.tipoCartao).toEqual({ "Conta Velha": "debit", "Gold Velho": "credit" });
+      expect(c.diaVencimentoFatura).toEqual({ "Gold Velho": 8 });
+      expect(c.diaFechamentoFatura).toEqual({ "Gold Velho": 28 });
+    });
+
+    test("os campos antigos gravados são descartados, não misturados", () => {
+      // Numa conta migrada `instituicoes` é a única fonte de verdade. Se um
+      // resto antigo sobrevivesse, um cartão apagado ressuscitava nos
+      // seletores.
+      const c = s.normalizarConfig({
+        instituicoes: { b1: { nome: "Banco", metodos: { Ativo: { tipo: "debito" } } } },
+        contasCartoes: ["Apagado"],
+        tipoCartao: { Apagado: "credit" },
+        diaVencimentoFatura: { Apagado: 10 },
+        diaFechamentoFatura: { Apagado: 20 },
+      });
+
+      expect(c.contasCartoes).toEqual(["Ativo"]);
+      expect(c.tipoCartao).toEqual({ Ativo: "debit" });
+      expect(c.diaVencimentoFatura).toEqual({});
+      expect(c.diaFechamentoFatura).toEqual({});
+    });
+
+    test("instituição sem métodos não deixa nada para trás nos campos antigos", () => {
+      const c = s.normalizarConfig({
+        instituicoes: { b1: { nome: "Banco vazio" } },
+      });
+
+      expect(c.instituicoes).toEqual([{ id: "b1", nome: "Banco vazio", metodos: [] }]);
+      expect(c.contasCartoes).toEqual([]);
+      expect(c.tipoCartao).toEqual({});
+    });
+
+    test("instituição sem nome gravado usa o id — o RTDB omite string vazia", () => {
+      const c = s.normalizarConfig({
+        instituicoes: { "Banco X": { metodos: { "Banco X": { tipo: "debito" } } } },
+      });
+      expect(c.instituicoes[0].nome).toBe("Banco X");
+    });
+
+    test("guarda o nome de exibição quando existe e não inventa um quando não", () => {
+      const c = s.normalizarConfig({
+        instituicoes: {
+          b1: {
+            nome: "Banco",
+            metodos: {
+              m1: { tipo: "credito", nomeExibicao: "O cartão das compras" },
+              m2: { tipo: "debito" },
+            },
+          },
+        },
+      });
+
+      expect(c.instituicoes[0].metodos[0].nomeExibicao).toBe("O cartão das compras");
+      // Ausente é o estado normal: quem exibe é que deriva
+      // "{instituição} · Débito/Crédito".
+      expect("nomeExibicao" in c.instituicoes[0].metodos[1]).toBe(false);
+    });
+
+    test("mapa de instituições vazio cai no formato antigo, não numa conta sem cartões", () => {
+      // O RTDB omite objectos vazios, mas se um chegar vazio na mesma, tratar
+      // isso como "já migrada" apagava todas as contas da tela.
+      const c = s.normalizarConfig({
+        instituicoes: {},
+        contasCartoes: ["Conta"],
+        tipoCartao: { Conta: "debit" },
+      });
+
+      expect(c.contasCartoes).toEqual(["Conta"]);
+      expect(c.instituicoes).toEqual([
+        { id: "Conta", nome: "Conta", metodos: [{ id: "Conta", tipo: "debito" }] },
+      ]);
+    });
+  });
+
+  test("ida e volta pelo formato antigo não perde nada", () => {
+    // Sintetizar e derivar de volta tem de dar exactamente o mesmo — é esta
+    // igualdade que garante que gravar a migração (etapa seguinte) não muda
+    // uma vírgula do que as telas mostram hoje.
+    const antigo = {
+      contasCartoes: ["Conta", "Gold"],
+      tipoCartao: { Conta: "debit" as const, Gold: "credit" as const },
+      diaVencimentoFatura: { Gold: 8 },
+      diaFechamentoFatura: { Gold: 28 },
+    };
+    const sintetizada = s.normalizarConfig(antigo);
+
+    const migrada = s.normalizarConfig({
+      instituicoes: Object.fromEntries(
+        sintetizada.instituicoes.map((i) => [
+          i.id,
+          { nome: i.nome, metodos: Object.fromEntries(i.metodos.map(({ id, ...m }) => [id, m])) },
+        ]),
+      ),
+    });
+
+    expect(migrada.contasCartoes).toEqual(antigo.contasCartoes);
+    expect(migrada.tipoCartao).toEqual(antigo.tipoCartao);
+    expect(migrada.diaVencimentoFatura).toEqual(antigo.diaVencimentoFatura);
+    expect(migrada.diaFechamentoFatura).toEqual(antigo.diaFechamentoFatura);
+    expect(migrada.instituicoes).toEqual(sintetizada.instituicoes);
+  });
+});
+
 describe("observarConfig", () => {
   test("entrega a config já normalizada, não o bruto", () => {
     const recebidas: ConfigConta[] = [];

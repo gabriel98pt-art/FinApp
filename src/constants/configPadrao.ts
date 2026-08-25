@@ -15,6 +15,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   diaInicioSemana: 1, // segunda-feira
   fontesReceita: FONTES_RECEITA_PADRAO,
   categoriasDespesa: CATEGORIAS_DESPESA_PADRAO,
+  instituicoes: [],
   contasCartoes: [],
   tipoCartao: {},
   diaVencimentoFatura: {},

@@ -12,9 +12,21 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { semIndefinidos } from "./lancamentosService";
-import type { Cents, ConfigConta, PreferenciasCopiloto, TokenCorApp, YearMonth } from "../types";
+import type {
+  Cents,
+  ConfigConta,
+  ConfigContaBruta,
+  PreferenciasCopiloto,
+  TokenCorApp,
+  YearMonth,
+} from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import {
+  camposLegadosDe,
+  instituicoesDoBruto,
+  sintetizarInstituicoes,
+} from "../utils/instituicoes";
 import {
   patchRenomearCartao,
   patchRenomearCategoria,
@@ -27,9 +39,27 @@ import {
 
 const caminho = (uid: string, sufixo = "") => `users/${uid}/fin_v5/cfg${sufixo}`;
 
-/** O RTDB omite objetos/arrays vazios — repõe os defaults campo a campo. */
-export function normalizarConfig(bruto: Partial<ConfigConta> | null): ConfigConta {
-  return { ...CONFIG_PADRAO, ...(bruto ?? {}) };
+/** O RTDB omite objetos/arrays vazios — repõe os defaults campo a campo, e de
+ *  caminho põe `instituicoes` e os quatro campos antigos de conta/cartão a
+ *  dizer a mesma coisa, venha a conta de que lado vier da migração:
+ *
+ *  - já tem `instituicoes` gravadas: converte o mapa id→instituição do RTDB
+ *    para lista e RECALCULA `contasCartoes`/`tipoCartao`/`diaVencimentoFatura`/
+ *    `diaFechamentoFatura` a partir dela (viraram vistas derivadas, não campos
+ *    guardados à parte — ver `utils/instituicoes.ts`);
+ *  - só tem o formato antigo: sintetiza `instituicoes` EM MEMÓRIA, uma por
+ *    conta/cartão, e deixa os campos antigos como estão. Não se grava nada
+ *    aqui: a migração fica para a primeira escrita real, e assim duas abas
+ *    abertas ao mesmo tempo não têm o que disputar. */
+export function normalizarConfig(bruto: ConfigContaBruta | null): ConfigConta {
+  const { instituicoes: brutasInstituicoes, ...resto } = bruto ?? {};
+  const cfg: ConfigConta = { ...CONFIG_PADRAO, ...resto };
+
+  const instituicoes = instituicoesDoBruto(brutasInstituicoes);
+  if (instituicoes.length === 0) {
+    return { ...cfg, instituicoes: sintetizarInstituicoes(cfg) };
+  }
+  return { ...cfg, instituicoes, ...camposLegadosDe(instituicoes) };
 }
 
 export function observarConfig(

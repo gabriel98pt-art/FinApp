@@ -4,7 +4,7 @@
 // então nada toca na rede. Não entra no build de produção.
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { CONFIG_PADRAO } from "./constants/configPadrao";
+import { normalizarConfig } from "./services/cfgService";
 import { useAuthStore } from "./stores/authStore";
 import { useCfgStore } from "./stores/cfgStore";
 import {
@@ -22,18 +22,21 @@ import "./styles/index.css";
 const CARTAO = "AB Gold (C)";
 const CONTA = "Conta Principal";
 
+// Passa-se pelo `normalizarConfig` em vez de espalhar o CONFIG_PADRAO à mão
+// para a pré-visualização ver a MESMA config que a app real vê — incluindo as
+// instituições sintetizadas a partir das contas/cartões. Semear direto deixava
+// a preview a testar uma config que nunca existe em produção.
 useCfgStore.setState({
   carregado: true,
   erro: false,
-  cfg: {
-    ...CONFIG_PADRAO,
+  cfg: normalizarConfig({
     contasCartoes: [CARTAO, CONTA],
     tipoCartao: { [CARTAO]: "credit", [CONTA]: "debit" },
     saldosIniciais: { [CONTA]: 250000 },
     locaisCarregamento: ["Casa", "Galp Matosinhos", "Ionity A1"],
     orcamentos: { Alimentação: 40000 },
     showTvde: true,
-  },
+  }),
 });
 
 const pagos = (meses: string[]) => Object.fromEntries(meses.map((m) => [m, true as const]));
