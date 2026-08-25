@@ -164,9 +164,14 @@
 
 /* Marca o "débito automático" na linha de detalhe. O roxo é o mesmo que o
    parcelamento usa para o campo homónimo — é o mesmo conceito para o usuário. */
+/* "débito automático" são duas palavras mas UMA etiqueta. Sem o `nowrap`, a
+   linha de detalhe da fixa partia-a a meio quando o espaço acabava a seguir a
+   "débito" ("Saúde · ActivoBank · dia 1 · débito" / "automático"), e o
+   "automático" ficava sozinho na linha de baixo com ar de sobra de texto. */
 .marcaAutoDebit {
   color: var(--pur);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Botão-marcação: mesmo desenho do `.marcacao` do Registro Rápido
