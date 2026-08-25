@@ -256,10 +256,13 @@ export function transacoesDoMes(
       ordemId: d.id,
       origem: "despesaVeiculo",
       data: d.data,
-      // A nota é o próprio título aqui (a despesa do veículo não tem descrição
-      // separada) — repeti-la em `nota` mostrava-a duas vezes na mesma linha.
-      titulo: d.nota || d.categoria,
+      // Com nome próprio, o par título/nota é o mesmo da despesa corrente.
+      // Sem ele (registos anteriores ao campo `descricao`), a nota volta a
+      // fazer de título — e aí não se repete em `nota`, senão aparecia duas
+      // vezes na mesma linha; sem nota nenhuma sobra a categoria.
+      titulo: d.descricao || d.nota || d.categoria,
       categoria: d.categoria,
+      nota: d.descricao ? d.nota : undefined,
       valor: d.valor,
       entrada: false,
     });

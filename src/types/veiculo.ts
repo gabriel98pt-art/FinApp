@@ -56,6 +56,12 @@ export interface DespesaVeiculo {
   data: IsoDate;
   valor: Cents;
   categoria: string;
+  /** Nome curto do lançamento — o mesmo par `descricao` + `nota` das despesas
+   *  correntes. Opcional de propósito: até existir este campo a despesa do
+   *  veículo só tinha categoria + nota, e quem mostra o título continua a cair
+   *  na `nota` e depois na `categoria` quando ele falta, para que os registos
+   *  antigos sigam a aparecer exatamente como antes (migração implícita). */
+  descricao?: string;
   /** Conta/cartão que pagou — se for crédito, entra na fatura do ciclo. */
   contaCartao?: string;
   nota?: string;

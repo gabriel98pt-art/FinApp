@@ -509,6 +509,31 @@ describe("transacoesDoMes", () => {
     expect(t[0].nota).toBeUndefined();
   });
 
+  it("despesa de veículo com nome próprio: o nome é o título e a nota fica à parte", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...VEICULO_VAZIO,
+          despesas: [
+            {
+              id: "dv1",
+              data: "2026-07-09",
+              categoria: "Manutenção",
+              valor: 5000,
+              descricao: "Oficina do Zé",
+              nota: "troca de óleo",
+            },
+          ],
+        },
+      },
+      "2026-07",
+    );
+    expect(t[0].titulo).toBe("Oficina do Zé");
+    expect(t[0].nota).toBe("troca de óleo");
+    expect(t[0].categoria).toBe("Manutenção");
+  });
+
   it("fixa sem dia de vencimento cai no dia 1, só pra ter lugar na ordem", () => {
     const t = transacoesDoMes(
       {

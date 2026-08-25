@@ -80,14 +80,15 @@ export function construirExistentes(
     descricao: c.local,
     origem: "carga",
   }));
-  // Na despesa do veículo é a `nota` que costuma guardar o nome de quem
-  // recebeu (a oficina, o seguro), com a categoria a fazer de contexto — o
-  // mesmo par de `descricao` + `categoria` das despesas correntes.
+  // Na despesa do veículo o nome de quem recebeu (a oficina, o seguro) pode
+  // estar na `descricao` ou — nos registos anteriores a esse campo — na
+  // `nota`, com a categoria a fazer de contexto. Entram as três, para casar
+  // tanto com os dados antigos como com os novos.
   const deVeiculo: ExistenteParaDedup[] = despesasVeiculo.map((d) => ({
     id: d.id,
     data: d.data,
     valor: -d.valor,
-    descricao: `${d.nota ?? ""} ${d.categoria}`.trim(),
+    descricao: [d.descricao, d.nota, d.categoria].filter(Boolean).join(" "),
     origem: "despesaVeiculo",
   }));
   // Uma transferência vale por DUAS: o mesmo dinheiro já é conhecido como

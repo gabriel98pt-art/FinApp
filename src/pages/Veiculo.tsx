@@ -96,6 +96,23 @@ function rotuloQuantidade(c: Abastecimento): string {
   return "";
 }
 
+/** Título de uma despesa do veículo na lista. O nome próprio (`descricao`) é
+ *  opcional e só existe desde que o formulário passou a pedi-lo: sem ele — em
+ *  todos os registos antigos — a categoria continua a fazer de nome, como
+ *  sempre fez. */
+function nomeDespesa(d: DespesaVeiculo): string {
+  return d.descricao || d.categoria;
+}
+
+/** A linha de baixo da mesma despesa: o que não coube no título. A categoria
+ *  só entra aqui quando já não é ela o título, senão aparecia duas vezes na
+ *  mesma linha. */
+function detalheDespesa(d: DespesaVeiculo): string {
+  return [d.descricao ? d.categoria : null, d.nota, `${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export default function Veiculo() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -438,6 +455,7 @@ export default function Veiculo() {
   const [dvCategoria, setDvCategoria] = useState("");
   const [dvConta, setDvConta] = useState("");
   const [dvData, setDvData] = useState(hojeIso());
+  const [dvDescricao, setDvDescricao] = useState("");
   const [dvNota, setDvNota] = useState("");
 
   // Mesmo caso da carga: criar despesa nova é sempre pelo registro rápido
@@ -448,6 +466,7 @@ export default function Veiculo() {
     setDvCategoria(d.categoria);
     setDvConta(d.contaCartao ?? "");
     setDvData(d.data);
+    setDvDescricao(d.descricao ?? "");
     setDvNota(d.nota ?? "");
     setDvAberta(true);
   }
@@ -463,6 +482,7 @@ export default function Veiculo() {
       data: dvData,
       valor,
       categoria: dvCategoria || cfg.categoriasVeiculo[0] || "Outros",
+      descricao: dvDescricao.trim() || undefined,
       contaCartao: dvConta || undefined,
       nota: dvNota.trim() || undefined,
     };
@@ -624,11 +644,8 @@ export default function Veiculo() {
                     <div key={d.id} className={styles.item}>
                       <button className={styles.itemCorpo} onClick={() => abrirEdicaoDespesa(d)}>
                         <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{d.categoria}</span>
-                          <span className={styles.itemDetalhe}>
-                            {d.nota ? `${d.nota} · ` : ""}
-                            {d.data.slice(8, 10)}/{d.data.slice(5, 7)}
-                          </span>
+                          <span className={styles.itemNome}>{nomeDespesa(d)}</span>
+                          <span className={styles.itemDetalhe}>{detalheDespesa(d)}</span>
                         </span>
                         <span className={styles.itemValor}>
                           {formatMoney(d.valor, cfg.currency)}
@@ -813,11 +830,8 @@ export default function Veiculo() {
                     <div key={d.id} className={styles.item}>
                       <button className={styles.itemCorpo} onClick={() => abrirEdicaoDespesa(d)}>
                         <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{d.categoria}</span>
-                          <span className={styles.itemDetalhe}>
-                            {d.nota ? `${d.nota} · ` : ""}
-                            {d.data.slice(8, 10)}/{d.data.slice(5, 7)}
-                          </span>
+                          <span className={styles.itemNome}>{nomeDespesa(d)}</span>
+                          <span className={styles.itemDetalhe}>{detalheDespesa(d)}</span>
                         </span>
                         <span className={styles.itemValor}>
                           {formatMoney(d.valor, cfg.currency)}
@@ -1131,8 +1145,16 @@ export default function Veiculo() {
             rotuloVazio="Sem conta"
           />
           <label className={styles.campo}>
-            Descrição (opcional)
-            <input value={dvNota} onChange={(e) => setDvNota(e.target.value)} />
+            Nome (opcional)
+            <input
+              value={dvDescricao}
+              onChange={(e) => setDvDescricao(e.target.value)}
+              maxLength={80}
+            />
+          </label>
+          <label className={styles.campo}>
+            Nota
+            <input value={dvNota} onChange={(e) => setDvNota(e.target.value)} maxLength={120} />
           </label>
           <Botao type="submit" variante="submeter">
             Salvar alterações

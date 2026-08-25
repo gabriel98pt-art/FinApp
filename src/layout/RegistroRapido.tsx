@@ -273,6 +273,10 @@ export default function RegistroRapido() {
       // Trocou de tipo num lançamento novo: a fonte/categoria não se traduz
       // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
+      // O campo Nome partilha o estado `descricao` com o LOCAL da carga, e um
+      // posto de carregamento não é nome de mais nada: entrar ou sair da carga
+      // limpa-o, senão a despesa seguinte nascia já com o posto no Nome.
+      if (tipo === "carga" || anterior.tipo === "carga") setDescricao("");
       setKwh("");
       setLitros("");
       setDimensaoCarga("eletrico");
@@ -418,6 +422,7 @@ export default function RegistroRapido() {
           data,
           valor,
           categoria: etiquetaFinal,
+          descricao: descricao.trim() || undefined,
           contaCartao: conta || undefined,
           nota: notaFinal,
         });
@@ -656,9 +661,8 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {/* Nome + Nota lado a lado. A despesa do veículo não tem nome próprio
-            no modelo de dados (só categoria + nota), então ali a Nota ocupa a
-            linha inteira. */}
+        {/* Nome + Nota lado a lado. Na carga o nome é o LOCAL, escolhido pelo
+            seletor logo abaixo em vez do campo de texto. */}
         {tipo === "carga" && (
           <SeletorLocal
             valor={descricao}
@@ -704,14 +708,17 @@ export default function RegistroRapido() {
         )}
 
         <div className={styles.linhaDupla}>
-          {tipo !== "despesaVeiculo" && tipo !== "carga" && (
+          {tipo !== "carga" && (
             <label className={styles.campo}>
               Nome
               <input
                 type="text"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                required
+                // Na despesa do veículo o nome é opcional: sem ele o título
+                // continua a sair da nota/categoria, como sempre saiu — exigi-lo
+                // travaria um registo que hoje se faz só com valor e categoria.
+                required={tipo !== "despesaVeiculo"}
                 maxLength={80}
               />
             </label>
