@@ -3,16 +3,12 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ConfigConta } from "../types";
 import {
   DADOS_RENOMEAR_VAZIOS,
-  patchRenomearCartao,
   patchRenomearCategoria,
   patchRenomearFonte,
   patchRenomearLocal,
   validarNomeNovo,
   type DadosRenomear,
 } from "./renomear";
-
-const VELHO = "AB Gold (C)";
-const NOVO = "Gold Novo";
 
 function cfgCom(extra: Partial<ConfigConta>): ConfigConta {
   return { ...CONFIG_PADRAO, ...extra };
@@ -48,153 +44,6 @@ describe("validarNomeNovo", () => {
 
   test("aceita nome novo e tira os espaços das pontas", () => {
     expect(validarNomeNovo(["A", "B"], "A", "  C  ")).toBe("C");
-  });
-});
-
-describe("renomear conta/cartão", () => {
-  const cfg = cfgCom({
-    contasCartoes: ["Conta Principal", VELHO],
-    tipoCartao: { "Conta Principal": "debit", [VELHO]: "credit" },
-    saldosIniciais: { [VELHO]: 15000 },
-    faturaManual: { [VELHO]: { "2026-07": 9900 } },
-    faturasPagas: {
-      [VELHO]: { "2026-06": { pagamentos: [{ id: "pg1", data: "2026-06-05", valor: 5000 }] } },
-    },
-    diaVencimentoFatura: { [VELHO]: 15 },
-    diaFechamentoFatura: { [VELHO]: 20 },
-  });
-
-  const dados: DadosRenomear = {
-    ...DADOS_RENOMEAR_VAZIOS,
-    receitas: [
-      {
-        id: "r1",
-        descricao: "Salário",
-        valor: 200000,
-        data: "2026-06-01",
-        fonte: "Trabalho",
-        conta: VELHO,
-      },
-      {
-        id: "r2",
-        descricao: "Extra",
-        valor: 5000,
-        data: "2026-06-02",
-        fonte: "Trabalho",
-        conta: "Conta Principal",
-      },
-    ],
-    despesas: [
-      {
-        id: "d1",
-        descricao: "Mercado",
-        valor: 4200,
-        data: "2026-06-03",
-        categoria: "Alimentação",
-        contaCartao: VELHO,
-      },
-      { id: "d2", descricao: "Café", valor: 200, data: "2026-06-04", categoria: "Alimentação" },
-    ],
-    despesasFixas: [
-      {
-        id: "f1",
-        descricao: "Netflix",
-        valor: 1500,
-        categoria: "Assinaturas",
-        contaCartao: VELHO,
-        pagoPorMes: {},
-      },
-    ],
-    fixasVeiculo: [
-      {
-        id: "fv1",
-        descricao: "Seguro",
-        valor: 4500,
-        categoria: "Veículo",
-        contaCartao: VELHO,
-        pagoPorMes: {},
-      },
-    ],
-    transferencias: [
-      { id: "t1", data: "2026-06-05", de: VELHO, para: "Conta Principal", valor: 3000 },
-      { id: "t2", data: "2026-06-06", de: "Conta Principal", para: VELHO, valor: 1000 },
-    ],
-    parcelas: [
-      {
-        id: "p1",
-        descricao: "Telemóvel",
-        total: 30000,
-        numParcelas: 10,
-        primeiroMes: "2026-01",
-        categoria: "Compras",
-        cartao: VELHO,
-        autoDebit: true,
-        pagoPorMes: {},
-      },
-    ],
-    cargas: [
-      {
-        id: "c1",
-        data: "2026-06-07",
-        kwh: 30,
-        precoKwh: 25,
-        custo: 750,
-        local: "Casa",
-        contaCartao: VELHO,
-      },
-    ],
-    despesasVeiculo: [
-      { id: "dv1", data: "2026-06-08", valor: 8900, categoria: "Manutenção", contaCartao: VELHO },
-    ],
-  };
-
-  const patch = patchRenomearCartao(cfg, dados, VELHO, NOVO);
-
-  test("troca o nome na lista sem mexer na ordem nem nos outros", () => {
-    expect(patch["cfg/contasCartoes"]).toEqual(["Conta Principal", NOVO]);
-  });
-
-  test("move as 4 chaves de cfg indexadas pelo cartão e apaga as antigas", () => {
-    expect(patch[`cfg/tipoCartao/${NOVO}`]).toBe("credit");
-    expect(patch[`cfg/tipoCartao/${VELHO}`]).toBeNull();
-    expect(patch[`cfg/saldosIniciais/${NOVO}`]).toBe(15000);
-    expect(patch[`cfg/saldosIniciais/${VELHO}`]).toBeNull();
-    expect(patch[`cfg/faturaManual/${NOVO}`]).toEqual({ "2026-07": 9900 });
-    expect(patch[`cfg/faturaManual/${VELHO}`]).toBeNull();
-    expect(patch[`cfg/faturasPagas/${NOVO}`]).toEqual(cfg.faturasPagas[VELHO]);
-    expect(patch[`cfg/faturasPagas/${VELHO}`]).toBeNull();
-    // a conta que não foi renomeada continua intocada
-    expect(patch["cfg/tipoCartao/Conta Principal"]).toBeUndefined();
-  });
-
-  test("leva junto o dia de vencimento e o dia de fechamento da fatura", () => {
-    expect(patch[`cfg/diaVencimentoFatura/${NOVO}`]).toBe(15);
-    expect(patch[`cfg/diaVencimentoFatura/${VELHO}`]).toBeNull();
-    expect(patch[`cfg/diaFechamentoFatura/${NOVO}`]).toBe(20);
-    expect(patch[`cfg/diaFechamentoFatura/${VELHO}`]).toBeNull();
-  });
-
-  test("cada lançamento que apontava pro cartão passa a apontar pro nome novo", () => {
-    expect(patch["receitas/r1/conta"]).toBe(NOVO);
-    expect(patch["despesasCorrentes/d1/contaCartao"]).toBe(NOVO);
-    expect(patch["despesasFixas/f1/contaCartao"]).toBe(NOVO);
-    expect(patch["veiculo/despesasFixas/fv1/contaCartao"]).toBe(NOVO);
-    expect(patch["transferencias/t1/de"]).toBe(NOVO);
-    expect(patch["transferencias/t2/para"]).toBe(NOVO);
-    expect(patch["parcelas/p1/cartao"]).toBe(NOVO);
-    expect(patch["veiculo/cargas/c1/contaCartao"]).toBe(NOVO);
-    expect(patch["veiculo/despesas/dv1/contaCartao"]).toBe(NOVO);
-  });
-
-  test("não toca em quem apontava pra outra conta ou pra nenhuma", () => {
-    expect(patch["receitas/r2/conta"]).toBeUndefined();
-    expect(patch["despesasCorrentes/d2/contaCartao"]).toBeUndefined();
-    expect(patch["transferencias/t1/para"]).toBeUndefined();
-    expect(patch["transferencias/t2/de"]).toBeUndefined();
-  });
-
-  test("nada fica apontando pro nome antigo", () => {
-    nadaOrfao(patch, VELHO);
   });
 });
 

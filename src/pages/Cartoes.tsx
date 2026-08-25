@@ -679,7 +679,12 @@ export default function Cartoes() {
                         aria-label={`Dia de fechamento da fatura de ${c} — vazio é o último dia do mês`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaFechamentoFatura(uid, c, Number.isFinite(n) ? n : null)
+                          void definirDiaFechamentoFatura(
+                            uid,
+                            cfg,
+                            c,
+                            Number.isFinite(n) ? n : null,
+                          )
                             .then(() => mostrarToast("Dia de fechamento guardado"))
                             .catch(() => mostrarToast("Não foi possível guardar."));
                         }}
@@ -695,7 +700,12 @@ export default function Cartoes() {
                         aria-label={`Dia de vencimento da fatura de ${c}`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaVencimentoFatura(uid, c, Number.isFinite(n) ? n : null)
+                          void definirDiaVencimentoFatura(
+                            uid,
+                            cfg,
+                            c,
+                            Number.isFinite(n) ? n : null,
+                          )
                             .then(() => mostrarToast("Dia de vencimento guardado"))
                             .catch(() => mostrarToast("Não foi possível guardar."));
                         }}
@@ -955,12 +965,18 @@ export default function Cartoes() {
         )}
       </BottomSheet>
 
+      {/* O aviso dizia "Lançamentos, parcelas, saldo inicial e faturas seguem
+          para o nome novo" — descrevia a cascata que reescrevia o nome dentro
+          de cada lançamento. Ela desapareceu: o que liga tudo passou a ser um
+          identificador que não muda, e por isso não há nada a "seguir" — o nome
+          novo vale de imediato em toda a parte, no que já estava lançado
+          também. */}
       <RenomearFolha
         aberta={renomeando !== null}
         nomeAtual={renomeando}
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
-        aviso="Lançamentos, parcelas, saldo inicial e faturas seguem para o nome novo."
+        aviso="O nome novo aparece em tudo — no que já está lançado também."
       />
 
       {/* Caixa única de transferência: cria e edita */}

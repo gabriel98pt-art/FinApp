@@ -16,6 +16,7 @@ import type {
   Cents,
   ConfigConta,
   ConfigContaBruta,
+  Instituicao,
   PreferenciasCopiloto,
   TokenCorApp,
   YearMonth,
@@ -23,12 +24,17 @@ import type {
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
+  brutoDasInstituicoes,
   camposLegadosDe,
+  comMetodoAtualizado,
+  idDisponivel,
+  idsUsados,
   instituicoesDoBruto,
+  localizarMetodo,
+  semMetodo,
   sintetizarInstituicoes,
 } from "../utils/instituicoes";
 import {
-  patchRenomearCartao,
   patchRenomearCategoria,
   patchRenomearFonte,
   patchRenomearLocal,
@@ -57,9 +63,13 @@ export function normalizarConfig(bruto: ConfigContaBruta | null): ConfigConta {
 
   const instituicoes = instituicoesDoBruto(brutasInstituicoes);
   if (instituicoes.length === 0) {
-    return { ...cfg, instituicoes: sintetizarInstituicoes(cfg) };
+    return {
+      ...cfg,
+      instituicoes: sintetizarInstituicoes(cfg),
+      instituicoesGravadas: false,
+    };
   }
-  return { ...cfg, instituicoes, ...camposLegadosDe(instituicoes) };
+  return { ...cfg, instituicoes, instituicoesGravadas: true, ...camposLegadosDe(instituicoes) };
 }
 
 export function observarConfig(
@@ -80,37 +90,114 @@ export async function atualizarConfig(uid: string, mudancas: Partial<ConfigConta
   await update(ref(db, caminho(uid)), mudancas);
 }
 
-/** Adiciona um cartão/conta com o seu tipo (crédito entra no fluxo de fatura). */
+/** A mudança a fazer em `instituicoes`, no formato que o estado da conta pede.
+ *
+ *  Conta já migrada leva só o ramo que mudou. Conta ainda por migrar leva a
+ *  árvore INTEIRA — gravar um ramo só faria a leitura seguinte dar a conta por
+ *  migrada (`normalizarConfig`) e todas as outras contas/cartões desapareciam
+ *  da lista. É esta a "migração preguiçosa": acontece na primeira escrita real,
+ *  seja ela qual for, e nunca a meio. */
+function patchInstituicoes(
+  cfg: ConfigConta,
+  depois: Instituicao[],
+  cirurgico: Record<string, unknown>,
+): Record<string, unknown> {
+  return cfg.instituicoesGravadas ? cirurgico : { instituicoes: brutoDasInstituicoes(depois) };
+}
+
+const tipoMetodo = (tipo: TipoCartao) => (tipo === "credit" ? "credito" : "debito");
+
+/** Adiciona uma conta/cartão: nasce como uma instituição com um método só.
+ *
+ *  Continua a escrever também os campos antigos (`contasCartoes`/`tipoCartao`),
+ *  que são vistas derivadas na LEITURA mas ainda o que sobra se `instituicoes`
+ *  ficar vazia (o RTDB não guarda objetos vazios). Mantê-los coerentes é o que
+ *  impede uma conta apagada de ressuscitar. */
 export async function adicionarCartao(
   uid: string,
   cfg: ConfigConta,
   nome: string,
   tipo: TipoCartao,
 ) {
-  if (cfg.contasCartoes.includes(nome)) throw new Error("Já existe um cartão com esse nome.");
+  const limpo = validarNomeNovo(
+    cfg.instituicoes.map((i) => i.nome),
+    "",
+    nome,
+  );
+  // O id é o nome de hoje sempre que esse texto ainda esteja livre — igual à
+  // migração 1:1. Mas o nome pode repetir um id já usado (uma conta antiga
+  // apagada, ou uma que foi renomeada e deixou o id para trás), e aí o id tem
+  // de ser outro: são dois lançamentos diferentes a apontar para o mesmo sítio.
+  const id = idDisponivel(limpo, idsUsados(cfg.instituicoes));
+  const nova: Instituicao = { id, nome: limpo, metodos: [{ id, tipo: tipoMetodo(tipo) }] };
   snapshotHistorico();
   await update(ref(db, caminho(uid)), {
-    contasCartoes: [...cfg.contasCartoes, nome],
-    [`tipoCartao/${nome}`]: tipo,
+    contasCartoes: [...cfg.contasCartoes, id],
+    [`tipoCartao/${id}`]: tipo,
+    ...patchInstituicoes(cfg, [...cfg.instituicoes, nova], {
+      [`instituicoes/${id}`]: brutoDasInstituicoes([nova])[id],
+    }),
+  });
+}
+
+/** Um dia de fatura só vale se for um dia de mês (1-31); o resto — 0, negativo,
+ *  acima de 31, `null` — quer dizer "apaga o dia". */
+const diaDeFatura = (dia: number | null) => (dia && dia >= 1 && dia <= 31 ? dia : null);
+
+/** Grava um dos dois dias de fatura no método, e no campo antigo com o mesmo
+ *  nome. Recebe a `cfg` (e não um par instituição/método) porque quem chama é
+ *  a lista de chips de Cartões, que só tem em mãos o id da conta — pedir-lhe o
+ *  id da instituição obrigava a arrastar mais um dado por três componentes
+ *  para chegar ao mesmo sítio a que se chega aqui com uma procura. */
+async function definirDiaFatura(
+  uid: string,
+  cfg: ConfigConta,
+  metodoId: string,
+  campo: "diaVencimentoFatura" | "diaFechamentoFatura",
+  dia: number | null,
+) {
+  const valor = diaDeFatura(dia);
+  const achado = localizarMetodo(cfg, metodoId);
+  snapshotHistorico();
+  await update(ref(db, caminho(uid)), {
+    [`${campo}/${metodoId}`]: valor,
+    ...(achado
+      ? patchInstituicoes(
+          cfg,
+          comMetodoAtualizado(cfg.instituicoes, metodoId, (m) => {
+            const novo = { ...m };
+            if (valor === null) delete novo[campo];
+            else novo[campo] = valor;
+            return novo;
+          }),
+          {
+            [`instituicoes/${achado.instituicao.id}/metodos/${metodoId}/${campo}`]: valor,
+          },
+        )
+      : {}),
   });
 }
 
 /** Dia em que a fatura deste cartão vence. `null`/0 apaga o dia — nem todo o
  *  cartão precisa de ter um, e sem ele nada muda em relação a antes. */
-export async function definirDiaVencimentoFatura(uid: string, cartao: string, dia: number | null) {
-  snapshotHistorico();
-  await update(ref(db, caminho(uid)), {
-    [`diaVencimentoFatura/${cartao}`]: dia && dia >= 1 && dia <= 31 ? dia : null,
-  });
+export async function definirDiaVencimentoFatura(
+  uid: string,
+  cfg: ConfigConta,
+  cartao: string,
+  dia: number | null,
+) {
+  await definirDiaFatura(uid, cfg, cartao, "diaVencimentoFatura", dia);
 }
 
 /** Dia em que a fatura deste cartão FECHA. `null`/0 apaga o dia — sem ele, o
  *  ciclo é o mês civil inteiro (comportamento de sempre). */
-export async function definirDiaFechamentoFatura(uid: string, cartao: string, dia: number | null) {
-  snapshotHistorico();
-  await update(ref(db, caminho(uid)), {
-    [`diaFechamentoFatura/${cartao}`]: dia && dia >= 1 && dia <= 31 ? dia : null,
-  });
+export async function definirDiaFechamentoFatura(
+  uid: string,
+  cfg: ConfigConta,
+  cartao: string,
+  dia: number | null,
+) {
+  await definirDiaFatura(uid, cfg, cartao, "diaFechamentoFatura", dia);
 }
 
 /** Raiz da conta — a renomeação com cascata escreve cfg e lançamentos de uma
@@ -133,12 +220,31 @@ function dadosDasStores(): DadosRenomear {
   };
 }
 
-/** Renomeia a conta/cartão em tudo: lista, tipo, saldo inicial, faturas
- *  (manual e pagas) e todo lançamento que apontava pro nome antigo. */
+/** Renomeia a conta/cartão. É uma escrita só, num campo só: o nome da
+ *  instituição.
+ *
+ *  Já foi uma cascata que reescrevia o nome em nove coleções de lançamento e
+ *  seis mapas de cfg, porque o nome ERA o identificador. Agora o identificador
+ *  é o id do método, que não muda nunca — os lançamentos, o saldo inicial e as
+ *  faturas continuam a apontar para o mesmo sítio, e quem mostra o nome resolve-o
+ *  na hora (`nomeAtualDoMetodo`). */
 export async function renomearCartao(uid: string, cfg: ConfigConta, de: string, para: string) {
-  const nome = validarNomeNovo(cfg.contasCartoes, de, para);
+  const achado = localizarMetodo(cfg, de);
+  if (!achado) throw new Error("Essa conta ou cartão já não existe.");
+  const { instituicao } = achado;
+  // Compara com os nomes das OUTRAS instituições: a própria já se chama assim,
+  // e "já existe um item com esse nome" a apontar para ela mesma não ajudava.
+  const nome = validarNomeNovo(
+    cfg.instituicoes.filter((i) => i.id !== instituicao.id).map((i) => i.nome),
+    instituicao.nome,
+    para,
+  );
+  const depois = cfg.instituicoes.map((i) => (i.id === instituicao.id ? { ...i, nome } : i));
   snapshotHistorico();
-  await update(ref(db, raiz(uid)), patchRenomearCartao(cfg, dadosDasStores(), de, nome));
+  await update(
+    ref(db, caminho(uid)),
+    patchInstituicoes(cfg, depois, { [`instituicoes/${instituicao.id}/nome`]: nome }),
+  );
 }
 
 /** Renomeia a categoria na lista indicada, no visual (ícone/cor), no orçamento
@@ -169,15 +275,28 @@ export async function renomearLocal(uid: string, cfg: ConfigConta, de: string, p
   await update(ref(db, raiz(uid)), patchRenomearLocal(cfg, dadosDasStores(), de, nome));
 }
 
-/** Remove a conta/cartão da lista e as suas chaves em cfg. Lançamentos que já
- *  a usam continuam com o nome antigo — mesma regra de `removerItemLista`. */
+/** Remove a conta/cartão: sai a instituição inteira, porque hoje ela tem um
+ *  método só (quando houver vários — Fase C2 — sai só o método escolhido, e é
+ *  isso que `semMetodo` já faz). Lançamentos que já a usam continuam com o nome
+ *  com que foram feitos — mesma regra de `removerItemLista`.
+ *
+ *  Os campos antigos são limpos na mesma escrita: se `instituicoes` ficar vazia
+ *  (removeu-se a última), o RTDB não guarda o objeto vazio e a leitura seguinte
+ *  volta a sintetizar a partir deles — a conta apagada ressuscitava. */
 export async function removerCartao(uid: string, cfg: ConfigConta, nome: string) {
+  const achado = localizarMetodo(cfg, nome);
+  const cirurgico: Record<string, unknown> = achado
+    ? achado.instituicao.metodos.length <= 1
+      ? { [`instituicoes/${achado.instituicao.id}`]: null }
+      : { [`instituicoes/${achado.instituicao.id}/metodos/${nome}`]: null }
+    : {};
   snapshotHistorico();
   await update(ref(db, caminho(uid)), {
     contasCartoes: cfg.contasCartoes.filter((c) => c !== nome),
     [`tipoCartao/${nome}`]: null,
     [`diaVencimentoFatura/${nome}`]: null,
     [`diaFechamentoFatura/${nome}`]: null,
+    ...patchInstituicoes(cfg, semMetodo(cfg.instituicoes, nome), cirurgico),
   });
 }
 

@@ -11,7 +11,8 @@
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
-import type { ConfigConta } from "../types";
+import { comInstituicoes, instituicao } from "../testes/instituicoes";
+import type { ConfigConta, Instituicao } from "../types";
 
 let updates: { caminho: string; mudancas: Record<string, unknown> }[] = [];
 let sets: { caminho: string; valor: unknown }[] = [];
@@ -55,6 +56,15 @@ const cfg = (over: Partial<ConfigConta> = {}): ConfigConta => ({
   ...CONFIG_PADRAO,
   ...over,
 });
+
+/** Conta já migrada: `instituicoes` existe gravada, e os campos antigos são a
+ *  vista derivada dela — exactamente o que `normalizarConfig` devolve. */
+const migrada = (...insts: Instituicao[]): ConfigConta => cfg(comInstituicoes(...insts));
+
+/** Conta ainda no formato antigo: só os campos antigos estão gravados e
+ *  `instituicoes` foi sintetizada em memória. É o estado em que TODA a gente
+ *  está no dia em que isto entra em produção. */
+const porMigrar = (contas: string[]): ConfigConta => s.normalizarConfig({ contasCartoes: contas });
 
 beforeEach(() => {
   updates = [];
@@ -341,38 +351,129 @@ describe("observarConfig", () => {
 });
 
 describe("adicionarCartao", () => {
-  test("acrescenta à lista e grava o tipo na mesma escrita", async () => {
-    await s.adicionarCartao(UID, cfg({ contasCartoes: ["Conta"] }), "Gold", "credit");
+  test("cria a instituição com um método, e mantém os campos antigos coerentes", async () => {
+    await s.adicionarCartao(UID, migrada(instituicao("Conta")), "Gold", "credit");
 
     expect(updates).toHaveLength(1);
     expect(updates[0].caminho).toBe(CFG);
-    expect(updates[0].mudancas.contasCartoes).toEqual(["Conta", "Gold"]);
+    const m = updates[0].mudancas;
+    expect(m["instituicoes/Gold"]).toEqual({
+      nome: "Gold",
+      metodos: { Gold: { tipo: "credito" } },
+    });
+    // O id do método é o nome de hoje — o mesmo que a migração 1:1 usa, e o
+    // mesmo que fica gravado em cada lançamento feito neste cartão.
+    expect(m.contasCartoes).toEqual(["Conta", "Gold"]);
     // Sem o tipo na MESMA escrita, um cartão de crédito podia existir um
     // instante sem tipo — e nesse instante não entra no fluxo de fatura.
-    expect(updates[0].mudancas["tipoCartao/Gold"]).toBe("credit");
+    expect(m["tipoCartao/Gold"]).toBe("credit");
   });
 
   test("recusa nome repetido sem escrever nada", async () => {
     await expect(
-      s.adicionarCartao(UID, cfg({ contasCartoes: ["Gold"] }), "Gold", "debit"),
+      s.adicionarCartao(UID, migrada(instituicao("Gold")), "Gold", "debit"),
     ).rejects.toThrow(/Já existe/);
     expect(updates).toHaveLength(0);
     // E não gasta um ponto de histórico com uma operação que não aconteceu.
     expect(snapshot).not.toHaveBeenCalled();
   });
+
+  test("recusa caractere que o RTDB não aceita numa chave — o nome vira id", async () => {
+    await expect(s.adicionarCartao(UID, migrada(), "A/B", "debit")).rejects.toThrow(/não pode ter/);
+    expect(updates).toHaveLength(0);
+  });
+
+  test("id livre quando o nome já foi usado por um id que ficou para trás", async () => {
+    // "Gold" foi renomeado para "Gold Antigo" e o id ficou a ser "Gold".
+    // Criar agora outro cartão chamado "Gold" não pode reusar esse id: os
+    // lançamentos dos dois passavam a apontar para o mesmo sítio.
+    const cfgAtual = migrada(instituicao("Gold Antigo", "credito", { id: "Gold" }));
+    await s.adicionarCartao(UID, cfgAtual, "Gold", "debit");
+
+    const m = updates[0].mudancas;
+    expect(m["instituicoes/Gold 2"]).toEqual({
+      nome: "Gold",
+      metodos: { "Gold 2": { tipo: "debito" } },
+    });
+    expect(m.contasCartoes).toEqual(["Gold", "Gold 2"]);
+  });
+
+  test("conta ainda por migrar grava a árvore INTEIRA, não só a conta nova", async () => {
+    // Gravar só o ramo novo faria a leitura seguinte dar a conta por migrada —
+    // e as contas que já lá estavam desapareciam da lista.
+    await s.adicionarCartao(UID, porMigrar(["Conta", "Gold"]), "Novo", "debit");
+
+    const escritas = updates[0].mudancas.instituicoes as Record<string, unknown>;
+    expect(Object.keys(escritas)).toEqual(["Conta", "Gold", "Novo"]);
+    expect(updates[0].mudancas["instituicoes/Novo"]).toBeUndefined();
+  });
+});
+
+describe("renomearCartao", () => {
+  test("é uma escrita só, no nome da instituição — sem tocar em lançamento nenhum", async () => {
+    await s.renomearCartao(UID, migrada(instituicao("Gold", "credito")), "Gold", "Gold Novo");
+
+    expect(updates).toHaveLength(1);
+    // Na raiz da conta é que era a cascata; agora é dentro de cfg e num campo só.
+    expect(updates[0].caminho).toBe(CFG);
+    expect(updates[0].mudancas).toEqual({ "instituicoes/Gold/nome": "Gold Novo" });
+  });
+
+  test("o id do método não muda — é ele que os lançamentos guardam", async () => {
+    const antes = migrada(instituicao("Gold"));
+    await s.renomearCartao(UID, antes, "Gold", "Outro Nome");
+
+    expect(updates[0].mudancas["instituicoes/Gold/id"]).toBeUndefined();
+    expect(updates[0].mudancas.contasCartoes).toBeUndefined();
+  });
+
+  test("recusa nome de outra instituição, aceita variação do próprio", async () => {
+    const cfgAtual = migrada(instituicao("Conta"), instituicao("Gold", "credito"));
+    await expect(s.renomearCartao(UID, cfgAtual, "Gold", "Conta")).rejects.toThrow(/Já existe/);
+    await expect(s.renomearCartao(UID, cfgAtual, "Gold", "Gold")).rejects.toThrow(/o mesmo/);
+    expect(updates).toHaveLength(0);
+  });
+
+  test("recusa id que já não existe em vez de gravar num ramo inventado", async () => {
+    await expect(
+      s.renomearCartao(UID, migrada(instituicao("Conta")), "Sumiu", "X"),
+    ).rejects.toThrow(/já não existe/);
+    expect(updates).toHaveLength(0);
+  });
+
+  test("conta ainda por migrar grava a árvore inteira já com o nome novo", async () => {
+    await s.renomearCartao(UID, porMigrar(["Conta", "Gold"]), "Gold", "Gold Novo");
+
+    expect(updates[0].mudancas.instituicoes).toEqual({
+      Conta: { nome: "Conta", metodos: { Conta: { tipo: "debito" } } },
+      Gold: { nome: "Gold Novo", metodos: { Gold: { tipo: "debito" } } },
+    });
+  });
 });
 
 describe("removerCartao", () => {
-  test("tira da lista e limpa todas as chaves derivadas do nome", async () => {
-    await s.removerCartao(UID, cfg({ contasCartoes: ["Conta", "Gold"] }), "Gold");
+  test("tira a instituição e limpa todas as chaves antigas derivadas do id", async () => {
+    const cfgAtual = migrada(instituicao("Conta"), instituicao("Gold", "credito"));
+    await s.removerCartao(UID, cfgAtual, "Gold");
 
     const m = updates[0].mudancas;
-    expect(m.contasCartoes).toEqual(["Conta"]);
+    expect(m["instituicoes/Gold"]).toBeNull();
     // Se qualquer uma destas ficasse para trás, criar outro cartão com o mesmo
-    // nome trazia de volta o tipo e os dias de fatura do antigo.
+    // nome trazia de volta o tipo e os dias de fatura do antigo. E se
+    // `instituicoes` ficar vazia, é delas que a leitura seguinte parte — uma
+    // conta apagada ressuscitava.
+    expect(m.contasCartoes).toEqual(["Conta"]);
     expect(m["tipoCartao/Gold"]).toBeNull();
     expect(m["diaVencimentoFatura/Gold"]).toBeNull();
     expect(m["diaFechamentoFatura/Gold"]).toBeNull();
+  });
+
+  test("remover a última deixa os dois lados vazios ao mesmo tempo", async () => {
+    await s.removerCartao(UID, migrada(instituicao("Gold", "credito")), "Gold");
+
+    const m = updates[0].mudancas;
+    expect(m["instituicoes/Gold"]).toBeNull();
+    expect(m.contasCartoes).toEqual([]);
   });
 });
 
@@ -381,9 +482,11 @@ describe("dias de fatura", () => {
     ["definirDiaVencimentoFatura", "diaVencimentoFatura"] as const,
     ["definirDiaFechamentoFatura", "diaFechamentoFatura"] as const,
   ])("%s aceita 1-31 e rejeita o resto", async (fn, chave) => {
+    const cfgAtual = migrada(instituicao("Gold", "credito"));
     for (const dia of [1, 15, 31]) {
       updates = [];
-      await s[fn](UID, "Gold", dia);
+      await s[fn](UID, cfgAtual, "Gold", dia);
+      expect(updates[0].mudancas[`instituicoes/Gold/metodos/Gold/${chave}`]).toBe(dia);
       expect(updates[0].mudancas[`${chave}/Gold`]).toBe(dia);
     }
 
@@ -391,9 +494,26 @@ describe("dias de fatura", () => {
     // gravar um dia impossível, que depois faria a fatura vencer em lado nenhum.
     for (const dia of [0, -1, 32, 99, null]) {
       updates = [];
-      await s[fn](UID, "Gold", dia);
+      await s[fn](UID, cfgAtual, "Gold", dia);
+      expect(updates[0].mudancas[`instituicoes/Gold/metodos/Gold/${chave}`]).toBeNull();
       expect(updates[0].mudancas[`${chave}/Gold`]).toBeNull();
     }
+  });
+
+  test("conta ainda por migrar grava a árvore inteira já com o dia dentro", async () => {
+    await s.definirDiaFechamentoFatura(UID, porMigrar(["Conta", "Gold"]), "Gold", 28);
+
+    expect(updates[0].mudancas.instituicoes).toEqual({
+      Conta: { nome: "Conta", metodos: { Conta: { tipo: "debito" } } },
+      Gold: { nome: "Gold", metodos: { Gold: { tipo: "debito", diaFechamentoFatura: 28 } } },
+    });
+    expect(updates[0].mudancas["diaFechamentoFatura/Gold"]).toBe(28);
+  });
+
+  test("id desconhecido só mexe no campo antigo, sem inventar um ramo", async () => {
+    await s.definirDiaVencimentoFatura(UID, migrada(instituicao("Conta")), "Sumiu", 5);
+
+    expect(updates[0].mudancas).toEqual({ "diaVencimentoFatura/Sumiu": 5 });
   });
 });
 

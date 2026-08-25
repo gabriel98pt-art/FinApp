@@ -1,9 +1,15 @@
-// Renomear com cascata (conta/cartão, categoria, fonte de receita, local de
-// carregamento). Renomear só na lista de `cfg` deixaria todo lançamento antigo
-// apontando pro nome que sumiu — a categoria vira "órfã", o gasto some do
-// orçamento, a fatura deixa de somar. Por isso cada renomeação monta UM mapa
-// de caminhos (relativo a users/{uid}/fin_v5) com a lista, as chaves de cfg
-// indexadas pelo nome e cada lançamento afetado, pra ir num `update()` só.
+// Renomear com cascata (categoria, fonte de receita, local de carregamento).
+// Renomear só na lista de `cfg` deixaria todo lançamento antigo
+// apontando pro nome que sumiu — a categoria vira "órfã" e o gasto some do
+// orçamento. Por isso cada renomeação monta UM mapa de caminhos (relativo a
+// users/{uid}/fin_v5) com a lista, as chaves de cfg indexadas pelo nome e cada
+// lançamento afetado, pra ir num `update()` só.
+//
+// Conta/cartão NÃO está aqui, e é de propósito: desde a Fase C o que o
+// lançamento guarda é o id do método de pagamento, que não muda nunca.
+// Renomear passou a ser uma escrita só, no nome da instituição
+// (`cfgService.renomearCartao`), e quem mostra o nome resolve-o na hora
+// (`utils/instituicoes.ts`).
 //
 // Funções puras: quem grava é o cfgService.
 
@@ -95,37 +101,6 @@ export function validarNomeNovo(lista: string[], de: string, para: string): stri
   if (nome === de) throw new Error("O nome é o mesmo.");
   if (lista.includes(nome)) throw new Error("Já existe um item com esse nome.");
   return nome;
-}
-
-/** Conta/cartão: a lista, as 6 chaves de cfg indexadas pelo nome do cartão, e
- *  todo lançamento que aponte pra ele (incluindo as duas pontas da
- *  transferência e os lançamentos do veículo). */
-export function patchRenomearCartao(
-  cfg: ConfigConta,
-  dados: DadosRenomear,
-  de: string,
-  para: string,
-): PatchRenomear {
-  const patch: PatchRenomear = {
-    "cfg/contasCartoes": listaRenomeada(cfg.contasCartoes, de, para),
-  };
-  moverChave(patch, "cfg/tipoCartao", cfg.tipoCartao, de, para);
-  moverChave(patch, "cfg/saldosIniciais", cfg.saldosIniciais, de, para);
-  moverChave(patch, "cfg/faturaManual", cfg.faturaManual, de, para);
-  moverChave(patch, "cfg/faturasPagas", cfg.faturasPagas, de, para);
-  moverChave(patch, "cfg/diaVencimentoFatura", cfg.diaVencimentoFatura, de, para);
-  moverChave(patch, "cfg/diaFechamentoFatura", cfg.diaFechamentoFatura, de, para);
-
-  trocarCampo(patch, "despesasCorrentes", dados.despesas, "contaCartao", de, para);
-  trocarCampo(patch, "despesasFixas", dados.despesasFixas, "contaCartao", de, para);
-  trocarCampo(patch, "veiculo/despesasFixas", dados.fixasVeiculo, "contaCartao", de, para);
-  trocarCampo(patch, "receitas", dados.receitas, "conta", de, para);
-  trocarCampo(patch, "transferencias", dados.transferencias, "de", de, para);
-  trocarCampo(patch, "transferencias", dados.transferencias, "para", de, para);
-  trocarCampo(patch, "parcelas", dados.parcelas, "cartao", de, para);
-  trocarCampo(patch, "veiculo/cargas", dados.cargas, "contaCartao", de, para);
-  trocarCampo(patch, "veiculo/despesas", dados.despesasVeiculo, "contaCartao", de, para);
-  return patch;
 }
 
 /** Qual das 2 listas de categoria está a ser renomeada. */

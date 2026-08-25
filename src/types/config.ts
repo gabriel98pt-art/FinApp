@@ -49,8 +49,11 @@ export interface InstituicaoBruta {
 
 /** A config exactamente como o RTDB a devolve, antes de `normalizarConfig`:
  *  campos podem faltar, e `instituicoes` chega indexada por id em vez de
- *  array. */
-export type ConfigContaBruta = Partial<Omit<ConfigConta, "instituicoes">> & {
+ *  array. `instituicoesGravadas` não entra: é uma conclusão que
+ *  `normalizarConfig` tira, não um campo que se guarde. */
+export type ConfigContaBruta = Partial<
+  Omit<ConfigConta, "instituicoes" | "instituicoesGravadas">
+> & {
   instituicoes?: Record<string, InstituicaoBruta>;
 };
 
@@ -115,7 +118,23 @@ export interface ConfigConta {
    *  método por conta/cartão). Nenhum código precisa de saber em que lado da
    *  migração a conta está. */
   instituicoes: Instituicao[];
-  /** Contas/cartões de pagamento, ex. 'AB Gold (C)' (antigo `pay`). */
+  /** `instituicoes` já existe GRAVADA no RTDB (e não apenas sintetizada em
+   *  memória a partir do formato antigo)? Não é um campo guardado — é a
+   *  conclusão que `normalizarConfig` tira ao ler a conta.
+   *
+   *  Quem escreve precisa de saber: numa conta já migrada muda-se só o ramo
+   *  que interessa (`instituicoes/{id}/nome`, por exemplo); numa conta ainda
+   *  por migrar tem de se gravar a árvore INTEIRA de uma vez, porque gravar um
+   *  ramo só faria a leitura seguinte dar a conta por migrada — e todas as
+   *  outras contas/cartões desapareciam da lista. */
+  instituicoesGravadas: boolean;
+  /** Contas/cartões de pagamento, ex. 'AB Gold (C)' (antigo `pay`).
+   *
+   *  ATENÇÃO: numa conta migrada isto é a lista dos IDS dos métodos (que são
+   *  estáveis e nunca mudam), não dos nomes que se veem. Serve de valor a
+   *  guardar num lançamento e de chave em `saldosIniciais`/`faturaManual`/…;
+   *  para MOSTRAR o nome de um deles usa-se `nomeAtualDoMetodo`
+   *  (`utils/instituicoes.ts`). */
   contasCartoes: string[];
   /** Tipo de cada cartão (crédito entra no fluxo de fatura, seção 4.1). */
   tipoCartao: Record<string, TipoCartao>;

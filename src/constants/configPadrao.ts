@@ -16,6 +16,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   fontesReceita: FONTES_RECEITA_PADRAO,
   categoriasDespesa: CATEGORIAS_DESPESA_PADRAO,
   instituicoes: [],
+  instituicoesGravadas: false,
   contasCartoes: [],
   tipoCartao: {},
   diaVencimentoFatura: {},
