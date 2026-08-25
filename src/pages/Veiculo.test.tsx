@@ -6,7 +6,7 @@
 // delas com um número de separadores que não seja dois.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
@@ -152,18 +152,16 @@ describe("Veiculo", () => {
 
 // Item B1: elétrico/combustão/híbrido escolhido na própria aba Abastecimentos.
 describe("tipo de veículo (item B1)", () => {
-  test("começa em Elétrico (default) e grava a escolha nova em cfg", async () => {
+  // A escolha mudou-se para Definições › Veículo (FolhaVeiculo). Aqui a página
+  // só REFLETE o que estiver escolhido — e não pode voltar a oferecer o
+  // controlo, senão volta a haver dois sítios a editar o mesmo campo.
+  test("mostra a motorização em leitura, sem controlo para a editar", async () => {
     renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
-    const grupo = screen.getByRole("radiogroup", { name: "Tipo de veículo" });
-    expect(within(grupo).getByRole("radio", { name: "Elétrico" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-
-    await userEvent.click(within(grupo).getByRole("radio", { name: "Combustão" }));
-    expect(atualizarConfig).toHaveBeenCalledWith("u1", { tipoVeiculo: "combustao" });
+    expect(screen.getByText(/Veículo elétrico/)).toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Tipo de veículo" })).not.toBeInTheDocument();
+    expect(atualizarConfig).not.toHaveBeenCalled();
   });
 
   test("combustão: a lista mostra litros, não kWh", async () => {

@@ -28,7 +28,6 @@ import {
 } from "../services/veiculoService";
 import {
   adicionarItemLista,
-  atualizarConfig,
   removerItemLista,
   renomearCategoria,
   renomearLocal,
@@ -56,18 +55,11 @@ import {
   totalDespesasVeiculoMes,
   totalVeiculoMes,
 } from "../utils/veiculo";
-import type {
-  Abastecimento,
-  Cents,
-  DespesaFixa,
-  DespesaVeiculo,
-  Id,
-  RegistroKm,
-  TipoVeiculo,
-} from "../types";
+import type { Abastecimento, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Veiculo.module.css";
 import Botao from "../components/Botao";
+import { rotuloTipoVeiculo } from "../constants/veiculoPadrao";
 
 type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
 
@@ -123,17 +115,11 @@ export default function Veiculo() {
   // de sempre — dados antigos (todos elétricos) não pedem migração nenhuma.
   const tipoVeiculo = cfg.tipoVeiculo;
   const dados = useVeiculoStore((s) => s.dados);
-  async function definirTipoVeiculo(tipo: TipoVeiculo) {
-    if (tipo === tipoVeiculo) return;
-    await agir(() => atualizarConfig(uid, { tipoVeiculo: tipo }), "✓ Tipo de veículo atualizado");
-  }
   const carregado = useVeiculoStore((s) => s.carregado);
   const erro = useVeiculoStore((s) => s.erro);
   const { ref: radiogroupPeriodoRef, onKeyDown: aoTeclarPeriodo } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: radiogroupCustoRef, onKeyDown: aoTeclarCusto } =
-    useRadiogroupTeclado<HTMLDivElement>();
-  const { ref: radiogroupTipoVeiculoRef, onKeyDown: aoTeclarTipoVeiculo } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: radiogroupDimensaoRef, onKeyDown: aoTeclarDimensao } =
     useRadiogroupTeclado<HTMLDivElement>();
@@ -667,34 +653,14 @@ export default function Veiculo() {
               </Botao>
             </div>
 
-            {/* Item B1: decide que campos o formulário (aqui e no registro
-                rápido) mostra — elétrico só kWh, combustão só litros, híbrido
-                os dois (um abastecimento de cada vez). */}
-            <div
-              className={styles.alternadorVisao}
-              role="radiogroup"
-              aria-label="Tipo de veículo"
-              ref={radiogroupTipoVeiculoRef}
-              onKeyDown={aoTeclarTipoVeiculo}
-            >
-              {(
-                [
-                  ["eletrico", "Elétrico"],
-                  ["combustao", "Combustão"],
-                  ["hibrido", "Híbrido"],
-                ] as const
-              ).map(([id, nome]) => (
-                <button
-                  key={id}
-                  role="radio"
-                  aria-checked={tipoVeiculo === id}
-                  className={`${styles.visaoBotao} ${tipoVeiculo === id ? styles.visaoAtiva : ""}`}
-                  onClick={() => void definirTipoVeiculo(id)}
-                >
-                  {nome}
-                </button>
-              ))}
-            </div>
+            {/* Item B1: a motorização decide que campos o formulário (aqui e
+                no registro rápido) mostra — elétrico só kWh, combustão só
+                litros, híbrido os dois. Aqui é só leitura: escolhe-se uma vez
+                em Definições › Veículo, e é lá que se muda. Sem esta linha, um
+                formulário que só pede litros não explicava porquê. */}
+            <p className={styles.notaTipo}>
+              Veículo {rotuloTipoVeiculo(tipoVeiculo).toLowerCase()} — mude em Definições › Veículo.
+            </p>
 
             <div className={styles.linhaVisao}>
               <div

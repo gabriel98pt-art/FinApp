@@ -273,6 +273,14 @@
   font-size: var(--fs-title);
 }
 
+/* Linha de leitura da motorização, onde antes estava o alternador que a
+   editava. Só informa (a edição mudou-se para Definições › Veículo), por isso
+   é texto discreto e não mais um controlo à espera de ser tocado. */
+.notaTipo {
+  font-size: var(--fs-label);
+  color: var(--mut);
+}
+
 /* Alternador Mês / Semana (item 10) */
 .linhaVisao {
   display: flex;

@@ -25,6 +25,8 @@ import FolhaCategorias from "./definicoes/FolhaCategorias";
 import FolhaCorBotao from "./definicoes/FolhaCorBotao";
 import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
 import FolhaNotificacoes from "./definicoes/FolhaNotificacoes";
+import FolhaVeiculo from "./definicoes/FolhaVeiculo";
+import { rotuloTipoVeiculo } from "../constants/veiculoPadrao";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
   { valor: "EUR", rotulo: "Euro (€)" },
@@ -129,6 +131,7 @@ export default function Definicoes() {
   const [corVeiculoAberto, setCorVeiculoAberto] = useState(false);
   const [kpisAberto, setKpisAberto] = useState(false);
   const [notificacoesAberto, setNotificacoesAberto] = useState(false);
+  const [veiculoAberto, setVeiculoAberto] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -203,6 +206,15 @@ export default function Definicoes() {
           titulo="Modo discreto"
           checked={cfg.modoDiscreto}
           onChange={() => void alternarModoDiscreto()}
+        />
+        {/* Junto do Módulo TVDE porque é da mesma natureza: configuração do
+            módulo Veículo, não conteúdo dele. A página Veículo mostra o mês;
+            o que se escolhe uma vez e vale sempre mora aqui. */}
+        <SettingsRow
+          titulo="Veículo"
+          valor={rotuloTipoVeiculo(cfg.tipoVeiculo)}
+          navegavel
+          onClick={() => setVeiculoAberto(true)}
         />
       </SettingsSection>
 
@@ -355,6 +367,12 @@ export default function Definicoes() {
         uid={uid}
         aberta={notificacoesAberto}
         aoFechar={() => setNotificacoesAberto(false)}
+      />
+      <FolhaVeiculo
+        cfg={cfg}
+        uid={uid}
+        aberta={veiculoAberto}
+        aoFechar={() => setVeiculoAberto(false)}
       />
     </Pagina>
   );
