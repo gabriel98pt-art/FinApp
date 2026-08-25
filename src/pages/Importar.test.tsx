@@ -29,12 +29,22 @@ vi.mock("../services/importacaoService", () => ({
 }));
 
 let linhas: LinhaAnalisada[] | null = [];
+let importadoEm: number | null = null;
 const setLinhas = vi.fn();
 const setTexto = vi.fn();
+const setImportadoEm = vi.fn();
 
 vi.mock("../stores/importacaoStore", () => ({
   useImportacaoStore: (s: (e: unknown) => unknown) =>
-    s({ texto: "", setTexto, linhas, setLinhas, resetar: vi.fn() }),
+    s({
+      texto: "",
+      setTexto,
+      linhas,
+      setLinhas,
+      importadoEm,
+      setImportadoEm,
+      resetar: vi.fn(),
+    }),
 }));
 vi.mock("../stores/lancamentosStore", () => ({
   useReceitasStore: (s: (e: unknown) => unknown) => s(lista()),
@@ -81,7 +91,9 @@ const linha = (extra: Partial<LinhaExtrato> = {}): LinhaAnalisada =>
 
 beforeEach(() => {
   linhas = [];
+  importadoEm = null;
   setLinhas.mockClear();
+  setImportadoEm.mockClear();
   extrairExtratoPdf.mockReset();
 });
 
@@ -158,5 +170,44 @@ describe("Importar", () => {
 
     resolver([]);
     await waitFor(() => expect(entrada).toHaveAttribute("aria-busy", "false"));
+  });
+
+  // Achado ao investigar "confirmei sem querer, desfiz, e tive que marcar
+  // tudo de novo": depois de importar, a revisão não some — fica visível como
+  // "importado" (as marcações continuam lá), pronta a reaparecer se o usuário
+  // desfizer. Só some sozinha depois de um tempo, ou se ele limpar à mão.
+  describe("estado 'importado' — não perder as marcações num Desfazer acidental", () => {
+    test("com importadoEm marcado, mostra o aviso em vez da lista de revisão", () => {
+      linhas = [linha()];
+      importadoEm = Date.now();
+      render(<Importar />);
+
+      expect(screen.getByText(/lançamento\(s\) importado\(s\)/)).toBeInTheDocument();
+      expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Confirmar importação/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    test("'limpa agora' apaga o rascunho inteiro, não só a lista", async () => {
+      linhas = [linha()];
+      importadoEm = Date.now();
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: "limpa agora" }));
+
+      expect(setLinhas).toHaveBeenCalledWith(null);
+      expect(setTexto).toHaveBeenCalledWith("");
+      expect(setImportadoEm).toHaveBeenCalledWith(null);
+    });
+
+    test("sem importadoEm, a lista de revisão aparece normalmente", () => {
+      linhas = [linha()];
+      importadoEm = null;
+      render(<Importar />);
+
+      expect(screen.getByRole("tablist")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Confirmar importação/ })).toBeInTheDocument();
+    });
   });
 });

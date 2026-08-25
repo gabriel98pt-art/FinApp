@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
 import Seletor from "../components/Seletor";
@@ -14,7 +14,7 @@ import {
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
-import { comHistoricoSuprimido } from "../stores/historicoStore";
+import { comHistoricoSuprimido, useHistoricoStore } from "../stores/historicoStore";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -148,7 +148,50 @@ export default function Importar() {
   const setTexto = useImportacaoStore((s) => s.setTexto);
   const linhas = useImportacaoStore((s) => s.linhas);
   const setLinhas = useImportacaoStore((s) => s.setLinhas);
+  const importadoEm = useImportacaoStore((s) => s.importadoEm);
+  const setImportadoEm = useImportacaoStore((s) => s.setImportadoEm);
   const resetarRascunho = useImportacaoStore((s) => s.resetar);
+
+  // Quanto tempo a revisão fica visível (marcada "importado") depois de
+  // confirmar, antes de limpar sozinha — dá tempo de notar um engano e
+  // desfazer (↩) sem apagar as marcações, sem ficar presa na tela pra sempre.
+  const ATRASO_LIMPEZA_MS = 2 * 60 * 1000;
+  /** Posição da pilha de undo no momento em que esta importação foi
+   *  confirmada — comparado ao índice atual (abaixo) pra saber se um
+   *  "Desfazer" já passou por cima dela. Derivado no render, não num efeito:
+   *  não há nada pra sincronizar com um sistema externo aqui, só uma conta a
+   *  partir de dois números que já estão disponíveis. */
+  const [indiceAoImportar, setIndiceAoImportar] = useState<number | null>(null);
+  const indiceHistoricoAtual = useHistoricoStore((s) => s.pilha.indice);
+  const foiDesfeito =
+    Boolean(importadoEm) && indiceAoImportar !== null && indiceHistoricoAtual < indiceAoImportar;
+  // Alguém desfez (↩ no topo) depois desta importação: os dados já voltaram no
+  // Firebase, então a revisão volta a ficar editável — mesmo sem `importadoEm`
+  // ainda ter sido limpo, é como se não tivesse sido confirmada.
+  const mostrandoImportado = Boolean(importadoEm) && !foiDesfeito;
+
+  // Identidade estável (setters do zustand não mudam entre renders) — pode
+  // entrar nas deps do efeito abaixo sem reiniciar o timer a cada render.
+  const limparRevisao = useCallback(() => {
+    setLinhas(null);
+    setTexto("");
+    setImportadoEm(null);
+    setIndiceAoImportar(null);
+  }, [setLinhas, setTexto, setImportadoEm]);
+
+  // Limpeza automática: se ninguém desfez nem limpou à mão, a revisão some
+  // sozinha depois de ATRASO_LIMPEZA_MS. Calculado a partir do timestamp (não
+  // de uma duração fixa) pra funcionar certo mesmo depois de um refresh a
+  // meio da espera — `importadoEm` é persistido. Não dispara se já foi
+  // desfeito: aí a revisão está ativa de novo, não é lixo pra apagar. O delay
+  // nunca é negativo — mesmo "já devia ter limpado" dispara no próximo tick
+  // em vez de chamar setState direto no corpo do efeito.
+  useEffect(() => {
+    if (!importadoEm || foiDesfeito) return;
+    const restante = Math.max(0, ATRASO_LIMPEZA_MS - (Date.now() - importadoEm));
+    const id = setTimeout(limparRevisao, restante);
+    return () => clearTimeout(id);
+  }, [importadoEm, foiDesfeito, ATRASO_LIMPEZA_MS, limparRevisao]);
 
   const [filtro, setFiltro] = useState<DecisaoLinha | "todas">("todas");
   const { propsLista, propsAba } = useAbasTeclado({
@@ -353,8 +396,13 @@ export default function Importar() {
         await comHistoricoSuprimido(() => apagarExistentes(uid, apagar, despesasFixas));
       }
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
-      setLinhas(null);
-      setTexto("");
+      // Não limpa `linhas`/`texto` aqui: se o usuário confirmou sem querer e
+      // for desfazer (↩) no topo, a revisão volta exatamente como estava —
+      // sem reanalisar o extrato do zero e perder as marcações. `importadoEm`
+      // troca a tela pra um estado "importado" (ver useEffect mais abaixo,
+      // que limpa sozinho depois de um tempo, e o que detecta um desfazer).
+      setImportadoEm(Date.now());
+      setIndiceAoImportar(useHistoricoStore.getState().pilha.indice);
       setRevisaoDup(null);
     } catch {
       mostrarToast("Não foi possível importar. Tente de novo.");
@@ -484,6 +532,20 @@ export default function Importar() {
         </div>
       ) : linhas.length === 0 ? (
         <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
+      ) : mostrandoImportado ? (
+        <div className={styles.importado}>
+          <p>
+            ✓ {linhas.length} lançamento(s) importado(s). Se foi engano, clica em{" "}
+            <strong>Desfazer</strong> (↩) no topo — a revisão volta exatamente como estava.
+          </p>
+          <p className={styles.importadoAviso}>
+            Esta lista limpa sozinha em alguns minutos, ou{" "}
+            <button className={styles.linkBotao} onClick={limparRevisao}>
+              limpa agora
+            </button>
+            .
+          </p>
+        </div>
       ) : (
         <>
           <div className={styles.resumo}>

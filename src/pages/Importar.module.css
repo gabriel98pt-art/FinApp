@@ -110,6 +110,22 @@
   flex-wrap: wrap;
 }
 
+.importado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--selo-pago-bg);
+  color: var(--selo-pago-txt);
+  border-radius: var(--r-sm);
+  padding: 16px;
+  font-size: var(--fs-body);
+}
+
+.importadoAviso {
+  opacity: 0.8;
+  font-size: var(--fs-label);
+}
+
 .filtros {
   display: flex;
   gap: 4px;
