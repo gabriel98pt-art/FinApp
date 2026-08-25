@@ -3,9 +3,8 @@ import { Trash2 } from "lucide-react";
 import Pagina from "../components/Pagina";
 import PainelCoresApp from "../components/PainelCoresApp";
 import Seletor from "../components/Seletor";
-import SeletorCor from "../components/SeletorCor";
 import { apagarConta, mensagemDeErroSenhaAtual, sair } from "../services/authService";
-import { atualizarConfig, definirCorCategoria } from "../services/cfgService";
+import { atualizarConfig } from "../services/cfgService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -128,7 +127,6 @@ export default function Definicoes() {
   const [categoriasAberto, setCategoriasAberto] = useState(false);
   const [fontesAberto, setFontesAberto] = useState(false);
   const [corBotaoAberto, setCorBotaoAberto] = useState(false);
-  const [corVeiculoAberto, setCorVeiculoAberto] = useState(false);
   const [kpisAberto, setKpisAberto] = useState(false);
   const [notificacoesAberto, setNotificacoesAberto] = useState(false);
   const [veiculoAberto, setVeiculoAberto] = useState(false);
@@ -171,24 +169,6 @@ export default function Definicoes() {
       mostrarToast("✓ Início da semana atualizado");
     } catch {
       mostrarToast("Não foi possível alterar.");
-    }
-  }
-
-  // "Veículo" não é uma categoria de cfg.categoriasDespesa (é o resumo dos 4
-  // domínios do módulo, não algo que se lance) — por isso não aparecia na
-  // folha de "Categorias de despesa" pra ser recolorido, mesmo já sendo
-  // possível de facto (definirCorCategoria aceita qualquer nome; era só
-  // isto que faltava expor). O dado já existia — "Cor do botão flutuante"
-  // já usa o mesmo cfg.categoriaCor["Veículo"] pra colorir o FAB — só não
-  // tinha onde mudar a cor de quem procura pelo motivo mais comum: o donut
-  // de "Despesas por categoria" parecido demais com outra fatia.
-  async function escolherCorVeiculo(cor: string | null) {
-    if (!uid) return;
-    setCorVeiculoAberto(false);
-    try {
-      await definirCorCategoria(uid, "Veículo", cor);
-    } catch {
-      mostrarToast("Não foi possível salvar a cor.");
     }
   }
 
@@ -237,12 +217,9 @@ export default function Definicoes() {
           navegavel
           onClick={() => setCorBotaoAberto(true)}
         />
-        <SettingsRow
-          titulo="Cor do Veículo"
-          valor={cfg.categoriaCor?.["Veículo"] ? "Personalizada" : "Padrão"}
-          navegavel
-          onClick={() => setCorVeiculoAberto(true)}
-        />
+        {/* "Cor do Veículo" saiu daqui: é do módulo Veículo, e estava solta
+            entre definições que valem para o app inteiro. Vive agora em
+            Geral › Veículo, com o tipo e as categorias. */}
       </SettingsSection>
 
       <SettingsSection titulo="Registo">
@@ -348,13 +325,6 @@ export default function Definicoes() {
         uid={uid}
         aberta={corBotaoAberto}
         aoFechar={() => setCorBotaoAberto(false)}
-      />
-      <SeletorCor
-        aberta={corVeiculoAberto}
-        aoFechar={() => setCorVeiculoAberto(false)}
-        titulo="Cor do Veículo"
-        valor={cfg.categoriaCor?.["Veículo"] ?? ""}
-        aoEscolher={(c) => void escolherCorVeiculo(c)}
       />
       <FolhaKpisMobile
         cfg={cfg}

@@ -89,6 +89,9 @@ describe("Definicoes", () => {
 
   test("dá para recolorir o Veículo — não era uma categoria de cfg.categoriasDespesa, então não aparecia na folha de categorias", () => {
     render(<Definicoes />);
+    // A cor deixou de estar solta em Aparência: vive com o resto da
+    // configuração do módulo, dentro de Geral › Veículo.
+    fireEvent.click(screen.getByRole("button", { name: /^Veículo/ }));
     fireEvent.click(screen.getByRole("button", { name: /Cor do Veículo/ }));
     fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
 

@@ -2,8 +2,9 @@ import { useState } from "react";
 import BottomSheet from "../../components/BottomSheet";
 import Seletor from "../../components/Seletor";
 import SettingsRow from "../../components/settings/SettingsRow";
+import SeletorCor from "../../components/SeletorCor";
 import FolhaCategorias from "./FolhaCategorias";
-import { atualizarConfig } from "../../services/cfgService";
+import { atualizarConfig, definirCorCategoria } from "../../services/cfgService";
 import { mostrarToast } from "../../stores/toastStore";
 import { TIPOS_VEICULO, rotuloTipoVeiculo } from "../../constants/veiculoPadrao";
 import type { ConfigConta, TipoVeiculo } from "../../types";
@@ -28,6 +29,7 @@ export default function FolhaVeiculo({
   aoFechar: () => void;
 }) {
   const [categoriasAberto, setCategoriasAberto] = useState(false);
+  const [corAberta, setCorAberta] = useState(false);
 
   async function mudarTipo(valor: string) {
     if (valor === cfg.tipoVeiculo) return;
@@ -36,6 +38,21 @@ export default function FolhaVeiculo({
       mostrarToast("✓ Tipo de veículo atualizado");
     } catch {
       mostrarToast("Não foi possível alterar.");
+    }
+  }
+
+  // "Veículo" não é uma categoria de `cfg.categoriasDespesa` (é o resumo dos 4
+  // domínios do módulo, não algo que se lance), por isso nunca apareceu na
+  // folha de categorias para ser recolorido. O dado já existia — a cor do
+  // botão flutuante usa o mesmo `cfg.categoriaCor["Veículo"]` — e o que muda
+  // aqui é só onde se mexe nele: com o resto do módulo, e não solto em
+  // Aparência entre coisas do app inteiro.
+  async function escolherCor(cor: string | null) {
+    setCorAberta(false);
+    try {
+      await definirCorCategoria(uid, "Veículo", cor);
+    } catch {
+      mostrarToast("Não foi possível salvar a cor.");
     }
   }
 
@@ -66,6 +83,12 @@ export default function FolhaVeiculo({
         navegavel
         onClick={() => setCategoriasAberto(true)}
       />
+      <SettingsRow
+        titulo="Cor do Veículo"
+        valor={cfg.categoriaCor?.["Veículo"] ? "Personalizada" : "Padrão"}
+        navegavel
+        onClick={() => setCorAberta(true)}
+      />
 
       <FolhaCategorias
         titulo="Categorias do veículo"
@@ -76,6 +99,14 @@ export default function FolhaVeiculo({
         aberta={categoriasAberto}
         nivel={1}
         aoFechar={() => setCategoriasAberto(false)}
+      />
+      <SeletorCor
+        aberta={corAberta}
+        aoFechar={() => setCorAberta(false)}
+        titulo="Cor do Veículo"
+        valor={cfg.categoriaCor?.["Veículo"] ?? ""}
+        aoEscolher={(c) => void escolherCor(c)}
+        nivel={1}
       />
     </BottomSheet>
   );

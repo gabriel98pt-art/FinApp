@@ -13,13 +13,14 @@ import type { ConfigConta } from "../../types";
 vi.mock("../../services/firebase", () => ({ db: {}, auth: {} }));
 const atualizarConfig = vi.fn(async () => {});
 const adicionarItemLista = vi.fn(async () => {});
+const definirCorCategoria = vi.fn(async () => {});
 vi.mock("../../services/cfgService", () => ({
   atualizarConfig: (...a: unknown[]) => atualizarConfig(...(a as [])),
   adicionarItemLista: (...a: unknown[]) => adicionarItemLista(...(a as [])),
   removerItemLista: vi.fn(async () => {}),
   renomearCategoria: vi.fn(async () => {}),
   renomearFonte: vi.fn(async () => {}),
-  definirCorCategoria: vi.fn(async () => {}),
+  definirCorCategoria: (...a: unknown[]) => definirCorCategoria(...(a as [])),
   definirIconeCategoria: vi.fn(async () => {}),
 }));
 vi.mock("../../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
@@ -33,6 +34,7 @@ function abrir(cfg: ConfigConta = CONFIG_PADRAO) {
 beforeEach(() => {
   atualizarConfig.mockClear();
   adicionarItemLista.mockClear();
+  definirCorCategoria.mockClear();
 });
 
 describe("FolhaVeiculo", () => {
@@ -73,5 +75,22 @@ describe("FolhaVeiculo", () => {
       "categoriasVeiculo",
       "Estacionamento",
     );
+  });
+
+  // A cor não é campo próprio: "Veículo" entra no mesmo `categoriaCor` das
+  // categorias, e é a mesma entrada que a cor do botão flutuante já lia.
+  // Mudou de sítio (estava solta em Aparência), não de mecanismo.
+  test("a linha da cor diz se está personalizada e abre o seletor", async () => {
+    abrir({ ...CONFIG_PADRAO, categoriaCor: { Veículo: "#ff0000" } });
+    const linha = screen.getByRole("button", { name: /Cor do Veículo/ });
+    expect(linha).toHaveTextContent("Personalizada");
+
+    await userEvent.click(linha);
+    expect(screen.getByRole("dialog", { name: "Cor do Veículo" })).toBeInTheDocument();
+  });
+
+  test('sem cor escolhida a linha diz "Padrão"', () => {
+    abrir();
+    expect(screen.getByRole("button", { name: /Cor do Veículo/ })).toHaveTextContent("Padrão");
   });
 });
