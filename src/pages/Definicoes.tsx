@@ -95,7 +95,7 @@ function ApagarConta() {
         Remove a conta e todos os dados guardados nela, sem volta. Se quiser ficar com uma cópia,
         exporte o backup antes.
       </p>
-      <div className={styles.linhaAdicionar}>
+      <div className={`${styles.linhaAdicionar} ${styles.linhaApagarConta}`}>
         <input
           className={styles.inputPequeno}
           type="password"

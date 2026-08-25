@@ -186,6 +186,19 @@
   border-color: transparent;
 }
 
+/* No desktop o FAB "Registro rápido" flutua fixo no canto inferior direito
+   (56px de lado, 24px da borda) e esta é a última linha da página: o círculo
+   azul aparecia por cima do botão vermelho "Apagar conta", tapando parte dele.
+   Encostar o par senha+botão à esquerda tira-o da coluna do FAB em qualquer
+   posição de rolagem. No telemóvel não há FAB nesse canto (o botão central da
+   barra de baixo faz esse papel), por isso a linha continua a ocupar a largura
+   toda, como as outras. */
+@media (min-width: 768px) {
+  .linhaApagarConta .inputPequeno {
+    flex: 0 1 260px;
+  }
+}
+
 .botaoPequeno {
   display: flex;
   align-items: center;
