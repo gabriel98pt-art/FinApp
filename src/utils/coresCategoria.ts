@@ -26,13 +26,16 @@ const COR_SEMANTICA: Record<string, string> = {
   Transporte: "#3b82f6",
   Transportes: "#3b82f6",
   Combustível: "#3b82f6",
-  // Saúde: era ciano (#00d4e0) — sob protanopia caía quase exatamente sobre
-  // Transporte (#3b82f6): as duas colapsavam pra praticamente a mesma cor
-  // (achado da auditoria). Verde também é uma associação comum pra
-  // saúde/farmácia, então a mudança não perde legibilidade semântica.
-  Saúde: "#16a34a",
-  Farmácia: "#16a34a",
-  Médico: "#16a34a",
+  // Saúde: era ciano (#00d4e0), depois verde (#16a34a) — cada um resolvia uma
+  // colisão (a de ciano era com Transporte sob protanopia) mas o verde deixou
+  // de valer: verde passou a ser reservado só pra Receita (pedido do
+  // Gabriel). Magenta-rosa mantém a distância de Transporte sob qualquer
+  // simulação de daltonismo (vermelho-azul é a separação mais robusta que
+  // existe sob protanopia/deuteranopia) e não colide com mais nada da
+  // paleta — conferido com as matrizes de Machado/Oliveira/Fialho 2009.
+  Saúde: "#de55b6",
+  Farmácia: "#de55b6",
+  Médico: "#de55b6",
   // Lazer
   Lazer: "#ec4899",
   Entretenimento: "#ec4899",
@@ -62,9 +65,18 @@ const COR_SEMANTICA: Record<string, string> = {
   // Mesma ideia para o TVDE: é o laranja `--lrj`, o mesmo do card "Lucro
   // total" dessa aba — o botão flutuante chega já com a cor da tela.
   TVDE: "#fb923c",
-  Manutenção: "#65a30d",
-  Portagens: "#4d7c0f",
-  Revisão: "#3f6212",
+  // Manutenção/Portagens/Revisão: as 3 fixas de veículo que sobravam em verde
+  // (nunca tiveram uma colisão documentada a resolver, eram só uma escolha
+  // temática — "verde de estrada/oficina"). Verde saiu (só Receita agora),
+  // então viram a MESMA família — roxo, em 3 tons — do mais claro ao mais
+  // escuro, no lugar de verde claro→escuro: mesma lógica de antes (uma
+  // família, separada por luminosidade), só a matiz muda. Reconferido sob
+  // protanopia/deuteranopia/tritanopia contra Restaurante e TVDE (as duas
+  // categorias de despesa mais prováveis de aparecer ao lado destas, pelo
+  // domínio Veículo/TVDE): sem colisão em nenhum caso.
+  Manutenção: "#cb5ed6",
+  Portagens: "#914599",
+  Revisão: "#723d77",
   // Assinaturas / tecnologia
   Assinaturas: "#06b6d4",
   Tecnologia: "#06b6d4",
@@ -84,47 +96,60 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
   return COR_SEMANTICA[categoria];
 }
 
-/** Paleta de reserva pra categorias personalizadas — a escolha dentro dela é
- *  pelo NOME (ver `corFallbackDaCategoria`).
+/** Paleta única de matizes — fonte de verdade tanto pra auto-atribuição
+ *  (`corFallbackDaCategoria`, abaixo) quanto pro seletor manual (`CORES_
+ *  CATEGORIA` em `constants/aparenciaCategoria.ts`, que acrescenta só os
+ *  neutros por cima). Antes eram DUAS paletas divergentes (16 cores aqui, 24
+ *  lá, sem relação uma com a outra) — cada uma cobria um conjunto diferente
+ *  de matizes, então uma categoria automática e uma escolhida à mão nunca
+ *  compartilhavam o mesmo "vocabulário" de cor. Unificadas nesta.
  *
- *  16 matizes (era 12), espaçadas em 22,5° ao redor da roda de cor, com
- *  luminosidade alternada entre vizinhas (mesmo truque da paleta de
- *  personalização em `constants/aparenciaCategoria.ts`: duas matizes perto
- *  uma da outra ficam mais fáceis de separar quando uma é mais clara e a
- *  outra mais escura). Nenhuma repete uma cor já fixa por nome em
- *  `COR_SEMANTICA` — pra uma categoria automática nunca cair em cima de
- *  "Alimentação" ou "Casa" no mesmo donut.
+ *  18 matizes em 3 fileiras de 6 (vivas quente→fria, vivas que preenchem os
+ *  intervalos da 1ª fileira, tons profundos/terrosos da mesma matiz) — mesma
+ *  estrutura de antes, sem os 3 verdes/verde-lima/oliva que existiam (o
+ *  pedido foi "verde só na categoria Receita"; ver `COR_SEMANTICA.Receita`).
+ *  As 3 substitutas (índices 2, 7 e 14) foram escolhidas com o mesmo método
+ *  já usado neste ficheiro pras trocas de `COR_SEMANTICA`: simulação de
+ *  protanopia/deuteranopia/tritanopia (matrizes de Machado/Oliveira/Fialho
+ *  2009) contra toda cor fixa E toda cor desta lista, buscando a matiz que
+ *  maximiza a distância mínima — nenhuma delas reabre as colisões já
+ *  corrigidas (Restaurante/TVDE, Transporte/Saúde, Casa/Seguro).
  *
- *  Verificado sob simulação de protanopia/deuteranopia/tritanopia: mesmo
- *  assim, 8 dos 120 pares ficam pouco distinguíveis nalgum tipo de
- *  daltonismo — com 16 cores simultâneas não dá pra evitar por completo (a
- *  própria ciência de cor trata isso como praticamente impossível além de
- *  3-4 cores ao mesmo tempo). O separador entre fatias do donut e o nome em
- *  texto na legenda continuam sendo a defesa real contra esse resíduo, não
- *  o matiz sozinho.
- *
- *  Mudar esta lista muda a cor AUTOMÁTICA de toda categoria personalizada
- *  sem cor escolhida à mão — é o ponto: quem tem muitas categorias passa a
- *  ter mais opções distintas entre elas. Não afeta ninguém que já escolheu
- *  uma cor manualmente (isso fica em `cfg.categoriaCor`, à parte). */
-export const PALETA_FALLBACK = [
-  "#e23636",
-  "#b45922",
-  "#e2b736",
-  "#a2b422",
-  "#8ce236",
-  "#34b422",
-  "#36e261",
-  "#22b47d",
-  "#36e2e2",
-  "#227db4",
-  "#3661e2",
-  "#3422b4",
-  "#8c36e2",
-  "#a222b4",
-  "#e236b7",
-  "#b42259",
+ *  Verificado sob a mesma simulação: como antes, com tantas cores
+ *  simultâneas não dá pra evitar por completo alguma proximidade nalgum tipo
+ *  de daltonismo (a própria ciência de cor trata isso como praticamente
+ *  impossível além de 3-4 cores ao mesmo tempo) — mas nenhum par ficou pior
+ *  do que já estava. O separador entre fatias do donut e o nome em texto na
+ *  legenda continuam sendo a defesa real contra esse resíduo, não o matiz
+ *  sozinho. */
+export const PALETA_CATEGORIA = [
+  // vivas — quente a fria
+  "#ef4444", // vermelho
+  "#eab308", // amarelo-ouro
+  "#00aeb2", // turquesa — no lugar do verde (#22c55e)
+  "#06b6d4", // ciano
+  "#3b82f6", // azul
+  "#d946ef", // magenta
+  // vivas — preenchem os intervalos da fileira acima
+  "#f97316", // laranja
+  "#bd4bd6", // magenta-violeta — no lugar do verde-lima (#84cc16)
+  "#14b8a6", // esmeralda/petróleo claro
+  "#0ea5e9", // azul-celeste
+  "#8b5cf6", // violeta
+  "#ec4899", // rosa
+  // profundas / terrosas — mesma matiz das duas fileiras acima, mais escuras
+  "#c2410c", // terracota
+  "#a16207", // mostarda
+  "#a13957", // vinho-escuro — no lugar do oliva (#4d7c0f)
+  "#0f766e", // petróleo
+  "#1e40af", // marinho
+  "#9f1239", // vinho
 ];
+
+/** Nome antigo, mantido como alias: quem já lê `PALETA_FALLBACK` (o próprio
+ *  `corFallbackDaCategoria`, os testes) continua a funcionar sem mudar
+ *  chamada nenhuma. */
+export const PALETA_FALLBACK = PALETA_CATEGORIA;
 
 /** Índice estável na paleta, pelo nome — duas categorias sem cor escolhida
  *  ficam quase sempre distintas, e a MESMA categoria sai sempre com a mesma

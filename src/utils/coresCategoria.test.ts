@@ -1,6 +1,38 @@
 import { describe, expect, test } from "vitest";
 import { CATEGORIAS_DESPESA_PADRAO } from "../constants/categorias";
-import { PALETA_FALLBACK, corFallbackDaCategoria, corSemanticaDaCategoria } from "./coresCategoria";
+import {
+  PALETA_CATEGORIA,
+  PALETA_FALLBACK,
+  corFallbackDaCategoria,
+  corSemanticaDaCategoria,
+} from "./coresCategoria";
+
+/** Matiz aproximada em graus (0-360), só o suficiente para separar "isto é
+ *  verde" de "isto não é" num teste — não precisa da precisão perceptual de
+ *  OKLCH que a escolha das cores em si já usou (ver comentário de
+ *  `PALETA_CATEGORIA`). */
+function matizHsl(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h: number;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h *= 60;
+  return h < 0 ? h + 360 : h;
+}
+/** Faixa generosa de verde/verde-lima/oliva em HSL — mais larga que a
+ *  janela [95°,172°] em OKLCH usada pra escolher as cores novas (escalas
+ *  diferentes, este teste só precisa pegar o caso óbvio). */
+const EH_VERDE = (hex: string) => {
+  const h = matizHsl(hex);
+  return h >= 70 && h <= 170;
+};
 
 describe("corSemanticaDaCategoria", () => {
   test("categoria conhecida tem cor fixa", () => {
@@ -30,6 +62,61 @@ describe("corSemanticaDaCategoria", () => {
 
   test("Saúde não colide mais com Transporte sob protanopia (as duas colapsavam quase a zero)", () => {
     expect(corSemanticaDaCategoria("Saúde")).not.toBe(corSemanticaDaCategoria("Transporte"));
+  });
+
+  // Pedido do Gabriel: verde só pode existir na categoria Receita. Saúde,
+  // Manutenção, Portagens e Revisão usavam verde/oliva sem nenhuma colisão
+  // documentada por trás — só uma escolha temática — e por isso são as 4
+  // que precisavam de cor nova.
+  test("nenhuma categoria fixa além de Receita usa verde/verde-lima/oliva", () => {
+    for (const [nome, cor] of Object.entries({
+      Saúde: corSemanticaDaCategoria("Saúde")!,
+      Manutenção: corSemanticaDaCategoria("Manutenção")!,
+      Portagens: corSemanticaDaCategoria("Portagens")!,
+      Revisão: corSemanticaDaCategoria("Revisão")!,
+    })) {
+      expect(EH_VERDE(cor), `${nome}: ${cor}`).toBe(false);
+    }
+  });
+
+  test("Receita continua verde — o único lugar onde pode estar", () => {
+    expect(corSemanticaDaCategoria("Receita")).toBe("#4ade80");
+    expect(EH_VERDE(corSemanticaDaCategoria("Receita")!)).toBe(true);
+  });
+
+  test("Veículo fica como está — teal deliberado, não é o problema", () => {
+    expect(corSemanticaDaCategoria("Veículo")).toBe("#14b8a6");
+  });
+
+  // Manutenção/Portagens/Revisão viraram a mesma família (roxo, 3 tons) —
+  // mesma lógica de antes (verde claro→escuro), só a matiz mudou. O que
+  // importa é que continuam a não colidir com as categorias de veículo mais
+  // prováveis de aparecer ao lado delas no mesmo donut.
+  test("Manutenção/Portagens/Revisão não colidem com Restaurante nem TVDE", () => {
+    const restaurante = corSemanticaDaCategoria("Restaurante");
+    const tvde = corSemanticaDaCategoria("TVDE");
+    for (const nome of ["Manutenção", "Portagens", "Revisão"]) {
+      const cor = corSemanticaDaCategoria(nome);
+      expect(cor, nome).not.toBe(restaurante);
+      expect(cor, nome).not.toBe(tvde);
+    }
+  });
+});
+
+describe("PALETA_CATEGORIA — fonte única pra auto-atribuição e seletor manual", () => {
+  test("nenhuma cor da paleta é verde/verde-lima/oliva", () => {
+    for (const cor of PALETA_CATEGORIA) {
+      expect(EH_VERDE(cor), cor).toBe(false);
+    }
+  });
+
+  test("tem entre 18 e 28 matizes — o que o pedido de 'mais cores' esperava", () => {
+    expect(PALETA_CATEGORIA.length).toBeGreaterThanOrEqual(18);
+    expect(PALETA_CATEGORIA.length).toBeLessThanOrEqual(28);
+  });
+
+  test("nenhuma cor repetida dentro da própria paleta", () => {
+    expect(new Set(PALETA_CATEGORIA).size).toBe(PALETA_CATEGORIA.length);
   });
 });
 

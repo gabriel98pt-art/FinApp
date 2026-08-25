@@ -45,6 +45,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+import { PALETA_CATEGORIA } from "../utils/coresCategoria";
 
 /** ~40 ícones de linha do `lucide-react` para finanças pessoais, agrupados por
  *  tema (a ordem da lista é a ordem da grade: comida, casa, carro, saúde,
@@ -109,41 +110,18 @@ export function iconePorId(id: string | undefined): LucideIcon | null {
   return ICONES_CATEGORIA.find((i) => i.id === id)?.Icone ?? null;
 }
 
-/** Paleta do seletor de cor — grade de 6 colunas × 4 linhas, cada uma com um
- *  papel próprio, para não repetir a mesma cor num tom quase igual como
- *  antes (violeta e roxo a 1° de distância um do outro, por exemplo — quase
- *  indistinguíveis lado a lado):
- *
- *  1) vivas quentes→frias, espaçadas ≥28° na roda de cor;
- *  2) vivas que preenchem os intervalos da linha 1, mesmo espaçamento;
- *  3) tons profundos/terrosos — mesma ideia de cor, mas claramente mais
- *     escuros e menos saturados, então mesmo repetindo uma matiz da linha 1/2
- *     não fica parecido lado a lado (nenhum se toca na grade);
- *  4) neutros, do quase-preto ao cinza-claro — antes eram só 2 cinzas soltos
- *     no meio de cores vivas; agora é a rampa inteira, de propósito. */
+/** Paleta do seletor de cor — grade de 6 colunas × 4 linhas. As 3 primeiras
+ *  linhas (18 matizes: vivas quente→fria, vivas que preenchem os intervalos
+ *  da 1ª linha, tons profundos/terrosos) vêm de `PALETA_CATEGORIA`
+ *  (`utils/coresCategoria.ts`) — a MESMA lista que a auto-atribuição usa,
+ *  unificada pra acabar com a divergência que existia antes (duas paletas
+ *  diferentes, uma pra cada caso). Só a 4ª linha, os neutros, é própria
+ *  daqui: fazem sentido numa escolha deliberada no seletor manual, mas uma
+ *  categoria automática sair cinza pareceria "sem cor escolhida", não uma
+ *  cor de propósito — por isso ficam de fora do fallback por hash. */
 export const CORES_CATEGORIA = [
-  // 1. vivas — quente a frio
-  "#ef4444", // vermelho
-  "#eab308", // amarelo-ouro
-  "#22c55e", // verde
-  "#06b6d4", // ciano
-  "#3b82f6", // azul
-  "#d946ef", // magenta
-  // 2. vivas — preenchem os intervalos da linha 1
-  "#f97316", // laranja
-  "#84cc16", // verde-lima
-  "#14b8a6", // esmeralda
-  "#0ea5e9", // azul-celeste
-  "#8b5cf6", // violeta
-  "#ec4899", // rosa
-  // 3. profundas / terrosas
-  "#c2410c", // terracota
-  "#a16207", // mostarda
-  "#4d7c0f", // oliva
-  "#0f766e", // petróleo
-  "#1e40af", // marinho
-  "#9f1239", // vinho
-  // 4. neutros — escuro ao claro
+  ...PALETA_CATEGORIA,
+  // neutros — escuro ao claro
   "#0f172a",
   "#1e293b",
   "#334155",
