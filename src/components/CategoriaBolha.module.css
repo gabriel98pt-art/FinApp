@@ -6,3 +6,13 @@
   line-height: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
+
+/* A inicial ocupa o lugar do ícone quando a categoria não tem um escolhido.
+   Tamanho e cor vêm do componente (dependem do diâmetro da bolha e do
+   contraste com a cor de fundo). */
+.inicial {
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  user-select: none;
+}

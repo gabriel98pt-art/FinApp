@@ -35,6 +35,21 @@ export function iconeDaCategoria(cfg: CfgVisual | undefined, categoria: string):
   return cfg?.categoriaIcone?.[categoria] ?? "";
 }
 
+/** Primeira letra da categoria, em maiúscula — o que a bolha mostra quando não
+ *  há ícone escolhido para aquele nome. A grade de ícones em Definições é
+ *  curada e fechada de propósito, portanto nomes que vêm dos dados do usuário
+ *  ("Wise", "Plug and Charge", "AB Gold → Revolut") nunca vão ter ícone: sem
+ *  isto ficavam como um círculo colorido e vazio no meio de uma lista em que
+ *  os vizinhos tinham ícone.
+ *
+ *  `Array.from` em vez de `[0]` para não partir um nome que comece por emoji
+ *  ou por letra fora do plano básico. Nome vazio devolve string vazia — a
+ *  bolha volta a ser só o círculo, como sempre foi (Transações passa `""`
+ *  quando a linha não tem categoria). */
+export function inicialDaCategoria(categoria: string): string {
+  return Array.from(categoria.trim())[0]?.toUpperCase() ?? "";
+}
+
 /** '#rgb' ou '#rrggbb' → [r, g, b] em 0-255. Hex inválido devolve `null`. */
 export function hexParaRgb(hex: string): [number, number, number] | null {
   const h = hex.trim().replace(/^#/, "");

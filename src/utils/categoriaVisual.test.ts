@@ -5,6 +5,7 @@ import {
   corDaCategoriaVisual,
   corDoIconeSobre,
   iconeDaCategoria,
+  inicialDaCategoria,
   razaoContraste,
 } from "./categoriaVisual";
 import { CORES_CATEGORIA, iconePorId } from "../constants/aparenciaCategoria";
@@ -120,5 +121,28 @@ describe("corDoIconeSobre — contraste garantido contra a cor de fundo", () => 
   it("hex inválido cai no ícone branco em vez de quebrar", () => {
     expect(corDoIconeSobre("nada")).toBe(ICONE_SOBRE_ESCURO);
     expect(corDoIconeSobre("")).toBe(ICONE_SOBRE_ESCURO);
+  });
+});
+
+describe("inicialDaCategoria", () => {
+  // O problema que motivou isto: nomes vindos dos dados do usuário ("Wise",
+  // "Plug and Charge") nunca têm ícone na grade curada de Definições, e a
+  // bolha ficava um círculo colorido e vazio ao lado de vizinhos com ícone.
+  it("devolve a primeira letra em maiúscula", () => {
+    expect(inicialDaCategoria("Wise")).toBe("W");
+    expect(inicialDaCategoria("plug and charge")).toBe("P");
+  });
+
+  it("ignora espaços à volta do nome", () => {
+    expect(inicialDaCategoria("  Transferência ")).toBe("T");
+  });
+
+  it("nome vazio devolve vazio — a bolha volta a ser só o círculo", () => {
+    expect(inicialDaCategoria("")).toBe("");
+    expect(inicialDaCategoria("   ")).toBe("");
+  });
+
+  it("não parte um nome que comece por emoji", () => {
+    expect(inicialDaCategoria("🚗 Carro")).toBe("🚗");
   });
 });
