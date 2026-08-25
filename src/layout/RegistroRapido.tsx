@@ -29,6 +29,7 @@ import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { despesasNosTotais, hojeIso, mesAtual, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
+import { ordenarLocaisPorUso } from "../utils/locais";
 import { CURRENCY_SYMBOLS, formatMoney } from "../utils/money";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalDaCompra } from "../utils/parcelas";
@@ -296,6 +297,16 @@ export default function RegistroRapido() {
       setReembolsoDe("");
     }
   }
+
+  /** Locais de abastecimento com os mais usados à frente. `cfg.locaisCarregamento`
+   *  vem na ordem em que foram cadastrados, que não diz nada sobre a
+   *  frequência — o posto de estrada usado uma vez ficava à frente do local do
+   *  dia a dia só por ter sido criado antes. Com a fileira dobrada no
+   *  `SeletorLocal`, é esta ordem que decide quais os seis que ficam à vista. */
+  const locaisPorUso = useMemo(
+    () => ordenarLocaisPorUso(cfg.locaisCarregamento, veiculo.cargas),
+    [cfg.locaisCarregamento, veiculo.cargas],
+  );
 
   /** Refaz o palpite de kWh/litros a partir do custo e do local que valerem
    *  agora, usando o preço da carga mais recente naquele local NA MESMA
@@ -666,7 +677,7 @@ export default function RegistroRapido() {
         {tipo === "carga" && (
           <SeletorLocal
             valor={descricao}
-            opcoes={cfg.locaisCarregamento}
+            opcoes={locaisPorUso}
             aoMudar={(v) => {
               setDescricao(v);
               // Outro local, outro preço: o palpite volta a valer.

@@ -33,6 +33,22 @@
   color: var(--bg);
 }
 
+/* Mesma altura e forma dos chips para a fileira não ficar irregular, mas sem
+   fundo: é a saída para o resto da lista, não mais um local a escolher. */
+.mais {
+  background: none;
+  color: var(--blu);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  border-radius: var(--r-pill);
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+
+.mais:hover {
+  background: var(--s2);
+}
+
 .vazio {
   color: var(--mut);
   font-size: var(--fs-body);
