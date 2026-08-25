@@ -79,6 +79,8 @@ export default function RegistroRapido() {
   const { ref: rgTipoRef, onKeyDown: aoTeclarTipo } = useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgSubVeiculoRef, onKeyDown: aoTeclarSubVeiculo } =
     useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgModoCustoRef, onKeyDown: aoTeclarModoCusto } =
+    useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgNaturezaLancRef, onKeyDown: aoTeclarNaturezaLanc } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgNaturezaRef, onKeyDown: aoTeclarNatureza } =
@@ -104,6 +106,12 @@ export default function RegistroRapido() {
   // mas some assim que o usuário toca no campo: o palpite não pode apagar o
   // que ele escreveu à mão. Volta a valer ao trocar de local.
   const [kwhTocado, setKwhTocado] = useState(false);
+  // "Custo total" (padrão) ou "€/kWh" — mesmas duas formas de informar uma
+  // carga que a tela Veículo já tinha (ver `pages/Veiculo.tsx`). Só no modo
+  // €/kWh o preço entra à mão; no modo total ele é derivado do custo.
+  const [modoCusto, setModoCusto] = useState<"total" | "kwh">("total");
+  const [precoKwh, setPrecoKwh] = useState<Cents | null>(null); // só modo €/kWh
+  const [sessao, setSessao] = useState(""); // só carga elétrica
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
@@ -219,6 +227,9 @@ export default function RegistroRapido() {
         setConta("");
         setKwh("");
         setKwhTocado(false);
+        setModoCusto("total");
+        setPrecoKwh(null);
+        setSessao("");
         setParcelada(false);
         setNumParcelas("3");
         setDiaVencimentoParcela("");
@@ -238,6 +249,9 @@ export default function RegistroRapido() {
       setEtiqueta("");
       setKwh("");
       setKwhTocado(false);
+      setModoCusto("total");
+      setPrecoKwh(null);
+      setSessao("");
       setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
@@ -254,7 +268,7 @@ export default function RegistroRapido() {
    *  tela Veículo (`palpitarKwh` em pages/Veiculo.tsx). Sem histórico naquele
    *  local não há preço de referência: fica vazio para escrever à mão. */
   function palpitarKwh(custo: Cents | null, local: string) {
-    if (custo === null || custo <= 0) return;
+    if (modoCusto !== "total" || custo === null || custo <= 0) return;
     const preco = precoKwhDoLocal(veiculo.cargas, local);
     if (preco !== undefined) setKwh(kwhPeloCusto(custo, preco));
   }
@@ -292,9 +306,12 @@ export default function RegistroRapido() {
     e.preventDefault();
     if (!uid) return;
 
-    const valor = valorTexto;
+    // No modo €/kWh da carga, o número obrigatório é o preço/kWh, não o custo
+    // total — não há campo de custo total nesse modo, é ele quem se deriva.
+    const ehCargaPorKwh = tipo === "carga" && modoCusto === "kwh";
+    const valor = ehCargaPorKwh ? precoKwh : valorTexto;
     if (valor === null || valor <= 0) {
-      setErro("Valor inválido — use por exemplo 12,50.");
+      setErro(ehCargaPorKwh ? "Preço/kWh inválido." : "Valor inválido — use por exemplo 12,50.");
       return;
     }
     // Todo lançamento sai de algum lugar: conta/cartão é obrigatório assim que
@@ -326,13 +343,16 @@ export default function RegistroRapido() {
           setSalvando(false);
           return;
         }
+        const custo = modoCusto === "total" ? valor : Math.round(kwhNum * valor);
+        const precoKwhFinal = modoCusto === "total" ? Math.round(valor / kwhNum) : valor;
         await criarCarga(uid, {
           data,
           kwh: kwhNum,
-          custo: valor,
-          precoKwh: Math.round(valor / kwhNum),
+          custo,
+          precoKwh: precoKwhFinal,
           local,
           contaCartao: conta || undefined,
+          sessao: sessao.trim() || undefined,
           nota: notaFinal,
         });
       } else if (tipo === "despesaVeiculo") {
@@ -619,10 +639,42 @@ export default function RegistroRapido() {
           </label>
         </div>
 
+        {/* Duas formas de informar uma carga: custo total (deriva o €/kWh) ou
+            €/kWh direto (deriva o custo) — mesmo par de modos da tela
+            Veículo. */}
+        {tipo === "carga" && (
+          <div
+            className={styles.subTipos}
+            role="radiogroup"
+            aria-label="Como informar o custo"
+            ref={rgModoCustoRef}
+            onKeyDown={aoTeclarModoCusto}
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={modoCusto === "total"}
+              className={`${styles.subTipo} ${modoCusto === "total" ? styles.subTipoAtivo : ""}`}
+              onClick={() => setModoCusto("total")}
+            >
+              Custo total
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={modoCusto === "kwh"}
+              className={`${styles.subTipo} ${modoCusto === "kwh" ? styles.subTipoAtivo : ""}`}
+              onClick={() => setModoCusto("kwh")}
+            >
+              €/kWh
+            </button>
+          </div>
+        )}
+
         {/* Numa despesa parcelada o valor vive só dentro da folha de
             Parcelamento — ter os dois seria pedir o mesmo número duas vezes. */}
         <div className={styles.linhaDupla}>
-          {!ehParcelada && (
+          {!ehParcelada && !(tipo === "carga" && modoCusto === "kwh") && (
             <label className={styles.campo}>
               {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
               <CampoMoeda
@@ -638,6 +690,18 @@ export default function RegistroRapido() {
                 // estado só guarda o texto, não qual campo — aria-describedby
                 // nos campos relevantes, não aria-invalid (exigiria saber
                 // exatamente qual — achado da auditoria de Acessibilidade).
+                aria-describedby={erro !== null ? "erro-registro" : undefined}
+              />
+            </label>
+          )}
+
+          {tipo === "carga" && modoCusto === "kwh" && (
+            <label className={styles.campo}>
+              Preço por kWh (€)
+              <CampoMoeda
+                valor={precoKwh}
+                aoMudar={setPrecoKwh}
+                required
                 aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
             </label>
@@ -714,6 +778,13 @@ export default function RegistroRapido() {
         )}
 
         <SeletorData valor={data} aoMudar={setData} />
+
+        {tipo === "carga" && (
+          <label className={styles.campo}>
+            Sessão (opcional)
+            <input value={sessao} onChange={(e) => setSessao(e.target.value)} />
+          </label>
+        )}
 
         {lado !== "carga" && (
           <SeletorCategoria

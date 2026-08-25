@@ -19,8 +19,6 @@ import {
   atualizarDespesaVeiculo,
   atualizarFixaVeiculo,
   atualizarKm,
-  criarCarga,
-  criarDespesaVeiculo,
   criarFixaVeiculo,
   criarKm,
   removerCarga,
@@ -41,6 +39,7 @@ import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
+import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
@@ -80,6 +79,7 @@ function agir(acao: () => Promise<unknown>, ok: string) {
 export default function Veiculo() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
+  const abrirRegistro = useUiStore((s) => s.abrirRegistro);
   const cfg = useCfgStore((s) => s.cfg);
   const dados = useVeiculoStore((s) => s.dados);
   const carregado = useVeiculoStore((s) => s.carregado);
@@ -216,21 +216,9 @@ export default function Veiculo() {
     if (preco !== undefined) setCgKwh(kwhPeloCusto(custo, preco));
   }
 
-  function abrirNovaCarga() {
-    setCgEditandoId(null);
-    setModoCusto("total");
-    setCgKwh("");
-    setCgCustoTotal(null);
-    setCgPrecoKwh(null);
-    setCgLocal("");
-    setCgConta("");
-    setCgSessao("");
-    setCgNota("");
-    setCgData(hojeIso());
-    setKwhTocado(false);
-    setCgAberta(true);
-  }
-
+  // Criar uma carga nova passou a ser só pelo registro rápido global (FAB),
+  // que já cobre este mesmo formulário (item A2) — aqui fica só a edição de
+  // uma carga já existente, aberta ao tocar num item da lista.
   function abrirEdicaoCarga(c: CargaEletrica) {
     setCgEditandoId(c.id);
     setModoCusto("total");
@@ -248,8 +236,12 @@ export default function Veiculo() {
     setCgAberta(true);
   }
 
+  // Só edita — criar carga nova é sempre pelo registro rápido global agora
+  // (item A2), então esta folha só abre com `cgEditandoId` já preenchido
+  // (ver `abrirEdicaoCarga`).
   async function salvarCarga(e: FormEvent) {
     e.preventDefault();
+    if (!cgEditandoId) return;
     const kwh = parseFloat(cgKwh.replace(",", "."));
     if (!Number.isFinite(kwh) || kwh <= 0) return mostrarToast("kWh inválido.");
     let custo: number;
@@ -278,13 +270,8 @@ export default function Veiculo() {
       nota: cgNota.trim() || undefined,
     };
     try {
-      if (cgEditandoId) {
-        await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
-        mostrarToast("✓ Carregamento atualizado");
-      } else {
-        await criarCarga(uid, dados_);
-        mostrarToast("✓ Carregamento registado");
-      }
+      await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
+      mostrarToast("✓ Carregamento atualizado");
       setCgAberta(false);
     } catch {
       mostrarToast("Não foi possível salvar.");
@@ -380,16 +367,8 @@ export default function Veiculo() {
   const [dvData, setDvData] = useState(hojeIso());
   const [dvNota, setDvNota] = useState("");
 
-  function abrirNovaDespesa() {
-    setDvEditandoId(null);
-    setDvValor(null);
-    setDvCategoria(cfg.categoriasVeiculo[0] ?? "");
-    setDvConta("");
-    setDvData(hojeIso());
-    setDvNota("");
-    setDvAberta(true);
-  }
-
+  // Mesmo caso da carga: criar despesa nova é sempre pelo registro rápido
+  // global agora (item A2) — aqui fica só a edição de uma já existente.
   function abrirEdicaoDespesa(d: DespesaVeiculo) {
     setDvEditandoId(d.id);
     setDvValor(d.valor);
@@ -400,8 +379,11 @@ export default function Veiculo() {
     setDvAberta(true);
   }
 
+  // Só edita — mesma ressalva de `salvarCarga`: esta folha só abre com
+  // `dvEditandoId` já preenchido (ver `abrirEdicaoDespesa`).
   async function salvarDespesa(e: FormEvent) {
     e.preventDefault();
+    if (!dvEditandoId) return;
     const valor = dvValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
     const dados_ = {
@@ -411,14 +393,10 @@ export default function Veiculo() {
       contaCartao: dvConta || undefined,
       nota: dvNota.trim() || undefined,
     };
-    if (dvEditandoId) {
-      await agir(
-        () => atualizarDespesaVeiculo(uid, { ...dados_, id: dvEditandoId }),
-        "✓ Despesa atualizada",
-      );
-    } else {
-      await agir(() => criarDespesaVeiculo(uid, dados_), "✓ Despesa do veículo adicionada");
-    }
+    await agir(
+      () => atualizarDespesaVeiculo(uid, { ...dados_, id: dvEditandoId }),
+      "✓ Despesa atualizada",
+    );
     setDvAberta(false);
   }
 
@@ -594,7 +572,7 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Carregamentos</h3>
-              <Botao variante="primaria" onClick={abrirNovaCarga}>
+              <Botao variante="primaria" onClick={() => abrirRegistro("carga")}>
                 <Plus size={15} aria-hidden /> Adicionar carregamento
               </Botao>
             </div>
@@ -712,7 +690,7 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
-              <Botao variante="primaria" onClick={abrirNovaDespesa}>
+              <Botao variante="primaria" onClick={() => abrirRegistro("despesaVeiculo")}>
                 <Plus size={15} aria-hidden /> Adicionar despesa
               </Botao>
             </div>
@@ -900,12 +878,13 @@ export default function Veiculo() {
           </>
         )}
 
-        {/* Caixa de carregamento: cria e edita (itens 2, 5, 7, 16, 17) */}
+        {/* Caixa de carregamento: só edita — criar é pelo registro rápido
+            global (item A2, itens 2, 5, 7, 16, 17) */}
       </AbaTransicao>
       <BottomSheet
         aberta={cgAberta}
         aoFechar={() => setCgAberta(false)}
-        titulo={cgEditandoId ? "Editar carregamento" : "Novo carregamento"}
+        titulo="Editar carregamento"
       >
         <form className={styles.formFolha} onSubmit={salvarCarga}>
           <label className={styles.campo}>
@@ -987,22 +966,17 @@ export default function Veiculo() {
             <input value={cgNota} onChange={(e) => setCgNota(e.target.value)} />
           </label>
           <Botao type="submit" variante="submeter">
-            {cgEditandoId ? "Salvar alterações" : "Registar carregamento"}
+            Salvar alterações
           </Botao>
-          {cgEditandoId && (
-            <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
-              Excluir carregamento
-            </button>
-          )}
+          <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
+            Excluir carregamento
+          </button>
         </form>
       </BottomSheet>
 
-      {/* Caixa de despesa do veículo: cria e edita */}
-      <BottomSheet
-        aberta={dvAberta}
-        aoFechar={() => setDvAberta(false)}
-        titulo={dvEditandoId ? "Editar despesa" : "Nova despesa"}
-      >
+      {/* Caixa de despesa do veículo: só edita — criar é pelo registro rápido
+          global (item A2) */}
+      <BottomSheet aberta={dvAberta} aoFechar={() => setDvAberta(false)} titulo="Editar despesa">
         <form className={styles.formFolha} onSubmit={salvarDespesa}>
           <label className={styles.campo}>
             Valor
@@ -1026,13 +1000,11 @@ export default function Veiculo() {
             <input value={dvNota} onChange={(e) => setDvNota(e.target.value)} />
           </label>
           <Botao type="submit" variante="submeter">
-            {dvEditandoId ? "Salvar alterações" : "Adicionar despesa"}
+            Salvar alterações
           </Botao>
-          {dvEditandoId && (
-            <button type="button" className={styles.excluir} onClick={() => void excluirDespesa()}>
-              Excluir despesa
-            </button>
-          )}
+          <button type="button" className={styles.excluir} onClick={() => void excluirDespesa()}>
+            Excluir despesa
+          </button>
         </form>
       </BottomSheet>
 
