@@ -730,13 +730,21 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // categoria de despesa específica
+  //
+  // Bug corrigido: `!val` só apanha exactamente zero. Um reembolso é uma
+  // despesa de valor NEGATIVO na mesma categoria (ver utils/reembolsos.ts) —
+  // se ele cobrir ou ultrapassar as despesas do mês nessa categoria, `val`
+  // fica negativo, e a resposta dizia "gastou -€ 30,00 em Saúde", uma frase
+  // sem sentido (não se "gasta" um valor negativo). `despesaPorCategoria.ts`
+  // já trata o mesmo caso (`.filter(([, valor]) => valor > 0)`, com a mesma
+  // explicação); aqui faltava o espelho dessa regra.
   {
     test: (q, ctx) => !!encontrarNaLista(q, ctx.cfg.categoriasDespesa),
     run: (q, ref, ctx) => {
       const cat = encontrarNaLista(q, ctx.cfg.categoriasDespesa)!;
       const ct = categoriasDoMes(ctx, ref.ym);
       const val = ct[cat] || 0;
-      if (!val)
+      if (val <= 0)
         return variar(ctx, {
           direto: [`não há gastos em ${b(cat)} em ${ref.label}.`],
           acolhedor: [`não gastou nada em ${b(cat)} em ${ref.label} — nada a assinalar aqui.`],

@@ -146,6 +146,31 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/8\d%/); // 15000/18000 ≈ 83%
   });
 
+  // Bug: um reembolso é uma despesa de valor NEGATIVO na mesma categoria
+  // (utils/reembolsos.ts). Quando ele cobre ou ultrapassa as despesas do mês
+  // nessa categoria, o total da categoria fica negativo — e a resposta dizia
+  // "gastou -€ 30,00 em Saúde", uma frase sem sentido. Devia cair no mesmo
+  // "não há gastos" que um total exactamente zero já usa.
+  test("reembolso maior que a despesa deixa a categoria negativa — não diz 'gastou -X'", () => {
+    const resp = responderPergunta(
+      "quanto gastei em saúde?",
+      ctx({
+        despesas: [
+          {
+            id: "d1",
+            descricao: "Farmácia",
+            valor: -3000,
+            data: "2026-07-05",
+            categoria: "Saúde",
+            origem: "reemb",
+          },
+        ],
+      }),
+    );
+    expect(resp).not.toContain("-");
+    expect(resp).toMatch(/não há gastos|não gastou nada/i);
+  });
+
   // categoriasDoMes (uso interno do Copiloto) reimplementa a mesma soma de
   // despesaPorCategoriaMes — e tinha o mesmo furo: parcela em débito
   // automático não contava sem marcação manual.
