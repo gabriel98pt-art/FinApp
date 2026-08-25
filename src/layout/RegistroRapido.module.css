@@ -2,13 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-
-  /* Arredondamento maior SÓ nesta folha: variáveis locais em vez de mexer nos
-     tokens globais, para não afetar o SeletorCategoria/SeletorData usados em
-     outras telas. O container fica em --r-card e o segmento de dentro um passo
-     abaixo, para os cantos aninharem. */
-  --raio-campo: var(--r-card);
-  --raio-segmento: var(--r-sm);
 }
 
 /* Os campos trazem `flex: 1` para dividir espaço quando estão lado a lado numa
@@ -25,13 +18,13 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   background: var(--s2);
-  border-radius: var(--raio-campo);
+  border-radius: var(--r-sm);
   padding: 4px;
 }
 
 .tipo {
   padding: 9px;
-  border-radius: var(--raio-segmento);
+  border-radius: var(--r-sm);
   font-size: var(--fs-title);
   font-weight: 700;
   color: var(--mut);
@@ -54,14 +47,14 @@
   gap: 6px;
   align-self: flex-start;
   background: var(--s2);
-  border-radius: var(--raio-campo);
+  border-radius: var(--r-sm);
   padding: 4px;
   margin-top: -6px; /* encosta no seletor de tipo, de quem depende */
 }
 
 .subTipo {
   padding: 7px 16px;
-  border-radius: var(--raio-segmento);
+  border-radius: var(--r-sm);
   color: var(--mut);
   font-size: var(--fs-body);
   font-weight: 700;
@@ -94,7 +87,7 @@
 .campo select {
   background: var(--s2);
   border: 1px solid var(--brd);
-  border-radius: var(--raio-campo);
+  border-radius: var(--r-sm);
   padding: 10px 12px;
   color: var(--txt);
   font-size: var(--fs-title);
