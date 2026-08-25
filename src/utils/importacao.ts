@@ -3,7 +3,7 @@
 // dedup). Funções puras, sem dependência de Firebase/DOM.
 
 import type {
-  CargaEletrica,
+  Abastecimento,
   Cents,
   Classificacao,
   Confianca,
@@ -784,15 +784,15 @@ export function reconhecerCarga(tx: LinhaExtrato, locais: string[]): CargaReconh
  *  do que o do mês passado.
  *
  *  É um ponto de partida, não uma verdade: o campo continua editável. */
-export function estimarKwh(custo: Cents, local: string, cargas: CargaEletrica[]): string {
+export function estimarKwh(custo: Cents, local: string, cargas: Abastecimento[]): string {
   const alvo = local.trim();
   if (!alvo) return "";
-  let referencia: CargaEletrica | null = null;
+  let referencia: Abastecimento | null = null;
   for (const c of cargas) {
-    if (c.local !== alvo || c.precoKwh <= 0) continue;
+    if (c.local !== alvo || !c.precoKwh || c.precoKwh <= 0) continue;
     if (!referencia || c.data > referencia.data) referencia = c;
   }
-  if (!referencia) return "";
+  if (!referencia?.precoKwh) return "";
   const kwh = Math.round((custo / referencia.precoKwh) * 100) / 100;
   if (!Number.isFinite(kwh) || kwh <= 0) return "";
   return String(kwh).replace(".", ",");
@@ -803,7 +803,7 @@ export interface ContextoAnalise extends ContextoClassificacao {
   /** Postos de carregamento cadastrados, para reconhecer recargas. */
   locaisCarregamento: string[];
   /** Cargas já registadas — é delas que sai o preço por kWh de cada posto. */
-  cargasHistorico: CargaEletrica[];
+  cargasHistorico: Abastecimento[];
 }
 
 /** Decisão final por linha (_impAnalyze): combina classificação + dedup. */

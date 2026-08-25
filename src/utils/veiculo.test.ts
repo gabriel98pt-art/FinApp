@@ -1,17 +1,19 @@
 import { describe, expect, test } from "vitest";
-import type { CargaEletrica, DadosVeiculo, DespesaFixa, DespesaVeiculo } from "../types";
+import type { Abastecimento, DadosVeiculo, DespesaFixa, DespesaVeiculo } from "../types";
 import {
   contribuicaoFixasVeiculoMes,
   dadosDespesaDaCarga,
   kwhPeloCusto,
+  litrosPeloCusto,
   precoKwhDoLocal,
+  precoLitroDoLocal,
   totalCargasMes,
   totalDespesasVeiculoMes,
   totalVeiculoGeral,
   totalVeiculoMes,
 } from "./veiculo";
 
-function carga(extra: Partial<CargaEletrica> = {}): CargaEletrica {
+function carga(extra: Partial<Abastecimento> = {}): Abastecimento {
   return {
     id: "c1",
     data: "2026-07-10",
@@ -19,6 +21,20 @@ function carga(extra: Partial<CargaEletrica> = {}): CargaEletrica {
     precoKwh: 25,
     custo: 1000,
     local: "Casa",
+    ...extra,
+  };
+}
+
+/** Abastecimento a combustível (item B1) — mesmo molde de `carga`, mas com
+ *  litros/precoLitro em vez de kwh/precoKwh. */
+function combustivel(extra: Partial<Abastecimento> = {}): Abastecimento {
+  return {
+    id: "b1",
+    data: "2026-07-10",
+    litros: 40,
+    precoLitro: 165,
+    custo: 6600,
+    local: "Galp",
     ...extra,
   };
 }
@@ -245,5 +261,54 @@ describe("precoKwhDoLocal / kwhPeloCusto — adivinhar os kWh pelo custo", () =>
   test("o kWh sai com vírgula e três casas", () => {
     expect(kwhPeloCusto(768, 24)).toBe("32,000");
     expect(kwhPeloCusto(1000, 33)).toBe("30,303");
+  });
+
+  // Um posto pode servir os dois tipos (veículo híbrido) — o preço por kWh
+  // não pode vir de um abastecimento que só tem litros.
+  test("ignora abastecimentos sem precoKwh (só litros) no mesmo local", () => {
+    const cargas = [
+      combustivel({ id: "b1", local: "Posto Misto", data: "2026-07-01", precoLitro: 170 }),
+      carga({ id: "c1", local: "Posto Misto", data: "2026-06-01", precoKwh: 45 }),
+    ];
+    expect(precoKwhDoLocal(cargas, "Posto Misto")).toBe(45);
+  });
+});
+
+describe("precoLitroDoLocal / litrosPeloCusto — item B1, mesma lógica pro combustível", () => {
+  test("usa o preço do abastecimento MAIS RECENTE naquele local", () => {
+    const cargas = [
+      combustivel({ id: "b1", local: "Galp", data: "2026-05-01", precoLitro: 150 }),
+      combustivel({ id: "b2", local: "Galp", data: "2026-07-01", precoLitro: 170 }),
+      combustivel({ id: "b3", local: "Galp", data: "2026-06-01", precoLitro: 160 }),
+    ];
+    expect(precoLitroDoLocal(cargas, "Galp")).toBe(170);
+  });
+
+  test("local sem histórico, local vazio e lista vazia não dão preço nenhum", () => {
+    const cargas = [combustivel({ local: "Repsol", precoLitro: 155 })];
+    expect(precoLitroDoLocal(cargas, "Galp")).toBeUndefined();
+    expect(precoLitroDoLocal(cargas, "   ")).toBeUndefined();
+    expect(precoLitroDoLocal([], "Galp")).toBeUndefined();
+  });
+
+  test("preço zero não serve de referência", () => {
+    expect(
+      precoLitroDoLocal([combustivel({ local: "Galp", precoLitro: 0 })], "Galp"),
+    ).toBeUndefined();
+  });
+
+  // O espelho do teste de precoKwhDoLocal: um abastecimento só de kWh não
+  // pode emprestar preço pro combustível no mesmo posto.
+  test("ignora abastecimentos sem precoLitro (só kWh) no mesmo local", () => {
+    const cargas = [
+      carga({ id: "c1", local: "Posto Misto", data: "2026-07-01", precoKwh: 45 }),
+      combustivel({ id: "b1", local: "Posto Misto", data: "2026-06-01", precoLitro: 170 }),
+    ];
+    expect(precoLitroDoLocal(cargas, "Posto Misto")).toBe(170);
+  });
+
+  test("os litros saem com vírgula e três casas", () => {
+    expect(litrosPeloCusto(6600, 165)).toBe("40,000");
+    expect(litrosPeloCusto(5000, 172)).toBe("29,070");
   });
 });

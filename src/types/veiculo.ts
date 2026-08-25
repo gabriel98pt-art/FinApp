@@ -1,13 +1,36 @@
 import type { Cents, Id, IsoDate } from "./common";
 import type { DespesaFixa } from "./lancamentos";
 
-/** Sessão de carregamento elétrico (antigo `veh.cg`). */
-export interface CargaEletrica {
+/** Motorização do veículo — decide que campos a aba de abastecimento mostra
+ *  (item B1). Sem escolha explícita nas configurações, `"eletrico"` é o
+ *  default: é o que o app já assumia implicitamente antes deste campo
+ *  existir, então dados/contas antigas continuam a funcionar sem migração. */
+export type TipoVeiculo = "eletrico" | "combustao" | "hibrido";
+
+/** Um abastecimento — elétrico (kWh) ou a combustível (litros). Um veículo
+ *  híbrido regista cada abastecimento como UM dos dois, nunca os dois ao
+ *  mesmo tempo (encheu o depósito OU carregou a bateria numa sessão); por
+ *  isso os dois pares de campos são opcionais em vez de o tipo decidir a
+ *  forma do objeto inteiro — mais simples que duas interfaces + union, e o
+ *  histórico de um veículo elétrico/combustão puro só usa sempre o mesmo par.
+ *
+ *  Nome genérico (era `CargaEletrica`, "sessão de carregamento") porque
+ *  passou a cobrir também combustível — os dados antigos, todos elétricos,
+ *  continuam válidos: tinham `kwh`/`precoKwh` preenchidos, que continuam
+ *  presentes, só deixaram de ser obrigatórios. */
+export interface Abastecimento {
   id: Id;
   data: IsoDate;
-  kwh: number;
+  /** Presente num abastecimento elétrico (veículo elétrico, ou híbrido
+   *  carregando a bateria). */
+  kwh?: number;
   /** Preço por kWh em centavos. */
-  precoKwh: Cents;
+  precoKwh?: Cents;
+  /** Presente num abastecimento a combustível (veículo a combustão, ou
+   *  híbrido enchendo o depósito). */
+  litros?: number;
+  /** Preço por litro em centavos. */
+  precoLitro?: Cents;
   custo: Cents;
   local: string;
   sessao?: string;
@@ -42,7 +65,7 @@ export interface DespesaVeiculo {
  *  `cfg.locaisCarregamento`, não aqui (correção de um mapeamento errado do
  *  Marco 1 — `veh.lp` no app de referência são despesas, não locais). */
 export interface DadosVeiculo {
-  cargas: CargaEletrica[];
+  cargas: Abastecimento[];
   despesas: DespesaVeiculo[];
   despesasFixas: DespesaFixa[];
   quilometragem: RegistroKm[];

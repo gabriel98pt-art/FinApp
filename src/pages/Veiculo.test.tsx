@@ -6,7 +6,7 @@
 // delas com um número de separadores que não seja dois.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
@@ -30,11 +30,13 @@ vi.mock("../services/veiculoService", () => ({
   removerKm: vi.fn(async () => {}),
   VEICULO_VAZIO: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
 }));
+const atualizarConfig = vi.fn(async () => {});
 vi.mock("../services/cfgService", () => ({
   adicionarItemLista: vi.fn(async () => {}),
   removerItemLista: vi.fn(async () => {}),
   renomearCategoria: vi.fn(async () => {}),
   renomearLocal: vi.fn(async () => {}),
+  atualizarConfig: (...a: unknown[]) => atualizarConfig(...(a as [])),
 }));
 
 const vazio = (): DadosVeiculo =>
@@ -46,9 +48,9 @@ let erro = false;
 vi.mock("../stores/veiculoStore", () => ({
   useVeiculoStore: (s: (e: unknown) => unknown) => s({ dados, carregado: true, erro }),
 }));
+let cfg = CONFIG_PADRAO;
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) =>
-    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg, carregado: true, erro: false }),
 }));
 vi.mock("../stores/mesVisivelStore", () => ({
   useMesVisivelStore: (s: (e: unknown) => unknown) => s({ mes: "2026-08" }),
@@ -77,6 +79,8 @@ function renderVeiculo() {
 beforeEach(() => {
   dados = vazio();
   erro = false;
+  cfg = CONFIG_PADRAO;
+  atualizarConfig.mockClear();
 });
 
 describe("Veiculo", () => {
@@ -94,8 +98,8 @@ describe("Veiculo", () => {
   test("cada aba vazia mostra o EstadoVazio dela, com o seu próprio texto", async () => {
     renderVeiculo();
 
-    await userEvent.click(screen.getByRole("tab", { name: "Carregamentos" }));
-    expect(screen.getByText(/Nenhum carregamento em agosto 2026/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+    expect(screen.getByText(/Nenhum abastecimento em agosto 2026/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("tab", { name: "Despesas" }));
     expect(screen.getByText(/Nenhuma despesa do veículo em agosto 2026/)).toBeInTheDocument();
@@ -143,5 +147,39 @@ describe("Veiculo", () => {
 
     await userEvent.keyboard("{Home}");
     expect(screen.getByRole("tab", { name: "Resumo" })).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+// Item B1: elétrico/combustão/híbrido escolhido na própria aba Abastecimentos.
+describe("tipo de veículo (item B1)", () => {
+  test("começa em Elétrico (default) e grava a escolha nova em cfg", async () => {
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    const grupo = screen.getByRole("radiogroup", { name: "Tipo de veículo" });
+    expect(within(grupo).getByRole("radio", { name: "Elétrico" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    await userEvent.click(within(grupo).getByRole("radio", { name: "Combustão" }));
+    expect(atualizarConfig).toHaveBeenCalledWith("u1", { tipoVeiculo: "combustao" });
+  });
+
+  test("combustão: a lista mostra litros, não kWh", async () => {
+    cfg = { ...CONFIG_PADRAO, tipoVeiculo: "combustao" };
+    dados = {
+      cargas: [
+        { id: "c1", data: "2026-08-05", litros: 42, precoLitro: 165, custo: 6930, local: "Galp" },
+      ],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    expect(screen.getByText(/42 L/)).toBeInTheDocument();
+    expect(screen.queryByText(/kWh/)).not.toBeInTheDocument();
   });
 });

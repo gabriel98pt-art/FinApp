@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
-import { Car, Gauge, Pencil, Plus, Repeat, Wrench, Zap } from "lucide-react";
+import { Car, Fuel, Gauge, Pencil, Plus, Repeat, Wrench, Zap } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -28,6 +28,7 @@ import {
 } from "../services/veiculoService";
 import {
   adicionarItemLista,
+  atualizarConfig,
   removerItemLista,
   renomearCategoria,
   renomearLocal,
@@ -48,12 +49,22 @@ import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
   kwhPeloCusto,
+  litrosPeloCusto,
   precoKwhDoLocal,
+  precoLitroDoLocal,
   totalCargasMes,
   totalDespesasVeiculoMes,
   totalVeiculoMes,
 } from "../utils/veiculo";
-import type { CargaEletrica, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
+import type {
+  Abastecimento,
+  Cents,
+  DespesaFixa,
+  DespesaVeiculo,
+  Id,
+  RegistroKm,
+  TipoVeiculo,
+} from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Veiculo.module.css";
 import Botao from "../components/Botao";
@@ -64,7 +75,7 @@ type Aba = "resumo" | "cargas" | "despesas" | "fixas" | "km";
  *  teclado percorrem têm de ser a mesma. */
 const ABAS = [
   ["resumo", "Resumo"],
-  ["cargas", "Carregamentos"],
+  ["cargas", "Abastecimentos"],
   ["despesas", "Despesas"],
   ["fixas", "Fixas"],
   ["km", "Km"],
@@ -76,20 +87,41 @@ function agir(acao: () => Promise<unknown>, ok: string) {
     .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
 }
 
+/** "12,5 kWh" ou "34,2 L" — o que o abastecimento TEM decide a unidade, não
+ *  o tipo do veículo agora (um híbrido reconfigurado ainda tem histórico das
+ *  duas dimensões, e um dado antigo é sempre elétrico). */
+function rotuloQuantidade(c: Abastecimento): string {
+  if (c.kwh !== undefined) return `${c.kwh} kWh`;
+  if (c.litros !== undefined) return `${c.litros} L`;
+  return "";
+}
+
 export default function Veiculo() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
   const cfg = useCfgStore((s) => s.cfg);
+  // Item B1: elétrico/combustão/híbrido decide que campos a aba de
+  // abastecimento mostra. Sem escolha, "eletrico" preserva o comportamento
+  // de sempre — dados antigos (todos elétricos) não pedem migração nenhuma.
+  const tipoVeiculo = cfg.tipoVeiculo;
   const dados = useVeiculoStore((s) => s.dados);
+  async function definirTipoVeiculo(tipo: TipoVeiculo) {
+    if (tipo === tipoVeiculo) return;
+    await agir(() => atualizarConfig(uid, { tipoVeiculo: tipo }), "✓ Tipo de veículo atualizado");
+  }
   const carregado = useVeiculoStore((s) => s.carregado);
   const erro = useVeiculoStore((s) => s.erro);
   const { ref: radiogroupPeriodoRef, onKeyDown: aoTeclarPeriodo } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: radiogroupCustoRef, onKeyDown: aoTeclarCusto } =
     useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: radiogroupTipoVeiculoRef, onKeyDown: aoTeclarTipoVeiculo } =
+    useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: radiogroupDimensaoRef, onKeyDown: aoTeclarDimensao } =
+    useRadiogroupTeclado<HTMLDivElement>();
 
-  // Chegar de Transações "Abrir em Veículo → Carregamentos/Despesas" (item
+  // Chegar de Transações "Abrir em Veículo → Abastecimentos/Despesas" (item
   // 4.6) já abre na aba certa — a rota manda o destino pelo state da
   // navegação, porque a aba é estado local desta página.
   const location = useLocation();
@@ -111,7 +143,7 @@ export default function Veiculo() {
     .filter((k) => mesDe(k.data) === mes)
     .reduce((s, k) => s + k.km, 0);
 
-  // Visão Mês / Semana da aba Carregamentos (item 10). Já nasce na semana de
+  // Visão Mês / Semana da aba Abastecimentos (item 10). Já nasce na semana de
   // hoje, igual ao mês — sem isto, a primeira vez que se troca para "Semana"
   // abria sempre na primeira do mês em vez da atual.
   const [visaoCargas, setVisaoCargas] = useState<"mes" | "semana">("mes");
@@ -130,7 +162,7 @@ export default function Veiculo() {
       ? naSemana(dados.cargas, semanaAtual)
       : dados.cargas.filter((c) => mesDe(c.data) === mes);
 
-  // Na aba Carregamentos com "Semana" escolhida, o KPI de cargas acompanha a
+  // Na aba Abastecimentos com "Semana" escolhida, o KPI de cargas acompanha a
   // lista em vez de continuar preso ao mês. Os outros três não têm filtro de
   // semana próprio e ficam mensais.
   const cargasPorSemana = aba === "cargas" && visaoCargas === "semana" && semanaAtual !== undefined;
@@ -189,80 +221,121 @@ export default function Veiculo() {
     await agir(() => removerKm(uid, id), "Registo excluído");
   }
 
-  // ---- caixa de carga elétrica (criar/editar) ----
+  // ---- caixa de abastecimento (só edita — ver comentário mais abaixo) ----
   const [cgAberta, setCgAberta] = useState(false);
   const [cgEditandoId, setCgEditandoId] = useState<Id | null>(null);
-  const [modoCusto, setModoCusto] = useState<"total" | "kwh">("total");
+  // Só existe escolha num veículo híbrido: elétrico/combustão puro já sabe
+  // qual é a sua única dimensão, sem perguntar. `dimensao` (mais abaixo) é
+  // quem decide de facto — este estado só guarda a escolha QUANDO há uma.
+  const [cgDimensaoHibrida, setCgDimensaoHibrida] = useState<"eletrico" | "combustao">("eletrico");
+  const dimensao = tipoVeiculo === "hibrido" ? cgDimensaoHibrida : (tipoVeiculo ?? "eletrico");
+  const [modoCusto, setModoCusto] = useState<"total" | "unidade">("total");
   const [cgKwh, setCgKwh] = useState("");
+  const [cgLitros, setCgLitros] = useState("");
   const [cgCustoTotal, setCgCustoTotal] = useState<Cents | null>(null);
   const [cgPrecoKwh, setCgPrecoKwh] = useState<Cents | null>(null);
+  const [cgPrecoLitro, setCgPrecoLitro] = useState<Cents | null>(null);
   const [cgLocal, setCgLocal] = useState("");
   const [cgConta, setCgConta] = useState("");
   const [cgSessao, setCgSessao] = useState("");
   const [cgNota, setCgNota] = useState("");
   const [cgData, setCgData] = useState(hojeIso());
-  // O kWh preenche-se sozinho a partir do custo, mas assim que o usuário lhe
-  // toca deixa de ser recalculado — o palpite não pode apagar o que ele
-  // escreveu. Volta a ligar ao abrir outra carga ou ao trocar de local.
-  const [kwhTocado, setKwhTocado] = useState(false);
+  // O kWh/litros preenche-se sozinho a partir do custo, mas assim que o
+  // usuário lhe toca deixa de ser recalculado — o palpite não pode apagar o
+  // que ele escreveu. Volta a ligar ao abrir outro abastecimento ou ao
+  // trocar de local.
+  const [quantidadeTocada, setQuantidadeTocada] = useState(false);
 
-  /** Refaz o palpite de kWh com o custo e o local que valerem agora. Só no modo
-   *  "Custo total": no modo €/kWh o usuário já informa o preço, não há custo de
-   *  onde derivar. Sem histórico naquele local, não há preço de referência —
-   *  fica vazio para escrever à mão, como antes. */
-  function palpitarKwh(custo: Cents | null, local: string) {
+  /** Refaz o palpite de kWh/litros com o custo e o local que valerem agora. Só
+   *  no modo "Custo total": no modo €/unidade o usuário já informa o preço,
+   *  não há custo de onde derivar. Sem histórico naquele local (na dimensão
+   *  certa — elétrico não empresta preço pro combustível nem vice-versa), não
+   *  há preço de referência — fica vazio para escrever à mão, como antes. */
+  function palpitarQuantidade(custo: Cents | null, local: string) {
     if (modoCusto !== "total" || custo === null || custo <= 0) return;
-    const preco = precoKwhDoLocal(dados.cargas, local);
-    if (preco !== undefined) setCgKwh(kwhPeloCusto(custo, preco));
+    if (dimensao === "eletrico") {
+      const preco = precoKwhDoLocal(dados.cargas, local);
+      if (preco !== undefined) setCgKwh(kwhPeloCusto(custo, preco));
+    } else {
+      const preco = precoLitroDoLocal(dados.cargas, local);
+      if (preco !== undefined) setCgLitros(litrosPeloCusto(custo, preco));
+    }
   }
 
-  // Criar uma carga nova passou a ser só pelo registro rápido global (FAB),
-  // que já cobre este mesmo formulário (item A2) — aqui fica só a edição de
-  // uma carga já existente, aberta ao tocar num item da lista.
-  function abrirEdicaoCarga(c: CargaEletrica) {
+  // Criar um abastecimento novo passou a ser só pelo registro rápido global
+  // (FAB), que já cobre este mesmo formulário (item A2) — aqui fica só a
+  // edição de um já existente, aberto ao tocar num item da lista.
+  function abrirEdicaoCarga(c: Abastecimento) {
     setCgEditandoId(c.id);
+    // A dimensão do registo é o que ele TEM, não o tipo do veículo agora —
+    // um híbrido pode ter abastecimentos elétricos antigos mesmo depois de
+    // reconfigurado, e um dado antigo (sempre elétrico) continua a editar
+    // como elétrico.
+    setCgDimensaoHibrida(c.kwh !== undefined ? "eletrico" : "combustao");
     setModoCusto("total");
-    setCgKwh(String(c.kwh).replace(".", ","));
+    setCgKwh(c.kwh !== undefined ? String(c.kwh).replace(".", ",") : "");
+    setCgLitros(c.litros !== undefined ? String(c.litros).replace(".", ",") : "");
     setCgCustoTotal(c.custo);
-    setCgPrecoKwh(c.precoKwh);
+    setCgPrecoKwh(c.precoKwh ?? null);
+    setCgPrecoLitro(c.precoLitro ?? null);
     setCgLocal(c.local);
     setCgConta(c.contaCartao ?? "");
     setCgSessao(c.sessao ?? "");
     setCgNota(c.nota ?? "");
     setCgData(c.data);
-    // Numa carga já gravada o kWh é dado, não palpite: não se mexe nele até o
-    // usuário mudar o local de propósito.
-    setKwhTocado(true);
+    // Num abastecimento já gravado a quantidade é dado, não palpite: não se
+    // mexe nela até o usuário mudar o local de propósito.
+    setQuantidadeTocada(true);
     setCgAberta(true);
   }
 
-  // Só edita — criar carga nova é sempre pelo registro rápido global agora
-  // (item A2), então esta folha só abre com `cgEditandoId` já preenchido
-  // (ver `abrirEdicaoCarga`).
+  // Só edita — criar abastecimento novo é sempre pelo registro rápido global
+  // agora (item A2), então esta folha só abre com `cgEditandoId` já
+  // preenchido (ver `abrirEdicaoCarga`).
   async function salvarCarga(e: FormEvent) {
     e.preventDefault();
     if (!cgEditandoId) return;
-    const kwh = parseFloat(cgKwh.replace(",", "."));
-    if (!Number.isFinite(kwh) || kwh <= 0) return mostrarToast("kWh inválido.");
-    let custo: number;
-    let precoKwh: number;
-    if (modoCusto === "total") {
-      const c = cgCustoTotal;
-      if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
-      custo = c;
-      precoKwh = Math.round(c / kwh);
-    } else {
-      const p = cgPrecoKwh;
-      if (p === null || p <= 0) return mostrarToast("Preço/kWh inválido.");
-      precoKwh = p;
-      custo = Math.round(kwh * p);
-    }
     const local = cgLocal.trim();
     if (!local) return mostrarToast("Escolha o local.");
+
+    let custo: number;
+    let campos: Pick<Abastecimento, "kwh" | "precoKwh" | "litros" | "precoLitro">;
+    if (dimensao === "eletrico") {
+      const kwh = parseFloat(cgKwh.replace(",", "."));
+      if (!Number.isFinite(kwh) || kwh <= 0) return mostrarToast("kWh inválido.");
+      let precoKwh: number;
+      if (modoCusto === "total") {
+        const c = cgCustoTotal;
+        if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
+        custo = c;
+        precoKwh = Math.round(c / kwh);
+      } else {
+        const p = cgPrecoKwh;
+        if (p === null || p <= 0) return mostrarToast("Preço/kWh inválido.");
+        precoKwh = p;
+        custo = Math.round(kwh * p);
+      }
+      campos = { kwh, precoKwh };
+    } else {
+      const litros = parseFloat(cgLitros.replace(",", "."));
+      if (!Number.isFinite(litros) || litros <= 0) return mostrarToast("Litros inválido.");
+      let precoLitro: number;
+      if (modoCusto === "total") {
+        const c = cgCustoTotal;
+        if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
+        custo = c;
+        precoLitro = Math.round(c / litros);
+      } else {
+        const p = cgPrecoLitro;
+        if (p === null || p <= 0) return mostrarToast("Preço/litro inválido.");
+        precoLitro = p;
+        custo = Math.round(litros * p);
+      }
+      campos = { litros, precoLitro };
+    }
     const dados_ = {
       data: cgData,
-      kwh,
-      precoKwh,
+      ...campos,
       custo,
       local,
       contaCartao: cgConta || undefined,
@@ -271,14 +344,14 @@ export default function Veiculo() {
     };
     try {
       await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
-      mostrarToast("✓ Carregamento atualizado");
+      mostrarToast("✓ Abastecimento atualizado");
       setCgAberta(false);
     } catch {
       mostrarToast("Não foi possível salvar.");
     }
   }
 
-  // ---- gestão dos locais de carregamento (mesmo padrão de Cartões) ----
+  // ---- gestão dos locais de abastecimento (mesmo padrão de Cartões) ----
   const [novoLocal, setNovoLocal] = useState("");
 
   async function adicionarLocal(e: FormEvent) {
@@ -295,7 +368,7 @@ export default function Veiculo() {
   }
 
   async function removerLocal(nome: string) {
-    if (!(await confirmar(`Remover "${nome}"? Carregamentos já registados não mudam.`))) return;
+    if (!(await confirmar(`Remover "${nome}"? Abastecimentos já registados não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, "locaisCarregamento", nome);
       mostrarToast(`"${nome}" removido`);
@@ -352,10 +425,10 @@ export default function Veiculo() {
 
   async function excluirCarga() {
     if (!cgEditandoId) return;
-    if (!(await confirmar("Excluir este carregamento?"))) return;
+    if (!(await confirmar("Excluir este abastecimento?"))) return;
     const id = cgEditandoId;
     setCgAberta(false);
-    await agir(() => removerCarga(uid, id), "Carregamento excluído");
+    await agir(() => removerCarga(uid, id), "Abastecimento excluído");
   }
 
   // ---- caixa de despesa variável do veículo (criar/editar) ----
@@ -482,7 +555,7 @@ export default function Veiculo() {
           tom="vermelho"
         />
         <KpiCard
-          rotulo="Carregamentos"
+          rotulo="Abastecimentos"
           valor={formatMoney(cargasPorSemana ? totalCargasVisiveis : cargasDoMes, cfg.currency)}
           sub={cargasPorSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
         />
@@ -524,7 +597,7 @@ export default function Veiculo() {
                     ? "Nenhum registo do veículo ainda"
                     : `Nenhum registo do veículo em ${rotuloMes(mes)}`
                 }
-                sub="Use as abas acima para registar km, carregamentos e despesas."
+                sub="Use as abas acima para registar km, abastecimentos e despesas."
               />
             ) : (
               <>
@@ -534,9 +607,9 @@ export default function Veiculo() {
                     <div key={c.id} className={styles.item}>
                       <button className={styles.itemCorpo} onClick={() => abrirEdicaoCarga(c)}>
                         <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>Carga · {c.local}</span>
+                          <span className={styles.itemNome}>Abastecimento · {c.local}</span>
                           <span className={styles.itemDetalhe}>
-                            {c.kwh} kWh · {c.data.slice(8, 10)}/{c.data.slice(5, 7)}
+                            {rotuloQuantidade(c)} · {c.data.slice(8, 10)}/{c.data.slice(5, 7)}
                           </span>
                         </span>
                         <span className={styles.itemValor}>
@@ -571,10 +644,39 @@ export default function Veiculo() {
         {aba === "cargas" && (
           <>
             <div className={styles.cabecalhoLista}>
-              <h3 className={styles.tituloSecao}>Carregamentos</h3>
+              <h3 className={styles.tituloSecao}>Abastecimentos</h3>
               <Botao variante="primaria" onClick={() => abrirRegistro("carga")}>
-                <Plus size={15} aria-hidden /> Adicionar carregamento
+                <Plus size={15} aria-hidden /> Adicionar abastecimento
               </Botao>
+            </div>
+
+            {/* Item B1: decide que campos o formulário (aqui e no registro
+                rápido) mostra — elétrico só kWh, combustão só litros, híbrido
+                os dois (um abastecimento de cada vez). */}
+            <div
+              className={styles.alternadorVisao}
+              role="radiogroup"
+              aria-label="Tipo de veículo"
+              ref={radiogroupTipoVeiculoRef}
+              onKeyDown={aoTeclarTipoVeiculo}
+            >
+              {(
+                [
+                  ["eletrico", "Elétrico"],
+                  ["combustao", "Combustão"],
+                  ["hibrido", "Híbrido"],
+                ] as const
+              ).map(([id, nome]) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={tipoVeiculo === id}
+                  className={`${styles.visaoBotao} ${tipoVeiculo === id ? styles.visaoAtiva : ""}`}
+                  onClick={() => void definirTipoVeiculo(id)}
+                >
+                  {nome}
+                </button>
+              ))}
             </div>
 
             <div className={styles.linhaVisao}>
@@ -610,13 +712,13 @@ export default function Veiculo() {
             <div className={styles.lista}>
               {cargasVisiveis.length === 0 ? (
                 <EstadoVazio
-                  Icone={Zap}
+                  Icone={tipoVeiculo === "combustao" ? Fuel : Zap}
                   mensagem={
                     visaoCargas === "semana" && semanaAtual
-                      ? `Nenhum carregamento em ${rotuloDaSemana(semanaAtual)}`
-                      : `Nenhum carregamento em ${rotuloMes(mes)}`
+                      ? `Nenhum abastecimento em ${rotuloDaSemana(semanaAtual)}`
+                      : `Nenhum abastecimento em ${rotuloMes(mes)}`
                   }
-                  sub="Registe um carregamento com o botão acima."
+                  sub="Registe um abastecimento com o botão acima."
                 />
               ) : (
                 [...cargasVisiveis]
@@ -627,8 +729,10 @@ export default function Veiculo() {
                         <span className={styles.itemTexto}>
                           <span className={styles.itemNome}>{c.local}</span>
                           <span className={styles.itemDetalhe}>
-                            {c.kwh} kWh · {formatMoney(c.precoKwh, cfg.currency)}/kWh ·{" "}
-                            {c.data.slice(8, 10)}/{c.data.slice(5, 7)}
+                            {rotuloQuantidade(c)} ·{" "}
+                            {formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/
+                            {c.kwh !== undefined ? "kWh" : "L"} · {c.data.slice(8, 10)}/
+                            {c.data.slice(5, 7)}
                             {c.sessao ? ` · ${c.sessao}` : ""}
                           </span>
                         </span>
@@ -644,7 +748,7 @@ export default function Veiculo() {
             {/* Os locais são escolhidos por chip no formulário de carga — a lista
                 vive aqui, junto de quem a usa, e não em Definições. */}
             <form className={styles.gerir} onSubmit={adicionarLocal}>
-              <p className={styles.gerirTitulo}>Locais de carregamento</p>
+              <p className={styles.gerirTitulo}>Locais de abastecimento</p>
               {cfg.locaisCarregamento.length > 0 && (
                 <ul className={styles.chips}>
                   {cfg.locaisCarregamento.map((l) => (
@@ -674,7 +778,7 @@ export default function Veiculo() {
               <div className={styles.gerirLinha}>
                 <input
                   placeholder="Nome (ex. Galp Matosinhos)"
-                  aria-label="Nome do local de carregamento"
+                  aria-label="Nome do local de abastecimento"
                   value={novoLocal}
                   onChange={(e) => setNovoLocal(e.target.value)}
                 />
@@ -724,7 +828,7 @@ export default function Veiculo() {
               )}
             </div>
 
-            {/* Mesmo molde dos locais de carregamento: a lista vive junto de quem
+            {/* Mesmo molde dos locais de abastecimento: a lista vive junto de quem
                 a usa. Antes era fixa, vinda do configPadrao, sem edição nenhuma. */}
             <form className={styles.gerir} onSubmit={adicionarCategoria}>
               <p className={styles.gerirTitulo}>Categorias do veículo</p>
@@ -878,23 +982,50 @@ export default function Veiculo() {
           </>
         )}
 
-        {/* Caixa de carregamento: só edita — criar é pelo registro rápido
+        {/* Caixa de abastecimento: só edita — criar é pelo registro rápido
             global (item A2, itens 2, 5, 7, 16, 17) */}
       </AbaTransicao>
       <BottomSheet
         aberta={cgAberta}
         aoFechar={() => setCgAberta(false)}
-        titulo="Editar carregamento"
+        titulo="Editar abastecimento"
       >
         <form className={styles.formFolha} onSubmit={salvarCarga}>
+          {/* Só um veículo híbrido pergunta — elétrico/combustão puro só tem
+              uma dimensão possível, sem escolha nenhuma. */}
+          {tipoVeiculo === "hibrido" && (
+            <div
+              className={styles.seletorTipo}
+              role="radiogroup"
+              aria-label="Elétrico ou combustível"
+              ref={radiogroupDimensaoRef}
+              onKeyDown={aoTeclarDimensao}
+            >
+              <button
+                type="button"
+                className={`${styles.tipoBotao} ${dimensao === "eletrico" ? styles.tipoAtivo : ""}`}
+                onClick={() => setCgDimensaoHibrida("eletrico")}
+              >
+                Elétrico
+              </button>
+              <button
+                type="button"
+                className={`${styles.tipoBotao} ${dimensao === "combustao" ? styles.tipoAtivo : ""}`}
+                onClick={() => setCgDimensaoHibrida("combustao")}
+              >
+                Combustível
+              </button>
+            </div>
+          )}
           <label className={styles.campo}>
-            kWh
+            {dimensao === "eletrico" ? "kWh" : "Litros"}
             <input
               inputMode="decimal"
-              value={cgKwh}
+              value={dimensao === "eletrico" ? cgKwh : cgLitros}
               onChange={(e) => {
-                setKwhTocado(true);
-                setCgKwh(e.target.value);
+                setQuantidadeTocada(true);
+                if (dimensao === "eletrico") setCgKwh(e.target.value);
+                else setCgLitros(e.target.value);
               }}
               required
             />
@@ -916,10 +1047,10 @@ export default function Veiculo() {
             </button>
             <button
               type="button"
-              className={`${styles.tipoBotao} ${modoCusto === "kwh" ? styles.tipoAtivo : ""}`}
-              onClick={() => setModoCusto("kwh")}
+              className={`${styles.tipoBotao} ${modoCusto === "unidade" ? styles.tipoAtivo : ""}`}
+              onClick={() => setModoCusto("unidade")}
             >
-              €/kWh
+              {dimensao === "eletrico" ? "€/kWh" : "€/litro"}
             </button>
           </div>
           {modoCusto === "total" ? (
@@ -929,15 +1060,19 @@ export default function Veiculo() {
                 valor={cgCustoTotal}
                 aoMudar={(v) => {
                   setCgCustoTotal(v);
-                  if (!kwhTocado) palpitarKwh(v, cgLocal);
+                  if (!quantidadeTocada) palpitarQuantidade(v, cgLocal);
                 }}
                 required
               />
             </label>
           ) : (
             <label className={styles.campo}>
-              Preço por kWh
-              <CampoMoeda valor={cgPrecoKwh} aoMudar={setCgPrecoKwh} required />
+              {dimensao === "eletrico" ? "Preço por kWh" : "Preço por litro"}
+              <CampoMoeda
+                valor={dimensao === "eletrico" ? cgPrecoKwh : cgPrecoLitro}
+                aoMudar={dimensao === "eletrico" ? setCgPrecoKwh : setCgPrecoLitro}
+                required
+              />
             </label>
           )}
           <SeletorLocal
@@ -946,8 +1081,8 @@ export default function Veiculo() {
             aoMudar={(v) => {
               setCgLocal(v);
               // Outro local, outro preço: o palpite volta a valer.
-              setKwhTocado(false);
-              palpitarKwh(cgCustoTotal, v);
+              setQuantidadeTocada(false);
+              palpitarQuantidade(cgCustoTotal, v);
             }}
           />
           <Seletor
@@ -969,7 +1104,7 @@ export default function Veiculo() {
             Salvar alterações
           </Botao>
           <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
-            Excluir carregamento
+            Excluir abastecimento
           </button>
         </form>
       </BottomSheet>
@@ -1093,7 +1228,7 @@ export default function Veiculo() {
         aoConfirmar={(n) => void renomear(n)}
         aviso={
           renomeando?.tipo === "local"
-            ? "Os carregamentos já registados passam a mostrar o nome novo."
+            ? "Os abastecimentos já registados passam a mostrar o nome novo."
             : "As despesas do veículo e o ícone/cor seguem para o nome novo."
         }
       />

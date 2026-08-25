@@ -29,8 +29,9 @@ vi.mock("../services/lancamentosService", () => ({
   removerDespesa: vi.fn(async () => {}),
   removerReceita: vi.fn(async () => {}),
 }));
+const criarCarga = vi.fn(async () => {});
 vi.mock("../services/veiculoService", () => ({
-  criarCarga: vi.fn(async () => {}),
+  criarCarga: (...a: unknown[]) => criarCarga(...(a as [])),
   criarDespesaVeiculo: vi.fn(async () => {}),
 }));
 vi.mock("../services/parcelasService", () => ({ criarParcela: vi.fn(async () => {}) }));
@@ -59,9 +60,9 @@ vi.mock("../stores/parcelasStore", () => ({
 vi.mock("../stores/veiculoStore", () => ({
   useVeiculoStore: (s: (e: unknown) => unknown) => s(veiculoVazio()),
 }));
+let cfg = CONFIG_PADRAO;
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) =>
-    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg, carregado: true, erro: false }),
 }));
 vi.mock("../stores/toastStore", () => ({ mostrarToast: vi.fn() }));
 vi.mock("../stores/authStore", () => ({
@@ -100,8 +101,10 @@ async function submeter() {
 beforeEach(() => {
   despesas = lista<DespesaCorrente>();
   estadoUi = { ...estadoUi, editandoId: null, registroTipo: "despesa" };
+  cfg = CONFIG_PADRAO;
   criarDespesa.mockClear();
   atualizarDespesa.mockClear();
+  criarCarga.mockClear();
 });
 
 describe("segmentado Despesa / Reembolso", () => {
@@ -193,6 +196,53 @@ describe("gravação do reembolso", () => {
     const [, dados] = criarDespesa.mock.calls[0] as unknown as [string, DespesaCorrente];
     expect(dados.reembolsoDeId).toBeUndefined();
     expect(dados.valor).toBe(-7500);
+  });
+});
+
+// Item B1: o sub-formulário de carga mostra kWh, litros, ou os dois (com
+// escolha) conforme o tipo de veículo configurado — não é mais sempre kWh.
+describe("abastecimento — campos conforme o tipo de veículo (item B1)", () => {
+  beforeEach(() => {
+    estadoUi = { ...estadoUi, registroTipo: "carga" as never };
+  });
+
+  test("elétrico (default): só kWh, sem toggle de dimensão", () => {
+    render(<RegistroRapido />);
+
+    expect(screen.getByLabelText("kWh")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Litros")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Elétrico ou combustível" })).toBeNull();
+  });
+
+  test("combustão: só litros, sem toggle de dimensão", () => {
+    cfg = { ...CONFIG_PADRAO, tipoVeiculo: "combustao" };
+    render(<RegistroRapido />);
+
+    expect(screen.getByLabelText("Litros")).toBeInTheDocument();
+    expect(screen.queryByLabelText("kWh")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Elétrico ou combustível" })).toBeNull();
+  });
+
+  test("híbrido: toggle aparece, começa em Elétrico, e troca o campo ao clicar", async () => {
+    cfg = { ...CONFIG_PADRAO, tipoVeiculo: "hibrido" };
+    render(<RegistroRapido />);
+
+    expect(screen.getByLabelText("kWh")).toBeInTheDocument();
+    const toggle = screen.getByRole("radiogroup", { name: "Elétrico ou combustível" });
+    expect(toggle).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("radio", { name: "Combustível" }));
+
+    expect(screen.getByLabelText("Litros")).toBeInTheDocument();
+    expect(screen.queryByLabelText("kWh")).not.toBeInTheDocument();
+    // Sessão é conceito só do carregamento elétrico — some ao trocar.
+    expect(screen.queryByLabelText("Sessão (opcional)")).not.toBeInTheDocument();
+  });
+
+  test("elétrico/combustão puro não tem campo Sessão fora do elétrico", () => {
+    cfg = { ...CONFIG_PADRAO, tipoVeiculo: "combustao" };
+    render(<RegistroRapido />);
+    expect(screen.queryByLabelText("Sessão (opcional)")).not.toBeInTheDocument();
   });
 });
 

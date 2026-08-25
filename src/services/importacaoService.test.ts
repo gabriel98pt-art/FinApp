@@ -55,7 +55,7 @@ import {
 import { calcularFaturaAutomatica } from "../utils/fatura";
 import { analisarLinha, verificarDuplicata } from "../utils/importacao";
 import type {
-  CargaEletrica,
+  Abastecimento,
   DespesaCorrente,
   DespesaFixa,
   DespesaVeiculo,
@@ -93,7 +93,7 @@ const DESPESA_COMUM: DespesaCorrente = {
   categoria: "Alimentação",
 };
 
-const CARGA: CargaEletrica = {
+const CARGA: Abastecimento = {
   id: "v-c1",
   data: "2026-07-08",
   kwh: 30,
@@ -111,7 +111,7 @@ const DESPESA_VEICULO: DespesaVeiculo = {
 };
 
 /** Os domínios que a maioria destes testes não usa: veículo e transferências. */
-const SO_OS_DOIS: [CargaEletrica[], DespesaVeiculo[], Transferencia[], DespesaFixa[]] = [
+const SO_OS_DOIS: [Abastecimento[], DespesaVeiculo[], Transferencia[], DespesaFixa[]] = [
   [],
   [],
   [],

@@ -8,7 +8,7 @@
 // Funções puras: quem grava é o cfgService.
 
 import type {
-  CargaEletrica,
+  Abastecimento,
   ConfigConta,
   DespesaCorrente,
   DespesaFixa,
@@ -29,7 +29,7 @@ export interface DadosRenomear {
   despesasFixas: DespesaFixa[];
   transferencias: Transferencia[];
   parcelas: Parcela[];
-  cargas: CargaEletrica[];
+  cargas: Abastecimento[];
   despesasVeiculo: DespesaVeiculo[];
   /** Fixas do veículo — coleção separada, mas o mesmo tipo DespesaFixa. */
   fixasVeiculo: DespesaFixa[];

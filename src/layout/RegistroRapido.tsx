@@ -32,7 +32,12 @@ import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual"
 import { formatMoney } from "../utils/money";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalDaCompra } from "../utils/parcelas";
-import { kwhPeloCusto, precoKwhDoLocal } from "../utils/veiculo";
+import {
+  kwhPeloCusto,
+  litrosPeloCusto,
+  precoKwhDoLocal,
+  precoLitroDoLocal,
+} from "../utils/veiculo";
 
 import styles from "./RegistroRapido.module.css";
 import Botao from "../components/Botao";
@@ -56,7 +61,7 @@ const TIPOS: { valor: TipoRegistro | "veiculo"; rotulo: string }[] = [
 const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => String(i + 2));
 
 const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
-  { valor: "carga", rotulo: "Carga" },
+  { valor: "carga", rotulo: "Abastecimento" },
   { valor: "despesaVeiculo", rotulo: "Despesa" },
 ];
 
@@ -81,6 +86,8 @@ export default function RegistroRapido() {
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgModoCustoRef, onKeyDown: aoTeclarModoCusto } =
     useRadiogroupTeclado<HTMLDivElement>();
+  const { ref: rgDimensaoRef, onKeyDown: aoTeclarDimensao } =
+    useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgNaturezaLancRef, onKeyDown: aoTeclarNaturezaLanc } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgNaturezaRef, onKeyDown: aoTeclarNatureza } =
@@ -100,18 +107,27 @@ export default function RegistroRapido() {
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
-  const [kwh, setKwh] = useState(""); // só carga elétrica
-  // O kWh preenche-se sozinho a partir do custo e do histórico daquele local
-  // (mesmo palpite da tela Veículo — ver `palpitarKwh` em pages/Veiculo.tsx),
-  // mas some assim que o usuário toca no campo: o palpite não pode apagar o
-  // que ele escreveu à mão. Volta a valer ao trocar de local.
-  const [kwhTocado, setKwhTocado] = useState(false);
-  // "Custo total" (padrão) ou "€/kWh" — mesmas duas formas de informar uma
-  // carga que a tela Veículo já tinha (ver `pages/Veiculo.tsx`). Só no modo
-  // €/kWh o preço entra à mão; no modo total ele é derivado do custo.
-  const [modoCusto, setModoCusto] = useState<"total" | "kwh">("total");
+  const [kwh, setKwh] = useState(""); // só abastecimento elétrico
+  const [litros, setLitros] = useState(""); // só abastecimento a combustível
+  // Só um veículo híbrido pergunta — elétrico/combustão puro só tem uma
+  // dimensão possível (item B1, mesma lógica de pages/Veiculo.tsx).
+  const [dimensaoCarga, setDimensaoCarga] = useState<"eletrico" | "combustao">("eletrico");
+  const tipoVeiculo = cfg.tipoVeiculo;
+  const dimensao = tipoVeiculo === "hibrido" ? dimensaoCarga : (tipoVeiculo ?? "eletrico");
+  // O kWh/litros preenche-se sozinho a partir do custo e do histórico daquele
+  // local (mesmo palpite da tela Veículo — ver `palpitarQuantidade` em
+  // pages/Veiculo.tsx), mas some assim que o usuário toca no campo: o
+  // palpite não pode apagar o que ele escreveu à mão. Volta a valer ao
+  // trocar de local.
+  const [quantidadeTocada, setQuantidadeTocada] = useState(false);
+  // "Custo total" (padrão) ou "€/unidade" — mesmas duas formas de informar um
+  // abastecimento que a tela Veículo já tinha (ver `pages/Veiculo.tsx`). Só
+  // no modo €/unidade o preço entra à mão; no modo total ele é derivado do
+  // custo.
+  const [modoCusto, setModoCusto] = useState<"total" | "unidade">("total");
   const [precoKwh, setPrecoKwh] = useState<Cents | null>(null); // só modo €/kWh
-  const [sessao, setSessao] = useState(""); // só carga elétrica
+  const [precoLitro, setPrecoLitro] = useState<Cents | null>(null); // só modo €/litro
+  const [sessao, setSessao] = useState(""); // só abastecimento elétrico
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
@@ -226,9 +242,12 @@ export default function RegistroRapido() {
         setEtiqueta("");
         setConta("");
         setKwh("");
-        setKwhTocado(false);
+        setLitros("");
+        setDimensaoCarga("eletrico");
+        setQuantidadeTocada(false);
         setModoCusto("total");
         setPrecoKwh(null);
+        setPrecoLitro(null);
         setSessao("");
         setParcelada(false);
         setNumParcelas("3");
@@ -248,9 +267,12 @@ export default function RegistroRapido() {
       // entre as listas — limpa só a etiqueta (e o kWh, que é só da carga).
       setEtiqueta("");
       setKwh("");
-      setKwhTocado(false);
+      setLitros("");
+      setDimensaoCarga("eletrico");
+      setQuantidadeTocada(false);
       setModoCusto("total");
       setPrecoKwh(null);
+      setPrecoLitro(null);
       setSessao("");
       setNota("");
       setParcelada(false);
@@ -263,14 +285,20 @@ export default function RegistroRapido() {
     }
   }
 
-  /** Refaz o palpite de kWh a partir do custo e do local que valerem agora,
-   *  usando o preço/kWh da carga mais recente naquele local — mesma conta da
-   *  tela Veículo (`palpitarKwh` em pages/Veiculo.tsx). Sem histórico naquele
-   *  local não há preço de referência: fica vazio para escrever à mão. */
-  function palpitarKwh(custo: Cents | null, local: string) {
+  /** Refaz o palpite de kWh/litros a partir do custo e do local que valerem
+   *  agora, usando o preço da carga mais recente naquele local NA MESMA
+   *  dimensão — mesma conta da tela Veículo (`palpitarQuantidade` em
+   *  pages/Veiculo.tsx). Sem histórico naquele local não há preço de
+   *  referência: fica vazio para escrever à mão. */
+  function palpitarQuantidade(custo: Cents | null, local: string) {
     if (modoCusto !== "total" || custo === null || custo <= 0) return;
-    const preco = precoKwhDoLocal(veiculo.cargas, local);
-    if (preco !== undefined) setKwh(kwhPeloCusto(custo, preco));
+    if (dimensao === "eletrico") {
+      const preco = precoKwhDoLocal(veiculo.cargas, local);
+      if (preco !== undefined) setKwh(kwhPeloCusto(custo, preco));
+    } else {
+      const preco = precoLitroDoLocal(veiculo.cargas, local);
+      if (preco !== undefined) setLitros(litrosPeloCusto(custo, preco));
+    }
   }
 
   // Sugestão de débito automático: crédito entra na fatura, débito não. Vale
@@ -306,12 +334,21 @@ export default function RegistroRapido() {
     e.preventDefault();
     if (!uid) return;
 
-    // No modo €/kWh da carga, o número obrigatório é o preço/kWh, não o custo
-    // total — não há campo de custo total nesse modo, é ele quem se deriva.
-    const ehCargaPorKwh = tipo === "carga" && modoCusto === "kwh";
-    const valor = ehCargaPorKwh ? precoKwh : valorTexto;
+    // No modo €/unidade do abastecimento, o número obrigatório é o preço por
+    // kWh/litro, não o custo total — não há campo de custo total nesse modo,
+    // é ele quem se deriva.
+    const ehCargaPorUnidade = tipo === "carga" && modoCusto === "unidade";
+    const valor = ehCargaPorUnidade
+      ? dimensao === "eletrico"
+        ? precoKwh
+        : precoLitro
+      : valorTexto;
     if (valor === null || valor <= 0) {
-      setErro(ehCargaPorKwh ? "Preço/kWh inválido." : "Valor inválido — use por exemplo 12,50.");
+      setErro(
+        ehCargaPorUnidade
+          ? `Preço/${dimensao === "eletrico" ? "kWh" : "litro"} inválido.`
+          : "Valor inválido — use por exemplo 12,50.",
+      );
       return;
     }
     // Todo lançamento sai de algum lugar: conta/cartão é obrigatório assim que
@@ -331,28 +368,42 @@ export default function RegistroRapido() {
     setSalvando(true);
     try {
       if (tipo === "carga") {
-        const kwhNum = parseFloat(kwh.replace(",", "."));
-        if (!Number.isFinite(kwhNum) || kwhNum <= 0) {
-          setErro("kWh inválido.");
-          setSalvando(false);
-          return;
-        }
         const local = descricao.trim();
         if (!local) {
-          setErro("Escolha o local do carregamento.");
+          setErro("Escolha o local do abastecimento.");
           setSalvando(false);
           return;
         }
-        const custo = modoCusto === "total" ? valor : Math.round(kwhNum * valor);
-        const precoKwhFinal = modoCusto === "total" ? Math.round(valor / kwhNum) : valor;
+        let custo: number;
+        let campos: { kwh: number; precoKwh: number } | { litros: number; precoLitro: number };
+        if (dimensao === "eletrico") {
+          const kwhNum = parseFloat(kwh.replace(",", "."));
+          if (!Number.isFinite(kwhNum) || kwhNum <= 0) {
+            setErro("kWh inválido.");
+            setSalvando(false);
+            return;
+          }
+          custo = modoCusto === "total" ? valor : Math.round(kwhNum * valor);
+          const precoKwhFinal = modoCusto === "total" ? Math.round(valor / kwhNum) : valor;
+          campos = { kwh: kwhNum, precoKwh: precoKwhFinal };
+        } else {
+          const litrosNum = parseFloat(litros.replace(",", "."));
+          if (!Number.isFinite(litrosNum) || litrosNum <= 0) {
+            setErro("Litros inválido.");
+            setSalvando(false);
+            return;
+          }
+          custo = modoCusto === "total" ? valor : Math.round(litrosNum * valor);
+          const precoLitroFinal = modoCusto === "total" ? Math.round(valor / litrosNum) : valor;
+          campos = { litros: litrosNum, precoLitro: precoLitroFinal };
+        }
         await criarCarga(uid, {
           data,
-          kwh: kwhNum,
+          ...campos,
           custo,
-          precoKwh: precoKwhFinal,
           local,
           contaCartao: conta || undefined,
-          sessao: sessao.trim() || undefined,
+          sessao: dimensao === "eletrico" ? sessao.trim() || undefined : undefined,
           nota: notaFinal,
         });
       } else if (tipo === "despesaVeiculo") {
@@ -469,7 +520,7 @@ export default function RegistroRapido() {
               : tipo === "despesa" && parcelada
                 ? `Parcela criada em ${numParcelas}x`
                 : tipo === "carga"
-                  ? "Carregamento registado"
+                  ? "Abastecimento registado"
                   : tipo === "despesaVeiculo"
                     ? "Despesa do veículo adicionada"
                     : "Despesa adicionada",
@@ -608,10 +659,41 @@ export default function RegistroRapido() {
             aoMudar={(v) => {
               setDescricao(v);
               // Outro local, outro preço: o palpite volta a valer.
-              setKwhTocado(false);
-              palpitarKwh(valorTexto, v);
+              setQuantidadeTocada(false);
+              palpitarQuantidade(valorTexto, v);
             }}
           />
+        )}
+
+        {/* Só um veículo híbrido pergunta — elétrico/combustão puro já sabe
+            qual é a sua única dimensão (item B1). */}
+        {tipo === "carga" && tipoVeiculo === "hibrido" && (
+          <div
+            className={styles.subTipos}
+            role="radiogroup"
+            aria-label="Elétrico ou combustível"
+            ref={rgDimensaoRef}
+            onKeyDown={aoTeclarDimensao}
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={dimensaoCarga === "eletrico"}
+              className={`${styles.subTipo} ${dimensaoCarga === "eletrico" ? styles.subTipoAtivo : ""}`}
+              onClick={() => setDimensaoCarga("eletrico")}
+            >
+              Elétrico
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={dimensaoCarga === "combustao"}
+              className={`${styles.subTipo} ${dimensaoCarga === "combustao" ? styles.subTipoAtivo : ""}`}
+              onClick={() => setDimensaoCarga("combustao")}
+            >
+              Combustível
+            </button>
+          </div>
         )}
 
         <div className={styles.linhaDupla}>
@@ -639,9 +721,9 @@ export default function RegistroRapido() {
           </label>
         </div>
 
-        {/* Duas formas de informar uma carga: custo total (deriva o €/kWh) ou
-            €/kWh direto (deriva o custo) — mesmo par de modos da tela
-            Veículo. */}
+        {/* Duas formas de informar um abastecimento: custo total (deriva o
+            €/unidade) ou €/unidade direto (deriva o custo) — mesmo par de
+            modos da tela Veículo. */}
         {tipo === "carga" && (
           <div
             className={styles.subTipos}
@@ -662,11 +744,11 @@ export default function RegistroRapido() {
             <button
               type="button"
               role="radio"
-              aria-checked={modoCusto === "kwh"}
-              className={`${styles.subTipo} ${modoCusto === "kwh" ? styles.subTipoAtivo : ""}`}
-              onClick={() => setModoCusto("kwh")}
+              aria-checked={modoCusto === "unidade"}
+              className={`${styles.subTipo} ${modoCusto === "unidade" ? styles.subTipoAtivo : ""}`}
+              onClick={() => setModoCusto("unidade")}
             >
-              €/kWh
+              {dimensao === "eletrico" ? "€/kWh" : "€/litro"}
             </button>
           </div>
         )}
@@ -674,14 +756,14 @@ export default function RegistroRapido() {
         {/* Numa despesa parcelada o valor vive só dentro da folha de
             Parcelamento — ter os dois seria pedir o mesmo número duas vezes. */}
         <div className={styles.linhaDupla}>
-          {!ehParcelada && !(tipo === "carga" && modoCusto === "kwh") && (
+          {!ehParcelada && !(tipo === "carga" && modoCusto === "unidade") && (
             <label className={styles.campo}>
               {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
               <CampoMoeda
                 valor={valorTexto}
                 aoMudar={(v) => {
                   setValorTexto(v);
-                  if (tipo === "carga" && !kwhTocado) palpitarKwh(v, descricao);
+                  if (tipo === "carga" && !quantidadeTocada) palpitarQuantidade(v, descricao);
                 }}
                 required
                 // As mensagens de erro deste formulário já descrevem UM
@@ -695,12 +777,12 @@ export default function RegistroRapido() {
             </label>
           )}
 
-          {tipo === "carga" && modoCusto === "kwh" && (
+          {tipo === "carga" && modoCusto === "unidade" && (
             <label className={styles.campo}>
-              Preço por kWh (€)
+              {dimensao === "eletrico" ? "Preço por kWh (€)" : "Preço por litro (€)"}
               <CampoMoeda
-                valor={precoKwh}
-                aoMudar={setPrecoKwh}
+                valor={dimensao === "eletrico" ? precoKwh : precoLitro}
+                aoMudar={dimensao === "eletrico" ? setPrecoKwh : setPrecoLitro}
                 required
                 aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
@@ -709,14 +791,15 @@ export default function RegistroRapido() {
 
           {tipo === "carga" && (
             <label className={styles.campo}>
-              kWh
+              {dimensao === "eletrico" ? "kWh" : "Litros"}
               <input
                 type="text"
                 inputMode="decimal"
-                value={kwh}
+                value={dimensao === "eletrico" ? kwh : litros}
                 onChange={(e) => {
-                  setKwhTocado(true);
-                  setKwh(e.target.value);
+                  setQuantidadeTocada(true);
+                  if (dimensao === "eletrico") setKwh(e.target.value);
+                  else setLitros(e.target.value);
                 }}
                 required
                 aria-describedby={erro !== null ? "erro-registro" : undefined}
@@ -779,7 +862,7 @@ export default function RegistroRapido() {
 
         <SeletorData valor={data} aoMudar={setData} />
 
-        {tipo === "carga" && (
+        {tipo === "carga" && dimensao === "eletrico" && (
           <label className={styles.campo}>
             Sessão (opcional)
             <input value={sessao} onChange={(e) => setSessao(e.target.value)} />

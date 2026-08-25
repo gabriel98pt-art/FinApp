@@ -10,7 +10,7 @@
 //     restante > 0 (reabre de forma visível), em vez de manter valor velho.
 
 import type {
-  CargaEletrica,
+  Abastecimento,
   Cents,
   DadosVeiculo,
   DespesaCorrente,
@@ -118,7 +118,7 @@ export interface DadosFatura {
   parcelas: Parcela[];
   transferencias: Transferencia[];
   /** Carregamentos e despesas variáveis do veículo pagos no cartão. */
-  cargas?: CargaEletrica[];
+  cargas?: Abastecimento[];
   despesasVeiculo?: DespesaVeiculo[];
   /** Créditos lançados NO cartão — cashback, estorno de comissão, devolução de
    *  compra. Reduzem o devido: é dinheiro que o banco põe de volta no cartão,

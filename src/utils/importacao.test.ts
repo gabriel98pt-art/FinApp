@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { CargaEletrica } from "../types";
+import type { Abastecimento } from "../types";
 import type { ExistenteParaDedup, LinhaAnalisada, LinhaExtrato, Parcela } from "../types";
 import {
   analisarLinha,
@@ -540,7 +540,7 @@ describe("sinal contraditório com o tipo", () => {
 });
 
 describe("estimarKwh", () => {
-  const carga = (local: string, data: string, precoKwh: number): CargaEletrica => ({
+  const carga = (local: string, data: string, precoKwh: number): Abastecimento => ({
     id: `c-${data}`,
     data,
     kwh: 10,

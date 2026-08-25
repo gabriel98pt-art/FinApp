@@ -15,7 +15,7 @@
 // recente — quem não os passar continua com o comportamento antigo.
 
 import type {
-  CargaEletrica,
+  Abastecimento,
   Cents,
   ConfigConta,
   DespesaCorrente,
@@ -37,7 +37,7 @@ export interface DadosContas {
   despesasFixasVeiculo: DespesaFixa[];
   transferencias: Transferencia[];
   /** Carregamentos e despesas variáveis do veículo pagos pela conta. */
-  cargas?: CargaEletrica[];
+  cargas?: Abastecimento[];
   despesasVeiculo?: DespesaVeiculo[];
 }
 

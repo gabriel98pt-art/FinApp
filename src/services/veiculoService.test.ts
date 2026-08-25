@@ -5,7 +5,7 @@
 // mensal para sempre.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { CargaEletrica } from "../types";
+import type { Abastecimento } from "../types";
 
 let dados: Record<string, unknown> = {};
 let contador = 0;
@@ -47,7 +47,7 @@ const s = await import("./veiculoService");
 const UID = "u1";
 const RAIZ = `users/${UID}/fin_v5/veiculo`;
 
-const carga: Omit<CargaEletrica, "id"> = {
+const carga: Omit<Abastecimento, "id"> = {
   data: "2026-08-01",
   kwh: 32,
   precoKwh: 18,

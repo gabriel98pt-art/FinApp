@@ -8,7 +8,7 @@ import { semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
 import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 import type {
-  CargaEletrica,
+  Abastecimento,
   DadosVeiculo,
   DespesaFixa,
   DespesaVeiculo,
@@ -63,7 +63,7 @@ export function observarVeiculo(
   const paraCargas = onValue(
     ref(db, caminho(uid, "cargas")),
     (snap) => {
-      atual.cargas = paraLista<CargaEletrica>(snap.val());
+      atual.cargas = paraLista<Abastecimento>(snap.val());
       notificar("cargas");
     },
     aoErro,
@@ -126,10 +126,10 @@ async function remover(uid: string, sub: SubDominio, id: Id) {
 }
 
 // ---- Cargas elétricas ----
-export const criarCarga = (uid: string, dados: Omit<CargaEletrica, "id">) =>
-  criar<CargaEletrica>(uid, "cargas", dados);
-export const atualizarCarga = (uid: string, item: CargaEletrica) =>
-  atualizar<CargaEletrica>(uid, "cargas", item);
+export const criarCarga = (uid: string, dados: Omit<Abastecimento, "id">) =>
+  criar<Abastecimento>(uid, "cargas", dados);
+export const atualizarCarga = (uid: string, item: Abastecimento) =>
+  atualizar<Abastecimento>(uid, "cargas", item);
 export const removerCarga = (uid: string, id: Id) => remover(uid, "cargas", id);
 
 // ---- Despesas variáveis do veículo ----

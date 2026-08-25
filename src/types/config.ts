@@ -1,5 +1,6 @@
 import type { Cents, Currency, Theme, YearMonth } from "./common";
 import type { PagamentosFatura } from "./fatura";
+import type { TipoVeiculo } from "./veiculo";
 
 export type TipoCartao = "credit" | "debit";
 
@@ -65,6 +66,11 @@ export interface ConfigConta {
   diaFechamentoFatura: Record<string, number>;
   /** Categorias de despesa do veículo (antigo `vcat`). */
   categoriasVeiculo: string[];
+  /** Motorização do veículo (item B1) — decide que campos a aba de
+   *  abastecimento mostra. Sem entrada, `normalizarConfig` repõe
+   *  `"eletrico"`: o que o app já assumia implicitamente antes deste campo
+   *  existir, então contas antigas não pedem migração nenhuma. */
+  tipoVeiculo: TipoVeiculo;
 
   /** Ícone escolhido por categoria, indexado pelo NOME — compartilhado entre
    *  despesa fixa/corrente/veículo e fontes de receita (os nomes já se repetem

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type {
-  CargaEletrica,
+  Abastecimento,
   DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
@@ -35,7 +35,7 @@ function dc(extra: Partial<DespesaCorrente>): DespesaCorrente {
   };
 }
 
-function carga(extra: Partial<CargaEletrica>): CargaEletrica {
+function carga(extra: Partial<Abastecimento>): Abastecimento {
   return {
     id: Math.random().toString(36).slice(2),
     data: "2026-06-12",
@@ -671,7 +671,7 @@ describe("montarDadosFatura — achado da auditoria de Arquitetura", () => {
   // esquecer um campo dava fatura errada sem erro de tipo, porque quase todo
   // campo de DadosFatura além dos 4 obrigatórios é opcional.
   const veiculo: DadosVeiculo = {
-    cargas: [{ id: "c1" } as CargaEletrica],
+    cargas: [{ id: "c1" } as Abastecimento],
     despesas: [{ id: "dv1" } as DespesaVeiculo],
     despesasFixas: [{ id: "fv1" } as DespesaFixa],
     quilometragem: [],

@@ -3,7 +3,7 @@
 // ativas do veículo, somado dentro do total geral de despesas do app.
 
 import type {
-  CargaEletrica,
+  Abastecimento,
   Cents,
   DadosVeiculo,
   DespesaCorrente,
@@ -84,20 +84,41 @@ export function totalVeiculoGeral(veiculo: DadosVeiculo, mesReferencia?: YearMon
  *
  *  Serve de referência para adivinhar os kWh a partir do custo: o posto é o
  *  mesmo, o preço quase sempre também. O mais RECENTE, e não uma média, porque
- *  o que interessa é o preço que está lá agora. */
-export function precoKwhDoLocal(cargas: CargaEletrica[], local: string): Cents | undefined {
+ *  o que interessa é o preço que está lá agora.
+ *
+ *  Só olha abastecimentos elétricos (`precoKwh` presente) — um posto pode
+ *  servir os dois tipos (híbrido), e o preço por litro não serve de palpite
+ *  pro preço por kWh nem vice-versa. */
+export function precoKwhDoLocal(cargas: Abastecimento[], local: string): Cents | undefined {
   const nome = local.trim();
   if (!nome) return undefined;
-  const doLocal = cargas.filter((c) => c.local === nome);
+  const doLocal = cargas.filter((c) => c.local === nome && c.precoKwh !== undefined);
   if (doLocal.length === 0) return undefined;
   const recente = doLocal.reduce((a, b) => (b.data > a.data ? b : a));
-  return recente.precoKwh > 0 ? recente.precoKwh : undefined;
+  return recente.precoKwh! > 0 ? recente.precoKwh : undefined;
 }
 
 /** Quantos kWh dá aquele custo àquele preço, já no formato do campo: vírgula
  *  decimal e 3 casas — a terceira faz diferença numa carga pequena. */
 export function kwhPeloCusto(custo: Cents, precoKwh: Cents): string {
   return (custo / precoKwh).toFixed(3).replace(".", ",");
+}
+
+/** Preço por litro do abastecimento a combustível mais recente feito neste
+ *  local — mesma lógica de `precoKwhDoLocal`, pro par de campos de litro. */
+export function precoLitroDoLocal(cargas: Abastecimento[], local: string): Cents | undefined {
+  const nome = local.trim();
+  if (!nome) return undefined;
+  const doLocal = cargas.filter((c) => c.local === nome && c.precoLitro !== undefined);
+  if (doLocal.length === 0) return undefined;
+  const recente = doLocal.reduce((a, b) => (b.data > a.data ? b : a));
+  return recente.precoLitro! > 0 ? recente.precoLitro : undefined;
+}
+
+/** Quantos litros dá aquele custo àquele preço — mesmo formato de
+ *  `kwhPeloCusto` (vírgula decimal, 3 casas). */
+export function litrosPeloCusto(custo: Cents, precoLitro: Cents): string {
+  return (custo / precoLitro).toFixed(3).replace(".", ",");
 }
 
 /** A despesa comum que nasce de uma recarga classificada por engano.
@@ -111,7 +132,7 @@ export function kwhPeloCusto(custo: Cents, precoKwh: Cents): string {
  *  Pura de propósito (mesmo molde de `dadosDaCarga`/`dadosDaTransferencia` na
  *  importação): quem grava é a tela. */
 export function dadosDespesaDaCarga(
-  carga: CargaEletrica,
+  carga: Abastecimento,
   categoria: string,
 ): Omit<DespesaCorrente, "id"> {
   return {

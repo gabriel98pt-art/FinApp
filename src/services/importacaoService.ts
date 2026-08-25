@@ -18,7 +18,7 @@ import { diaDoMes } from "../utils/vencimentos";
 import { calcularFaturaAutomatica, pagamentosDaFatura, type DadosFatura } from "../utils/fatura";
 import { pagarFatura } from "./faturaService";
 import type {
-  CargaEletrica,
+  Abastecimento,
   ConfigConta,
   DespesaCorrente,
   DespesaFixa,
@@ -49,7 +49,7 @@ import type {
 export function construirExistentes(
   receitas: Receita[],
   despesas: DespesaCorrente[],
-  cargas: CargaEletrica[],
+  cargas: Abastecimento[],
   despesasVeiculo: DespesaVeiculo[],
   transferencias: Transferencia[],
   despesasFixas: DespesaFixa[],
@@ -137,7 +137,7 @@ export function construirExistentes(
  *
  *  `precoKwh` sai de custo ÷ kWh, a mesma conta do formulário de registo
  *  rápido (RegistroRapido.tsx) — o preço nunca é digitado em lado nenhum. */
-export function dadosDaCarga(linha: LinhaAnalisada): Omit<CargaEletrica, "id"> | null {
+export function dadosDaCarga(linha: LinhaAnalisada): Omit<Abastecimento, "id"> | null {
   const local = linha.localCarga.trim();
   if (!local) return null;
   const custo = Math.abs(linha.valor);
@@ -220,7 +220,7 @@ export async function confirmarImportacao(
   // são despesa corrente. Preparadas todas ANTES de escrever seja o que for:
   // se uma estiver incompleta, nada é gravado, em vez de metade do extrato
   // entrar e a outra metade rebentar a meio.
-  const cargas: Omit<CargaEletrica, "id">[] = [];
+  const cargas: Omit<Abastecimento, "id">[] = [];
   const transferencias: Omit<Transferencia, "id">[] = [];
   const pagamentos: NonNullable<ReturnType<typeof pagamentoDaLinha>>[] = [];
   for (const linha of linhas) {
