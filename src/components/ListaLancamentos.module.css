@@ -57,12 +57,20 @@
   flex: 1;
 }
 
+/* Nomes longos ("Cartão de Crédito AB Gold", "Ultrarrapido Continente")
+   ficavam cortados a meio com reticências e não havia como ler o resto: no
+   telemóvel não há hover para mostrar um `title`, e a linha nem abre nada que
+   repita o nome inteiro. Passa a quebrar em até duas linhas — o detalhe logo
+   abaixo já quebrava assim — e só reticencia a partir daí. */
 .descricao {
   font-size: var(--fs-title);
   font-weight: 600;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .detalhe {
