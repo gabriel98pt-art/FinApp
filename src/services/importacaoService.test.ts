@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("./firebase", () => ({ db: {} }));
 
 const snapshot = vi.fn();
-vi.mock("../stores/historicoStore", () => ({ snapshotHistorico: () => snapshot() }));
+vi.mock("../stores/historicoStore", () => ({
+  snapshotHistorico: () => snapshot(),
+  comHistoricoSuprimido: async <T>(fn: () => Promise<T>) => fn(),
+}));
 
 vi.mock("firebase/database", () => ({
   ref: () => ({}),

@@ -18,7 +18,8 @@ vi.mock("../services/historicoService", () => ({
 }));
 vi.mock("./toastStore", () => ({ mostrarToast: (...a: unknown[]) => mostrarToast(...(a as [])) }));
 
-const { useHistoricoStore, snapshotHistorico } = await import("./historicoStore");
+const { useHistoricoStore, snapshotHistorico, comHistoricoSuprimido } =
+  await import("./historicoStore");
 
 beforeEach(() => {
   proximoEstado = 0;
@@ -76,6 +77,81 @@ describe("snapshot", () => {
     snapshotHistorico();
 
     expect(useHistoricoStore.getState().pilha.pilha).toEqual(["estado0"]);
+  });
+});
+
+// Achado ao investigar um "Desfazer" que só revertia parte de uma
+// importação (extrato com várias cargas/transferências/pagamentos): cada
+// escrita individual empilhava o seu próprio snapshot, então um clique só
+// desfazia a última. `comHistoricoSuprimido` faz uma sequência de escritas
+// contar como um passo só.
+describe("comHistoricoSuprimido", () => {
+  test("snapshots chamados dentro de fn não empilham nada", async () => {
+    useHistoricoStore.getState().iniciar("u1");
+    snapshotHistorico(); // o único snapshot "de verdade" da operação
+
+    await comHistoricoSuprimido(async () => {
+      useHistoricoStore.getState().snapshot();
+      useHistoricoStore.getState().snapshot();
+      useHistoricoStore.getState().snapshot();
+    });
+
+    expect(useHistoricoStore.getState().pilha.pilha).toEqual(["estado0"]);
+  });
+
+  test("desfazer depois de um lote suprimido reverte tudo de uma vez", async () => {
+    useHistoricoStore.getState().iniciar("u1");
+    snapshotHistorico();
+    await comHistoricoSuprimido(async () => {
+      useHistoricoStore.getState().snapshot();
+      useHistoricoStore.getState().snapshot();
+    });
+
+    await useHistoricoStore.getState().desfazer();
+
+    expect(restaurarEstado).toHaveBeenCalledTimes(1);
+    expect(restaurarEstado).toHaveBeenCalledWith("u1", "estado0");
+  });
+
+  test("supressão não vaza pra fora: um snapshot depois do lote empilha normalmente", async () => {
+    useHistoricoStore.getState().iniciar("u1");
+    snapshotHistorico(); // estado0
+    await comHistoricoSuprimido(async () => {
+      useHistoricoStore.getState().snapshot();
+    });
+
+    useHistoricoStore.getState().snapshot(); // estado1, fora do lote — deve contar
+
+    expect(useHistoricoStore.getState().pilha.pilha).toEqual(["estado0", "estado1"]);
+  });
+
+  test("lotes aninhados: o interno não reativa snapshots antes do externo terminar", async () => {
+    useHistoricoStore.getState().iniciar("u1");
+    snapshotHistorico(); // estado0
+
+    await comHistoricoSuprimido(async () => {
+      await comHistoricoSuprimido(async () => {
+        useHistoricoStore.getState().snapshot();
+      });
+      useHistoricoStore.getState().snapshot();
+    });
+
+    expect(useHistoricoStore.getState().pilha.pilha).toEqual(["estado0"]);
+  });
+
+  test("erro dentro do lote ainda restaura a supressão (finally)", async () => {
+    useHistoricoStore.getState().iniciar("u1");
+    snapshotHistorico(); // estado0
+
+    await expect(
+      comHistoricoSuprimido(async () => {
+        throw new Error("falhou a meio");
+      }),
+    ).rejects.toThrow("falhou a meio");
+
+    useHistoricoStore.getState().snapshot(); // fora do lote de novo — deve contar
+
+    expect(useHistoricoStore.getState().pilha.pilha).toEqual(["estado0", "estado1"]);
   });
 });
 

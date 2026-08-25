@@ -16,6 +16,31 @@ interface HistoricoState {
   refazer: () => Promise<void>;
 }
 
+/** Achado ao investigar um "Desfazer" que só revertia parte de uma
+ *  importação: cada `criar/atualizar/remover` chama `snapshotHistorico()` a
+ *  título individual — certo quando é a única escrita da ação do usuário,
+ *  errado quando várias dessas funções são chamadas em sequência por UMA
+ *  ação só (importar um extrato inteiro: dezenas de lançamentos + cargas +
+ *  transferências + pagamentos de fatura + apagar duplicatas). Sem isto,
+ *  cada uma empilhava o SEU PRÓPRIO ponto de desfazer, e um clique em
+ *  "Desfazer" só voltava a última chamada — o resto da importação ficava
+ *  para trás, exigindo dezenas de cliques pra reverter tudo. */
+let suprimirSnapshots = false;
+
+/** Envolve uma sequência de escritas que devem contar como UM só passo de
+ *  desfazer: o chamador tira o snapshot manualmente ANTES (via
+ *  `snapshotHistorico()`), e tudo o que rodar dentro de `fn` tem os seus
+ *  próprios `snapshotHistorico()` internos silenciados. */
+export async function comHistoricoSuprimido<T>(fn: () => Promise<T>): Promise<T> {
+  const jaSuprimido = suprimirSnapshots;
+  suprimirSnapshots = true;
+  try {
+    return await fn();
+  } finally {
+    suprimirSnapshots = jaSuprimido;
+  }
+}
+
 export const useHistoricoStore = create<HistoricoState>((set, get) => ({
   pilha: pilhaVazia(),
   uid: null,
@@ -24,7 +49,7 @@ export const useHistoricoStore = create<HistoricoState>((set, get) => ({
   parar: () => set({ uid: null, pilha: pilhaVazia() }),
 
   snapshot: () => {
-    if (!get().uid) return;
+    if (!get().uid || suprimirSnapshots) return;
     set((s) => ({ pilha: empilhar(s.pilha, capturarEstadoAtual()) }));
   },
 

@@ -13,7 +13,7 @@ import {
   semIndefinidos,
 } from "./lancamentosService";
 import { criarCarga, removerCarga, removerDespesaVeiculo } from "./veiculoService";
-import { snapshotHistorico } from "../stores/historicoStore";
+import { comHistoricoSuprimido, snapshotHistorico } from "../stores/historicoStore";
 import { diaDoMes } from "../utils/vencimentos";
 import { calcularFaturaAutomatica, pagamentosDaFatura, type DadosFatura } from "../utils/fatura";
 import { pagarFatura } from "./faturaService";
@@ -202,14 +202,15 @@ export async function confirmarImportacao(
   linhas: LinhaAnalisada[],
   contextoFaturas?: ContextoFaturas,
 ) {
-  // Achado da auditoria de Arquitetura: era o único caminho de escrita do
-  // app que não passava por snapshotHistorico(). criarCarga/criarTransferencia/
-  // pagarFatura (chamados mais abaixo) já snapshottam sozinhos antes da
-  // própria escrita — mas o update() em lote de receitas/despesasCorrentes
-  // logo à frente não tinha nenhum, e era o único write de um extrato feito
-  // só de lançamentos comuns (o caso mais frequente). Um snapshot aqui, antes
-  // de qualquer escrita, garante que a importação inteira tem pelo menos um
-  // ponto de "desfazer" — mesmo com múltiplos writes internos.
+  // Um snapshot só, aqui, ANTES de qualquer escrita — pra importação inteira
+  // (lançamentos + cargas + transferências + pagamentos de fatura, cada um
+  // podendo ser dezenas) contar como UM passo de "Desfazer", não um por
+  // lançamento. criarCarga/criarTransferencia/pagarFatura (mais abaixo) têm
+  // os seus próprios snapshotHistorico() internos — corretos quando chamados
+  // sozinhos, redundantes aqui — por isso rodam dentro de
+  // `comHistoricoSuprimido`: sem isso, desfazer uma importação grande exigia
+  // um clique por lançamento em vez de um só (achado ao reproduzir "desfiz e
+  // sobrou lixo" — o desfazer só revertia a última escrita da lista).
   snapshotHistorico();
 
   const raiz = `users/${uid}/fin_v5`;
@@ -279,31 +280,33 @@ export async function confirmarImportacao(
   }
 
   if (Object.keys(atualizacoes).length > 0) await update(ref(db, raiz), atualizacoes);
-  for (const dados of cargas) await criarCarga(uid, dados);
-  for (const dados of transferencias) await criarTransferencia(uid, dados);
-  // Pagamento de fatura vai pelo MESMO caminho do pagamento feito à mão na aba
-  // Cartões: cria o lançamento com origem "fat" (fora dos totais de despesa —
-  // a compra já contou quando aconteceu), acrescenta o pagamento à fatura do
-  // mês e, se quitar, fecha as parcelas em débito automático do ciclo. Nada
-  // disso é reescrito aqui.
-  for (const p of pagamentos) {
-    const ctx = contextoFaturas!;
-    await pagarFatura(uid, {
-      cartao: p.cartao,
-      mes: p.mes,
-      valor: p.valor,
-      de: p.de,
-      data: p.data,
-      pagamentosAtuais: pagamentosDaFatura(ctx.faturasPagas?.[p.cartao]?.[p.mes]),
-      devido: calcularFaturaAutomatica(
-        p.cartao,
-        p.mes,
-        ctx.dados,
-        ctx.diaFechamentoFatura?.[p.cartao],
-      ),
-      parcelas: ctx.parcelas,
-    });
-  }
+  await comHistoricoSuprimido(async () => {
+    for (const dados of cargas) await criarCarga(uid, dados);
+    for (const dados of transferencias) await criarTransferencia(uid, dados);
+    // Pagamento de fatura vai pelo MESMO caminho do pagamento feito à mão na
+    // aba Cartões: cria o lançamento com origem "fat" (fora dos totais de
+    // despesa — a compra já contou quando aconteceu), acrescenta o pagamento
+    // à fatura do mês e, se quitar, fecha as parcelas em débito automático do
+    // ciclo. Nada disso é reescrito aqui.
+    for (const p of pagamentos) {
+      const ctx = contextoFaturas!;
+      await pagarFatura(uid, {
+        cartao: p.cartao,
+        mes: p.mes,
+        valor: p.valor,
+        de: p.de,
+        data: p.data,
+        pagamentosAtuais: pagamentosDaFatura(ctx.faturasPagas?.[p.cartao]?.[p.mes]),
+        devido: calcularFaturaAutomatica(
+          p.cartao,
+          p.mes,
+          ctx.dados,
+          ctx.diaFechamentoFatura?.[p.cartao],
+        ),
+        parcelas: ctx.parcelas,
+      });
+    }
+  });
   return (
     Object.keys(atualizacoes).length + cargas.length + transferencias.length + pagamentos.length
   );

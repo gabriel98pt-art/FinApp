@@ -14,6 +14,7 @@ import {
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
+import { comHistoricoSuprimido } from "../stores/historicoStore";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -344,7 +345,13 @@ export default function Importar() {
           receitas,
         }),
       });
-      if (apagar.length) await apagarExistentes(uid, apagar, despesasFixas);
+      // Apagar as duplicatas é parte da MESMA ação de "confirmar importação"
+      // aos olhos do usuário — o snapshot único já foi tirado dentro de
+      // confirmarImportacao, então isto também roda suprimido, senão cada
+      // duplicata apagada empilhava o seu próprio passo de "Desfazer".
+      if (apagar.length) {
+        await comHistoricoSuprimido(() => apagarExistentes(uid, apagar, despesasFixas));
+      }
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
       setLinhas(null);
       setTexto("");
