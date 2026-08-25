@@ -38,6 +38,7 @@ import {
   totaisPerformance,
 } from "../utils/tvde";
 import { idAba, idPainelAba } from "../utils/abas";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import styles from "./Tvde.module.css";
 
 // Moeda FIXA em EUR (seção 4.4) — este módulo NÃO segue a moeda da conta.
@@ -222,6 +223,9 @@ export default function Tvde() {
   const carregado = useTvdeStore((s) => s.carregado);
   const erro = useTvdeStore((s) => s.erro);
   const contasCartoes = useCfgStore((s) => s.cfg.contasCartoes);
+  // `cfg` nesta tela é a config do TVDE; as instituições vêm da config da
+  // conta e são o que traduz o id de uma conta no nome que ela tem hoje.
+  const instituicoes = useCfgStore((s) => s.cfg.instituicoes);
   const fontesReceita = useCfgStore((s) => s.cfg.fontesReceita);
 
   const [editando, setEditando] = useState<number | null>(null);
@@ -499,7 +503,7 @@ export default function Tvde() {
                     </option>
                     {contasCartoes.map((c) => (
                       <option key={c} value={c}>
-                        {c}
+                        {nomeAtualDoMetodo({ instituicoes }, c)}
                       </option>
                     ))}
                   </select>

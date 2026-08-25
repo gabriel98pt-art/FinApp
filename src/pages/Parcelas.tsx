@@ -26,6 +26,7 @@ import { mostrarToast } from "../stores/toastStore";
 import type { Cents, Currency, Parcela, YearMonth } from "../types";
 import { mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
 import {
   mesesNaoPagos,
@@ -46,12 +47,16 @@ function LinhaParcela({
   aoEditar,
   mesRef,
   diaVencimentoFatura,
+  nomeDoCartao,
 }: {
   p: Parcela;
   moeda: Currency;
   aoEditar: (p: Parcela) => void;
   mesRef: YearMonth;
   diaVencimentoFatura: Record<string, number> | undefined;
+  /** O que a parcela guarda é o id do cartão, que nunca muda; o nome de hoje
+   *  vem daqui, para uma parcela antiga não ficar presa a um nome antigo. */
+  nomeDoCartao: (id: string) => string;
 }) {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -81,7 +86,9 @@ function LinhaParcela({
             <span className={styles.detalhe}>
               {formatMoney(p.total, moeda)}
               {p.nota ? ` · ${p.nota}` : ""}
-              {p.cartao ? ` · ${p.cartao}${p.autoDebit ? " (débito autom.)" : ""}` : ""}
+              {p.cartao
+                ? ` · ${nomeDoCartao(p.cartao)}${p.autoDebit ? " (débito autom.)" : ""}`
+                : ""}
               {diaVenc ? ` · dia ${diaVenc}` : ""}
             </span>
           </span>
@@ -337,6 +344,7 @@ function FormParcela({
           rotulo="Cartão (opcional)"
           valor={cartao}
           opcoes={cfg.contasCartoes}
+          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
           aoMudar={setCartao}
           rotuloVazio="Sem cartão"
         />
@@ -518,6 +526,7 @@ export default function Parcelas() {
               aoEditar={abrirEdicao}
               mesRef={mesRef}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
+              nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
             />
           ))}
         </div>
@@ -551,6 +560,7 @@ export default function Parcelas() {
               }}
               mesRef={mesRef}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
+              nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
             />
           ))}
         </div>

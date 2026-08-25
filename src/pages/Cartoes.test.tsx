@@ -10,6 +10,7 @@ import { render, screen } from "@testing-library/react";
 import type { ConfigConta, DespesaCorrente, Transferencia } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, listaComErro, veiculoVazio } from "../testes/dobras";
+import { comInstituicoes, instituicao } from "../testes/instituicoes";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 vi.mock("../services/faturaService", () => ({
@@ -209,6 +210,47 @@ describe("Cartoes", () => {
     ]);
     render(<Cartoes />);
     expect(screen.getByText("Devolvido em agosto 2026: € 75,00")).toBeInTheDocument();
+  });
+
+  // O centro da Fase C: renomear passou a mexer num campo só (o nome da
+  // instituição) e a NÃO tocar em lançamento nenhum. Só funciona porque toda a
+  // tela que mostra "de que conta é isto" resolve o nome de hoje a partir do id
+  // que ficou gravado. Sem isso, um cartão renomeado continuava a aparecer com
+  // o nome antigo em todo o histórico — e a tela de Cartões seria o único sítio
+  // do app a saber do nome novo.
+  describe("depois de renomear", () => {
+    beforeEach(() => {
+      // O id continua a ser "AB Gold (C)" — é o que os lançamentos guardam.
+      cfg = {
+        ...CONFIG_PADRAO,
+        ...comInstituicoes(instituicao("Gold Novo", "credito", { id: CARTAO })),
+      };
+      transferencias = lista<Transferencia>([
+        {
+          id: "t1",
+          data: "2026-08-10",
+          de: CARTAO,
+          para: CARTAO,
+          valor: 5000,
+        },
+      ]);
+    });
+
+    test("o quadro da conta mostra o nome novo", () => {
+      render(<Cartoes />);
+      const quadro = screen
+        .getAllByRole("button")
+        .find((b) => b.textContent?.includes("crédito") && b.textContent?.includes("Gold Novo"));
+      expect(quadro).toBeDefined();
+      expect(screen.queryByText(CARTAO)).toBeNull();
+    });
+
+    test("uma transferência já lançada mostra o nome novo nas duas pontas", () => {
+      render(<Cartoes />);
+      const linha = screen.getAllByRole("button").find((b) => b.textContent?.includes("10/08"))!;
+      expect(linha.textContent).toContain("Gold Novo");
+      expect(linha.textContent).not.toContain(CARTAO);
+    });
   });
 
   test("'Transferências entre contas' é cabeçalho de secção", () => {

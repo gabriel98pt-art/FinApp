@@ -113,7 +113,7 @@ export function vencimentosDeParcelas(
  *  inteiro, porque `devido` é o total bruto do ciclo e não desconta
  *  pagamentos — mesma família do bug de fixa/parcela acima. */
 export function vencimentosDeFaturas(
-  restantePorCartao: { cartao: string; restante: Cents }[],
+  restantePorCartao: { cartao: string; restante: Cents; nome?: string }[],
   ym: YearMonth,
   diaVencimentoFatura?: Record<string, number>,
 ): Vencimento[] {
@@ -122,7 +122,9 @@ export function vencimentosDeFaturas(
     .map((f) => ({
       tipo: "fatura" as const,
       dia: diaDoMes(ym, diaVencimentoFatura?.[f.cartao] ?? 1),
-      titulo: `Fatura ${f.cartao}`,
+      // `cartao` é o id, que nunca muda; `nome` é como o cartão se chama hoje.
+      // Sem ele, um cartão renomeado aparecia no calendário com o nome antigo.
+      titulo: `Fatura ${f.nome ?? f.cartao}`,
       detalhe: "vencimento do cartão",
       valor: f.restante,
     }));

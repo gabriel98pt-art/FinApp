@@ -27,6 +27,7 @@ import {
   type ProgressoFundo,
 } from "./copiloto";
 import { formatMoney } from "./money";
+import { nomeAtualDoMetodo } from "./instituicoes";
 import { vencimentosDeFaturas, vencimentosDeFixas, vencimentosDeParcelas } from "./vencimentos";
 
 /** Um compromisso já datado dentro da janela de 30 dias. */
@@ -127,6 +128,7 @@ function compromissosProximos30Dias(ctx: ContextoCopiloto, hoje: string): Compro
     const restantes = cartoesCredito
       .map((cartao) => ({
         cartao,
+        nome: nomeAtualDoMetodo(ctx.cfg, cartao),
         restante: calcularFatura(cartao, ym, dados, ctx.cfg).restante,
       }))
       .filter((f) => f.restante > 0);

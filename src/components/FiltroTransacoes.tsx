@@ -14,6 +14,7 @@ function Secao({
   valor,
   aoMudar,
   comIcone,
+  rotulo,
 }: {
   titulo: string;
   opcoes: string[];
@@ -21,6 +22,9 @@ function Secao({
   aoMudar: (v: string) => void;
   /** Categoria/tipo tem a bolha colorida da seção 4.6; conta não. */
   comIcone?: boolean;
+  /** Quando o texto mostrado difere do valor filtrado — o caso da conta, cujas
+   *  opções são ids estáveis e não os nomes que se veem. */
+  rotulo?: (v: string) => string;
 }) {
   const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
   return (
@@ -56,7 +60,7 @@ function Secao({
             >
               <span className={styles.opcaoNome}>
                 {comIcone && <CategoriaBolha categoria={o} tamanho={20} />}
-                {o}
+                {rotulo ? rotulo(o) : o}
               </span>
               {ativa && <Check size={14} aria-hidden />}
             </button>
@@ -82,6 +86,7 @@ export default function FiltroTransacoes({
   aoMudarCategoria,
   filtroConta,
   aoMudarConta,
+  rotuloConta,
 }: {
   categorias: string[];
   contas: string[];
@@ -89,6 +94,9 @@ export default function FiltroTransacoes({
   aoMudarCategoria: (v: string) => void;
   filtroConta: string;
   aoMudarConta: (v: string) => void;
+  /** O nome de hoje de cada conta. As opções são os ids, que é o que fica
+   *  gravado no lançamento e o que o filtro compara. */
+  rotuloConta?: (v: string) => string;
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
@@ -131,7 +139,13 @@ export default function FiltroTransacoes({
             aoMudar={aoMudarCategoria}
             comIcone
           />
-          <Secao titulo="Conta/cartão" opcoes={contas} valor={filtroConta} aoMudar={aoMudarConta} />
+          <Secao
+            titulo="Conta/cartão"
+            opcoes={contas}
+            valor={filtroConta}
+            aoMudar={aoMudarConta}
+            rotulo={rotuloConta}
+          />
         </div>
         {ativos > 0 && (
           <button

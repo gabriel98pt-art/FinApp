@@ -38,6 +38,7 @@ import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, mesDe, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "../utils/fatura";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
@@ -992,6 +993,7 @@ export default function Veiculo() {
             rotulo="Conta/cartão"
             valor={cgConta}
             opcoes={cfg.contasCartoes}
+            rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
             aoMudar={setCgConta}
             rotuloVazio="Sem conta"
           />
@@ -1030,6 +1032,7 @@ export default function Veiculo() {
             rotulo="Conta/cartão"
             valor={dvConta}
             opcoes={cfg.contasCartoes}
+            rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
             aoMudar={setDvConta}
             rotuloVazio="Sem conta"
           />

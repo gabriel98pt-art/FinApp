@@ -30,6 +30,7 @@ import { analisarLinha, aplicarContaATodas, estimarKwh } from "../utils/importac
 import { parseExtratoCsv } from "../utils/importacaoParser";
 import { extrairExtratoPdf, LeitorPdfIndisponivel } from "../utils/extrairExtratoPdf";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { rotuloMes, somarMeses } from "../utils/calculos";
 import { montarDadosFatura } from "../utils/fatura";
 import type {
@@ -582,6 +583,7 @@ export default function Importar() {
               nivel={0}
               valor={contaEmMassa}
               opcoes={cfg.contasCartoes}
+              rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
               rotuloVazio="Conta de todas…"
               aviso="Nenhuma conta guardada — as contas vêm de Definições."
               aoMudar={marcarContaParaTodas}
@@ -677,6 +679,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.fatCartaoEscolhido}
                           opcoes={cartoesCredito}
+                          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
                           rotuloVazio="Qual cartão…"
                           aviso="Nenhum cartão de crédito guardado — os cartões vêm de Definições."
                           aoMudar={(v) => atualizarLinha(l.id, { fatCartaoEscolhido: v })}
@@ -696,6 +699,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.contaOrigem}
                           opcoes={cfg.contasCartoes}
+                          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
                           rotuloVazio="Pago de…"
                           aviso="Nenhuma conta guardada — as contas vêm de Definições."
                           aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
@@ -713,6 +717,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.contaOrigem}
                           opcoes={cfg.contasCartoes}
+                          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
                           rotuloVazio="De onde veio…"
                           aviso="Nenhuma conta guardada — as contas vêm de Definições."
                           aoMudar={(v) => atualizarLinha(l.id, { contaOrigem: v })}
@@ -726,6 +731,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.contaDestino}
                           opcoes={cfg.contasCartoes}
+                          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
                           rotuloVazio="Conta que recebeu…"
                           aviso="Nenhuma conta guardada — as contas vêm de Definições."
                           aoMudar={(v) => atualizarLinha(l.id, { contaDestino: v })}
@@ -816,6 +822,7 @@ export default function Importar() {
                           nivel={0}
                           valor={l.contaEscolhida}
                           opcoes={cfg.contasCartoes}
+                          rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
                           rotuloVazio="Nenhuma conta…"
                           aviso="Nenhuma conta guardada — as contas vêm de Definições."
                           aoMudar={(v) => atualizarLinha(l.id, { contaEscolhida: v })}

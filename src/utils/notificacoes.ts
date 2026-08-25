@@ -27,6 +27,7 @@ import { calcularFatura, fixaAtivaNoMes, fixaEfetivamentePaga, type DadosFatura 
 import { diaVencimentoEfetivo, proximoMesEmAberto, valorDaParcela } from "./parcelas";
 import { statusOrcamentoMes } from "./orcamento";
 import { diaDoMes } from "./vencimentos";
+import { nomeAtualDoMetodo } from "./instituicoes";
 
 // Reexportado por conveniência — quem já importava TipoNotificacao daqui
 // (NotificacoesSino.tsx) continua a funcionar sem mudar o import.
@@ -146,7 +147,8 @@ export function notificacoesDeFaturas(
       id: `fatura-${cartao}`,
       tipo: "fatura",
       refId: cartao,
-      titulo: `Fatura ${cartao}`,
+      // O id do cartão é estável; o nome muda quando a pessoa o renomeia.
+      titulo: `Fatura ${nomeAtualDoMetodo(cfg, cartao)}`,
       detalhe: "Cartão de crédito",
       valor: fatura.restante,
       dia: data,

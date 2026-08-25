@@ -26,6 +26,7 @@ import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { dadosDespesaDaCarga } from "../utils/veiculo";
 import {
   entraDinheiro,
@@ -212,6 +213,7 @@ export default function Transacoes() {
             aoMudarCategoria={setFiltroCategoria}
             filtroConta={filtroConta}
             aoMudarConta={setFiltroConta}
+            rotuloConta={(c) => nomeAtualDoMetodo(cfg, c)}
           />
         </div>
       )}
@@ -249,7 +251,7 @@ export default function Transacoes() {
                     {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
                     {t.categoria ? ` · ${t.categoria}` : ""}
                     {t.nota ? ` · ${t.nota}` : ""}
-                    {t.conta ? ` · ${t.conta}` : ""}
+                    {t.conta ? ` · ${nomeAtualDoMetodo(cfg, t.conta)}` : ""}
                   </span>
                 </span>
                 <span className={`${styles.valor} ${entrada ? styles.entrada : styles.saida}`}>
@@ -291,7 +293,7 @@ export default function Transacoes() {
             {detalhe.conta && (
               <div className={styles.linhaDetalhe}>
                 <span>Conta/cartão</span>
-                <strong>{detalhe.conta}</strong>
+                <strong>{nomeAtualDoMetodo(cfg, detalhe.conta)}</strong>
               </div>
             )}
             {detalhe.nota && (

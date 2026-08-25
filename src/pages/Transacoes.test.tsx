@@ -9,7 +9,8 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import type { DespesaCorrente, Receita } from "../types";
+import type { ConfigConta, DespesaCorrente, Receita } from "../types";
+import { comInstituicoes, instituicao } from "../testes/instituicoes";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
 
@@ -38,9 +39,10 @@ vi.mock("../stores/veiculoStore", () => ({
     s({ dados: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] }, ...vazias }),
 }));
 
+let cfg: ConfigConta = CONFIG_PADRAO;
+
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) =>
-    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg, carregado: true, erro: false }),
 }));
 
 vi.mock("../stores/mesVisivelStore", () => ({
@@ -68,9 +70,34 @@ beforeEach(() => {
   receitas = lista<Receita>();
   despesas = lista<DespesaCorrente>();
   vazias = lista();
+  cfg = CONFIG_PADRAO;
 });
 
 describe("Transacoes", () => {
+  test("uma despesa antiga mostra o nome de hoje da conta, não o de quando foi lançada", () => {
+    // A despesa guarda "AB Gold (C)", o id que ficou de antes do rename. É a
+    // razão de a cascata de renomear ter podido desaparecer: o extrato resolve
+    // o nome na hora, em vez de o histórico ter de ser reescrito.
+    cfg = {
+      ...CONFIG_PADRAO,
+      ...comInstituicoes(instituicao("Gold Novo", "credito", { id: "AB Gold (C)" })),
+    };
+    despesas = lista<DespesaCorrente>([
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 4200,
+        data: "2026-08-10",
+        categoria: "Alimentação",
+        contaCartao: "AB Gold (C)",
+      },
+    ]);
+    desenhar();
+
+    expect(screen.getByText(/Gold Novo/)).toBeInTheDocument();
+    expect(screen.queryByText(/AB Gold \(C\)/)).toBeNull();
+  });
+
   test("monta e mostra o título", () => {
     desenhar();
     expect(screen.getByRole("heading", { name: "Transações" })).toBeInTheDocument();

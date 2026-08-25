@@ -68,6 +68,7 @@ import {
   type ResumoConta,
 } from "../utils/contas";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
 import styles from "./Cartoes.module.css";
 import Botao from "../components/Botao";
@@ -133,7 +134,7 @@ function ControlesFatura({
             <li key={p.id} className={styles.pagamento}>
               <span>
                 {p.data.slice(8, 10)}/{p.data.slice(5, 7)}
-                {p.de ? ` · ${p.de}` : ""}
+                {p.de ? ` · ${nomeAtualDoMetodo(cfg, p.de)}` : ""}
               </span>
               <span className={styles.pagamentoValor}>
                 {formatMoney(p.valor, cfg.currency)}
@@ -288,6 +289,12 @@ export default function Cartoes() {
 
   const receitas = useReceitasStore((s) => s.itens);
 
+  // O que anda por todo o lado nesta tela (chips, quadros, títulos de folha,
+  // pontas de uma transferência) é o ID da conta, que é estável e não muda
+  // quando se renomeia. Quem MOSTRA tem de resolver o nome de hoje — senão um
+  // rename só se via aqui... e nem aqui.
+  const nomeDe = (id: string) => nomeAtualDoMetodo(cfg, id);
+
   // O valor das faturas e os quatro KPIs saem de cinco domínios, não só das
   // transferências (que já eram verificadas mais abaixo). Se um deles não
   // sincroniza, "Devido no mês" mostra um número MENOR do que o real, em
@@ -437,13 +444,13 @@ export default function Cartoes() {
   async function remover(nome: string) {
     if (
       !(await confirmar(
-        `Remover "${nome}"? Lançamentos que já usam esta conta não mudam — para trocar o nome em todos, use Renomear.`,
+        `Remover "${nomeDe(nome)}"? Os lançamentos que já a usam não mudam — para trocar o nome, use Renomear.`,
       ))
     )
       return;
     try {
       await removerCartao(uid, cfg, nome);
-      mostrarToast(`"${nome}" removido`);
+      mostrarToast(`"${nomeDe(nome)}" removido`);
     } catch {
       mostrarToast("Não foi possível remover.");
     }
@@ -632,7 +639,7 @@ export default function Cartoes() {
                 onClick={() => setContaAberta(r.conta)}
               >
                 <span className={styles.quadroTopo}>
-                  <span className={styles.nome}>{r.conta}</span>
+                  <span className={styles.nome}>{nomeDe(r.conta)}</span>
                   <span className={styles.tipoBadge}>
                     {r.tipo === "credit" ? "crédito" : "débito"}
                   </span>
@@ -661,7 +668,7 @@ export default function Cartoes() {
           <ul className={styles.chips}>
             {cfg.contasCartoes.map((c) => (
               <li key={c} className={styles.chip}>
-                {c}
+                {nomeDe(c)}
                 <span className={styles.chipTipo}>
                   {cfg.tipoCartao[c] === "credit" ? "crédito" : "débito"}
                 </span>
@@ -676,7 +683,7 @@ export default function Cartoes() {
                         inputMode="numeric"
                         value={cfg.diaFechamentoFatura?.[c] ?? ""}
                         placeholder="fim do mês"
-                        aria-label={`Dia de fechamento da fatura de ${c} — vazio é o último dia do mês`}
+                        aria-label={`Dia de fechamento da fatura de ${nomeDe(c)} — vazio é o último dia do mês`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
                           void definirDiaFechamentoFatura(
@@ -697,7 +704,7 @@ export default function Cartoes() {
                         inputMode="numeric"
                         value={cfg.diaVencimentoFatura?.[c] ?? ""}
                         placeholder="—"
-                        aria-label={`Dia de vencimento da fatura de ${c}`}
+                        aria-label={`Dia de vencimento da fatura de ${nomeDe(c)}`}
                         onChange={(e) => {
                           const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
                           void definirDiaVencimentoFatura(
@@ -717,7 +724,7 @@ export default function Cartoes() {
                   type="button"
                   className={styles.chipAcao}
                   onClick={() => setRenomeando(c)}
-                  aria-label={`Renomear ${c}`}
+                  aria-label={`Renomear ${nomeDe(c)}`}
                   title="Renomear"
                 >
                   <Pencil size={14} aria-hidden />
@@ -726,7 +733,7 @@ export default function Cartoes() {
                   type="button"
                   className={`${styles.chipAcao} ${styles.chipRemover}`}
                   onClick={() => void remover(c)}
-                  aria-label={`Remover ${c}`}
+                  aria-label={`Remover ${nomeDe(c)}`}
                   title="Remover"
                 >
                   <X size={14} aria-hidden />
@@ -782,8 +789,9 @@ export default function Cartoes() {
               <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
                 <span className={styles.itemTexto}>
                   <span className={styles.itemNome}>
-                    {t.de} <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
-                    {t.para}
+                    {nomeDe(t.de)}{" "}
+                    <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
+                    {nomeDe(t.para)}
                   </span>
                   <span className={styles.itemDetalhe}>
                     {t.descricao ? `${t.descricao} · ` : ""}
@@ -801,7 +809,7 @@ export default function Cartoes() {
       <BottomSheet
         aberta={contaAberta !== null}
         aoFechar={() => setContaAberta(null)}
-        titulo={contaAberta ?? ""}
+        titulo={contaAberta ? nomeDe(contaAberta) : ""}
       >
         {resumoAberto && (
           <div className={styles.detalhes}>
@@ -892,7 +900,9 @@ export default function Cartoes() {
       <BottomSheet
         aberta={pagando !== null}
         aoFechar={() => setPagando(null)}
-        titulo={pagando ? `Pagar fatura — ${pagando.cartao} · ${rotuloMes(pagando.mes)}` : ""}
+        titulo={
+          pagando ? `Pagar fatura — ${nomeDe(pagando.cartao)} · ${rotuloMes(pagando.mes)}` : ""
+        }
       >
         {pagando && (
           <form className={styles.form} onSubmit={submeterPagamento}>
@@ -906,7 +916,13 @@ export default function Cartoes() {
               <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} required />
             </label>
             <SeletorData valor={pagarData} aoMudar={setPagarData} />
-            <Seletor rotulo="Sai de" valor={pagarDe} opcoes={contasDebito} aoMudar={setPagarDe} />
+            <Seletor
+              rotulo="Sai de"
+              valor={pagarDe}
+              opcoes={contasDebito}
+              rotuloOpcao={nomeDe}
+              aoMudar={setPagarDe}
+            />
             {contasDebito.length === 0 && (
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
             )}
@@ -920,7 +936,9 @@ export default function Cartoes() {
       <BottomSheet
         aberta={ajustando !== null}
         aoFechar={() => setAjustando(null)}
-        titulo={ajustando ? `Fatura — ${ajustando.cartao} · ${rotuloMes(ajustando.mes)}` : ""}
+        titulo={
+          ajustando ? `Fatura — ${nomeDe(ajustando.cartao)} · ${rotuloMes(ajustando.mes)}` : ""
+        }
       >
         {ajustando && (
           <form className={styles.form} onSubmit={submeterAjuste}>
@@ -941,7 +959,7 @@ export default function Cartoes() {
       <BottomSheet
         aberta={ajustandoSaldo !== null}
         aoFechar={() => setAjustandoSaldo(null)}
-        titulo={ajustandoSaldo ? `Saldo — ${ajustandoSaldo.resumo.conta}` : ""}
+        titulo={ajustandoSaldo ? `Saldo — ${nomeDe(ajustandoSaldo.resumo.conta)}` : ""}
       >
         {ajustandoSaldo && (
           <form className={styles.form} onSubmit={submeterSaldo}>
@@ -973,7 +991,7 @@ export default function Cartoes() {
           também. */}
       <RenomearFolha
         aberta={renomeando !== null}
-        nomeAtual={renomeando}
+        nomeAtual={renomeando ? nomeDe(renomeando) : null}
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
         aviso="O nome novo aparece em tudo — no que já está lançado também."
@@ -992,8 +1010,20 @@ export default function Cartoes() {
           </label>
           <SeletorData valor={tfData} aoMudar={setTfData} />
           <div className={styles.linhaDupla}>
-            <Seletor rotulo="De" valor={tfDe} opcoes={cfg.contasCartoes} aoMudar={setTfDe} />
-            <Seletor rotulo="Para" valor={tfPara} opcoes={cfg.contasCartoes} aoMudar={setTfPara} />
+            <Seletor
+              rotulo="De"
+              valor={tfDe}
+              opcoes={cfg.contasCartoes}
+              rotuloOpcao={nomeDe}
+              aoMudar={setTfDe}
+            />
+            <Seletor
+              rotulo="Para"
+              valor={tfPara}
+              opcoes={cfg.contasCartoes}
+              rotuloOpcao={nomeDe}
+              aoMudar={setTfPara}
+            />
           </div>
           <label className={styles.campo}>
             Nome (opcional)

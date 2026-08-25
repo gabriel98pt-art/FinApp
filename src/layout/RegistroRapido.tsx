@@ -31,6 +31,7 @@ import { despesasNosTotais, hojeIso, mesAtual, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
 import { ordenarLocaisPorUso } from "../utils/locais";
 import { CURRENCY_SYMBOLS, formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalDaCompra } from "../utils/parcelas";
 import {
@@ -967,7 +968,7 @@ export default function RegistroRapido() {
                   className={`${styles.conta} ${conta === c ? styles.contaAtiva : ""}`}
                   onClick={() => setConta(c)}
                 >
-                  {c}
+                  {nomeAtualDoMetodo(cfg, c)}
                 </button>
               ))}
             </div>

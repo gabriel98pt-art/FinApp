@@ -43,6 +43,7 @@ import {
 } from "./parcelas";
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
+import { nomeAtualDoMetodo } from "./instituicoes";
 
 const ACENTOS: Record<string, string> = {
   á: "a",
@@ -489,6 +490,11 @@ export function dataCurta(d: string): string {
  *  paga" que `categoriasDoMes` usa — sem ela, este intent tinha o mesmo furo
  *  que a categoria já teve: uma fixa ou parcela em débito automático no
  *  cartão não contava sem alguém marcar "pago" à mão. */
+/** Os nomes de HOJE das contas/cartões, na mesma ordem de `contasCartoes` —
+ *  que guarda os ids. É por índice que se volta de um para o outro. */
+const nomesDosCartoes = (ctx: ContextoCopiloto): string[] =>
+  ctx.cfg.contasCartoes.map((c) => nomeAtualDoMetodo(ctx.cfg, c));
+
 function totalCartaoMes(ctx: ContextoCopiloto, cartao: string, ym: YearMonth): Cents {
   const hoje = hojeDoContexto(ctx);
   let total = ctx.despesas
@@ -659,11 +665,16 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // bater aqui e cair, sem avisar, no intent agregado (cartão mais usado),
   // que responde outra pergunta.
   {
-    test: (q, ctx) => /cartao|cartoes/.test(q) && !!encontrarNaLista(q, ctx.cfg.contasCartoes, 5),
+    // A pergunta traz o nome de HOJE do cartão; o que os lançamentos guardam é
+    // o id, que pode ser o nome antigo. Procura-se pelos nomes e volta-se ao
+    // id pelo índice — as duas listas andam a par.
+    test: (q, ctx) => /cartao|cartoes/.test(q) && !!encontrarNaLista(q, nomesDosCartoes(ctx), 5),
     run: (q, ref, ctx) => {
-      const cartao = encontrarNaLista(q, ctx.cfg.contasCartoes, 5)!;
+      const nomes = nomesDosCartoes(ctx);
+      const nome = encontrarNaLista(q, nomes, 5)!;
+      const cartao = ctx.cfg.contasCartoes[nomes.indexOf(nome)];
       const total = totalCartaoMes(ctx, cartao, ref.ym);
-      return `Gastou ${b(formatMoney(total, ctx.cfg.currency))} no cartão ${b(cartao)} em ${ref.label}.`;
+      return `Gastou ${b(formatMoney(total, ctx.cfg.currency))} no cartão ${b(nome)} em ${ref.label}.`;
     },
   },
   // cartões agregado / mais usado
@@ -673,10 +684,13 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const cartoes = ctx.cfg.contasCartoes;
       if (!cartoes.length) return "Ainda não há cartões configurados.";
       const linhas = cartoes
-        .map((cartao) => ({ cartao, total: totalCartaoMes(ctx, cartao, ref.ym) }))
+        .map((cartao) => ({
+          nome: nomeAtualDoMetodo(ctx.cfg, cartao),
+          total: totalCartaoMes(ctx, cartao, ref.ym),
+        }))
         .sort((a, b2) => b2.total - a.total);
       if (!linhas[0].total) return `Não há despesas em nenhum cartão em ${ref.label}.`;
-      return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].cartao)}, com ${b(formatMoney(linhas[0].total, ctx.cfg.currency))} em despesas.`;
+      return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].nome)}, com ${b(formatMoney(linhas[0].total, ctx.cfg.currency))} em despesas.`;
     },
   },
   // receita por fonte específica

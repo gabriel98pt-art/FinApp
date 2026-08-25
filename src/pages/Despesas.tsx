@@ -50,6 +50,7 @@ import { liquidoDaDespesa } from "../utils/reembolsos";
 import { despesaRealizadaMes, primeiroMesComDespesa } from "../utils/resumoMensal";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import type { Cents, DespesaFixa, Id } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
 import styles from "./Despesas.module.css";
@@ -547,7 +548,7 @@ export default function Despesas() {
                           <span className={styles.itemDetalhe}>
                             {f.categoria}
                             {f.nota ? ` · ${f.nota}` : ""}
-                            {f.contaCartao ? ` · ${f.contaCartao}` : ""}
+                            {f.contaCartao ? ` · ${nomeAtualDoMetodo(cfg, f.contaCartao)}` : ""}
                             {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
                             {f.autoDebit && (
                               <>
@@ -634,7 +635,11 @@ export default function Despesas() {
             valor={dfContaCartao}
             opcoes={cfg.contasCartoes}
             aoMudar={setDfContaCartao}
-            rotuloOpcao={(c) => (cfg.tipoCartao[c] === "credit" ? `${c} · crédito` : c)}
+            rotuloOpcao={(c) =>
+              cfg.tipoCartao[c] === "credit"
+                ? `${nomeAtualDoMetodo(cfg, c)} · crédito`
+                : nomeAtualDoMetodo(cfg, c)
+            }
             rotuloVazio="Sem conta"
           />
           <div className={styles.linhaDupla}>

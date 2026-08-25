@@ -43,6 +43,7 @@ import {
 } from "../utils/calendario";
 import { hojeIso, mesAtual, rotuloMes, somarDias, somarMeses } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import type { Cents, YearMonth } from "../types";
 import styles from "./Calendario.module.css";
 import Botao from "../components/Botao";
@@ -102,7 +103,11 @@ export default function Calendario() {
   function vencimentosDoMes(ym: YearMonth): Vencimento[] {
     const restantePorCartao = cfg.contasCartoes
       .filter((c) => cfg.tipoCartao[c] === "credit")
-      .map((c) => ({ cartao: c, restante: calcularFatura(c, ym, dadosFatura, cfg).restante }));
+      .map((c) => ({
+        cartao: c,
+        nome: nomeAtualDoMetodo(cfg, c),
+        restante: calcularFatura(c, ym, dadosFatura, cfg).restante,
+      }));
     return [
       ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], ym, mesReal, hoje),
       ...vencimentosDeParcelas(parcelas, ym, cfg.diaVencimentoFatura, mesReal, hoje),
