@@ -107,6 +107,13 @@ export function transacoesDoMes(
    *  débito automático que vence dia 27 não aparece no extrato antes do dia
    *  27 — sem isto, ela aparecia já no dia 1, com a data dela no futuro. */
   hoje?: IsoDate,
+  /** O nome de hoje de uma conta, a partir do id que o lançamento guarda (ver
+   *  `nomeAtualDoMetodo`). Só o título de uma transferência precisa disto — é
+   *  o único texto aqui que EMBUTE o nome de uma conta em vez de o deixar num
+   *  campo à parte; sem ele, uma transferência antiga continuava a dizer o
+   *  nome que a conta tinha no dia em que foi feita. Ausente = o id, que é o
+   *  que este ficheiro sempre devolveu. */
+  nomeDaConta: (id: string) => string = (id) => id,
 ): Transacao[] {
   const itens: Transacao[] = [];
   // Mês já fechado (passado): mesma regra de `contribuicaoFixasMes` e das
@@ -223,7 +230,7 @@ export function transacoesDoMes(
       ordemId: t.id,
       origem: "transferencia",
       data: t.data,
-      titulo: t.descricao || `${t.de} → ${t.para}`,
+      titulo: t.descricao || `${nomeDaConta(t.de)} → ${nomeDaConta(t.para)}`,
       categoria: "Transferência",
       conta: t.de,
       nota: t.nota,

@@ -486,6 +486,39 @@ describe("transacoesDoMes", () => {
     });
   });
 
+  it("o título de uma transferência antiga usa o nome de hoje das contas", () => {
+    // Guardado no lançamento está o id da conta, que não muda com um rename —
+    // é o único texto daqui que EMBUTE um nome de conta, e por isso o único
+    // que precisa de resolver.
+    const dados: DadosTransacoes = {
+      ...vazio,
+      transferencias: [{ id: "t1", data: "2026-07-07", de: "A", para: "B", valor: 100 }],
+    };
+    const semResolver = transacoesDoMes(dados, "2026-07");
+    expect(semResolver[0].titulo).toBe("A → B");
+
+    const resolvido = transacoesDoMes(dados, "2026-07", undefined, undefined, (id) =>
+      id === "A" ? "Conta Nova" : "Cartão Novo",
+    );
+    expect(resolvido[0].titulo).toBe("Conta Nova → Cartão Novo");
+  });
+
+  it("uma transferência com nome próprio continua a mostrar esse nome", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        transferencias: [
+          { id: "t1", data: "2026-07-07", de: "A", para: "B", valor: 100, descricao: "Poupança" },
+        ],
+      },
+      "2026-07",
+      undefined,
+      undefined,
+      () => "NUNCA",
+    );
+    expect(t[0].titulo).toBe("Poupança");
+  });
+
   it("na despesa de veículo a nota é o próprio título — não vem repetida", () => {
     const t = transacoesDoMes(
       {

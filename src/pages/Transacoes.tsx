@@ -117,7 +117,9 @@ export default function Transacoes() {
     useVeiculoStore((s) => s.erro),
   ].some(Boolean);
 
-  const itens = transacoesDoMes(dados, mes, mesAtual(), hojeIso());
+  const itens = transacoesDoMes(dados, mes, mesAtual(), hojeIso(), (id) =>
+    nomeAtualDoMetodo(cfg, id),
+  );
   // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
   // refletem só o que está visível, não o mês inteiro por baixo dele.
   const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
