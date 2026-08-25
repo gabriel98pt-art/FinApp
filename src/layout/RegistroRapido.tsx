@@ -29,7 +29,7 @@ import { mostrarToast } from "../stores/toastStore";
 import { useUiStore, type TipoRegistro } from "../stores/uiStore";
 import { despesasNosTotais, hojeIso, mesAtual, mesDe } from "../utils/calculos";
 import { corDaCategoriaVisual, corDoIconeSobre } from "../utils/categoriaVisual";
-import { formatMoney } from "../utils/money";
+import { CURRENCY_SYMBOLS, formatMoney } from "../utils/money";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { totalDaCompra } from "../utils/parcelas";
 import {
@@ -107,6 +107,10 @@ export default function RegistroRapido() {
   const parcelas = useParcelasStore((s) => s.itens);
   const cfg = useCfgStore((s) => s.cfg);
   const veiculo = useVeiculoStore((s) => s.dados);
+  /** Símbolo da moeda da conta — os rótulos deste formulário traziam "€" fixo
+   *  no texto, e quem usa BRL/USD/GBP via "Valor (€)" ao lado de valores já
+   *  formatados em R$ pelo `formatMoney`. Mesma tabela que ele usa. */
+  const simbolo = CURRENCY_SYMBOLS[cfg.currency];
 
   const [descricao, setDescricao] = useState("");
   const [nota, setNota] = useState("");
@@ -758,7 +762,7 @@ export default function RegistroRapido() {
               className={`${styles.subTipo} ${modoCusto === "unidade" ? styles.subTipoAtivo : ""}`}
               onClick={() => setModoCusto("unidade")}
             >
-              {dimensao === "eletrico" ? "€/kWh" : "€/litro"}
+              {dimensao === "eletrico" ? `${simbolo}/kWh` : `${simbolo}/litro`}
             </button>
           </div>
         )}
@@ -768,7 +772,7 @@ export default function RegistroRapido() {
         <div className={styles.linhaDupla}>
           {!ehParcelada && !(tipo === "carga" && modoCusto === "unidade") && (
             <label className={styles.campo}>
-              {tipo === "carga" ? "Custo total (€)" : "Valor (€)"}
+              {tipo === "carga" ? `Custo total (${simbolo})` : `Valor (${simbolo})`}
               <CampoMoeda
                 valor={valorTexto}
                 aoMudar={(v) => {
@@ -789,7 +793,9 @@ export default function RegistroRapido() {
 
           {tipo === "carga" && modoCusto === "unidade" && (
             <label className={styles.campo}>
-              {dimensao === "eletrico" ? "Preço por kWh (€)" : "Preço por litro (€)"}
+              {dimensao === "eletrico"
+                ? `Preço por kWh (${simbolo})`
+                : `Preço por litro (${simbolo})`}
               <CampoMoeda
                 valor={dimensao === "eletrico" ? precoKwh : precoLitro}
                 aoMudar={dimensao === "eletrico" ? setPrecoKwh : setPrecoLitro}
@@ -1080,7 +1086,9 @@ export default function RegistroRapido() {
           </div>
 
           <label className={styles.campo}>
-            {modoValorParcela === "parcela" ? "Valor parcela (€)" : "Valor total (€)"}
+            {modoValorParcela === "parcela"
+              ? `Valor parcela (${simbolo})`
+              : `Valor total (${simbolo})`}
             <CampoMoeda
               valor={valorTexto}
               aoMudar={setValorTexto}
