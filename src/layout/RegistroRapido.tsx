@@ -134,7 +134,6 @@ export default function RegistroRapido() {
   const [modoCusto, setModoCusto] = useState<"total" | "unidade">("total");
   const [precoKwh, setPrecoKwh] = useState<Cents | null>(null); // só modo €/kWh
   const [precoLitro, setPrecoLitro] = useState<Cents | null>(null); // só modo €/litro
-  const [sessao, setSessao] = useState(""); // só abastecimento elétrico
   // item 24: despesa parcelada direto daqui (não é um tipo novo no radiogroup)
   const [parcelada, setParcelada] = useState(false);
   const [numParcelas, setNumParcelas] = useState("3");
@@ -255,7 +254,6 @@ export default function RegistroRapido() {
         setModoCusto("total");
         setPrecoKwh(null);
         setPrecoLitro(null);
-        setSessao("");
         setParcelada(false);
         setNumParcelas("3");
         setDiaVencimentoParcela("");
@@ -284,7 +282,6 @@ export default function RegistroRapido() {
       setModoCusto("total");
       setPrecoKwh(null);
       setPrecoLitro(null);
-      setSessao("");
       setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
@@ -414,7 +411,6 @@ export default function RegistroRapido() {
           custo,
           local,
           contaCartao: conta || undefined,
-          sessao: dimensao === "eletrico" ? sessao.trim() || undefined : undefined,
           nota: notaFinal,
         });
       } else if (tipo === "despesaVeiculo") {
@@ -875,13 +871,6 @@ export default function RegistroRapido() {
         )}
 
         <SeletorData valor={data} aoMudar={setData} />
-
-        {tipo === "carga" && dimensao === "eletrico" && (
-          <label className={styles.campo}>
-            Sessão (opcional)
-            <input value={sessao} onChange={(e) => setSessao(e.target.value)} />
-          </label>
-        )}
 
         {lado !== "carga" && (
           <SeletorCategoria
