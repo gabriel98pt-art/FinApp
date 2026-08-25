@@ -208,18 +208,26 @@
     /* Já não encosta em baixo: ganha a borda e os cantos que faltavam. */
     border-bottom: 1px solid var(--brd);
     border-radius: var(--r-sheet);
-    /* Sem o pegador, o título precisa do respiro que ele dava. */
-    padding-top: 24px;
     /* Mesma custom property, composta de outra maneira: é por isto que a mola
        escreve `--folha-y` em vez do `transform` inteiro. Centrado, `--folha-y`
        continua a ser "quanto falta para sair pela borda de baixo". */
     transform: translate(-50%, calc(-50% + var(--folha-y))) scale(var(--folha-escala));
   }
 
-  /* Arrastar para fechar é gesto de dedo: o Registro Rápido tira o
-     `arrastavel` nesta largura, e o pegador ficaria a anunciar um gesto que
-     não existe. Fecha-se pelo véu, como nas outras folhas não-arrastáveis. */
-  .folhaGrande .pegador {
+  /* Arrastar para fechar é gesto de dedo. O pegador é a barrinha que anuncia
+     esse gesto num telemóvel; com rato não diz nada a ninguém — fecha-se pelo
+     véu ou pelo Esc.
+
+     Escondia-se só na folha grande (o Registro Rápido, que ainda por cima tira
+     o `arrastavel` nesta largura), e por isso o mesmo app mostrava dois
+     desenhos diferentes no mesmo monitor: a fatura de um cartão com barrinha,
+     o Registro Rápido sem. Agora sai em todas — e todas ganham o respiro em
+     cima que era o pegador que dava. */
+  .folha {
+    padding-top: 24px;
+  }
+
+  .pegador {
     display: none;
   }
 }
