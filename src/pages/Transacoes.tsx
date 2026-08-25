@@ -120,8 +120,15 @@ export default function Transacoes() {
   // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
   // refletem só o que está visível, não o mês inteiro por baixo dele.
   const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
-  const entradas = itensFiltrados.filter((t) => t.entrada).reduce((s, t) => s + t.valor, 0);
-  const saidas = itensFiltrados.filter((t) => !t.entrada).reduce((s, t) => s + t.valor, 0);
+  // `entraDinheiro`, não `t.entrada`: um reembolso é despesa de valor negativo
+  // (ver utils/transacoes.ts) — sem isto ficava a somar ao lado errado, com o
+  // sinal ao contrário (ex.: reembolso de € 75 entrava em "Saídas: -€ 75,00").
+  const entradas = itensFiltrados
+    .filter((t) => entraDinheiro(t))
+    .reduce((s, t) => s + Math.abs(t.valor), 0);
+  const saidas = itensFiltrados
+    .filter((t) => !entraDinheiro(t))
+    .reduce((s, t) => s + Math.abs(t.valor), 0);
   // O número que faltava: sobrou ou faltou dinheiro no que está a ser visto.
   // Derivado das mesmas duas somas acima, portanto segue o filtro tal como
   // elas. Ficava no lugar dele uma contagem de linhas — que a lista já mostra
