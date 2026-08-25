@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { Plus, Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
@@ -107,6 +107,7 @@ export default function Despesas() {
   // entre as abas desta — Despesas e Fixas andam sempre no mesmo mês.
   const mes = useMesVisivelStore((s) => s.mes);
   const mesReal = mesAtual();
+  const hoje = hojeIso();
   // Já nasce na semana de hoje, igual ao mês — sem isto, a primeira vez que
   // se troca para "Semana" abria sempre na primeira do mês em vez da atual.
   const [semanaIdx, setSemanaIdx] = useState(() =>
@@ -119,19 +120,19 @@ export default function Despesas() {
   //
   // Total do mês/geral inclui fixas gerais + parcelas + veículo (Parte A) —
   // fonte única em utils/resumoMensal.ts
-  const totalDoMesComVeiculo = despesaRealizadaMes(
-    itens,
-    despesasFixas,
-    parcelas,
-    veiculo,
-    mes,
-    mesReal,
-    hojeIso(),
+  // useMemo (achado da auditoria de Performance): `despesaRealizadaMes` varre
+  // 4 domínios inteiros e é chamada 5x por render (aqui, em `totalMesAnterior`
+  // e 3x dentro de `media`, um por mês) — sem isto, qualquer campo local
+  // (ordem, semana, aba) ou onValue do RTDB em qualquer domínio recalculava
+  // tudo de novo.
+  const totalDoMesComVeiculo = useMemo(
+    () => despesaRealizadaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal, hoje),
+    [itens, despesasFixas, parcelas, veiculo, mes, mesReal, hoje],
   );
   // Card "Maior categoria": a maior fatia do mês fora veículo e aluguel — as
   // duas lideram quase sempre e não dizem nada de novo (ver o util).
   const maiorCategoria = maiorCategoriaRelevante(
-    despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal, hojeIso()),
+    despesaPorCategoriaMes(itens, despesasFixas, parcelas, veiculo, mes, mesReal, hoje),
   );
   // Teto da maior categoria (seção 4.8), se houver um configurado — mesma
   // base de cálculo do orçamento (correntes + parcelas, sem fixas/veículo:
@@ -139,7 +140,7 @@ export default function Despesas() {
   // nunca a % — o valor já mostrado no cartão é o total mais amplo do resumo
   // por categoria, os dois números não são a mesma coisa.
   const statusMaiorCategoria = maiorCategoria
-    ? statusOrcamentoMes(itens, parcelas, cfg.orcamentos, mes, mesReal, hojeIso()).find(
+    ? statusOrcamentoMes(itens, parcelas, cfg.orcamentos, mes, mesReal, hoje).find(
         (s) => s.categoria === maiorCategoria.categoria,
       )
     : undefined;
@@ -153,14 +154,9 @@ export default function Despesas() {
   // razão de "Maior categoria": uma semana contra outra é amostra pequena
   // demais e o número saltava sem querer dizer nada.
   const mesAnterior = somarMeses(mes, -1);
-  const totalMesAnterior = despesaRealizadaMes(
-    itens,
-    despesasFixas,
-    parcelas,
-    veiculo,
-    mesAnterior,
-    mesReal,
-    hojeIso(),
+  const totalMesAnterior = useMemo(
+    () => despesaRealizadaMes(itens, despesasFixas, parcelas, veiculo, mesAnterior, mesReal, hoje),
+    [itens, despesasFixas, parcelas, veiculo, mesAnterior, mesReal, hoje],
   );
   const variacao = variacaoMensal(totalDoMesComVeiculo, totalMesAnterior);
 
@@ -177,16 +173,20 @@ export default function Despesas() {
   // Fica sempre mensal, mesmo com "Semana" escolhida: três semanas são amostra
   // pequena demais, igual ao que já vale para "Maior categoria" e "vs mês
   // passado".
-  const media = mediaDeMeses(
-    mesesRecentes(3, mesAnterior),
-    primeiroMesComDespesa(itens, despesasFixas, parcelas, veiculo),
-    (m) => despesaRealizadaMes(itens, despesasFixas, parcelas, veiculo, m, mesReal, hojeIso()),
+  const media = useMemo(
+    () =>
+      mediaDeMeses(
+        mesesRecentes(3, mesAnterior),
+        primeiroMesComDespesa(itens, despesasFixas, parcelas, veiculo),
+        (m) => despesaRealizadaMes(itens, despesasFixas, parcelas, veiculo, m, mesReal, hoje),
+      ),
+    [itens, despesasFixas, parcelas, veiculo, mesAnterior, mesReal, hoje],
   );
 
   // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
   // na ponta mais perto dela, quando hoje está fora do mês — ver `indiceDaSemana`).
   const semanas = semanasDoMes(mes, cfg.diaInicioSemana);
-  const idxPadrao = indiceDaSemana(semanas, hojeIso());
+  const idxPadrao = indiceDaSemana(semanas, hoje);
   const [mesDaSemana, setMesDaSemana] = useState(mes);
   if (mesDaSemana !== mes) {
     setMesDaSemana(mes);

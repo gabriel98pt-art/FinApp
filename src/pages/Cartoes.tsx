@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { ArrowLeftRight, CreditCard, Pencil, Plus, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
@@ -340,28 +340,42 @@ export default function Cartoes() {
   const [tfDescricao, setTfDescricao] = useState("");
   const [tfNota, setTfNota] = useState("");
 
-  const dados = montarDadosFatura({
-    despesas,
-    despesasFixas,
-    transferencias,
-    parcelas,
-    veiculo,
-    receitas,
-  });
+  // useMemo (achado da auditoria de Performance): a tela tem 9 useState de
+  // formulário local (renomear, adicionar cartão, pagar fatura, transferência)
+  // — sem isto, digitar uma letra em qualquer um recalculava a fatura de TODOS
+  // os cartões duas vezes (mês atual + seguinte), além de a cada onValue do
+  // RTDB em qualquer domínio, mesmo sem relação com cartões.
+  const dados = useMemo(
+    () =>
+      montarDadosFatura({ despesas, despesasFixas, transferencias, parcelas, veiculo, receitas }),
+    [despesas, despesasFixas, transferencias, parcelas, veiculo, receitas],
+  );
 
-  const dadosContas: DadosContas = {
-    receitas,
-    despesasCorrentes: despesas,
-    despesasFixas,
-    despesasFixasVeiculo: veiculo.despesasFixas,
-    transferencias,
-    cargas: veiculo.cargas,
-    despesasVeiculo: veiculo.despesas,
-  };
+  const dadosContas: DadosContas = useMemo(
+    () => ({
+      receitas,
+      despesasCorrentes: despesas,
+      despesasFixas,
+      despesasFixasVeiculo: veiculo.despesasFixas,
+      transferencias,
+      cargas: veiculo.cargas,
+      despesasVeiculo: veiculo.despesas,
+    }),
+    [receitas, despesas, despesasFixas, veiculo, transferencias],
+  );
 
-  const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
-  const contasDebito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] !== "credit");
-  const faturas = cartoesCredito.map((c) => calcularFatura(c, mes, dados, cfg));
+  const cartoesCredito = useMemo(
+    () => cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit"),
+    [cfg],
+  );
+  const contasDebito = useMemo(
+    () => cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] !== "credit"),
+    [cfg],
+  );
+  const faturas = useMemo(
+    () => cartoesCredito.map((c) => calcularFatura(c, mes, dados, cfg)),
+    [cartoesCredito, mes, dados, cfg],
+  );
   // A fatura do mês SEGUINTE é a que o ciclo do mês exibido está a formar
   // (ver `cicloDaFatura`): é ela que dá sentido aos gastos lançados agora no
   // cartão, e é o número que o sino do header mostra quando o mês exibido é o
@@ -369,8 +383,14 @@ export default function Cartoes() {
   // que nem sequer inclui as parcelas em débito automático que vão cair nessa
   // mesma fatura, e por isso nunca batia com nada.
   const mesSeguinte = somarMeses(mes, 1);
-  const faturasSeguintes = cartoesCredito.map((c) => calcularFatura(c, mesSeguinte, dados, cfg));
-  const resumos = resumosDasContas(dadosContas, cfg, mes, hojeIso());
+  const faturasSeguintes = useMemo(
+    () => cartoesCredito.map((c) => calcularFatura(c, mesSeguinte, dados, cfg)),
+    [cartoesCredito, mesSeguinte, dados, cfg],
+  );
+  const resumos = useMemo(
+    () => resumosDasContas(dadosContas, cfg, mes, hojeIso()),
+    [dadosContas, cfg, mes],
+  );
   const resumoAberto = resumos.find((r) => r.conta === contaAberta) ?? null;
   const faturaAberta =
     resumoAberto?.tipo === "credit"

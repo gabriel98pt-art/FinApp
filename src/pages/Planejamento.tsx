@@ -1,4 +1,4 @@
-import { createElement, useState, type FormEvent } from "react";
+import { createElement, useMemo, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { Check, Plus, Target, X, XCircle } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
@@ -99,7 +99,14 @@ export default function Planejamento() {
 
   // ---- aba Orçamento ----
   const [folhaTotal, setFolhaTotal] = useState(false);
-  const status = statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, real, hoje);
+  // useMemo (achado da auditoria de Performance): varre despesas + parcelas
+  // inteiras a cada render — sem isto, digitar num campo local (o valor do
+  // orçamento total, um fundo novo) ou qualquer onValue do RTDB recalculava
+  // o orçamento de TODAS as categorias.
+  const status = useMemo(
+    () => statusOrcamentoMes(despesas, parcelas, cfg.orcamentos, mes, real, hoje),
+    [despesas, parcelas, cfg.orcamentos, mes, real, hoje],
+  );
   const gastoTotal = status.reduce((s, c) => s + c.gasto, 0);
   const totalPlanejado = cfg.orcamentoTotalMensal;
 

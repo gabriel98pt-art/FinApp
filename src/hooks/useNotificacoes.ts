@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useCfgStore } from "../stores/cfgStore";
 import { hojeIso, mesAtual } from "../utils/calculos";
 import { todasNotificacoes, type Notificacao } from "../utils/notificacoes";
@@ -13,9 +14,19 @@ import { useDadosFatura } from "./useDadosFatura";
 export function useNotificacoes(): Notificacao[] {
   const cfg = useCfgStore((s) => s.cfg);
   const dados = useDadosFatura();
+  const hoje = hojeIso();
+  const mes = mesAtual();
 
-  return todasNotificacoes(hojeIso(), mesAtual(), dados, cfg, dados.parcelas, [
-    ...dados.despesasFixas,
-    ...dados.despesasFixasVeiculo,
-  ]);
+  // useMemo (achado da auditoria de Performance): maior impacto do app —
+  // este hook está montado no Header, então roda em TODA página. Sem isto,
+  // qualquer onValue do RTDB em qualquer domínio (mesmo sem relação com
+  // notificações) somava tudo de novo em toda tela.
+  return useMemo(
+    () =>
+      todasNotificacoes(hoje, mes, dados, cfg, dados.parcelas, [
+        ...dados.despesasFixas,
+        ...dados.despesasFixasVeiculo,
+      ]),
+    [hoje, mes, dados, cfg],
+  );
 }
