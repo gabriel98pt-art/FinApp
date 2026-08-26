@@ -113,35 +113,40 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
  *  outra categoria" (`SeletorCor`) fácil de escanear — famílias inteiras
  *  ficam juntas em vez de espalhadas pela grade.
  *
- *  3 cores novas nesta leva (mesmo pedido): um amarelo mais vivo que o
- *  amarelo-ouro que já existia, um verde vivo, e um vermelho mais claro que
- *  o vermelho padrão ("sangue claro"). NENHUMA das 18 cores antigas mudou de
- *  valor — só de posição — então elas continuam com a verificação de
- *  protanopia/deuteranopia/tritanopia (Machado/Oliveira/Fialho 2009) já
- *  documentada nos commits anteriores. As 3 novas NÃO passaram por essa
- *  simulação (fora do escopo deste pedido); se alguma colisão aparecer na
- *  prática, é candidata a ajuste numa auditoria de Design & Cor futura.
+ *  3 cores novas na leva de 26/08: um amarelo mais vivo que o amarelo-ouro
+ *  que já existia, um vermelho mais claro que o vermelho padrão ("sangue
+ *  claro"), e (por um instante só) um verde vivo. NENHUMA das 18 cores
+ *  originais mudou de valor — só de posição — então elas continuam com a
+ *  verificação de protanopia/deuteranopia/tritanopia (Machado/Oliveira/
+ *  Fialho 2009) já documentada nos commits anteriores. As cores novas NÃO
+ *  passaram por essa simulação (fora do escopo destes pedidos); se alguma
+ *  colisão aparecer na prática, é candidata a ajuste numa auditoria de
+ *  Design & Cor futura.
  *
- *  O verde vivo reabre de propósito uma porta que uma decisão anterior do
- *  Gabriel tinha fechado ("verde só na categoria Receita" — ver
- *  `COR_SEMANTICA.Receita`, é por isso que só #22c55e entra, sem duas ou três
- *  variações): pedido novo e explícito dele, dessa vez pro uso geral. Ficou
- *  com luminosidade/saturação diferente do verde-menta claro da Receita
- *  (#4ade80) de propósito, pra não ficarem visualmente idênticos. */
+ *  O verde vivo (#22c55e) chegou a entrar reabrindo de propósito "verde só
+ *  na categoria Receita" (ver `COR_SEMANTICA.Receita`) — pedido explícito do
+ *  Gabriel na hora. Voltou atrás no MESMO dia: a regra é imutável mesmo, e
+ *  ele pediu o verde de volta pra fora, junto com o marinho (#1e40af), sem
+ *  motivo ligado a colisão — só preferência. Entram no lugar dos dois um
+ *  marrom café (não tinha nenhum marrom "puro" na paleta, só terracota e
+ *  mostarda, que são mais laranja/amarelo) e um índigo (preenche o vão real
+ *  entre o azul e o violeta — não é só "azul mais escuro" como o marinho
+ *  era, é matiz diferente). Guardado aqui pra não repetir a mesma pergunta
+ *  duas vezes: o pedido de reabrir "verde geral" já foi feito e já foi
+ *  revertido nesta mesma data. */
 export const PALETA_CATEGORIA = [
   // Vermelhos
   "#ef4444", // vermelho
-  "#f87171", // vermelho sangue claro — novo
+  "#f87171", // vermelho sangue claro
   "#9f1239", // vinho
   // Laranja / terracota
   "#f97316", // laranja
   "#c2410c", // terracota
-  // Amarelo / mostarda
-  "#facc15", // amarelo vivo — novo
+  // Amarelo / mostarda / marrom
+  "#facc15", // amarelo vivo
   "#eab308", // amarelo-ouro
   "#a16207", // mostarda
-  // Verde
-  "#22c55e", // verde vivo — novo
+  "#92400e", // marrom café — novo, no lugar do verde vivo
   // Turquesa / petróleo
   "#00aeb2", // turquesa
   "#14b8a6", // esmeralda/petróleo claro
@@ -149,9 +154,9 @@ export const PALETA_CATEGORIA = [
   // Ciano / azul-celeste
   "#06b6d4", // ciano
   "#0ea5e9", // azul-celeste
-  // Azul
+  // Azul / índigo
   "#3b82f6", // azul
-  "#1e40af", // marinho
+  "#6366f1", // índigo — novo, no lugar do marinho
   // Violeta
   "#8b5cf6", // violeta
   "#bd4bd6", // magenta-violeta
