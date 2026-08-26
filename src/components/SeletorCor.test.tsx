@@ -83,6 +83,46 @@ describe("SeletorCor", () => {
     ).toBeDisabled();
   });
 
+  test("coresEmUso marca (sem desabilitar) uma cor já usada por outra categoria", () => {
+    const aoEscolher = vi.fn();
+    render(
+      <SeletorCor
+        aberta
+        aoFechar={vi.fn()}
+        titulo="Cor"
+        valor=""
+        aoEscolher={aoEscolher}
+        coresEmUso={["#06b6d4"]}
+      />,
+    );
+
+    const botao = screen.getByRole("button", { name: "Cor #06b6d4, já usada por outra categoria" });
+    expect(botao).not.toBeDisabled();
+
+    fireEvent.click(botao);
+    expect(aoEscolher).toHaveBeenCalledWith("#06b6d4");
+  });
+
+  test("a própria cor atual não é marcada como 'em uso por outra categoria'", () => {
+    render(
+      <SeletorCor
+        aberta
+        aoFechar={vi.fn()}
+        titulo="Cor"
+        valor="#06b6d4"
+        aoEscolher={vi.fn()}
+        coresEmUso={["#06b6d4"]}
+      />,
+    );
+
+    // Aparece com o rótulo normal (é a cor ATIVA desta categoria) — o aviso
+    // de "outra categoria" seria enganoso aqui.
+    expect(screen.getByRole("button", { name: "Cor #06b6d4" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cor #06b6d4, já usada por outra categoria" }),
+    ).toBeNull();
+  });
+
   test('"Cor automática" nunca é afetada pela checagem de contraste', () => {
     const aoEscolher = vi.fn();
     render(

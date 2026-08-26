@@ -110,15 +110,16 @@ export function iconePorId(id: string | undefined): LucideIcon | null {
   return ICONES_CATEGORIA.find((i) => i.id === id)?.Icone ?? null;
 }
 
-/** Paleta do seletor de cor — grade de 6 colunas × 4 linhas. As 3 primeiras
- *  linhas (18 matizes: vivas quente→fria, vivas que preenchem os intervalos
- *  da 1ª linha, tons profundos/terrosos) vêm de `PALETA_CATEGORIA`
- *  (`utils/coresCategoria.ts`) — a MESMA lista que a auto-atribuição usa,
- *  unificada pra acabar com a divergência que existia antes (duas paletas
- *  diferentes, uma pra cada caso). Só a 4ª linha, os neutros, é própria
- *  daqui: fazem sentido numa escolha deliberada no seletor manual, mas uma
- *  categoria automática sair cinza pareceria "sem cor escolhida", não uma
- *  cor de propósito — por isso ficam de fora do fallback por hash. */
+/** Paleta do seletor de cor — grade de 6 colunas, tantas linhas quantas
+ *  couberem (a grade só embrulha, não precisa fechar retângulo). As 21
+ *  matizes agrupadas por família (vermelhos → magenta/rosa) vêm de
+ *  `PALETA_CATEGORIA` (`utils/coresCategoria.ts`) — a MESMA lista que a
+ *  auto-atribuição usa, unificada pra acabar com a divergência que existia
+ *  antes (duas paletas diferentes, uma pra cada caso). Só a última linha, os
+ *  neutros, é própria daqui: fazem sentido numa escolha deliberada no
+ *  seletor manual, mas uma categoria automática sair cinza pareceria "sem
+ *  cor escolhida", não uma cor de propósito — por isso ficam de fora do
+ *  fallback por hash. */
 export const CORES_CATEGORIA = [
   ...PALETA_CATEGORIA,
   // neutros — escuro ao claro

@@ -15,7 +15,12 @@ const CONTRASTE_MINIMO = 4.5;
  *  vira texto/contorno sobre um fundo fixo (personalização de cor do app,
  *  ver `PainelCoresApp`). Sem essa prop o seletor de cor de categoria
  *  continua oferecendo a paleta inteira, como sempre: lá a cor é só o fundo
- *  de uma bolha, e `corDoIconeSobre` já garante o ícone legível por cima. */
+ *  de uma bolha, e `corDoIconeSobre` já garante o ícone legível por cima.
+ *
+ *  `coresEmUso`, se passado, marca com um pontinho discreto qualquer cor já
+ *  usada por OUTRA categoria (pedido do Gabriel, 26/08: evitar repetir cor
+ *  sem querer). Não impede escolher — só avisa; quem chama decide o que
+ *  conta como "outra" (normalmente as demais categorias da mesma lista). */
 export default function SeletorCor({
   aberta,
   aoFechar,
@@ -24,6 +29,7 @@ export default function SeletorCor({
   aoEscolher,
   nivel,
   corDeFundo,
+  coresEmUso,
 }: {
   aberta: boolean;
   aoFechar: () => void;
@@ -32,6 +38,7 @@ export default function SeletorCor({
   aoEscolher: (cor: string | null) => void;
   nivel?: number;
   corDeFundo?: string[];
+  coresEmUso?: string[];
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
@@ -42,13 +49,20 @@ export default function SeletorCor({
         {CORES_CATEGORIA.map((c) => {
           const reprovada =
             !!corDeFundo && corDeFundo.some((fundo) => razaoContraste(c, fundo) < CONTRASTE_MINIMO);
+          const emUso = c !== valor && !!coresEmUso?.includes(c);
           return (
             <button
               key={c}
               type="button"
-              className={`${styles.cor} ${c === valor ? styles.corAtiva : ""} ${reprovada ? styles.corReprovada : ""}`}
+              className={`${styles.cor} ${c === valor ? styles.corAtiva : ""} ${reprovada ? styles.corReprovada : ""} ${emUso ? styles.corEmUso : ""}`}
               style={{ background: c }}
-              aria-label={reprovada ? `Cor ${c}, contraste insuficiente` : `Cor ${c}`}
+              aria-label={
+                reprovada
+                  ? `Cor ${c}, contraste insuficiente`
+                  : emUso
+                    ? `Cor ${c}, já usada por outra categoria`
+                    : `Cor ${c}`
+              }
               aria-pressed={c === valor}
               aria-disabled={reprovada}
               disabled={reprovada}

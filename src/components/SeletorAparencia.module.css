@@ -73,6 +73,22 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
+/* Pontinho discreto: esta cor já pertence a outra categoria (item 26/08) —
+   avisa sem impedir de escolher, por isso não usa o mesmo tratamento de
+   .corReprovada (que apaga a cor e desativa o botão). Borda na cor de fundo
+   do app pra o ponto se destacar em cima de qualquer cor da grade. */
+.corEmUso::after {
+  content: "";
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--txt);
+  border: 1.5px solid var(--bg);
+}
+
 .limpar {
   display: block;
   width: 100%;

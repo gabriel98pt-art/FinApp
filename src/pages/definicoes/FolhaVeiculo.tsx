@@ -7,6 +7,7 @@ import SeletorCor from "../../components/SeletorCor";
 import FolhaCategorias from "./FolhaCategorias";
 import { atualizarConfig, definirCorCategoria } from "../../services/cfgService";
 import { mostrarToast } from "../../stores/toastStore";
+import { corDaCategoriaVisual } from "../../utils/categoriaVisual";
 import { TIPOS_VEICULO, rotuloTipoVeiculo } from "../../constants/veiculoPadrao";
 import type { ConfigConta, TipoVeiculo } from "../../types";
 import styles from "../Definicoes.module.css";
@@ -134,7 +135,11 @@ export default function FolhaVeiculo({
         aberta={corAberta}
         aoFechar={() => setCorAberta(false)}
         titulo="Cor do Veículo"
-        valor={cfg.categoriaCor?.["Veículo"] ?? ""}
+        valor={corDaCategoriaVisual(cfg, "Veículo")}
+        // Mesmo aviso do editor geral de categorias: Veículo é uma fatia do
+        // mesmo donut de despesas, então repetir a cor de uma delas por
+        // engano confunde do mesmo jeito.
+        coresEmUso={cfg.categoriasDespesa.map((c) => corDaCategoriaVisual(cfg, c))}
         aoEscolher={(c) => void escolherCor(c)}
         nivel={1}
       />

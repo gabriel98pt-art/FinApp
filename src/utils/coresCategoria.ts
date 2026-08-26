@@ -104,46 +104,61 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
  *  de matizes, então uma categoria automática e uma escolhida à mão nunca
  *  compartilhavam o mesmo "vocabulário" de cor. Unificadas nesta.
  *
- *  18 matizes em 3 fileiras de 6 (vivas quente→fria, vivas que preenchem os
- *  intervalos da 1ª fileira, tons profundos/terrosos da mesma matiz) — mesma
- *  estrutura de antes, sem os 3 verdes/verde-lima/oliva que existiam (o
- *  pedido foi "verde só na categoria Receita"; ver `COR_SEMANTICA.Receita`).
- *  As 3 substitutas (índices 2, 7 e 14) foram escolhidas com o mesmo método
- *  já usado neste ficheiro pras trocas de `COR_SEMANTICA`: simulação de
- *  protanopia/deuteranopia/tritanopia (matrizes de Machado/Oliveira/Fialho
- *  2009) contra toda cor fixa E toda cor desta lista, buscando a matiz que
- *  maximiza a distância mínima — nenhuma delas reabre as colisões já
- *  corrigidas (Restaurante/TVDE, Transporte/Saúde, Casa/Seguro).
+ *  21 matizes, agrupadas por família (vermelhos, laranjas, amarelos… até
+ *  magenta/rosa), do tom mais vivo/claro pro mais profundo dentro de cada
+ *  família — pedido do Gabriel (26/08): a ordem antiga (3 fileiras de "vivas
+ *  quente→fria" / "vivas de preenchimento" / "profundas", misturando
+ *  matizes bem distantes lado a lado) lia como bagunçada. Agrupar por
+ *  proximidade também é o que torna o novo indicador de "cor já em uso por
+ *  outra categoria" (`SeletorCor`) fácil de escanear — famílias inteiras
+ *  ficam juntas em vez de espalhadas pela grade.
  *
- *  Verificado sob a mesma simulação: como antes, com tantas cores
- *  simultâneas não dá pra evitar por completo alguma proximidade nalgum tipo
- *  de daltonismo (a própria ciência de cor trata isso como praticamente
- *  impossível além de 3-4 cores ao mesmo tempo) — mas nenhum par ficou pior
- *  do que já estava. O separador entre fatias do donut e o nome em texto na
- *  legenda continuam sendo a defesa real contra esse resíduo, não o matiz
- *  sozinho. */
+ *  3 cores novas nesta leva (mesmo pedido): um amarelo mais vivo que o
+ *  amarelo-ouro que já existia, um verde vivo, e um vermelho mais claro que
+ *  o vermelho padrão ("sangue claro"). NENHUMA das 18 cores antigas mudou de
+ *  valor — só de posição — então elas continuam com a verificação de
+ *  protanopia/deuteranopia/tritanopia (Machado/Oliveira/Fialho 2009) já
+ *  documentada nos commits anteriores. As 3 novas NÃO passaram por essa
+ *  simulação (fora do escopo deste pedido); se alguma colisão aparecer na
+ *  prática, é candidata a ajuste numa auditoria de Design & Cor futura.
+ *
+ *  O verde vivo reabre de propósito uma porta que uma decisão anterior do
+ *  Gabriel tinha fechado ("verde só na categoria Receita" — ver
+ *  `COR_SEMANTICA.Receita`, é por isso que só #22c55e entra, sem duas ou três
+ *  variações): pedido novo e explícito dele, dessa vez pro uso geral. Ficou
+ *  com luminosidade/saturação diferente do verde-menta claro da Receita
+ *  (#4ade80) de propósito, pra não ficarem visualmente idênticos. */
 export const PALETA_CATEGORIA = [
-  // vivas — quente a fria
+  // Vermelhos
   "#ef4444", // vermelho
-  "#eab308", // amarelo-ouro
-  "#00aeb2", // turquesa — no lugar do verde (#22c55e)
-  "#06b6d4", // ciano
-  "#3b82f6", // azul
-  "#d946ef", // magenta
-  // vivas — preenchem os intervalos da fileira acima
-  "#f97316", // laranja
-  "#bd4bd6", // magenta-violeta — no lugar do verde-lima (#84cc16)
-  "#14b8a6", // esmeralda/petróleo claro
-  "#0ea5e9", // azul-celeste
-  "#8b5cf6", // violeta
-  "#ec4899", // rosa
-  // profundas / terrosas — mesma matiz das duas fileiras acima, mais escuras
-  "#c2410c", // terracota
-  "#a16207", // mostarda
-  "#a13957", // vinho-escuro — no lugar do oliva (#4d7c0f)
-  "#0f766e", // petróleo
-  "#1e40af", // marinho
+  "#f87171", // vermelho sangue claro — novo
   "#9f1239", // vinho
+  // Laranja / terracota
+  "#f97316", // laranja
+  "#c2410c", // terracota
+  // Amarelo / mostarda
+  "#facc15", // amarelo vivo — novo
+  "#eab308", // amarelo-ouro
+  "#a16207", // mostarda
+  // Verde
+  "#22c55e", // verde vivo — novo
+  // Turquesa / petróleo
+  "#00aeb2", // turquesa
+  "#14b8a6", // esmeralda/petróleo claro
+  "#0f766e", // petróleo
+  // Ciano / azul-celeste
+  "#06b6d4", // ciano
+  "#0ea5e9", // azul-celeste
+  // Azul
+  "#3b82f6", // azul
+  "#1e40af", // marinho
+  // Violeta
+  "#8b5cf6", // violeta
+  "#bd4bd6", // magenta-violeta
+  // Magenta / rosa / mauve
+  "#d946ef", // magenta
+  "#ec4899", // rosa
+  "#a13957", // vinho-mauve
 ];
 
 /** Nome antigo, mantido como alias: quem já lê `PALETA_FALLBACK` (o próprio

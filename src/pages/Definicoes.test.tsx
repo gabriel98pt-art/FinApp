@@ -114,6 +114,17 @@ describe("Definicoes", () => {
     expect(screen.queryByRole("button", { name: "Cor de Veículo" })).toBeNull();
   });
 
+  test("abrir a cor de uma categoria mostra a cor de OUTRA categoria da lista marcada como 'em uso'", () => {
+    render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Cor de Casa" }));
+
+    // "Alimentação" (outra categoria da mesma lista) é #f97316 por padrão —
+    // aparece marcada como já usada, sem ficar desabilitada.
+    const botao = screen.getByRole("button", { name: "Cor #f97316, já usada por outra categoria" });
+    expect(botao).not.toBeDisabled();
+  });
+
   test("abrir a cor de uma categoria sem escolha manual já marca a cor semântica dela como selecionada", () => {
     render(<Definicoes />);
     fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));

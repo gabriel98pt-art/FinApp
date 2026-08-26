@@ -124,6 +124,17 @@ export default function FolhaCategorias({
   // nenhum).
   const mostrarVeiculo = lista === "categoriasDespesa" && cfg.showVeiculo;
 
+  // Cores que já pertencem a OUTRA categoria desta mesma lista — pra
+  // avisar no seletor (item 26/08) sem impedir de repetir de propósito.
+  // "Outra" é só dentro da lista sendo editada: são elas que aparecem juntas
+  // no mesmo donut/legenda, então é aí que uma repetição confunde de verdade.
+  const coresEmUso = corDe
+    ? [
+        ...itens.filter((i) => i !== corDe).map((i) => corDaCategoriaVisual(cfg, i)),
+        ...(mostrarVeiculo && corDe !== "Veículo" ? [corDaCategoriaVisual(cfg, "Veículo")] : []),
+      ]
+    : [];
+
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
       {(itens.length > 0 || mostrarVeiculo) && (
@@ -214,6 +225,7 @@ export default function FolhaCategorias({
         // de uma categoria "automática" não marcava opção nenhuma como
         // selecionada, mesmo já tendo uma cor bem definida.
         valor={corDe ? corDaCategoriaVisual(cfg, corDe) : ""}
+        coresEmUso={coresEmUso}
         aoEscolher={(c) => void escolherCor(c)}
         nivel={nivel + 1}
       />

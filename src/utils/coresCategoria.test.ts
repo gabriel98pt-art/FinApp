@@ -104,10 +104,14 @@ describe("corSemanticaDaCategoria", () => {
 });
 
 describe("PALETA_CATEGORIA — fonte única pra auto-atribuição e seletor manual", () => {
-  test("nenhuma cor da paleta é verde/verde-lima/oliva", () => {
-    for (const cor of PALETA_CATEGORIA) {
-      expect(EH_VERDE(cor), cor).toBe(false);
-    }
+  // Pedido novo do Gabriel (26/08) reabriu de propósito a regra acima: a
+  // paleta geral pode ter UM verde vivo agora — não é mais "verde só na
+  // Receita" sem exceção. O teste não sumiu, só ficou mais específico: ainda
+  // pega qualquer verde/verde-lima/oliva EXTRA que entre sem essa mesma
+  // decisão explícita por trás.
+  test("só a cor verde nova (#22c55e) — nenhum verde extra sem decisão explícita", () => {
+    const verdes = PALETA_CATEGORIA.filter(EH_VERDE);
+    expect(verdes).toEqual(["#22c55e"]);
   });
 
   test("tem entre 18 e 28 matizes — o que o pedido de 'mais cores' esperava", () => {
