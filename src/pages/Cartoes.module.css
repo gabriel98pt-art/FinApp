@@ -185,6 +185,11 @@
 
 .chip {
   display: flex;
+  /* Nomes mais longos ficaram mais comuns com a Fase C2 ("Banco X · Crédito")
+     — sem isto, um chip apertado no telemóvel quebrava o NOME a meio da
+     palavra em vez de empurrar o resto (badge/dias/ações) para a linha de
+     baixo como um bloco. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   background: var(--s2);
@@ -192,6 +197,10 @@
   padding: 5px 12px;
   font-size: var(--fs-body);
   font-weight: 600;
+}
+
+.chipNome {
+  white-space: nowrap;
 }
 
 .chipTipo {

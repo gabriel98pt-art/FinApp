@@ -168,6 +168,18 @@ export function nomeAtualDoMetodo(cfg: ComInstituicoes, id: string): string {
   return `${instituicao.nome} · ${ROTULO_TIPO[metodo.tipo]}`;
 }
 
+/** O método de débito da MESMA instituição do método `id`, se houver um
+ *  (Fase C4) — usado para sugerir de onde sai o dinheiro ao pagar a fatura de
+ *  um cartão de crédito, em vez de assumir sempre a primeira conta de débito
+ *  da lista. `null` quando o método não existe ou a instituição não tem
+ *  débito (ex.: só tem o próprio cartão) — quem chama decide o fallback. */
+export function debitoDaMesmaInstituicao(cfg: ComInstituicoes, id: string): string | null {
+  const achado = localizarMetodo(cfg, id);
+  if (!achado) return null;
+  const debito = achado.instituicao.metodos.find((m) => m.tipo === "debito");
+  return debito?.id ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Escrever (usado só pelo cfgService)
 // ---------------------------------------------------------------------------

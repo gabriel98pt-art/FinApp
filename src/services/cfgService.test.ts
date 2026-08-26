@@ -409,6 +409,36 @@ describe("adicionarCartao", () => {
   });
 });
 
+describe("adicionarMetodo", () => {
+  test("cria o método dentro da MESMA instituição, sem pedir nome novo", async () => {
+    await s.adicionarMetodo(UID, migrada(instituicao("Banco X")), "Banco X", "credit");
+
+    expect(updates).toHaveLength(1);
+    const m = updates[0].mudancas;
+    // O id não é "Banco X" (já em uso pelo método de débito) — o nome com o
+    // tipo desempata, mesmo texto que `nomeAtualDoMetodo` vai mostrar.
+    expect(m["instituicoes/Banco X/metodos/Banco X · Crédito"]).toEqual({ tipo: "credito" });
+    expect(m.contasCartoes).toEqual(["Banco X", "Banco X · Crédito"]);
+    expect(m["tipoCartao/Banco X · Crédito"]).toBe("credit");
+  });
+
+  test("recusa instituição que já não existe", async () => {
+    await expect(
+      s.adicionarMetodo(UID, migrada(instituicao("Banco X")), "Sumiu", "debit"),
+    ).rejects.toThrow(/já não existe/);
+    expect(updates).toHaveLength(0);
+    expect(snapshot).not.toHaveBeenCalled();
+  });
+
+  test("conta ainda por migrar grava a árvore INTEIRA, não só o método novo", async () => {
+    await s.adicionarMetodo(UID, porMigrar(["Banco X"]), "Banco X", "credit");
+
+    const escritas = updates[0].mudancas.instituicoes as Record<string, unknown>;
+    expect(Object.keys(escritas)).toEqual(["Banco X"]);
+    expect(updates[0].mudancas["instituicoes/Banco X/metodos/Banco X · Crédito"]).toBeUndefined();
+  });
+});
+
 describe("renomearCartao", () => {
   test("é uma escrita só, no nome da instituição — sem tocar em lançamento nenhum", async () => {
     await s.renomearCartao(UID, migrada(instituicao("Gold", "credito")), "Gold", "Gold Novo");

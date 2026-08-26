@@ -17,6 +17,7 @@ import type {
   ConfigConta,
   ConfigContaBruta,
   Instituicao,
+  MetodoPagamento,
   PreferenciasCopiloto,
   TokenCorApp,
   YearMonth,
@@ -136,6 +137,42 @@ export async function adicionarCartao(
     [`tipoCartao/${id}`]: tipo,
     ...patchInstituicoes(cfg, [...cfg.instituicoes, nova], {
       [`instituicoes/${id}`]: brutoDasInstituicoes([nova])[id],
+    }),
+  });
+}
+
+/** Adiciona um método de pagamento a uma instituição já existente (Fase C2) —
+ *  o cartão de crédito que falta ao lado da conta de débito do mesmo banco,
+ *  em vez de obrigar a criar uma instituição nova para ele. Ao contrário de
+ *  `adicionarCartao`, não pede nome: o método novo usa o nome da instituição,
+ *  que `nomeAtualDoMetodo` já desambigua pelo tipo assim que há mais de um
+ *  método na mesma instituição. Os dias de fatura (se for crédito) não entram
+ *  aqui — ficam para os mesmos campos inline que já existem por cartão, igual
+ *  a `adicionarCartao`, que também não os pede na criação. */
+export async function adicionarMetodo(
+  uid: string,
+  cfg: ConfigConta,
+  instituicaoId: string,
+  tipo: TipoCartao,
+) {
+  const instituicao = cfg.instituicoes.find((i) => i.id === instituicaoId);
+  if (!instituicao) throw new Error("Essa conta ou cartão já não existe.");
+  const tipoNovo = tipoMetodo(tipo);
+  const rotulo = tipoNovo === "credito" ? "Crédito" : "Débito";
+  // Mesma regra de id de `adicionarCartao`: tenta o texto óbvio primeiro, e só
+  // desvia com um número se ele já estiver em uso (outro método já removido,
+  // por exemplo).
+  const id = idDisponivel(`${instituicao.nome} · ${rotulo}`, idsUsados(cfg.instituicoes));
+  const novoMetodo: MetodoPagamento = { id, tipo: tipoNovo };
+  const depois = cfg.instituicoes.map((i) =>
+    i.id === instituicaoId ? { ...i, metodos: [...i.metodos, novoMetodo] } : i,
+  );
+  snapshotHistorico();
+  await update(ref(db, caminho(uid)), {
+    contasCartoes: [...cfg.contasCartoes, id],
+    [`tipoCartao/${id}`]: tipo,
+    ...patchInstituicoes(cfg, depois, {
+      [`instituicoes/${instituicaoId}/metodos/${id}`]: { tipo: tipoNovo },
     }),
   });
 }

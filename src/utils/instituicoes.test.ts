@@ -12,6 +12,7 @@ import { instituicao } from "../testes/instituicoes";
 import {
   brutoDasInstituicoes,
   comMetodoAtualizado,
+  debitoDaMesmaInstituicao,
   idDisponivel,
   idsUsados,
   localizarMetodo,
@@ -80,6 +81,27 @@ describe("localizarMetodo", () => {
 
   test("null quando não existe, em vez de rebentar em quem chama", () => {
     expect(localizarMetodo({ instituicoes: [bancoComDois] }, "Sumiu")).toBeNull();
+  });
+});
+
+describe("debitoDaMesmaInstituicao", () => {
+  test("acha o débito da mesma instituição do cartão de crédito", () => {
+    expect(debitoDaMesmaInstituicao({ instituicoes: [bancoComDois] }, "Banco X Crédito")).toBe(
+      "Banco X",
+    );
+  });
+
+  test("null quando a instituição não tem débito — só o próprio cartão", () => {
+    const soCredito: Instituicao = {
+      id: "Cartão Solo",
+      nome: "Cartão Solo",
+      metodos: [{ id: "Cartão Solo", tipo: "credito" }],
+    };
+    expect(debitoDaMesmaInstituicao({ instituicoes: [soCredito] }, "Cartão Solo")).toBeNull();
+  });
+
+  test("null quando o método não existe", () => {
+    expect(debitoDaMesmaInstituicao({ instituicoes: [bancoComDois] }, "Sumiu")).toBeNull();
   });
 });
 

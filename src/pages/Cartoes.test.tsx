@@ -6,7 +6,7 @@
 // a menos, coisa que só se descobre no mês seguinte.
 
 import { afterAll, describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import type { ConfigConta, DespesaCorrente, Transferencia } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, listaComErro, veiculoVazio } from "../testes/dobras";
@@ -20,6 +20,7 @@ vi.mock("../services/faturaService", () => ({
 }));
 vi.mock("../services/cfgService", () => ({
   adicionarCartao: vi.fn(async () => {}),
+  adicionarMetodo: vi.fn(async () => {}),
   removerCartao: vi.fn(async () => {}),
   renomearCartao: vi.fn(async () => {}),
   definirDiaVencimentoFatura: vi.fn(async () => {}),
@@ -27,6 +28,8 @@ vi.mock("../services/cfgService", () => ({
   definirFaturaManual: vi.fn(async () => {}),
   definirSaldoInicial: vi.fn(async () => {}),
 }));
+
+const { adicionarMetodo } = await import("../services/cfgService");
 
 const CARTAO = "AB Gold (C)";
 const CONTA = "Conta Principal";
@@ -258,5 +261,74 @@ describe("Cartoes", () => {
     expect(
       screen.getByRole("heading", { name: "Transferências entre contas" }),
     ).toBeInTheDocument();
+  });
+
+  // Fase C2: uma instituição já migrada 1:1 pode ganhar um 2º método sem
+  // precisar de virar uma conta nova — o cartão de crédito que falta ao lado
+  // da conta de débito do mesmo banco.
+  describe("adicionar método a uma instituição existente", () => {
+    beforeEach(() => {
+      cfg = { ...CONFIG_PADRAO, ...comInstituicoes(instituicao(CARTAO, "credito")) };
+    });
+
+    test("botão por chip abre a folha com o nome da instituição, sem pedir nome", () => {
+      render(<Cartoes />);
+      fireEvent.click(screen.getByRole("button", { name: `Adicionar outro método a ${CARTAO}` }));
+      expect(
+        screen.getByRole("heading", { name: `Adicionar método — ${CARTAO}` }),
+      ).toBeInTheDocument();
+    });
+
+    test("submeter chama adicionarMetodo com o id da instituição e o tipo escolhido", () => {
+      render(<Cartoes />);
+      fireEvent.click(screen.getByRole("button", { name: `Adicionar outro método a ${CARTAO}` }));
+      // O tipo já nasce em "Crédito" (padrão do formulário) — não precisa de
+      // trocar nada para este teste, só confirmar.
+      fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));
+      expect(adicionarMetodo).toHaveBeenCalledWith("u1", cfg, CARTAO, "credit");
+    });
+  });
+
+  // Fase C4: ao abrir "Pagar", a origem sugerida passa a ser o débito da
+  // MESMA instituição do cartão, não sempre a primeira conta de débito.
+  describe("sugerir débito ao pagar fatura", () => {
+    const CREDITO = "Banco X Crédito";
+
+    beforeEach(() => {
+      cfg = {
+        ...CONFIG_PADRAO,
+        // "Banco Y" vem PRIMEIRO na lista — seria o palpite antigo
+        // (`contasDebito[0]`) se a Fase C4 não escolhesse pela instituição.
+        ...comInstituicoes(instituicao("Banco Y", "debito"), {
+          id: "Banco X",
+          nome: "Banco X",
+          metodos: [
+            { id: "Banco X", tipo: "debito" },
+            { id: CREDITO, tipo: "credito" },
+          ],
+        }),
+      };
+      despesas = lista<DespesaCorrente>([
+        {
+          id: "d1",
+          descricao: "Compra",
+          valor: 5000,
+          data: "2026-07-10",
+          categoria: "Alimentação",
+          contaCartao: CREDITO,
+        },
+      ]);
+    });
+
+    test("sugere o débito do mesmo banco do cartão, não o primeiro da lista", () => {
+      render(<Cartoes />);
+      const quadro = screen
+        .getAllByRole("button")
+        .find((b) => b.textContent?.includes("Banco X · Crédito"))!;
+      fireEvent.click(quadro);
+      fireEvent.click(screen.getByRole("button", { name: "Pagar" }));
+      const gatilho = screen.getByRole("button", { name: /^Sai de/ });
+      expect(gatilho.textContent).toContain("Banco X · Débito");
+    });
   });
 });

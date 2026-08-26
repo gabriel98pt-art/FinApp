@@ -635,11 +635,14 @@ export default function Despesas() {
             valor={dfContaCartao}
             opcoes={cfg.contasCartoes}
             aoMudar={setDfContaCartao}
-            rotuloOpcao={(c) =>
-              cfg.tipoCartao[c] === "credit"
-                ? `${nomeAtualDoMetodo(cfg, c)} · crédito`
-                : nomeAtualDoMetodo(cfg, c)
-            }
+            rotuloOpcao={(c) => {
+              const nome = nomeAtualDoMetodo(cfg, c);
+              // O aviso "· crédito" é sobre ENTRAR NA FATURA, não sobre qual
+              // método da instituição é — não duplicar quando o nome já vem
+              // com "· Crédito" por ter mais de um método (Fase C2).
+              if (cfg.tipoCartao[c] !== "credit" || nome.endsWith("Crédito")) return nome;
+              return `${nome} · crédito`;
+            }}
             rotuloVazio="Sem conta"
           />
           <div className={styles.linhaDupla}>
