@@ -9,6 +9,12 @@
 // raso: troca o objeto `dados`/`cfg` inteiro pelo persistido, e o campo novo
 // fica `undefined` até a primeira sincronização real — tempo suficiente pra
 // quem lê esse campo sem esperar um array (`[...x]`, `for...of`) rebentar.
+//
+// Segunda volta do mesmo P0, achada só depois de o Gabriel ler o erro real
+// no Inspetor Web ("`{}` is not iterable"): não bastava checar AUSÊNCIA — um
+// campo que devia ser array também pode aparecer no persistido com o TIPO
+// errado (objeto vazio em vez de lista), e a primeira correção aceitava
+// qualquer valor presente sem checar o formato.
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -90,6 +96,51 @@ describe("criarStoreEspelho — rehidratação de um espelho mais antigo", () =>
     await useStore.persist.rehydrate();
 
     expect(useStore.getState().itens).toEqual([{ id: "1" }]);
+  });
+
+  test("campo array persistido com o tipo errado (objeto, não lista) cai no default", async () => {
+    // O caso real: `cfg.instituicoes` (devia ser Instituicao[]) apareceu
+    // como `{}` num espelho de antes da Fase C1 — nem ausente, nem array.
+    mockLocalStorage.setItem(
+      CHAVE,
+      JSON.stringify({ state: { cfg: { instituicoes: {}, moeda: "EUR" } }, version: 0 }),
+    );
+    const { criarStoreEspelho } = await import("./storeEspelho");
+
+    const useStore = criarStoreEspelho<{
+      cfg: { instituicoes: { id: string }[]; moeda: string };
+      carregado: boolean;
+      erro: boolean;
+    }>(CHAVE, { cfg: { instituicoes: [], moeda: "BRL" }, carregado: false, erro: false });
+
+    await useStore.persist.rehydrate();
+
+    // O tipo bateu errado — cai no default, não no `{}` persistido.
+    expect(useStore.getState().cfg.instituicoes).toEqual([]);
+    // Campo primitivo ao lado, persistido corretamente, continua a valer.
+    expect(useStore.getState().cfg.moeda).toBe("EUR");
+  });
+
+  test("objeto aninhado dois níveis (cfg.instituicoes[i].metodos) também mescla certo", async () => {
+    mockLocalStorage.setItem(
+      CHAVE,
+      JSON.stringify({
+        state: { cfg: { instituicoes: [{ id: "Banco X", nome: "Banco X" }] } },
+      }),
+    );
+    const { criarStoreEspelho } = await import("./storeEspelho");
+
+    const useStore = criarStoreEspelho<{
+      cfg: { instituicoes: { id: string; nome: string }[] };
+      carregado: boolean;
+      erro: boolean;
+    }>(CHAVE, { cfg: { instituicoes: [] }, carregado: false, erro: false });
+
+    await useStore.persist.rehydrate();
+
+    // Array de objetos: aceita a lista persistida inteira (é array, bate com
+    // o formato) — não tenta mesclar item a item, só valida o nível de fora.
+    expect(useStore.getState().cfg.instituicoes).toEqual([{ id: "Banco X", nome: "Banco X" }]);
   });
 
   test("nada persistido ainda: fica no estado inicial, sem lançar", async () => {

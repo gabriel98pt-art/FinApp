@@ -14,31 +14,43 @@ function ehObjetoSimples(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-/** Mescla o que veio do `localStorage` por cima do estado inicial, um nível
- *  a mais do que o `merge` por omissão do zustand/persist.
+/** Mescla o que veio do `localStorage` por cima do estado inicial —
+ *  recursivo, e validando o TIPO de cada campo contra o default, não só a
+ *  presença. Duas voltas do mesmo P0 de 26/08, achadas em sequência sem
+ *  acesso aos dados reais nem ao dispositivo, só pelo texto do erro:
  *
- *  O `merge` por omissão é `{ ...atual, ...persistido }` — raso. Isso é
- *  seguro para os campos de array (`itens`) porque "ausente" e "vazio" são a
- *  mesma coisa em `persisted.itens ?? undefined`. Mas `dados`/`cfg` são
- *  OBJETOS aninhados com vários campos lá dentro, e um deles pode ter sido
+ *  1ª volta: o `merge` por omissão do zustand/persist é `{ ...atual,
+ *  ...persistido }` — raso, um nível só. `dados`/`cfg` são objetos
+ *  aninhados, e um campo (`instituicoes`, a Fase C1 de hoje) pode ter sido
  *  adicionado ao tipo DEPOIS da última vez que esta conta gravou o espelho —
- *  o merge raso troca o objeto inteiro pelo persistido e o campo novo fica
- *  `undefined` até o Firebase responder pela primeira vez, em vez de cair no
- *  default do `estadoInicial` como devia. Foi exatamente isto que derrubou o
- *  app inteiro no P0 de 26/08 (achado tarde, sem acesso aos dados reais):
- *  `cfg`/`dados` persistidos de antes de um campo existir, undefined onde o
- *  resto do código sempre assumiu um array. */
-function mesclarComDefaults<S extends Record<string, unknown>>(persistido: unknown, atual: S): S {
-  if (!ehObjetoSimples(persistido)) return atual;
-  const combinado: Record<string, unknown> = { ...atual, ...persistido };
-  for (const chave of Object.keys(atual)) {
-    const valorAtual = atual[chave];
-    const valorPersistido = persistido[chave];
-    if (ehObjetoSimples(valorAtual) && ehObjetoSimples(valorPersistido)) {
-      combinado[chave] = { ...valorAtual, ...valorPersistido };
-    }
+ *  o merge raso trocava o objeto inteiro pelo persistido e o campo novo
+ *  ficava `undefined` até o Firebase responder. Corrigido mesclando um
+ *  nível a mais — mas só verificava AUSÊNCIA, não também o formato.
+ *
+ *  2ª volta (o Gabriel leu "`{}` is not iterable" no Inspetor Web): um
+ *  campo que devia ser ARRAY (`cfg.instituicoes`) apareceu como objeto
+ *  vazio `{}` num espelho antigo — nem ausente (cairia no default pela
+ *  correção anterior) nem array (o resto do código sempre assumiu um). A
+ *  correção anterior aceitava QUALQUER valor presente, sem checar se batia
+ *  com o formato esperado. Agora recursivo e comparado campo a campo contra
+ *  o `estadoInicial`: um array só é aceito do persistido se for mesmo um
+ *  array (senão cai no default), um objeto simples mescla-se recursivamente
+ *  campo a campo, e qualquer outra coisa (string, número, `null`) aceita o
+ *  persistido tal como está — não há como validar o "formato certo" de um
+ *  primitivo além de existir. */
+function mesclarComDefaults(persistido: unknown, atual: unknown): unknown {
+  if (Array.isArray(atual)) {
+    return Array.isArray(persistido) ? persistido : atual;
   }
-  return combinado as S;
+  if (!ehObjetoSimples(atual)) {
+    return persistido !== undefined ? persistido : atual;
+  }
+  if (!ehObjetoSimples(persistido)) return atual;
+  const combinado: Record<string, unknown> = { ...atual };
+  for (const chave of Object.keys(atual)) {
+    combinado[chave] = mesclarComDefaults(persistido[chave], atual[chave]);
+  }
+  return combinado;
 }
 
 export function criarStoreEspelho<S extends { carregado: boolean; erro: boolean }>(
@@ -56,7 +68,7 @@ export function criarStoreEspelho<S extends { carregado: boolean; erro: boolean 
       name: nome,
       partialize: semErro,
       storage: persistenciaAdiada,
-      merge: (persistido, atual) => mesclarComDefaults(persistido, atual),
+      merge: (persistido, atual) => mesclarComDefaults(persistido, atual) as S,
     }),
   );
 }
