@@ -44,4 +44,20 @@ describe("ErrorBoundary", () => {
     ).toBeInTheDocument();
     consoleErro.mockRestore();
   });
+
+  // O componentStack só é útil de verdade em produção porque
+  // `build.rollupOptions.output.keepNames` (vite.config.ts) preserva o nome
+  // de cada componente na minificação — sem isso virava "at a, at b", sem
+  // significado nenhum pra quem lê a tela. Aqui (dev, sem minificar) o nome
+  // já aparece normalmente; o teste cobre é a EXTRAÇÃO da primeira linha.
+  test("com erro: mostra qual componente estava a renderizar", () => {
+    const consoleErro = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <ErrorBoundary>
+        <Bomba />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText(/Bomba/)).toBeInTheDocument();
+    consoleErro.mockRestore();
+  });
 });

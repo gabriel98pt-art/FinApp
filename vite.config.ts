@@ -39,6 +39,23 @@ export default defineConfig({
       reporter: ["text", "html"],
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Achado do P0 de 26/08: a minificação por omissão troca o nome de
+        // toda função/componente por uma letra curta ("Sidebar" vira "a") —
+        // o que faz o `componentStack` que o ErrorBoundary grava (e agora
+        // também mostra na tela, achado do mesmo P0) dizer "at a, at b" em
+        // vez de "at Sidebar, at AppShell". `keepNames` preserva o `.name`
+        // de cada função/classe mesmo com o resto minificado — custa uns
+        // bytes a mais no bundle, mas é o que torna um crash em produção
+        // diagnosticável sem precisar de sourcemap nem de reproduzir
+        // localmente. (Vite 8 usa Rolldown por baixo — esta opção vive em
+        // `output`, não em `esbuild`, que já não é o minificador padrão.)
+        keepNames: true,
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
