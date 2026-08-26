@@ -59,6 +59,18 @@ describe("parseExtratoCsv", () => {
       { data: "2026-07-04", descricao: "Carregamento com Apple Pay", valor: 10000 },
     ]);
   });
+
+  // RFC 4180: aspas duplicadas ("") dentro de um campo entre aspas são o
+  // escape de uma aspa literal, não um fim de campo.
+  test('mantém aspas internas escapadas ("") num campo entre aspas', () => {
+    const csv = ["Data;Descrição;Valor", '10/07/2026;"Compra ""XYZ"" Lda";-10,50'].join("\n");
+    const [linha] = parseExtratoCsv(csv);
+    expect(linha).toEqual({
+      data: "2026-07-10",
+      descricao: 'Compra "XYZ" Lda',
+      valor: -1050,
+    });
+  });
 });
 
 // É o que come o texto reconstruído de um PDF genérico (extrairExtratoPdf):

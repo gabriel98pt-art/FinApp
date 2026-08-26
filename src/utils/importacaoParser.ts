@@ -9,8 +9,17 @@ function dividirLinhaCsv(linha: string, delim: string): string[] {
   const res: string[] = [];
   let cur = "";
   let dentroAspas = false;
-  for (const c of linha) {
+  for (let i = 0; i < linha.length; i++) {
+    const c = linha[i];
     if (c === '"') {
+      // Aspas duplicadas dentro de um campo entre aspas (`""`) são o escape
+      // padrão (RFC 4180) para uma aspa literal — sem isto, `"Nome ""X"" Lda"`
+      // perdia as aspas internas em vez de as manter no texto.
+      if (dentroAspas && linha[i + 1] === '"') {
+        cur += '"';
+        i++;
+        continue;
+      }
       dentroAspas = !dentroAspas;
       continue;
     }
