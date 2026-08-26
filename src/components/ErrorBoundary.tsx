@@ -18,11 +18,21 @@ import styles from "./ErrorBoundary.module.css";
  *
  *  Recarregar é a saída certa: o estado em memória que provocou o erro
  *  desaparece e os dados vêm de novo do Firebase — nada se perde. */
-export default class ErrorBoundary extends Component<{ children: ReactNode }, { erro: boolean }> {
-  state = { erro: false };
+export default class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { erro: boolean; mensagem?: string }
+> {
+  state: { erro: boolean; mensagem?: string } = { erro: false };
 
-  static getDerivedStateFromError() {
-    return { erro: true };
+  // A mensagem crua do erro (ex. "Cannot read properties of undefined
+  // (reading 'metodos')") aparece na própria tela — pequena, ao lado do botão
+  // de recarregar. Sem isto, um crash preso (recarregar não sai do mesmo
+  // erro) só se diagnostica com acesso ao dispositivo: quem crashou tinha de
+  // descrever de memória o que viu, ou nem conseguia chegar a Definições →
+  // Erros recentes para copiar a pilha de lá. Com a mensagem já na tela,
+  // basta ler ou tirar print.
+  static getDerivedStateFromError(erro: Error) {
+    return { erro: true, mensagem: erro.message || undefined };
   }
 
   componentDidCatch(erro: Error, info: ErrorInfo) {
@@ -53,6 +63,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, { 
           </span>
           <p className={styles.mensagem}>Algo correu mal</p>
           <p className={styles.sub}>Tente recarregar a página.</p>
+          {this.state.mensagem && <p className={styles.detalhe}>{this.state.mensagem}</p>}
           <button className={styles.botao} onClick={() => window.location.reload()}>
             Recarregar
           </button>

@@ -46,6 +46,14 @@
   font-size: var(--fs-body);
 }
 
+.detalhe {
+  color: var(--mut);
+  font-size: var(--fs-micro);
+  font-family: monospace;
+  user-select: text;
+  word-break: break-word;
+}
+
 .botao {
   margin-top: 10px;
   background: var(--s2);
