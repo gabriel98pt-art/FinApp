@@ -87,7 +87,7 @@ describe("Definicoes", () => {
     expect(screen.getAllByText(CONFIG_PADRAO.categoriasDespesa[0]).length).toBeGreaterThan(0);
   });
 
-  test("dá para recolorir o Veículo — não era uma categoria de cfg.categoriasDespesa, então não aparecia na folha de categorias", () => {
+  test("dá para recolorir o Veículo por Geral › Veículo (controlo original, continua a existir)", () => {
     render(<Definicoes />);
     // A cor deixou de estar solta em Aparência: vive com o resto da
     // configuração do módulo, dentro de Geral › Veículo.
@@ -96,6 +96,35 @@ describe("Definicoes", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
 
     expect(definirCorCategoria).toHaveBeenCalledWith("u1", "Veículo", "#ef4444");
+  });
+
+  test("com o módulo Veículo ligado, dá pra recolorir Veículo também pela lista geral de categorias de despesa", () => {
+    render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Cor de Veículo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
+
+    expect(definirCorCategoria).toHaveBeenCalledWith("u1", "Veículo", "#ef4444");
+  });
+
+  test("com o módulo Veículo desligado, some da lista geral de categorias de despesa", () => {
+    cfg = { ...CONFIG_PADRAO, showVeiculo: false };
+    render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+    expect(screen.queryByRole("button", { name: "Cor de Veículo" })).toBeNull();
+  });
+
+  test("abrir a cor de uma categoria sem escolha manual já marca a cor semântica dela como selecionada", () => {
+    render(<Definicoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+    // "Alimentação" (primeira categoria padrão) nunca teve cor escolhida à
+    // mão — antes do fix, o seletor abria sem nada marcado mesmo a bolha já
+    // mostrando laranja em todo o app.
+    fireEvent.click(screen.getByRole("button", { name: "Cor de Alimentação" }));
+    expect(screen.getByRole("button", { name: "Cor #f97316" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   test("tem saída da conta", () => {
