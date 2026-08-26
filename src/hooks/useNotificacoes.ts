@@ -24,8 +24,8 @@ export function useNotificacoes(): Notificacao[] {
   return useMemo(
     () =>
       todasNotificacoes(hoje, mes, dados, cfg, dados.parcelas, [
-        ...dados.despesasFixas,
-        ...dados.despesasFixasVeiculo,
+        ...(dados.despesasFixas ?? []),
+        ...(dados.despesasFixasVeiculo ?? []),
       ]),
     [hoje, mes, dados, cfg],
   );
