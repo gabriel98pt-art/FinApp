@@ -44,6 +44,16 @@ const tipoCartaoDe = (tipo: TipoMetodo): TipoCartao => (tipo === "credito" ? "cr
  *  dois sentidos: lixo gravado não vira uma vista derivada inválida, e um
  *  campo antigo com 0 (que é como as telas apagam o dia) não vira um método
  *  com `diaVencimentoFatura: 0`. */
+/** Os métodos de uma instituição, nunca `undefined` — dados reais mal
+ *  formados (uma instituição gravada sem `metodos`, por exemplo por uma
+ *  corrida entre abas na migração preguiçosa) não podem derrubar a tela
+ *  inteira: cai como uma instituição sem métodos (invisível nos pickers) em
+ *  vez de rebentar todo mundo que a lista. Mesma filosofia de
+ *  `categoriaVisual.ts`: "nada aqui pode lançar". */
+function metodosDe(inst: Instituicao): MetodoPagamento[] {
+  return inst.metodos ?? [];
+}
+
 const diaValido = (dia: unknown): dia is number =>
   typeof dia === "number" && Number.isInteger(dia) && dia >= 1 && dia <= 31;
 
@@ -84,7 +94,7 @@ export function camposLegadosDe(instituicoes: Instituicao[]): CamposLegados {
   const diaFechamentoFatura: Record<string, number> = {};
 
   for (const inst of instituicoes) {
-    for (const metodo of inst.metodos) {
+    for (const metodo of metodosDe(inst)) {
       contasCartoes.push(metodo.id);
       tipoCartao[metodo.id] = tipoCartaoDe(metodo.tipo);
       if (diaValido(metodo.diaVencimentoFatura)) {
@@ -142,7 +152,7 @@ export type ComInstituicoes = Pick<ConfigConta, "instituicoes">;
  *  foi removida, por exemplo) — quem chama decide o que fazer com isso. */
 export function localizarMetodo(cfg: ComInstituicoes, id: string): MetodoLocalizado | null {
   for (const instituicao of cfg.instituicoes ?? []) {
-    const metodo = instituicao.metodos.find((m) => m.id === id);
+    const metodo = metodosDe(instituicao).find((m) => m.id === id);
     if (metodo) return { instituicao, metodo };
   }
   return null;
@@ -164,7 +174,7 @@ export function nomeAtualDoMetodo(cfg: ComInstituicoes, id: string): string {
   if (!achado) return id;
   const { instituicao, metodo } = achado;
   if (metodo.nomeExibicao) return metodo.nomeExibicao;
-  if (instituicao.metodos.length <= 1) return instituicao.nome;
+  if (metodosDe(instituicao).length <= 1) return instituicao.nome;
   return `${instituicao.nome} · ${ROTULO_TIPO[metodo.tipo]}`;
 }
 
@@ -176,7 +186,7 @@ export function nomeAtualDoMetodo(cfg: ComInstituicoes, id: string): string {
 export function debitoDaMesmaInstituicao(cfg: ComInstituicoes, id: string): string | null {
   const achado = localizarMetodo(cfg, id);
   if (!achado) return null;
-  const debito = achado.instituicao.metodos.find((m) => m.tipo === "debito");
+  const debito = metodosDe(achado.instituicao).find((m) => m.tipo === "debito");
   return debito?.id ?? null;
 }
 
@@ -192,7 +202,7 @@ export function brutoDasInstituicoes(
   const mapa: Record<string, InstituicaoBruta> = {};
   for (const inst of instituicoes) {
     const metodos: Record<string, MetodoPagamentoBruto> = {};
-    for (const m of inst.metodos) {
+    for (const m of metodosDe(inst)) {
       const bruto: MetodoPagamentoBruto = { tipo: m.tipo };
       if (m.nomeExibicao) bruto.nomeExibicao = m.nomeExibicao;
       if (diaValido(m.diaFechamentoFatura)) bruto.diaFechamentoFatura = m.diaFechamentoFatura;
@@ -210,7 +220,7 @@ export function idsUsados(instituicoes: Instituicao[]): Set<string> {
   const ids = new Set<string>();
   for (const inst of instituicoes) {
     ids.add(inst.id);
-    for (const m of inst.metodos) ids.add(m.id);
+    for (const m of metodosDe(inst)) ids.add(m.id);
   }
   return ids;
 }
@@ -236,8 +246,8 @@ export function comMetodoAtualizado(
   mudar: (m: MetodoPagamento) => MetodoPagamento,
 ): Instituicao[] {
   return instituicoes.map((inst) =>
-    inst.metodos.some((m) => m.id === id)
-      ? { ...inst, metodos: inst.metodos.map((m) => (m.id === id ? mudar(m) : m)) }
+    metodosDe(inst).some((m) => m.id === id)
+      ? { ...inst, metodos: metodosDe(inst).map((m) => (m.id === id ? mudar(m) : m)) }
       : inst,
   );
 }
@@ -247,6 +257,6 @@ export function comMetodoAtualizado(
  *  só a ocupar espaço na tela de Cartões. */
 export function semMetodo(instituicoes: Instituicao[], id: string): Instituicao[] {
   return instituicoes
-    .map((inst) => ({ ...inst, metodos: inst.metodos.filter((m) => m.id !== id) }))
+    .map((inst) => ({ ...inst, metodos: metodosDe(inst).filter((m) => m.id !== id) }))
     .filter((inst) => inst.metodos.length > 0);
 }

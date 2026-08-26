@@ -165,7 +165,7 @@ export async function adicionarMetodo(
   const id = idDisponivel(`${instituicao.nome} · ${rotulo}`, idsUsados(cfg.instituicoes));
   const novoMetodo: MetodoPagamento = { id, tipo: tipoNovo };
   const depois = cfg.instituicoes.map((i) =>
-    i.id === instituicaoId ? { ...i, metodos: [...i.metodos, novoMetodo] } : i,
+    i.id === instituicaoId ? { ...i, metodos: [...(i.metodos ?? []), novoMetodo] } : i,
   );
   snapshotHistorico();
   await update(ref(db, caminho(uid)), {

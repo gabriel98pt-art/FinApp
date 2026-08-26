@@ -11,6 +11,7 @@ import type { Instituicao } from "../types";
 import { instituicao } from "../testes/instituicoes";
 import {
   brutoDasInstituicoes,
+  camposLegadosDe,
   comMetodoAtualizado,
   debitoDaMesmaInstituicao,
   idDisponivel,
@@ -84,6 +85,50 @@ describe("localizarMetodo", () => {
   });
 });
 
+// P0 de 26/08: uma instituição real apareceu sem `metodos` gravado — toda
+// função aqui que fazia `inst.metodos.algumaCoisa()` sem guarda derrubava o
+// app inteiro em QUALQUER tela (é lido no boot, não só em Cartões/Veículo),
+// e "recarregar" não saía do erro porque os dados malformados continuavam os
+// mesmos. Nada aqui pode lançar — mesma regra de `categoriaVisual.ts`.
+describe("instituição sem metodos (dados malformados)", () => {
+  const semMetodos = { id: "Quebrada", nome: "Quebrada" } as Instituicao;
+
+  test("nomeAtualDoMetodo não lança — devolve o id, como qualquer id desconhecido", () => {
+    expect(nomeAtualDoMetodo({ instituicoes: [semMetodos] }, "Quebrada")).toBe("Quebrada");
+  });
+
+  test("localizarMetodo não lança — não acha nada nela, mas continua achando nas outras", () => {
+    expect(localizarMetodo({ instituicoes: [semMetodos, bancoComDois] }, "Banco X")).not.toBeNull();
+  });
+
+  test("camposLegadosDe não lança — a instituição quebrada só não contribui nada", () => {
+    expect(camposLegadosDe([semMetodos])).toEqual({
+      contasCartoes: [],
+      tipoCartao: {},
+      diaVencimentoFatura: {},
+      diaFechamentoFatura: {},
+    });
+  });
+
+  test("brutoDasInstituicoes não lança — grava a instituição com metodos vazio", () => {
+    expect(brutoDasInstituicoes([semMetodos])).toEqual({
+      Quebrada: { nome: "Quebrada", metodos: {} },
+    });
+  });
+
+  test("idsUsados não lança — inclui o id da instituição mesmo sem métodos", () => {
+    expect(idsUsados([semMetodos])).toEqual(new Set(["Quebrada"]));
+  });
+
+  test("comMetodoAtualizado não lança — a instituição quebrada fica como estava", () => {
+    expect(comMetodoAtualizado([semMetodos], "Sumiu", (m) => m)).toEqual([semMetodos]);
+  });
+
+  test("semMetodo não lança — instituição sem métodos some da lista", () => {
+    expect(semMetodo([semMetodos], "Sumiu")).toEqual([]);
+  });
+});
+
 describe("debitoDaMesmaInstituicao", () => {
   test("acha o débito da mesma instituição do cartão de crédito", () => {
     expect(debitoDaMesmaInstituicao({ instituicoes: [bancoComDois] }, "Banco X Crédito")).toBe(
@@ -102,6 +147,13 @@ describe("debitoDaMesmaInstituicao", () => {
 
   test("null quando o método não existe", () => {
     expect(debitoDaMesmaInstituicao({ instituicoes: [bancoComDois] }, "Sumiu")).toBeNull();
+  });
+});
+
+describe("debitoDaMesmaInstituicao — instituição sem metodos", () => {
+  test("não lança quando a instituição tem o id mas não tem metodos", () => {
+    const semMetodos = { id: "Quebrada", nome: "Quebrada" } as Instituicao;
+    expect(debitoDaMesmaInstituicao({ instituicoes: [semMetodos] }, "Quebrada")).toBeNull();
   });
 });
 

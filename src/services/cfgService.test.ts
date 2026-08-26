@@ -437,6 +437,21 @@ describe("adicionarMetodo", () => {
     expect(Object.keys(escritas)).toEqual(["Banco X"]);
     expect(updates[0].mudancas["instituicoes/Banco X/metodos/Banco X · Crédito"]).toBeUndefined();
   });
+
+  // P0 de 26/08: uma instituição real apareceu sem `metodos` gravado — o
+  // espalhamento `[...i.metodos, novo]` sem guarda derrubava isto (e, por
+  // extensão, qualquer tela que chamasse esta função) com "is not iterable".
+  test("instituição sem metodos gravado não lança — o método novo entra sozinho", async () => {
+    // Não usa `migrada()`/`comInstituicoes` de propósito: esse helper também
+    // percorre `inst.metodos` para derivar os campos antigos, e lançaria na
+    // MONTAGEM do teste em vez de exercitar `adicionarMetodo`.
+    const semMetodos = { id: "Quebrada", nome: "Quebrada" } as Instituicao;
+    const cfgQuebrada = cfg({ instituicoes: [semMetodos], instituicoesGravadas: true });
+    await s.adicionarMetodo(UID, cfgQuebrada, "Quebrada", "debit");
+
+    const m = updates[0].mudancas;
+    expect(m["instituicoes/Quebrada/metodos/Quebrada · Débito"]).toEqual({ tipo: "debito" });
+  });
 });
 
 describe("renomearCartao", () => {
