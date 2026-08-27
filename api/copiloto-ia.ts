@@ -11,25 +11,101 @@
 // noutro sítio, com outro tsconfig, e o que entra aqui vem de um pedido HTTP:
 // mesmo que o cliente seja nosso, o que chega é validado como se não fosse.
 //
-// AUTENTICAÇÃO (achado da auditoria de Segurança): até este commit, este
+// AUTENTICAÇÃO (achado da auditoria de Segurança): até um certo commit, este
 // endpoint não verificava QUEM estava a chamar — qualquer pessoa na internet
 // podia fazer o POST à mão e gastar a GEMINI_API_KEY do projeto, sem estar
-// logada no FinApp. A cota de 20 perguntas/dia (`iaUsoService.ts`) é só do
+// logada no FinApp. A cota de 20 perguntas/dia (`iaUsoService.ts`) era só do
 // lado do cliente, então não protegia nada contra isso.
 //
-// Agora exige um ID token do Firebase (`Authorization: Bearer <token>`) e
-// verifica a assinatura contra as chaves públicas do Google — sem precisar do
+// Exige um ID token do Firebase (`Authorization: Bearer <token>`) e verifica
+// a assinatura contra as chaves públicas do Google — sem precisar do
 // firebase-admin (pesado, exige service account): o ID token é um JWT comum,
-// e `jose` já sabe buscar e cachear JWKS remoto. Continua sem mover a CONTA da
-// cota para o servidor — isso protegeria contra uma conta real chamando além
-// do seu próprio limite, um problema bem menor do que "qualquer estranho
-// gasta a chave inteira". Fica como próximo passo, não parte deste commit.
+// e `jose` já sabe buscar e cachear JWKS remoto.
+//
+// COTA NO SERVIDOR (o "próximo passo" que ficara pendente): uma conta real,
+// autenticada, ainda podia chamar este endpoint à mão (fora da app) além do
+// seu próprio limite de 20/dia — o contador só existia no cliente
+// (`iaUsoService.ts`), e nada impedia um pedido feito diretamente com um
+// token válido de pular por cima dele. `consumirCotaServidor` fecha isto
+// reescrevendo o mesmo nó do RTDB que o cliente já usa
+// (`users/{uid}/fin_v5/iaUso/{dia}`), autenticado com o PRÓPRIO ID token já
+// verificado acima — as Security Rules (`database.rules.json`) só deixam
+// `auth.uid === uid` mexer nesse nó, então isto também dispensa
+// firebase-admin.
 
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 /** O mesmo projectId de `src/services/firebase.ts` — duplicado aqui de
  *  propósito: este ficheiro não importa de `src/` (ver nota acima). */
 const FIREBASE_PROJECT_ID = "finapp1-20d00";
+
+/** O mesmo databaseURL de `src/services/firebase.ts`, duplicado pela mesma
+ *  razão do FIREBASE_PROJECT_ID acima. */
+const DATABASE_URL = "https://finapp1-20d00-default-rtdb.europe-west1.firebasedatabase.app";
+
+/** O mesmo LIMITE_DIARIO_IA de `src/services/iaUsoService.ts`, duplicado pela
+ *  mesma razão. Os dois têm de andar a par: o cliente já recusa perguntar
+ *  depois deste número, e este ficheiro é só o fecho para quem contorna o
+ *  cliente. */
+const LIMITE_DIARIO_IA = 20;
+
+/** Tenta consumir uma pergunta da cota diária do UID, escrevendo direto no
+ *  RTDB com o ID token de quem pergunta.
+ *
+ *  Leitura + escrita condicional por ETag, não leitura-seguida-de-escrita:
+ *  duas perguntas em paralelo da mesma conta (duas abas, telemóvel e
+ *  desktop ao mesmo tempo) não podem ler o mesmo valor e escrever as duas o
+ *  mesmo número — perderia uma unidade da cota. Mesma razão do
+ *  `runTransaction` do lado do cliente; aqui é feito à mão com a API REST do
+ *  RTDB (cabeçalho `X-Firebase-ETag` na leitura, `if-match` na escrita)
+ *  porque o SDK do Firebase não corre neste ambiente serverless.
+ *
+ *  O dia usado é o de HOJE em UTC — não necessariamente o mesmo dia local de
+ *  quem pergunta perto da meia-noite. Sem problema: o cliente já é quem
+ *  decide o dia que conta para a pessoa (`iaUsoService.ts`); este é só o
+ *  travão do servidor, e continua a limitar a mesma conta ao mesmo número de
+ *  perguntas por dia, só que talvez não exactamente às 00h00 dela.
+ *
+ *  Devolve `false` em qualquer caso de insucesso — cota esgotada, leitura ou
+ *  escrita do RTDB a falhar, ou três tentativas seguidas a perder a corrida
+ *  do ETag. Sem conseguir contar com confiança, o seguro é não deixar
+ *  chamar a IA, mesmo que isso recuse, raramente, um pedido legítimo por uma
+ *  falha que não é dele. */
+async function consumirCotaServidor(uid: string, token: string): Promise<boolean> {
+  const dia = new Date().toISOString().slice(0, 10);
+  const url = `${DATABASE_URL}/users/${uid}/fin_v5/iaUso/${dia}.json?auth=${encodeURIComponent(token)}`;
+
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    let atual: number;
+    let etag: string | null;
+    try {
+      const leitura = await fetch(url, { headers: { "X-Firebase-ETag": "true" } });
+      if (!leitura.ok) return false;
+      etag = leitura.headers.get("ETag");
+      const valor: unknown = await leitura.json();
+      atual = typeof valor === "number" ? valor : 0;
+    } catch {
+      return false;
+    }
+
+    if (atual >= LIMITE_DIARIO_IA || !etag) return false;
+
+    try {
+      const escrita = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "if-match": etag },
+        body: JSON.stringify(atual + 1),
+      });
+      // 412: o ETag mudou entre a leitura e a escrita — outra pergunta da
+      // mesma conta ganhou a corrida. Tenta de novo com o valor mais recente.
+      if (escrita.status === 412) continue;
+      return escrita.ok;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 /** JWKS público do Firebase Auth (chaves de assinatura dos ID tokens) — o
  *  `jose` busca e cacheia entre invocações a frio, sem precisar de rede a
@@ -170,7 +246,8 @@ export default async function handler(req: Request): Promise<Response> {
 
   const cabecalho = req.headers.get("authorization") ?? "";
   const token = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7) : "";
-  if (!token || !(await uidDoToken(token))) return json({ erro: "naoAutenticado" }, 401);
+  const uid = token ? await uidDoToken(token) : null;
+  if (!token || !uid) return json({ erro: "naoAutenticado" }, 401);
 
   const chave = process.env.GEMINI_API_KEY;
   // Sem chave configurada a app não parte: o cliente trata qualquer resposta
@@ -186,6 +263,11 @@ export default async function handler(req: Request): Promise<Response> {
 
   const corpo = lerCorpo(bruto);
   if (!corpo) return json({ erro: "corpo" }, 400);
+
+  // Fecho da cota do lado do servidor — ver a nota em `consumirCotaServidor`.
+  // Verificado só agora (depois da chave e do corpo) para não gastar uma
+  // escrita no RTDB por um pedido que ia ser recusado de qualquer forma.
+  if (!(await consumirCotaServidor(uid, token))) return json({ erro: "cota" }, 429);
 
   const resposta = await perguntarAoGemini(chave, process.env.GEMINI_MODEL || MODELO_PADRAO, corpo);
   if (!resposta) return json({ erro: "indisponivel" }, 503);

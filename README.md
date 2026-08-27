@@ -66,6 +66,13 @@ commitado:
 Sem a variável a app **não parte**: a camada 2 responde sempre "não consigo
 responder agora, tente depois", e a camada 1 continua a funcionar na íntegra.
 
+A cota de 20 perguntas/dia é aplicada nos dois lados: o cliente
+(`services/iaUsoService.ts`) já não deixa perguntar depois disso, e
+`api/copiloto-ia.ts` reescreve o mesmo nó do RTDB com o próprio ID token de
+quem pergunta antes de chamar o Gemini — um pedido feito à mão direto ao
+endpoint, com um token válido mas cota do dia esgotada, é recusado (429) sem
+gastar a `GEMINI_API_KEY`.
+
 As regras do Realtime Database mudaram (nó `iaUso`) e precisam de ser
 publicadas: `firebase deploy --only database`.
 
