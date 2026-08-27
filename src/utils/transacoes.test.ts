@@ -585,6 +585,44 @@ describe("transacoesDoMes", () => {
     );
     expect(t[0].data).toBe("2026-07-01");
   });
+
+  // Bug: carga e despesaVeiculo eram os únicos dois domínios que não levavam
+  // `contaCartao` para `conta` — `passaFiltroConta` nunca casava com elas,
+  // então filtrar o extrato por uma conta escondia todo carregamento/despesa
+  // do veículo pago por ela, mesmo tendo sido de facto essa conta a pagar.
+  it("carga e despesaVeiculo levam a conta/cartão que pagou, como os outros domínios", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...VEICULO_VAZIO,
+          cargas: [
+            {
+              id: "c1",
+              data: "2026-07-12",
+              custo: 600,
+              local: "Galp",
+              contaCartao: "AB Gold (C)",
+            },
+          ],
+          despesas: [
+            {
+              id: "dv1",
+              data: "2026-07-15",
+              valor: 12000,
+              categoria: "Manutenção",
+              contaCartao: "AB Gold (C)",
+            },
+          ],
+        },
+      },
+      "2026-07",
+    );
+    const carga = t.find((x) => x.origem === "carga")!;
+    const despesaVeiculo = t.find((x) => x.origem === "despesaVeiculo")!;
+    expect(carga.conta).toBe("AB Gold (C)");
+    expect(despesaVeiculo.conta).toBe("AB Gold (C)");
+  });
 });
 
 function transacao(extra: Partial<Transacao> = {}): Transacao {

@@ -249,6 +249,7 @@ export function transacoesDoMes(
       data: c.data,
       titulo: c.local,
       categoria: "Carga Elétrica",
+      conta: c.contaCartao,
       nota: c.nota,
       valor: c.custo,
       entrada: false,
@@ -269,6 +270,7 @@ export function transacoesDoMes(
       // vezes na mesma linha; sem nota nenhuma sobra a categoria.
       titulo: d.descricao || d.nota || d.categoria,
       categoria: d.categoria,
+      conta: d.contaCartao,
       nota: d.descricao ? d.nota : undefined,
       valor: d.valor,
       entrada: false,
