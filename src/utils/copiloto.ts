@@ -584,42 +584,6 @@ const PALAVRAS_DE_META =
   /fundo|meta|falta|chegar|juntar|poupar|guardar|atingir|objetivo|objectivo|cofrinho/;
 
 export const INTENTS_COPILOTO: IntentCopiloto[] = [
-  // combustível / carregamento elétrico
-  {
-    test: (q) => /combust|gasolina|carregament|abasteci/.test(q),
-    run: (q, ref, ctx) => {
-      if (q.includes("ultimo") || q.includes("ultima")) {
-        const ordenadas = [...ctx.veiculo.cargas].sort((a, b2) => (a.data < b2.data ? 1 : -1));
-        if (!ordenadas.length) return "Ainda não há registos de combustível/carregamento.";
-        const c = ordenadas[0];
-        return `O último carregamento foi em ${b(dataCurta(c.data))}${c.local ? ` em ${b(c.local)}` : ""}, no valor de ${b(formatMoney(c.custo, ctx.cfg.currency))}.`;
-      }
-      const total = totalCargasMes(ctx.veiculo, ref.ym);
-      return total > 0
-        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em combustível/carregamento em ${ref.label}.`
-        : `Não há gastos de combustível/carregamento registados em ${ref.label}.`;
-    },
-  },
-  // manutenção / limpeza do veículo
-  {
-    test: (q) => /manutenc|limpeza|lavagem/.test(q),
-    run: (_q, ref, ctx) => {
-      const total = totalDespesasVeiculoMes(ctx.veiculo, ref.ym);
-      return total > 0
-        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em manutenção/limpeza do veículo em ${ref.label}.`
-        : `Não há gastos de manutenção/limpeza registados em ${ref.label}.`;
-    },
-  },
-  // veículo genérico (soma tudo: cargas + despesas + fixas)
-  //
-  // Chama `totalVeiculoMes` directamente, sem passar por `totaisDoMes` nem
-  // `categoriasDoMes` — foi por isso que escapou à correção de 617d305 e
-  // continuou a contar o seguro do dia 28 já no dia 3.
-  {
-    test: (q) => /veiculo|\bcarro\b/.test(q),
-    run: (_q, ref, ctx) =>
-      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal, hojeDoContexto(ctx)), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
-  },
   // parcela específica (por nome)
   {
     test: (q, ctx) =>
@@ -779,6 +743,50 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         ],
       });
     },
+  },
+  // combustível / carregamento elétrico
+  //
+  // Vêm DEPOIS dos intents por nome (parcela/cartão/fonte/fundo/categoria)
+  // porque as suas palavras-chave são genéricas demais para vir antes: uma
+  // parcela de financiamento chamada "Carro", ou um fundo/cartão/categoria
+  // com "combustível"/"gasolina" no nome, ficavam sequestrados por estes
+  // testes antes sequer de chegar ao teste por nome, mesmo estando esses mais
+  // abaixo na lista — a ordem "mais específico → mais genérico" do topo do
+  // ficheiro valia para a maioria dos intents, menos para estes três.
+  {
+    test: (q) => /combust|gasolina|carregament|abasteci/.test(q),
+    run: (q, ref, ctx) => {
+      if (q.includes("ultimo") || q.includes("ultima")) {
+        const ordenadas = [...ctx.veiculo.cargas].sort((a, b2) => (a.data < b2.data ? 1 : -1));
+        if (!ordenadas.length) return "Ainda não há registos de combustível/carregamento.";
+        const c = ordenadas[0];
+        return `O último carregamento foi em ${b(dataCurta(c.data))}${c.local ? ` em ${b(c.local)}` : ""}, no valor de ${b(formatMoney(c.custo, ctx.cfg.currency))}.`;
+      }
+      const total = totalCargasMes(ctx.veiculo, ref.ym);
+      return total > 0
+        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em combustível/carregamento em ${ref.label}.`
+        : `Não há gastos de combustível/carregamento registados em ${ref.label}.`;
+    },
+  },
+  // manutenção / limpeza do veículo
+  {
+    test: (q) => /manutenc|limpeza|lavagem/.test(q),
+    run: (_q, ref, ctx) => {
+      const total = totalDespesasVeiculoMes(ctx.veiculo, ref.ym);
+      return total > 0
+        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em manutenção/limpeza do veículo em ${ref.label}.`
+        : `Não há gastos de manutenção/limpeza registados em ${ref.label}.`;
+    },
+  },
+  // veículo genérico (soma tudo: cargas + despesas + fixas)
+  //
+  // Chama `totalVeiculoMes` directamente, sem passar por `totaisDoMes` nem
+  // `categoriasDoMes` — foi por isso que escapou à correção de 617d305 e
+  // continuou a contar o seguro do dia 28 já no dia 3.
+  {
+    test: (q) => /veiculo|\bcarro\b/.test(q),
+    run: (_q, ref, ctx) =>
+      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal, hojeDoContexto(ctx)), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
   },
   // orçamento (categorias com teto configurado — seção 4.8)
   {

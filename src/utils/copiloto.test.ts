@@ -267,6 +267,25 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/Faltam <b>1<\/b> parcela/);
   });
 
+  // Bug corrigido: os intents genéricos de combustível/manutenção/veículo
+  // vinham ANTES dos intents por nome (parcela/cartão/fonte/fundo/categoria),
+  // ao contrário do resto da lista ("mais específico → mais genérico"). Uma
+  // parcela de financiamento chamada "Carro" nunca era alcançada: `\bcarro\b`
+  // batia primeiro e a pergunta caía sempre na resposta genérica do veículo.
+  test("parcela chamada 'Carro' não é sequestrada pelo intent genérico de veículo", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "Carro",
+      total: 1200000,
+      numParcelas: 24,
+      primeiroMes: "2026-01",
+      pagoPorMes: {},
+    };
+    const resp = responderPergunta("quanto falta pagar do carro", ctx({ parcelas: [parcela] }));
+    expect(resp).toContain("Carro");
+    expect(resp).not.toContain("total gasto com o veículo");
+  });
+
   test("parcelas agregado não conta o mês em débito automático já saído pelo cartão", () => {
     const parcela: Parcela = {
       id: "p1",
