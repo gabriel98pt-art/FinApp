@@ -748,19 +748,46 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {/* Item 4 do lote de UX/nav: fora da carga (que reparte a linha com
-            kWh/Litros — cada valor pequeno já basta ali), o Valor ganha
-            destaque — label pequeno em cima, número grande/centralizado
+        {/* Item 4 do lote de UX/nav, e ajuste C (30/08 — mesmo tratamento nas
+            3 "páginas" do Registro Rápido, Despesa/Receita/Veículo): o Valor
+            ganha destaque — label pequeno em cima, número grande/centralizado
             embaixo, verde quando é receita (nunca fora dela — ver a regra
-            "verde só em Receita", categoriaVisual.ts). Numa despesa parcelada
-            o valor vive só dentro da folha de Parcelamento — pedir os dois
-            seria pedir o mesmo número duas vezes. */}
-        {tipo !== "carga" && !ehParcelada && (
+            "verde só em Receita", categoriaVisual.ts). Na carga o rótulo
+            acompanha o modo escolhido acima (custo total ou €/unidade); kWh/
+            Litros é campo à parte logo abaixo, não mais dividindo linha com
+            o valor — ele também merece o espaço que os outros dois tipos já
+            tinham. Numa despesa parcelada o valor vive só dentro da folha de
+            Parcelamento — pedir os dois seria pedir o mesmo número duas
+            vezes. */}
+        {!ehParcelada && (
           <label className={`${styles.campo} ${styles.campoValorDestaque}`}>
-            <span className={styles.rotuloValorDestaque}>Quanto?</span>
+            <span className={styles.rotuloValorDestaque}>
+              {tipo !== "carga"
+                ? "Quanto?"
+                : modoCusto === "total"
+                  ? "Quanto?"
+                  : dimensao === "eletrico"
+                    ? `Preço por kWh (${simbolo})`
+                    : `Preço por litro (${simbolo})`}
+            </span>
             <CampoMoeda
-              valor={valorTexto}
-              aoMudar={setValorTexto}
+              valor={
+                tipo !== "carga" || modoCusto === "total"
+                  ? valorTexto
+                  : dimensao === "eletrico"
+                    ? precoKwh
+                    : precoLitro
+              }
+              aoMudar={
+                tipo !== "carga" || modoCusto === "total"
+                  ? (v) => {
+                      setValorTexto(v);
+                      if (tipo === "carga" && !quantidadeTocada) palpitarQuantidade(v, descricao);
+                    }
+                  : dimensao === "eletrico"
+                    ? setPrecoKwh
+                    : setPrecoLitro
+              }
               required
               className={`${styles.valorDestaque} ${lado === "receita" ? styles.valorDestaqueReceita : ""}`}
               // As mensagens de erro deste formulário já descrevem UM campo
@@ -775,36 +802,7 @@ export default function RegistroRapido() {
         )}
 
         {tipo === "carga" && (
-          <div className={styles.linhaDupla}>
-            {modoCusto !== "unidade" && (
-              <label className={styles.campo}>
-                {`Custo total (${simbolo})`}
-                <CampoMoeda
-                  valor={valorTexto}
-                  aoMudar={(v) => {
-                    setValorTexto(v);
-                    if (!quantidadeTocada) palpitarQuantidade(v, descricao);
-                  }}
-                  required
-                  aria-describedby={erro !== null ? "erro-registro" : undefined}
-                />
-              </label>
-            )}
-
-            {modoCusto === "unidade" && (
-              <label className={styles.campo}>
-                {dimensao === "eletrico"
-                  ? `Preço por kWh (${simbolo})`
-                  : `Preço por litro (${simbolo})`}
-                <CampoMoeda
-                  valor={dimensao === "eletrico" ? precoKwh : precoLitro}
-                  aoMudar={dimensao === "eletrico" ? setPrecoKwh : setPrecoLitro}
-                  required
-                  aria-describedby={erro !== null ? "erro-registro" : undefined}
-                />
-              </label>
-            )}
-
+          <>
             <label className={styles.campo}>
               {dimensao === "eletrico" ? "kWh" : "Litros"}
               <input
@@ -820,7 +818,7 @@ export default function RegistroRapido() {
                 aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
             </label>
-          </div>
+          </>
         )}
 
         {/* Despesa ou dinheiro que voltou. Só do lado da despesa e fora do
