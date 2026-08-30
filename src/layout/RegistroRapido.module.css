@@ -106,6 +106,47 @@
   gap: 10px;
 }
 
+/* Item 4 do lote de UX/nav (30/08): o Valor deixa de ser "mais um campo" e
+   vira o centro do formulário — label pequeno em cima, número grande e
+   centralizado embaixo. `.campo input` (acima) manda no visual padrão dos
+   outros campos por especificidade (uma classe + o elemento) — por isso o
+   seletor aqui repete os dois níveis (`.campo input.valorDestaque`), não só
+   a classe nova: com a mesma especificidade que `.campo input`, ganha por
+   vir depois no ficheiro; com MENOS especificidade (só `.valorDestaque`)
+   perderia mesmo vindo depois. */
+.campoValorDestaque {
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.rotuloValorDestaque {
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.campo input.valorDestaque {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--txt);
+}
+
+/* Sem `outline:none` no `:focus`: `.campo input:focus` (acima) já desenha o
+   anel azul de sempre — um input sem contorno visível em repouso ainda
+   precisa de indicar foco por teclado, achado repetido da auditoria de
+   Acessibilidade. */
+
+/* Verde só aqui: é o campo Valor de uma RECEITA, nunca de despesa/veículo —
+   a regra "verde é exclusivo de Receita" (utils/categoriaVisual.ts) não
+   muda, isto só é mais um lugar que já sabe se está do lado da receita. */
+.campo input.valorDestaqueReceita {
+  color: var(--grn);
+}
+
 .erro {
   color: var(--red);
   font-size: var(--fs-body);

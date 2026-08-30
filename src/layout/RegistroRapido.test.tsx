@@ -82,7 +82,7 @@ const RegistroRapido = (await import("./RegistroRapido")).default;
  *  o pior tipo de teste que há. */
 async function preencher(centavos: string) {
   await userEvent.type(screen.getByLabelText(/Descrição|Nome/i), "Jantar de equipa");
-  const campoValor = screen.getByLabelText(/Valor/i);
+  const campoValor = screen.getByLabelText(/Quanto|Valor/i);
   await userEvent.clear(campoValor);
   await userEvent.type(campoValor, centavos);
 
@@ -199,6 +199,31 @@ describe("gravação do reembolso", () => {
   });
 });
 
+// Item 4 do lote de UX/nav (30/08): Nome + Nota (dois campos lado a lado)
+// viraram um só, "Descrição" — e o Valor ganhou "Quanto?" como rótulo, em
+// vez de "Valor (€)".
+describe("campo único Descrição, sem Nota separada (item 4)", () => {
+  test("não existe mais campo de Nota", () => {
+    render(<RegistroRapido />);
+    expect(screen.queryByLabelText(/Nota/i)).not.toBeInTheDocument();
+  });
+
+  test("o rótulo do Valor agora é 'Quanto?'", () => {
+    render(<RegistroRapido />);
+    expect(screen.getByLabelText(/Quanto\?/i)).toBeInTheDocument();
+  });
+
+  test("o que se escreve em Descrição grava em descricao — nota nunca é enviada", async () => {
+    render(<RegistroRapido />);
+    await preencher("4250");
+    await submeter();
+
+    const [, dados] = criarDespesa.mock.calls[0] as unknown as [string, DespesaCorrente];
+    expect(dados.descricao).toBe("Jantar de equipa");
+    expect(dados.nota).toBeUndefined();
+  });
+});
+
 // Item B1: o sub-formulário de carga mostra kWh, litros, ou os dois (com
 // escolha) conforme o tipo de veículo configurado — não é mais sempre kWh.
 describe("abastecimento — campos conforme o tipo de veículo (item B1)", () => {
@@ -262,7 +287,7 @@ describe("erro de validação — achado da auditoria de Acessibilidade", () => 
 
     const idErro = alerta.id;
     expect(idErro).toBeTruthy();
-    expect(screen.getByLabelText(/Valor/i)).toHaveAttribute("aria-describedby", idErro);
+    expect(screen.getByLabelText(/Quanto/i)).toHaveAttribute("aria-describedby", idErro);
   });
 });
 

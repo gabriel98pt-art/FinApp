@@ -117,7 +117,6 @@ export default function RegistroRapido() {
   const simbolo = CURRENCY_SYMBOLS[cfg.currency];
 
   const [descricao, setDescricao] = useState("");
-  const [nota, setNota] = useState("");
   const [valorTexto, setValorTexto] = useState<Cents | null>(null);
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
@@ -251,7 +250,6 @@ export default function RegistroRapido() {
       setFolhaParcelamento(false);
       if (editando) {
         setDescricao(editando.descricao);
-        setNota(editando.nota ?? "");
         // Um reembolso está guardado negativo; o campo mostra-o positivo, como
         // o pediu ao ser criado.
         const ehReemb = editando.origem === "reemb";
@@ -263,7 +261,6 @@ export default function RegistroRapido() {
         setConta(("fonte" in editando ? editando.conta : editando.contaCartao) ?? "");
       } else {
         setDescricao("");
-        setNota("");
         setValorTexto(null);
         setData(hojeIso());
         setEtiqueta("");
@@ -303,7 +300,6 @@ export default function RegistroRapido() {
       setModoCusto("total");
       setPrecoKwh(null);
       setPrecoLitro(null);
-      setNota("");
       setParcelada(false);
       setFolhaParcelamento(false);
       // Desmarcar o parcelamento apaga também o que só a ele pertence.
@@ -402,7 +398,6 @@ export default function RegistroRapido() {
     // `opcoes[opcoes.length - 1]` passava a mandar o lançamento pra última
     // categoria que o usuário tinha criado.
     const etiquetaFinal = etiqueta || opcoes.find((o) => o === "Outros") || opcoes[0] || "Outros";
-    const notaFinal = nota.trim() || undefined;
 
     setSalvando(true);
     try {
@@ -442,7 +437,6 @@ export default function RegistroRapido() {
           custo,
           local,
           contaCartao: conta || undefined,
-          nota: notaFinal,
         });
       } else if (tipo === "despesaVeiculo") {
         await criarDespesaVeiculo(uid, {
@@ -451,7 +445,6 @@ export default function RegistroRapido() {
           categoria: etiquetaFinal,
           descricao: descricao.trim() || undefined,
           contaCartao: conta || undefined,
-          nota: notaFinal,
         });
       } else if (ehParcelada) {
         const n = parseInt(numParcelas, 10);
@@ -478,7 +471,6 @@ export default function RegistroRapido() {
           autoDebit,
           intermediador: intermediador || undefined,
           pagoPorMes: {},
-          nota: notaFinal,
         });
       } else if (editando && lado !== tipo) {
         // Trocou o lado numa edição. Receitas e despesas são coleções separadas
@@ -495,7 +487,6 @@ export default function RegistroRapido() {
             data,
             fonte: etiquetaFinal,
             conta: conta || undefined,
-            nota: notaFinal,
           });
           await removerDespesa(uid, editando.id);
         } else {
@@ -505,7 +496,6 @@ export default function RegistroRapido() {
             data,
             categoria: etiquetaFinal,
             contaCartao: conta || undefined,
-            nota: notaFinal,
           });
           await removerReceita(uid, editando.id);
         }
@@ -516,7 +506,6 @@ export default function RegistroRapido() {
           data,
           fonte: etiquetaFinal,
           conta: conta || undefined,
-          nota: notaFinal,
         };
         if (editando) await atualizarReceita(uid, { ...editando, ...dados });
         else await criarReceita(uid, dados);
@@ -540,7 +529,6 @@ export default function RegistroRapido() {
           data,
           categoria: etiquetaFinal,
           contaCartao: conta || undefined,
-          nota: notaFinal,
           origem,
           reembolsoDeId: reembolso ? reembolsoDe || undefined : undefined,
         };
@@ -688,8 +676,11 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {/* Nome + Nota lado a lado. Na carga o nome é o LOCAL, escolhido pelo
-            seletor logo abaixo em vez do campo de texto. */}
+        {/* Descrição — item 4 do lote de UX/nav (30/08): unifica os campos
+            Nome + Nota (antes lado a lado) num só, texto livre — mais rápido
+            de preencher, e não obriga a decidir em qual dos dois algo entra.
+            Na carga o "nome" é o LOCAL, escolhido pelo seletor abaixo em vez
+            deste campo — segue como antes, sem um campo de nota à parte. */}
         {tipo === "carga" && (
           <SeletorLocal
             valor={descricao}
@@ -734,33 +725,21 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        <div className={styles.linhaDupla}>
-          {tipo !== "carga" && (
-            <label className={styles.campo}>
-              Nome
-              <input
-                type="text"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                // Na despesa do veículo o nome é opcional: sem ele o título
-                // continua a sair da nota/categoria, como sempre saiu — exigi-lo
-                // travaria um registo que hoje se faz só com valor e categoria.
-                required={tipo !== "despesaVeiculo"}
-                maxLength={80}
-              />
-            </label>
-          )}
-
+        {tipo !== "carga" && (
           <label className={styles.campo}>
-            Nota
+            Descrição
             <input
               type="text"
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              // Na despesa do veículo a descrição é opcional: sem ela o título
+              // continua a sair da categoria, como sempre saiu — exigi-la
+              // travaria um registo que hoje se faz só com valor e categoria.
+              required={tipo !== "despesaVeiculo"}
               maxLength={120}
             />
           </label>
-        </div>
+        )}
 
         {/* Duas formas de informar um abastecimento: custo total (deriva o
             €/unidade) ou €/unidade direto (deriva o custo) — mesmo par de
@@ -794,45 +773,63 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {/* Numa despesa parcelada o valor vive só dentro da folha de
-            Parcelamento — ter os dois seria pedir o mesmo número duas vezes. */}
-        <div className={styles.linhaDupla}>
-          {!ehParcelada && !(tipo === "carga" && modoCusto === "unidade") && (
-            <label className={styles.campo}>
-              {tipo === "carga" ? `Custo total (${simbolo})` : `Valor (${simbolo})`}
-              <CampoMoeda
-                valor={valorTexto}
-                aoMudar={(v) => {
-                  setValorTexto(v);
-                  if (tipo === "carga" && !quantidadeTocada) palpitarQuantidade(v, descricao);
-                }}
-                required
-                // As mensagens de erro deste formulário já descrevem UM
-                // campo cada ("Valor inválido...", "kWh inválido.", "Escolha
-                // em quantas parcelas...", "Dia do vencimento..."), mas o
-                // estado só guarda o texto, não qual campo — aria-describedby
-                // nos campos relevantes, não aria-invalid (exigiria saber
-                // exatamente qual — achado da auditoria de Acessibilidade).
-                aria-describedby={erro !== null ? "erro-registro" : undefined}
-              />
-            </label>
-          )}
+        {/* Item 4 do lote de UX/nav: fora da carga (que reparte a linha com
+            kWh/Litros — cada valor pequeno já basta ali), o Valor ganha
+            destaque — label pequeno em cima, número grande/centralizado
+            embaixo, verde quando é receita (nunca fora dela — ver a regra
+            "verde só em Receita", categoriaVisual.ts). Numa despesa parcelada
+            o valor vive só dentro da folha de Parcelamento — pedir os dois
+            seria pedir o mesmo número duas vezes. */}
+        {tipo !== "carga" && !ehParcelada && (
+          <label className={`${styles.campo} ${styles.campoValorDestaque}`}>
+            <span className={styles.rotuloValorDestaque}>Quanto?</span>
+            <CampoMoeda
+              valor={valorTexto}
+              aoMudar={setValorTexto}
+              required
+              className={`${styles.valorDestaque} ${lado === "receita" ? styles.valorDestaqueReceita : ""}`}
+              // As mensagens de erro deste formulário já descrevem UM campo
+              // cada ("Valor inválido...", "kWh inválido.", "Escolha em
+              // quantas parcelas...", "Dia do vencimento..."), mas o estado
+              // só guarda o texto, não qual campo — aria-describedby nos
+              // campos relevantes, não aria-invalid (exigiria saber
+              // exatamente qual — achado da auditoria de Acessibilidade).
+              aria-describedby={erro !== null ? "erro-registro" : undefined}
+            />
+          </label>
+        )}
 
-          {tipo === "carga" && modoCusto === "unidade" && (
-            <label className={styles.campo}>
-              {dimensao === "eletrico"
-                ? `Preço por kWh (${simbolo})`
-                : `Preço por litro (${simbolo})`}
-              <CampoMoeda
-                valor={dimensao === "eletrico" ? precoKwh : precoLitro}
-                aoMudar={dimensao === "eletrico" ? setPrecoKwh : setPrecoLitro}
-                required
-                aria-describedby={erro !== null ? "erro-registro" : undefined}
-              />
-            </label>
-          )}
+        {tipo === "carga" && (
+          <div className={styles.linhaDupla}>
+            {modoCusto !== "unidade" && (
+              <label className={styles.campo}>
+                {`Custo total (${simbolo})`}
+                <CampoMoeda
+                  valor={valorTexto}
+                  aoMudar={(v) => {
+                    setValorTexto(v);
+                    if (!quantidadeTocada) palpitarQuantidade(v, descricao);
+                  }}
+                  required
+                  aria-describedby={erro !== null ? "erro-registro" : undefined}
+                />
+              </label>
+            )}
 
-          {tipo === "carga" && (
+            {modoCusto === "unidade" && (
+              <label className={styles.campo}>
+                {dimensao === "eletrico"
+                  ? `Preço por kWh (${simbolo})`
+                  : `Preço por litro (${simbolo})`}
+                <CampoMoeda
+                  valor={dimensao === "eletrico" ? precoKwh : precoLitro}
+                  aoMudar={dimensao === "eletrico" ? setPrecoKwh : setPrecoLitro}
+                  required
+                  aria-describedby={erro !== null ? "erro-registro" : undefined}
+                />
+              </label>
+            )}
+
             <label className={styles.campo}>
               {dimensao === "eletrico" ? "kWh" : "Litros"}
               <input
@@ -848,8 +845,8 @@ export default function RegistroRapido() {
                 aria-describedby={erro !== null ? "erro-registro" : undefined}
               />
             </label>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Despesa ou dinheiro que voltou. Só do lado da despesa e fora do
             veículo: uma receita já é dinheiro a entrar, e o veículo tem os
