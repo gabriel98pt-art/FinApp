@@ -1,10 +1,11 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { ArrowLeftRight, CreditCard, Pencil, Plus, Wallet, X } from "lucide-react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { ArrowLeftRight, CreditCard, Pencil, Plus, Trash2, Wallet, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import ErroSincronizacao from "../components/ErroSincronizacao";
+import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorData from "../components/SeletorData";
@@ -273,6 +274,64 @@ function leiturasDoQuadro(
   };
 }
 
+/** Uma linha de transferência — item 2 do lote de UX/nav (30/08): a linha
+ *  inteira abre o menu único (Editar/Excluir), em vez de ir direto pro
+ *  formulário. */
+function LinhaTransferencia({
+  t,
+  moeda,
+  nomeDe,
+  aoEditar,
+  aoExcluir,
+}: {
+  t: Transferencia;
+  moeda: Currency;
+  nomeDe: (id: string) => string;
+  aoEditar: (t: Transferencia) => void;
+  aoExcluir: (t: Transferencia) => void;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  const acoes: AcaoItem[] = [
+    { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
+    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+  ];
+
+  const nome = `${nomeDe(t.de)} → ${nomeDe(t.para)}`;
+
+  return (
+    <div className={styles.item}>
+      <button
+        ref={ancoraRef}
+        className={styles.itemCorpo}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+      >
+        <span className={styles.itemTexto}>
+          <span className={styles.itemNome}>
+            {nomeDe(t.de)} <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
+            {nomeDe(t.para)}
+          </span>
+          <span className={styles.itemDetalhe}>
+            {t.descricao ? `${t.descricao} · ` : ""}
+            {t.nota ? `${t.nota} · ` : ""}
+            {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
+          </span>
+        </span>
+        <span className={styles.itemValor}>{formatMoney(t.valor, moeda)}</span>
+      </button>
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={nome}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
+    </div>
+  );
+}
+
 // A FaturaCalculada não carrega a lista de pagamentos — este helper devolve a
 // lista atual a partir da store, com a mesma compat de formato legado do cálculo.
 function calcularPagamentos(fatura: FaturaCalculada) {
@@ -539,6 +598,17 @@ export default function Cartoes() {
     setTfAberta(false);
     try {
       await removerTransferencia(uid, id);
+      mostrarToast("Transferência excluída");
+    } catch {
+      mostrarToast("Não foi possível concluir. Tente de novo.");
+    }
+  }
+
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha.
+  async function excluirTransferenciaDaLista(t: Transferencia) {
+    if (!(await confirmar("Excluir esta transferência?"))) return;
+    try {
+      await removerTransferencia(uid, t.id);
       mostrarToast("Transferência excluída");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
@@ -825,23 +895,14 @@ export default function Cartoes() {
           />
         ) : (
           ordenarPorDataDesc(transferenciasDoMes).map((t) => (
-            <div key={t.id} className={styles.item}>
-              <button className={styles.itemCorpo} onClick={() => abrirEdicaoTransferencia(t)}>
-                <span className={styles.itemTexto}>
-                  <span className={styles.itemNome}>
-                    {nomeDe(t.de)}{" "}
-                    <ArrowLeftRight size={12} aria-hidden style={{ display: "inline" }} />{" "}
-                    {nomeDe(t.para)}
-                  </span>
-                  <span className={styles.itemDetalhe}>
-                    {t.descricao ? `${t.descricao} · ` : ""}
-                    {t.nota ? `${t.nota} · ` : ""}
-                    {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                  </span>
-                </span>
-                <span className={styles.itemValor}>{formatMoney(t.valor, cfg.currency)}</span>
-              </button>
-            </div>
+            <LinhaTransferencia
+              key={t.id}
+              t={t}
+              moeda={cfg.currency}
+              nomeDe={nomeDe}
+              aoEditar={abrirEdicaoTransferencia}
+              aoExcluir={(item) => void excluirTransferenciaDaLista(item)}
+            />
           ))
         )}
       </div>

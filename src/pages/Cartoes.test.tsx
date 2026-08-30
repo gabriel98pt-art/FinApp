@@ -254,6 +254,18 @@ describe("Cartoes", () => {
       expect(linha.textContent).toContain("Gold Novo");
       expect(linha.textContent).not.toContain(CARTAO);
     });
+
+    // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
+    // ações, em vez de ir direto pro formulário de edição.
+    test("tocar na linha da transferência abre o menu com Editar e Excluir", async () => {
+      render(<Cartoes />);
+      const linha = screen.getAllByRole("button").find((b) => b.textContent?.includes("10/08"))!;
+
+      fireEvent.click(linha);
+
+      expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    });
   });
 
   test("'Transferências entre contas' é cabeçalho de secção", () => {
