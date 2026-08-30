@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from "react";
-import { History, Layers, Plus } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { Check, CheckCheck, History, Layers, Pencil, Plus, Trash2 } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
+import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdemFolha from "../components/SeletorOrdemFolha";
@@ -45,6 +46,7 @@ function LinhaParcela({
   p,
   moeda,
   aoEditar,
+  aoExcluir,
   mesRef,
   diaVencimentoFatura,
   nomeDoCartao,
@@ -52,6 +54,9 @@ function LinhaParcela({
   p: Parcela;
   moeda: Currency;
   aoEditar: (p: Parcela) => void;
+  /** Item 2 do lote de UX/nav: Excluir vira ação do menu único — quem chama
+   *  cuida da confirmação, igual ao mesmo padrão de ListaLancamentos. */
+  aoExcluir: (p: Parcela) => void;
   mesRef: YearMonth;
   diaVencimentoFatura: Record<string, number> | undefined;
   /** O que a parcela guarda é o id do cartão, que nunca muda; o nome de hoje
@@ -60,6 +65,8 @@ function LinhaParcela({
 }) {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
   const quitada = parcelaQuitada(p, mesRef);
   const { pagas, total } = progressoDaParcela(p, mesRef);
   const abertos = mesesNaoPagos(p, mesRef);
@@ -76,10 +83,57 @@ function LinhaParcela({
     }
   }
 
+  async function pagarTudo() {
+    // O mesmo `mesRef` da linha acima e do que o serviço grava: o número que
+    // se confirma aqui tem de ser o que sai da conta.
+    const totalQuit = valorQuitacao(p, mesRef);
+    // O botão irmão paga UM mês; este paga a compra inteira e cria uma
+    // despesa só, sem volta. A confirmação é o único sítio onde essa
+    // diferença cabe por extenso.
+    if (
+      !(await confirmar(
+        `Pagar tudo de "${p.descricao}" agora?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)} numa única despesa, lançada hoje.\n\nQuita a compra inteira de uma vez e não dá para desfazer.`,
+      ))
+    )
+      return;
+    await agir(
+      () => quitarParcela(uid, p, mesRef),
+      `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
+    );
+  }
+
+  // Item 2 do lote de UX/nav (30/08): "Pagar {mês}" e "Pagar tudo" eram
+  // botões de texto soltos ao lado do corpo — entram no menu único, junto
+  // de Editar/Excluir, condicionais como já eram.
+  const acoes: AcaoItem[] = [
+    { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(p) },
+    ...(!quitada && proximo !== undefined && !p.autoDebit
+      ? [
+          {
+            rotulo: `Pagar ${rotuloMes(proximo).split(" ")[0]}`,
+            Icone: Check,
+            onClick: () =>
+              void agir(
+                () => pagarMesParcela(uid, p, proximo),
+                `✓ ${p.descricao} — ${rotuloMes(proximo)} paga`,
+              ),
+          },
+        ]
+      : []),
+    ...(!quitada && abertos.length > 0
+      ? [{ rotulo: "Pagar tudo", Icone: CheckCheck, onClick: () => void pagarTudo() }]
+      : []),
+    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
+  ];
+
   return (
     <div className={styles.parcela}>
-      {/* Corpo inteiro abre a caixa de edição, com "Excluir" dentro (item 7) */}
-      <button className={styles.corpo} onClick={() => aoEditar(p)}>
+      <button
+        ref={ancoraRef}
+        className={styles.corpo}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+      >
         <span className={styles.topo}>
           <span className={styles.info}>
             <span className={styles.nome}>{p.descricao}</span>
@@ -119,48 +173,13 @@ function LinhaParcela({
         )}
       </button>
 
-      <div className={styles.acoes}>
-        {!quitada && proximo !== undefined && !p.autoDebit && (
-          <button
-            className={styles.acao}
-            onClick={() =>
-              agir(
-                () => pagarMesParcela(uid, p, proximo),
-                `✓ ${p.descricao} — ${rotuloMes(proximo)} paga`,
-              )
-            }
-          >
-            Pagar {rotuloMes(proximo).split(" ")[0]}
-          </button>
-        )}
-        {!quitada && abertos.length > 0 && (
-          <button
-            className={styles.acao}
-            onClick={() => {
-              void (async () => {
-                // O mesmo `mesRef` da linha acima e do que o serviço grava: o
-                // número que se confirma aqui tem de ser o que sai da conta.
-                const totalQuit = valorQuitacao(p, mesRef);
-                // O botão ao lado paga UM mês; este paga a compra inteira e
-                // cria uma despesa só, sem volta. A confirmação é o único
-                // sítio onde essa diferença cabe por extenso.
-                if (
-                  !(await confirmar(
-                    `Pagar tudo de "${p.descricao}" agora?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)} numa única despesa, lançada hoje.\n\nQuita a compra inteira de uma vez e não dá para desfazer.`,
-                  ))
-                )
-                  return;
-                await agir(
-                  () => quitarParcela(uid, p, mesRef),
-                  `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
-                );
-              })();
-            }}
-          >
-            Pagar tudo
-          </button>
-        )}
-      </div>
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={p.descricao}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
     </div>
   );
 }
@@ -437,6 +456,24 @@ export default function Parcelas() {
     setFolhaAberta(true);
   }
 
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha — o
+  // mesmo `excluirParcela` que `FormParcela` já usava, chamado direto, sem
+  // precisar abrir a edição primeiro.
+  async function excluirDaLista(p: Parcela) {
+    if (
+      !(await confirmar(
+        `Excluir a parcela "${p.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+      ))
+    )
+      return;
+    try {
+      await excluirParcela(uid, p);
+      mostrarToast("Parcela excluída");
+    } catch {
+      mostrarToast("Não foi possível excluir. Tente de novo.");
+    }
+  }
+
   // Tudo o que conta parcelas em aberto olha para o mês do header, e não para
   // "hoje": muda-se o mês em cima e os números acompanham. É também esse mês
   // que diz até onde uma parcela em débito automático já está resolvida.
@@ -524,6 +561,7 @@ export default function Parcelas() {
               p={p}
               moeda={moeda}
               aoEditar={abrirEdicao}
+              aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
@@ -558,6 +596,7 @@ export default function Parcelas() {
                 setQuitadasAbertas(false);
                 abrirEdicao(item);
               }}
+              aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}

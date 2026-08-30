@@ -123,23 +123,39 @@ describe("Parcelas", () => {
     expect(screen.getByText("Telemóvel")).toBeInTheDocument();
   });
 
-  test("os dois botões da linha dizem-se ao lado um do outro: um mês ou tudo", () => {
-    // Lado a lado estavam "Pagar julho" e "Quitar", sem nada que dissesse que
-    // o segundo lança a compra toda de uma vez e não tem volta.
+  // Item 2 do lote de UX/nav (30/08): "Pagar {mês}" e "Pagar tudo" deixaram
+  // de ser botões soltos ao lado do corpo — moraram pro menu único, que abre
+  // ao tocar na linha (junto de Editar/Excluir).
+  test("o menu da linha oferece pagar um mês ou tudo, lado a lado", async () => {
+    // Antes eram "Pagar julho" e "Quitar", sem nada que dissesse que o
+    // segundo lança a compra toda de uma vez e não tem volta.
     estado = { itens: [parcela()], carregado: true, erro: false };
     render(<Parcelas />);
 
+    await userEvent.click(screen.getByText("Portátil"));
+
     // Junho é o primeiro mês em aberto desta parcela — o botão paga ESSE mês.
-    expect(screen.getByRole("button", { name: "Pagar junho" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Pagar junho" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Pagar tudo" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
+  });
+
+  test("o menu da linha também oferece Editar e Excluir", async () => {
+    estado = { itens: [parcela()], carregado: true, erro: false };
+    render(<Parcelas />);
+
+    await userEvent.click(screen.getByText("Portátil"));
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
   });
 
   test("pagar tudo avisa que quita a compra inteira e não dá para desfazer", async () => {
     estado = { itens: [parcela()], carregado: true, erro: false };
     render(<Parcelas />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Pagar tudo" }));
+    await userEvent.click(screen.getByText("Portátil"));
+    await userEvent.click(await screen.findByRole("button", { name: "Pagar tudo" }));
 
     const [texto] = confirmar.mock.calls[0];
     expect(texto).toContain("€ 300,00");
