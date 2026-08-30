@@ -6,7 +6,7 @@
 // delas com um número de separadores que não seja dois.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
@@ -14,6 +14,7 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista } from "../testes/dobras";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+const removerCarga = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("../services/veiculoService", () => ({
   alternarPagoFixaVeiculo: vi.fn(async () => {}),
   atualizarCarga: vi.fn(async () => {}),
@@ -24,7 +25,7 @@ vi.mock("../services/veiculoService", () => ({
   criarDespesaVeiculo: vi.fn(async () => {}),
   criarFixaVeiculo: vi.fn(async () => {}),
   criarKm: vi.fn(async () => {}),
-  removerCarga: vi.fn(async () => {}),
+  removerCarga,
   removerDespesaVeiculo: vi.fn(async () => {}),
   removerFixaVeiculo: vi.fn(async () => {}),
   removerKm: vi.fn(async () => {}),
@@ -81,6 +82,7 @@ beforeEach(() => {
   erro = false;
   cfg = CONFIG_PADRAO;
   atualizarConfig.mockClear();
+  removerCarga.mockClear();
 });
 
 describe("Veiculo", () => {
@@ -179,5 +181,41 @@ describe("tipo de veículo (item B1)", () => {
 
     expect(screen.getByText(/42 L/)).toBeInTheDocument();
     expect(screen.queryByText(/kWh/)).not.toBeInTheDocument();
+  });
+});
+
+// Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
+// ações (Editar/Excluir), em vez de ir direto pro formulário.
+describe("menu de ações da linha (item 2)", () => {
+  test("tocar num abastecimento abre o menu com Editar e Excluir", async () => {
+    dados = {
+      cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    await userEvent.click(screen.getByText("Galp"));
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+  });
+
+  test("Excluir no menu remove o abastecimento direto, sem abrir a edição", async () => {
+    dados = {
+      cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    await userEvent.click(screen.getByText("Galp"));
+    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+
+    await waitFor(() => expect(removerCarga).toHaveBeenCalledWith("u1", "c1"));
   });
 });

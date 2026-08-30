@@ -1,12 +1,13 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { Car, Fuel, Gauge, Pencil, Plus, Repeat, Wrench, Zap } from "lucide-react";
+import { Car, Fuel, Gauge, Pencil, Plus, Repeat, Trash2, Wrench, Zap } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import KpiCard from "../components/KpiCard";
+import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import RenomearFolha from "../components/RenomearFolha";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
@@ -99,6 +100,62 @@ function detalheDespesa(d: DespesaVeiculo): string {
   return [d.descricao ? d.categoria : null, d.nota, `${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`]
     .filter(Boolean)
     .join(" · ");
+}
+
+/** Item de lista com o menu único de ações (item 2 do lote de UX/nav de
+ *  30/08): a linha inteira abre Editar/Excluir num popover, em vez de ir
+ *  direto pro formulário. Reaproveitado nas 5 listas desta tela (resumo,
+ *  cargas, despesas, fixas, km) — cada uma só muda o que `aoEditar`/
+ *  `aoExcluir` fazem. `extra` é só pro badge Pago/Pendente das fixas, que
+ *  fica FORA do botão — é o próprio toggle, um controlo já dedicado e
+ *  único, não um dos "botões espalhados" que este item veio consolidar. */
+function ItemComMenu({
+  nome,
+  detalhe,
+  valor,
+  aoEditar,
+  aoExcluir,
+  extra,
+}: {
+  nome: string;
+  detalhe: string;
+  valor?: string;
+  aoEditar: () => void;
+  aoExcluir: () => void;
+  extra?: ReactNode;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  const acoes: AcaoItem[] = [
+    { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
+    { rotulo: "Excluir", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+  ];
+
+  return (
+    <div className={styles.item}>
+      <button
+        ref={ancoraRef}
+        className={styles.itemCorpo}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+      >
+        <span className={styles.itemTexto}>
+          <span className={styles.itemNome}>{nome}</span>
+          <span className={styles.itemDetalhe}>{detalhe}</span>
+        </span>
+        {valor !== undefined && <span className={styles.itemValor}>{valor}</span>}
+      </button>
+      {extra}
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={nome}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
+    </div>
+  );
 }
 
 export default function Veiculo() {
@@ -217,6 +274,11 @@ export default function Veiculo() {
     if (!(await confirmar("Excluir este registo de km?"))) return;
     const id = kmEditandoId;
     setKmAberta(false);
+    await agir(() => removerKm(uid, id), "Registo excluído");
+  }
+
+  async function excluirKmDaLista(id: Id) {
+    if (!(await confirmar("Excluir este registo de km?"))) return;
     await agir(() => removerKm(uid, id), "Registo excluído");
   }
 
@@ -401,6 +463,13 @@ export default function Veiculo() {
     await agir(() => removerCarga(uid, id), "Abastecimento excluído");
   }
 
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha,
+  // direto — sem passar pela edição primeiro.
+  async function excluirCargaDaLista(id: Id) {
+    if (!(await confirmar("Excluir este abastecimento?"))) return;
+    await agir(() => removerCarga(uid, id), "Abastecimento excluído");
+  }
+
   // ---- caixa de despesa variável do veículo (criar/editar) ----
   const [dvAberta, setDvAberta] = useState(false);
   const [dvEditandoId, setDvEditandoId] = useState<Id | null>(null);
@@ -451,6 +520,11 @@ export default function Veiculo() {
     if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
     const id = dvEditandoId;
     setDvAberta(false);
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa excluída");
+  }
+
+  async function excluirDespesaDaLista(id: Id) {
+    if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
     await agir(() => removerDespesaVeiculo(uid, id), "Despesa excluída");
   }
 
@@ -519,6 +593,11 @@ export default function Veiculo() {
     await agir(() => removerFixaVeiculo(uid, atual.id), "Despesa fixa excluída");
   }
 
+  async function excluirFixaDaLista(f: DespesaFixa) {
+    if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
+    await agir(() => removerFixaVeiculo(uid, f.id), "Despesa fixa excluída");
+  }
+
   return (
     <Pagina titulo="Veículo">
       <Kpis pagina="veiculo">
@@ -577,34 +656,26 @@ export default function Veiculo() {
                 {[...cargasDoMesLista]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
                   .map((c) => (
-                    <div key={c.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoCarga(c)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>Abastecimento · {c.local}</span>
-                          <span className={styles.itemDetalhe}>
-                            {rotuloQuantidade(c)} · {c.data.slice(8, 10)}/{c.data.slice(5, 7)}
-                          </span>
-                        </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(c.custo, cfg.currency)}
-                        </span>
-                      </button>
-                    </div>
+                    <ItemComMenu
+                      key={c.id}
+                      nome={`Abastecimento · ${c.local}`}
+                      detalhe={`${rotuloQuantidade(c)} · ${c.data.slice(8, 10)}/${c.data.slice(5, 7)}`}
+                      valor={formatMoney(c.custo, cfg.currency)}
+                      aoEditar={() => abrirEdicaoCarga(c)}
+                      aoExcluir={() => void excluirCargaDaLista(c.id)}
+                    />
                   ))}
                 {[...despesasVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
                   .map((d) => (
-                    <div key={d.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoDespesa(d)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{nomeDespesa(d)}</span>
-                          <span className={styles.itemDetalhe}>{detalheDespesa(d)}</span>
-                        </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(d.valor, cfg.currency)}
-                        </span>
-                      </button>
-                    </div>
+                    <ItemComMenu
+                      key={d.id}
+                      nome={nomeDespesa(d)}
+                      detalhe={detalheDespesa(d)}
+                      valor={formatMoney(d.valor, cfg.currency)}
+                      aoEditar={() => abrirEdicaoDespesa(d)}
+                      aoExcluir={() => void excluirDespesaDaLista(d.id)}
+                    />
                   ))}
               </>
             )}
@@ -674,23 +745,14 @@ export default function Veiculo() {
                 [...cargasVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
                   .map((c) => (
-                    <div key={c.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoCarga(c)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{c.local}</span>
-                          <span className={styles.itemDetalhe}>
-                            {rotuloQuantidade(c)} ·{" "}
-                            {formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/
-                            {c.kwh !== undefined ? "kWh" : "L"} · {c.data.slice(8, 10)}/
-                            {c.data.slice(5, 7)}
-                            {c.sessao ? ` · ${c.sessao}` : ""}
-                          </span>
-                        </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(c.custo, cfg.currency)}
-                        </span>
-                      </button>
-                    </div>
+                    <ItemComMenu
+                      key={c.id}
+                      nome={c.local}
+                      detalhe={`${rotuloQuantidade(c)} · ${formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/${c.kwh !== undefined ? "kWh" : "L"} · ${c.data.slice(8, 10)}/${c.data.slice(5, 7)}${c.sessao ? ` · ${c.sessao}` : ""}`}
+                      valor={formatMoney(c.custo, cfg.currency)}
+                      aoEditar={() => abrirEdicaoCarga(c)}
+                      aoExcluir={() => void excluirCargaDaLista(c.id)}
+                    />
                   ))
               )}
             </div>
@@ -760,17 +822,14 @@ export default function Veiculo() {
                 [...despesasVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
                   .map((d) => (
-                    <div key={d.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoDespesa(d)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{nomeDespesa(d)}</span>
-                          <span className={styles.itemDetalhe}>{detalheDespesa(d)}</span>
-                        </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(d.valor, cfg.currency)}
-                        </span>
-                      </button>
-                    </div>
+                    <ItemComMenu
+                      key={d.id}
+                      nome={nomeDespesa(d)}
+                      detalhe={detalheDespesa(d)}
+                      valor={formatMoney(d.valor, cfg.currency)}
+                      aoEditar={() => abrirEdicaoDespesa(d)}
+                      aoExcluir={() => void excluirDespesaDaLista(d.id)}
+                    />
                   ))
               )}
             </div>
@@ -803,45 +862,41 @@ export default function Veiculo() {
                   // partilhado e o cálculo (`fixaEfetivamentePaga`) já cobre.
                   const paga = fixaEfetivamentePaga(f, mes, mesAtual(), hojeIso());
                   return (
-                    <div key={f.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{f.descricao}</span>
-                          <span className={styles.itemDetalhe}>
-                            {f.categoria}
-                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                    <ItemComMenu
+                      key={f.id}
+                      nome={f.descricao}
+                      detalhe={`${f.categoria}${f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}`}
+                      valor={formatMoney(f.valor, cfg.currency)}
+                      aoEditar={() => abrirEdicaoFixa(f)}
+                      aoExcluir={() => void excluirFixaDaLista(f)}
+                      extra={
+                        f.autoDebit ? (
+                          <span
+                            className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          >
+                            {paga ? "Pago" : "Pendente"}
                           </span>
-                        </span>
-                        <span className={styles.itemValor}>
-                          {formatMoney(f.valor, cfg.currency)}
-                        </span>
-                      </button>
-                      {f.autoDebit ? (
-                        <span
-                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                        >
-                          {paga ? "Pago" : "Pendente"}
-                        </span>
-                      ) : (
-                        <button
-                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                          // Mesmo tratamento das fixas gerais: sem isto, uma
-                          // lista de fixas dava vários botões chamados só
-                          // "Pago"/"Pendente", sem dizer de qual, e sem
-                          // anunciar que alternam estado.
-                          aria-pressed={paga}
-                          aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
-                          onClick={() =>
-                            void agir(
-                              () => alternarPagoFixaVeiculo(uid, f.id, mes, !paga),
-                              paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
-                            )
-                          }
-                        >
-                          {paga ? "Pago" : "Pendente"}
-                        </button>
-                      )}
-                    </div>
+                        ) : (
+                          <button
+                            className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                            // Mesmo tratamento das fixas gerais: sem isto, uma
+                            // lista de fixas dava vários botões chamados só
+                            // "Pago"/"Pendente", sem dizer de qual, e sem
+                            // anunciar que alternam estado.
+                            aria-pressed={paga}
+                            aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
+                            onClick={() =>
+                              void agir(
+                                () => alternarPagoFixaVeiculo(uid, f.id, mes, !paga),
+                                paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
+                              )
+                            }
+                          >
+                            {paga ? "Pago" : "Pendente"}
+                          </button>
+                        )
+                      }
+                    />
                   );
                 })
               )}
@@ -869,17 +924,13 @@ export default function Veiculo() {
                 [...kmVisiveis]
                   .sort((a, b) => (a.data < b.data ? 1 : -1))
                   .map((k) => (
-                    <div key={k.id} className={styles.item}>
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoKm(k)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{k.km.toLocaleString("pt-PT")} km</span>
-                          <span className={styles.itemDetalhe}>
-                            {k.nota ? `${k.nota} · ` : ""}
-                            {k.data.slice(8, 10)}/{k.data.slice(5, 7)}
-                          </span>
-                        </span>
-                      </button>
-                    </div>
+                    <ItemComMenu
+                      key={k.id}
+                      nome={`${k.km.toLocaleString("pt-PT")} km`}
+                      detalhe={`${k.nota ? `${k.nota} · ` : ""}${k.data.slice(8, 10)}/${k.data.slice(5, 7)}`}
+                      aoEditar={() => abrirEdicaoKm(k)}
+                      aoExcluir={() => void excluirKmDaLista(k.id)}
+                    />
                   ))
               )}
             </div>
