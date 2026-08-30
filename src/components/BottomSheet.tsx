@@ -153,7 +153,7 @@ export default function BottomSheet({
             onClick={aoVoltar}
             aria-label="Voltar"
           >
-            <ArrowLeft size={20} aria-hidden />
+            <ArrowLeft size={22} aria-hidden />
           </button>
         )}
         {arrastavel ? (

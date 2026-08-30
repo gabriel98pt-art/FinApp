@@ -40,16 +40,20 @@
   font-weight: 800;
 }
 
-/* Sub-escolha de Veículo (Carga/Despesa): segmentado menor, mesmo desenho dos
-   atalhos do SeletorData — subordinado ao seletor de tipo, não concorrente. */
+/* Sub-escolha de Veículo (Carga/Despesa, Elétrico/Combustível, Custo
+   total/€ por unidade): segmentado menor, mesmo desenho dos atalhos do
+   SeletorData. Centralizado — `align-self: flex-start` alinhava com o
+   seletor de tipo (Despesa/Receita/Veículo) que existia no topo do
+   formulário; o ajuste A do lote de 30/08 removeu esse seletor (o menu do
+   "+" já pergunta o tipo antes), e a regra ficou sem o que a justificava,
+   puxando o toggle pra esquerda à toa (achado do Gabriel, 30/08). */
 .subTipos {
   display: flex;
   gap: 6px;
-  align-self: flex-start;
+  align-self: center;
   background: var(--s2);
   border-radius: var(--r-sm);
   padding: 4px;
-  margin-top: -6px; /* encosta no seletor de tipo, de quem depende */
 }
 
 .subTipo {

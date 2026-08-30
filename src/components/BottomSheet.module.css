@@ -113,13 +113,13 @@
    ela. */
 .botaoVoltar {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 12px;
+  left: 12px;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   color: var(--txt);
 }
@@ -162,10 +162,12 @@
   margin-bottom: 14px;
 }
 
-/* Com `.botaoVoltar` (absoluta, 32px + 14px do topo — 46px de fundo), o
-   título encostava na seta. Empurra só o suficiente pra limpar. */
+/* Com `.botaoVoltar` (absoluta, 40px + 12px do topo — 52px de fundo), o
+   título encostava na seta mesmo com folga pequena aqui. Empurra o
+   suficiente pra sobrar respiro de verdade entre os dois (achado do
+   Gabriel, 30/08 — a primeira folga não bastava). */
 .tituloComVoltar {
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 /* Reduced motion: a folha não desliza — aparece e desaparece no lugar, por

@@ -96,7 +96,7 @@ export default function SeletorData({
           className={`${styles.atalho} ${styles.escolher} ${!ehHoje && !ehOntem ? styles.atalhoAtivo : ""}`}
           onClick={abrir}
         >
-          <CalendarDays size={15} aria-hidden />
+          <CalendarDays size={18} aria-hidden />
           {ehHoje || ehOntem ? "Escolher data" : rotuloCurto(valor)}
         </button>
       </div>

@@ -702,23 +702,6 @@ export default function RegistroRapido() {
           </div>
         )}
 
-        {tipo !== "carga" && (
-          <label className={styles.campo}>
-            Descrição
-            <input
-              type="text"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              // Ajuste F do lote de 30/08: despesa do veículo passou a exigir
-              // descrição — sem categoria pra cair como título de reserva
-              // (era opcional antes exatamente por causa dela), um registo
-              // sem nome nenhum ficaria sem como se identificar na lista.
-              required
-              maxLength={120}
-            />
-          </label>
-        )}
-
         {/* Duas formas de informar um abastecimento: custo total (deriva o
             €/unidade) ou €/unidade direto (deriva o custo) — mesmo par de
             modos da tela Veículo. */}
@@ -800,6 +783,26 @@ export default function RegistroRapido() {
               // campos relevantes, não aria-invalid (exigiria saber
               // exatamente qual — achado da auditoria de Acessibilidade).
               aria-describedby={erro !== null ? "erro-registro" : undefined}
+            />
+          </label>
+        )}
+
+        {/* Depois do Valor, não antes: o valor é o que mais importa decidir
+            primeiro num registo rápido, a descrição só nomeia o que já foi
+            digitado (achado do Gabriel, 30/08). */}
+        {tipo !== "carga" && (
+          <label className={styles.campo}>
+            Descrição
+            <input
+              type="text"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              // Ajuste F do lote de 30/08: despesa do veículo passou a exigir
+              // descrição — sem categoria pra cair como título de reserva
+              // (era opcional antes exatamente por causa dela), um registo
+              // sem nome nenhum ficaria sem como se identificar na lista.
+              required
+              maxLength={120}
             />
           </label>
         )}
