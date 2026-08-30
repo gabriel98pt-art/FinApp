@@ -42,6 +42,14 @@ Período coberto: 23/07/2026 a 30/08/2026 — 452 mudanças registadas.
 - Despesa do veículo (variável e fixa) deixou de ter categoria pra escolher:
   agora é só nome livre, e todo gasto do veículo — velho ou novo — usa um
   ícone e uma cor únicos, escolhidos uma vez em Definições › Veículo.
+- O botão de voltar das folhas (bottom sheets) ficou maior e ganhou mais
+  respiro até o título — antes ainda encostavam um no outro.
+- No Registro Rápido, o campo Valor passa a vir antes da Descrição.
+- O ícone de calendário ao lado de "Escolher data" ficou maior, mais fácil
+  de ver.
+- As linhas de opção do Veículo no Registro Rápido (Carga Elétrica/Despesa,
+  Elétrico/Combustível, Custo total/€ por unidade) passam a ficar
+  centralizadas, não mais coladas à esquerda.
 
 ## 29/08/2026
 
