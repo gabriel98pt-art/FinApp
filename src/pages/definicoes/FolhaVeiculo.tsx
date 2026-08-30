@@ -57,11 +57,12 @@ export default function FolhaVeiculo({
   }
 
   // "Veículo" não é uma categoria de `cfg.categoriasDespesa` (é o resumo dos 4
-  // domínios do módulo, não algo que se lance), por isso nunca apareceu na
-  // folha de categorias para ser recolorido. O dado já existia — a cor do
-  // botão flutuante usa o mesmo `cfg.categoriaCor["Veículo"]` — e o que muda
-  // aqui é só onde se mexe nele: com o resto do módulo, e não solto em
-  // Aparência entre coisas do app inteiro.
+  // domínios do módulo, não algo que se lance) — chegou a aparecer, sem poder
+  // ser removida nem renomeada, dentro da folha de "Categorias de despesa"
+  // (só a cor era editável ali). Ajuste E do lote de 30/08: saiu de lá,
+  // repetida com este controle — mora só aqui agora, junto do resto do
+  // módulo. O dado é o mesmo de sempre: `cfg.categoriaCor["Veículo"]`, que a
+  // cor do botão flutuante também usa.
   async function escolherCor(cor: string | null) {
     setCorAberta(false);
     try {

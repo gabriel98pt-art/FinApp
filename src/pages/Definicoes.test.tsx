@@ -87,10 +87,10 @@ describe("Definicoes", () => {
     expect(screen.getAllByText(CONFIG_PADRAO.categoriasDespesa[0]).length).toBeGreaterThan(0);
   });
 
-  test("dá para recolorir o Veículo por Geral › Veículo (controlo original, continua a existir)", () => {
+  test("dá para recolorir o Veículo por Geral › Veículo", () => {
     render(<Definicoes />);
-    // A cor deixou de estar solta em Aparência: vive com o resto da
-    // configuração do módulo, dentro de Geral › Veículo.
+    // Ajuste E do lote de 30/08: a cor deixou de aparecer duplicada na lista
+    // geral de categorias de despesa — mora só aqui, com o resto do módulo.
     fireEvent.click(screen.getByRole("button", { name: /^Veículo/ }));
     fireEvent.click(screen.getByRole("button", { name: /Cor do Veículo/ }));
     fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
@@ -98,17 +98,10 @@ describe("Definicoes", () => {
     expect(definirCorCategoria).toHaveBeenCalledWith("u1", "Veículo", "#ef4444");
   });
 
-  test("com o módulo Veículo ligado, dá pra recolorir Veículo também pela lista geral de categorias de despesa", () => {
-    render(<Definicoes />);
-    fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Cor de Veículo" }));
-    fireEvent.click(screen.getByRole("button", { name: "Cor #ef4444" }));
-
-    expect(definirCorCategoria).toHaveBeenCalledWith("u1", "Veículo", "#ef4444");
-  });
-
-  test("com o módulo Veículo desligado, some da lista geral de categorias de despesa", () => {
-    cfg = { ...CONFIG_PADRAO, showVeiculo: false };
+  // Ajuste E do lote de 30/08: "Veículo" saiu da lista geral de categorias
+  // de despesa — estava lá preso, sem poder ser renomeado nem removido, só
+  // a cor era editável. Repetia o controle que Geral › Veículo já tem.
+  test("'Veículo' não aparece mais na lista geral de categorias de despesa", () => {
     render(<Definicoes />);
     fireEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
     expect(screen.queryByRole("button", { name: "Cor de Veículo" })).toBeNull();

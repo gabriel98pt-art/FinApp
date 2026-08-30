@@ -116,29 +116,17 @@ export default function FolhaCategorias({
     }
   }
 
-  // "Veículo" é o resumo dos 4 domínios do módulo (cargas, despesas, fixas,
-  // km) — não é um item de `cfg.categoriasDespesa`, então nunca podia ser
-  // renomeado nem removido daqui. Mas ele aparece como fatia própria no
-  // donut de despesas, com cor guardada no mesmo `cfg.categoriaCor` — só a
-  // cor entra aqui, como "categoria normal" pedido pelo Gabriel, e só
-  // quando o módulo está ligado (desligado, a fatia nem aparece em lado
-  // nenhum).
-  const mostrarVeiculo = lista === "categoriasDespesa" && cfg.showVeiculo;
-
   // Cores que já pertencem a OUTRA categoria desta mesma lista — pra
   // avisar no seletor (item 26/08) sem impedir de repetir de propósito.
   // "Outra" é só dentro da lista sendo editada: são elas que aparecem juntas
   // no mesmo donut/legenda, então é aí que uma repetição confunde de verdade.
   const coresEmUso = corDe
-    ? [
-        ...itens.filter((i) => i !== corDe).map((i) => corDaCategoriaVisual(cfg, i)),
-        ...(mostrarVeiculo && corDe !== "Veículo" ? [corDaCategoriaVisual(cfg, "Veículo")] : []),
-      ]
+    ? itens.filter((i) => i !== corDe).map((i) => corDaCategoriaVisual(cfg, i))
     : [];
 
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
-      {(itens.length > 0 || mostrarVeiculo) && (
+      {itens.length > 0 && (
         <ul className={styles.listaCategorias}>
           {itens.map((item) => (
             <li key={item} className={styles.linhaCategoria}>
@@ -178,20 +166,6 @@ export default function FolhaCategorias({
               </button>
             </li>
           ))}
-          {mostrarVeiculo && (
-            <li className={styles.linhaCategoria}>
-              <CategoriaBolha categoria="Veículo" />
-              <span className={styles.nomeCategoria}>Veículo</span>
-              <button
-                className={styles.acaoCategoria}
-                onClick={() => setCorDe("Veículo")}
-                aria-label="Cor de Veículo"
-                title="Cor"
-              >
-                <Palette size={16} aria-hidden />
-              </button>
-            </li>
-          )}
         </ul>
       )}
       <form className={styles.linhaAdicionar} onSubmit={adicionar}>
