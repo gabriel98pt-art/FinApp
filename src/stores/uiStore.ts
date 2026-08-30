@@ -12,6 +12,13 @@ interface UiState {
   editandoId: Id | null;
   abrirRegistro: (tipo?: TipoRegistro, editandoId?: Id) => void;
   fecharRegistro: () => void;
+  /** Menu do "+" (item 1 do lote de UX/nav): a primeira escolha — Nova
+   *  despesa / Nova receita / Veículo — antes de entrar no formulário. Só
+   *  serve para CRIAR: a edição abre `registroAberto` direto, sem passar por
+   *  aqui (ver `abrirRegistro` nas listas, que já leva o `editandoId`). */
+  menuRegistroAberto: boolean;
+  abrirMenuRegistro: () => void;
+  fecharMenuRegistro: () => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -21,4 +28,7 @@ export const useUiStore = create<UiState>((set) => ({
   abrirRegistro: (tipo = "despesa", editandoId) =>
     set({ registroAberto: true, registroTipo: tipo, editandoId: editandoId ?? null }),
   fecharRegistro: () => set({ registroAberto: false, editandoId: null }),
+  menuRegistroAberto: false,
+  abrirMenuRegistro: () => set({ menuRegistroAberto: true }),
+  fecharMenuRegistro: () => set({ menuRegistroAberto: false }),
 }));

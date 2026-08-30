@@ -17,7 +17,8 @@ vi.mock("../stores/cfgStore", () => ({
   useCfgStore: (s: (e: unknown) => unknown) => s({ cfg }),
 }));
 vi.mock("../stores/uiStore", () => ({
-  useUiStore: (s: (e: unknown) => unknown) => s({ abrirRegistro: vi.fn() }),
+  useUiStore: (s: (e: unknown) => unknown) =>
+    s({ abrirRegistro: vi.fn(), abrirMenuRegistro: vi.fn() }),
 }));
 
 const MobileNav = (await import("./MobileNav")).default;

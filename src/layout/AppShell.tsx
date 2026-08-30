@@ -7,6 +7,7 @@ import MobileNav from "./MobileNav";
 import Fab from "./Fab";
 import PaginaTransicao from "./PaginaTransicao";
 import RegistroRapido from "./RegistroRapido";
+import MenuRegistroRapido from "./MenuRegistroRapido";
 import Toast from "../components/Toast";
 import ConfirmarAcao from "../components/ConfirmarAcao";
 import IndicadorPull from "../components/IndicadorPull";
@@ -44,6 +45,7 @@ export default function AppShell() {
       </main>
       <MobileNav />
       <Fab />
+      <MenuRegistroRapido />
       <RegistroRapido />
       <Toast />
       <ConfirmarAcao />

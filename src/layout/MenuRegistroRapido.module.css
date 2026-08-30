@@ -1,0 +1,63 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: var(--r-sm);
+  text-align: left;
+}
+
+.linha:hover {
+  background: var(--s2);
+}
+
+.linha:active {
+  transform: scale(0.99);
+}
+
+.badge {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+}
+
+.textos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titulo {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitulo {
+  font-size: var(--fs-label);
+  color: var(--mut);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  color: var(--mut);
+  opacity: 0.85;
+}

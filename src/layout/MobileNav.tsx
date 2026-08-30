@@ -33,7 +33,7 @@ function ItemAba({ aba, aoNavegar }: { aba: AbaDef; aoNavegar: () => void }) {
 export default function MobileNav() {
   const [maisAberto, setMaisAberto] = useState(false);
   const { pathname } = useLocation();
-  const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const abrirMenuRegistro = useUiStore((s) => s.abrirMenuRegistro);
   const cfg = useCfgStore((s) => s.cfg);
   // TVDE é opt-in por conta (seção 4.4)
   const showTvde = cfg.showTvde;
@@ -89,7 +89,7 @@ export default function MobileNav() {
             style={estiloBotaoRegistro(cfg, pathname)}
             onClick={() => {
               fecharMais();
-              abrirRegistro();
+              abrirMenuRegistro();
             }}
             aria-label="Registro rápido"
           >

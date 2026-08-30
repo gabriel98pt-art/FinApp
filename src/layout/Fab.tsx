@@ -7,9 +7,11 @@ import styles from "./Fab.module.css";
 
 /** FAB de registro rápido — só no desktop; no mobile o botão central da
  *  barra de navegação assume este papel (Marco 2). Em Despesas/Receitas/
- *  Veículo veste a cor daquele domínio; nas outras fica no azul do app. */
+ *  Veículo veste a cor daquele domínio; nas outras fica no azul do app.
+ *  Abre o menu do "+" (item 1 do lote de UX/nav), não o formulário direto —
+ *  ver `MenuRegistroRapido`. */
 export default function Fab() {
-  const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+  const abrirMenuRegistro = useUiStore((s) => s.abrirMenuRegistro);
   const cfg = useCfgStore((s) => s.cfg);
   const { pathname } = useLocation();
 
@@ -17,7 +19,7 @@ export default function Fab() {
     <button
       className={styles.fab}
       style={estiloBotaoRegistro(cfg, pathname)}
-      onClick={() => abrirRegistro()}
+      onClick={() => abrirMenuRegistro()}
       aria-label="Registro rápido"
     >
       <Plus size={26} strokeWidth={2.5} aria-hidden />
