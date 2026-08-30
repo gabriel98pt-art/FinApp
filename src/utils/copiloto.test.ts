@@ -216,6 +216,27 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toContain("Alimentação");
   });
 
+  // Bug corrigido: a tela Planejamento → Orçamento (statusOrcamentoMes) só
+  // conta despesas correntes + parcelas no teto por categoria — fixas e
+  // veículo ficam de fora de propósito. O intent "orçamento" do Copiloto
+  // somava categoriasDoMes, que inclui fixas, e por isso dizia "estourou"
+  // numa categoria que a própria tela do orçamento mostrava dentro do teto.
+  test("orçamento: uma despesa fixa não conta para o teto, igual à tela Orçamento", () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Renda",
+      valor: 45000,
+      categoria: "Casa",
+      inicio: "2026-01",
+      pagoPorMes: {},
+    };
+    const resp = responderPergunta(
+      "estou dentro do orçamento?",
+      ctx({ despesasFixas: [fixa], cfg: cfgCom({ orcamentos: { Casa: 40000 } }) }),
+    );
+    expect(resp).toMatch(/dentro do orçamento/i);
+  });
+
   test("poupança/meta com projeção no ritmo atual", () => {
     const resp = responderPergunta(
       "vou bater a meta de poupança no ritmo atual?",

@@ -15,7 +15,6 @@ import { mesDe, somarDias, somarMeses } from "./calculos";
 import { proximosEventos } from "./calendario";
 import { calcularFatura } from "./fatura";
 import {
-  categoriasDoMes,
   dadosFaturaDoContexto,
   escaparHtml,
   mediasPorCategoria,
@@ -28,6 +27,7 @@ import {
 } from "./copiloto";
 import { formatMoney } from "./money";
 import { nomeAtualDoMetodo } from "./instituicoes";
+import { statusOrcamentoMes } from "./orcamento";
 import { vencimentosDeFaturas, vencimentosDeFixas, vencimentosDeParcelas } from "./vencimentos";
 
 /** Um compromisso já datado dentro da janela de 30 dias. */
@@ -154,22 +154,27 @@ function compromissosProximos30Dias(ctx: ContextoCopiloto, hoje: string): Compro
 }
 
 function estadoDoOrcamento(ctx: ContextoCopiloto, ym: YearMonth): OrcamentoCategoria[] {
-  const gastos = categoriasDoMes(ctx, ym);
-  return Object.keys(ctx.cfg.orcamentos)
-    .filter((c) => ctx.cfg.orcamentos[c] > 0)
-    .map((categoria) => {
-      const teto = ctx.cfg.orcamentos[categoria];
-      const gasto = gastos[categoria] ?? 0;
-      return {
-        categoria,
-        teto,
-        gasto,
-        restante: teto - gasto,
-        pctUsado: Math.round((gasto / teto) * 100),
-        estourou: gasto > teto,
-      };
-    })
-    .sort((a, b) => b.pctUsado - a.pctUsado);
+  // statusOrcamentoMes, não categoriasDoMes: mesma regra da tela Planejamento
+  // → Orçamento (só despesas correntes + parcelas). categoriasDoMes também
+  // soma fixas e veículo, o que fazia o plano do Copiloto reportar uma
+  // categoria estourada que a própria tela do orçamento mostrava dentro do
+  // teto.
+  const hoje = `${ctx.mesReal}-${String(ctx.diaDeHoje).padStart(2, "0")}`;
+  return statusOrcamentoMes(
+    ctx.despesas,
+    ctx.parcelas,
+    ctx.cfg.orcamentos,
+    ym,
+    ctx.mesReal,
+    hoje,
+  ).map((s) => ({
+    categoria: s.categoria,
+    teto: s.teto,
+    gasto: s.gasto,
+    restante: s.teto - s.gasto,
+    pctUsado: s.pct,
+    estourou: s.estourado,
+  }));
 }
 
 export function buildFinanceSnapshot(ctx: ContextoCopiloto): FinanceSnapshot {

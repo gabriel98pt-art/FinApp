@@ -44,6 +44,7 @@ import {
 import { totalCargasMes, totalDespesasVeiculoMes, totalVeiculoMes } from "./veiculo";
 import { formatMoney } from "./money";
 import { nomeAtualDoMetodo } from "./instituicoes";
+import { statusOrcamentoMes } from "./orcamento";
 
 const ACENTOS: Record<string, string> = {
   á: "a",
@@ -794,8 +795,20 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     run: (_q, ref, ctx) => {
       const categorias = Object.keys(ctx.cfg.orcamentos).filter((c) => ctx.cfg.orcamentos[c] > 0);
       if (!categorias.length) return "Ainda não há orçamento definido por categoria.";
-      const ct = categoriasDoMes(ctx, ref.ym);
-      const estourou = categorias.filter((cat) => (ct[cat] || 0) > ctx.cfg.orcamentos[cat]);
+      // statusOrcamentoMes, não categoriasDoMes: o teto por categoria só conta
+      // despesas correntes + parcelas (mesma regra da tela Planejamento →
+      // Orçamento). categoriasDoMes também soma fixas e veículo, o que fazia o
+      // Copiloto dizer "estourou" numa categoria que a própria tela do
+      // orçamento mostrava dentro do teto.
+      const status = statusOrcamentoMes(
+        ctx.despesas,
+        ctx.parcelas,
+        ctx.cfg.orcamentos,
+        ref.ym,
+        ctx.mesReal,
+        hojeDoContexto(ctx),
+      );
+      const estourou = status.filter((s) => s.estourado).map((s) => s.categoria);
       if (!estourou.length)
         return variar(ctx, {
           direto: [
