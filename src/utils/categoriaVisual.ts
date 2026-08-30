@@ -14,7 +14,17 @@ import { corFallbackDaCategoria, corSemanticaDaCategoria } from "./coresCategori
 export const ICONE_SOBRE_ESCURO = "#ffffff";
 export const ICONE_SOBRE_CLARO = "#0f172a";
 
-type CfgVisual = Pick<ConfigConta, "categoriaIcone" | "categoriaCor">;
+type CfgVisual = Pick<ConfigConta, "categoriaIcone" | "categoriaCor"> & {
+  tipoVeiculo?: ConfigConta["tipoVeiculo"];
+};
+
+/** Nome da categoria sintética que `transacoes.ts` atribui às cargas do
+ *  veículo (Abastecimento) — fixo no código, não uma entrada de
+ *  `cfg.categoriasVeiculo`. Sem estar numa lista de verdade, ela nunca
+ *  aparecia na grade de Definições, e não havia como escolher cor/ícone
+ *  pra ela: ficava sempre no fallback (um "C" azul sem relação com o
+ *  veículo — item 7 do lote de UX/nav). */
+const CATEGORIA_CARGA = "Carga Elétrica";
 
 /** Cor da categoria: escolha do usuário → cor semântica do nome → paleta pelo
  *  nome. A ÚNICA fonte de cor de categoria do app.
@@ -27,12 +37,22 @@ type CfgVisual = Pick<ConfigConta, "categoriaIcone" | "categoriaCor">;
 export function corDaCategoriaVisual(cfg: CfgVisual | undefined, categoria: string): string {
   const escolhida = cfg?.categoriaCor?.[categoria];
   if (escolhida) return escolhida;
+  // A carga veste a MESMA cor que o veículo já tem (escolhida ou não) — nunca
+  // uma cor solta e fixa sem relação com o domínio.
+  if (categoria === CATEGORIA_CARGA) return corDaCategoriaVisual(cfg, "Veículo");
   return corSemanticaDaCategoria(categoria) ?? corFallbackDaCategoria(categoria);
 }
 
 /** Id do ícone da categoria, ou string vazia quando nunca foi escolhido. */
 export function iconeDaCategoria(cfg: CfgVisual | undefined, categoria: string): string {
-  return cfg?.categoriaIcone?.[categoria] ?? "";
+  const escolhido = cfg?.categoriaIcone?.[categoria];
+  if (escolhido) return escolhido;
+  // A carga não está em lista nenhuma de Definições — nunca tem escolha do
+  // usuário pra valer aqui em cima. Combustão pede o posto (fuel); elétrico
+  // e híbrido (a distinção real é por carga, não por veículo — ambíguo neste
+  // nível, que é por CATEGORIA) pedem a tomada (plug).
+  if (categoria === CATEGORIA_CARGA) return cfg?.tipoVeiculo === "combustao" ? "fuel" : "plug";
+  return "";
 }
 
 /** Primeira letra da categoria, em maiúscula — o que a bolha mostra quando não

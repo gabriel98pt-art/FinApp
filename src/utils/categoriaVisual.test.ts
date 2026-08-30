@@ -41,6 +41,18 @@ describe("corDaCategoriaVisual", () => {
       corFallbackDaCategoria("Zzz"),
     );
   });
+
+  // Item 7 do lote de UX/nav (30/08): a carga do veículo vestia sempre a cor
+  // semântica/hash do nome "Carga Elétrica" — sem relação nenhuma com o
+  // veículo. Agora segue a cor que "Veículo" já tem, escolhida ou não.
+  it("carga do veículo veste a cor que o usuário escolheu pro Veículo", () => {
+    const semEscolha = { categoriaIcone: {}, categoriaCor: {} };
+    expect(corDaCategoriaVisual(semEscolha, "Carga Elétrica")).toBe(
+      corDaCategoriaVisual(semEscolha, "Veículo"),
+    );
+    const comEscolha = { categoriaIcone: {}, categoriaCor: { Veículo: "#00ff00" } };
+    expect(corDaCategoriaVisual(comEscolha, "Carga Elétrica")).toBe("#00ff00");
+  });
 });
 
 describe("iconeDaCategoria", () => {
@@ -59,6 +71,20 @@ describe("iconeDaCategoria", () => {
     expect(iconePorId("")).toBeNull();
     expect(iconePorId(undefined)).toBeNull();
     expect(iconePorId("home")).not.toBeNull();
+  });
+
+  // Item 7 do lote de UX/nav (30/08): a carga não está em nenhuma lista de
+  // Definições (é categoria fixa em transacoes.ts), então nunca tem escolha
+  // do usuário — o ícone condicional é o único jeito de ela sair certa.
+  it("carga do veículo: fuel na combustão, plug no elétrico/híbrido", () => {
+    const semEscolha = { categoriaIcone: {}, categoriaCor: {}, tipoVeiculo: "combustao" as const };
+    expect(iconeDaCategoria(semEscolha, "Carga Elétrica")).toBe("fuel");
+    expect(iconeDaCategoria({ ...semEscolha, tipoVeiculo: "eletrico" }, "Carga Elétrica")).toBe(
+      "plug",
+    );
+    expect(iconeDaCategoria({ ...semEscolha, tipoVeiculo: "hibrido" }, "Carga Elétrica")).toBe(
+      "plug",
+    );
   });
 });
 
