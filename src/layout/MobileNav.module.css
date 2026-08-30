@@ -9,16 +9,27 @@
      Agora o fundo da barra vai até à borda e é o `padding-bottom` que mantém
      os nomes das abas fora da faixa do indicador de gestos. */
   bottom: 0;
+  /* Item 3 do lote de UX/nav (30/08): a barra deixou de ser uma ilha
+     flutuante (margem de 10px de cada lado, cantos todos arredondados) e
+     passou a ir de ponta a ponta — "colada na base", estilo iOS, não um
+     "floating dock" solto. Largura continua EXPLÍCITA via left+transform
+     (nunca `left:0; right:0`, que infere a largura): é o padrão desta barra
+     desde sempre, por sobreviver a scroll horizontal acidental da página
+     (ver aviso no topo do ficheiro) — só o VALOR mudou, de
+     `min(100vw - 20px, 430px)` pra `100vw`. */
   left: 50%;
   transform: translateX(-50%);
-  width: min(100vw - 20px, 430px);
+  width: 100vw;
   z-index: 40;
   display: flex;
   align-items: stretch;
   /* Em baixo, o respiro dos 6px passa a incluir a faixa do indicador de
-     gestos do iPhone (ver --folga-indicador). */
-  padding: 6px 6px var(--folga-indicador);
-  border-radius: var(--r-sheet);
+     gestos do iPhone (ver --folga-indicador). Nas laterais o padding some
+     junto com a margem — a barra já vai até à borda. */
+  padding: 6px 0 var(--folga-indicador);
+  /* Só os cantos de CIMA — colada na base, os de baixo não têm o que
+     arredondar. */
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   box-shadow: var(--sh-card);
   /* o botão central sobe acima da borda */
   overflow: visible;
