@@ -7,7 +7,8 @@
 // fica bonita e mente —, por isso fica presa por teste.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { ConfigConta, DespesaCorrente, Receita } from "../types";
 import { comInstituicoes, instituicao } from "../testes/instituicoes";
@@ -15,6 +16,16 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+
+const removerReceita = vi.hoisted(() => vi.fn(async () => {}));
+const removerDespesa = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("../services/lancamentosService", () => ({
+  criarDespesa: vi.fn(async () => {}),
+  removerReceita,
+  removerDespesa,
+}));
+vi.mock("../services/veiculoService", () => ({ removerCarga: vi.fn(async () => {}) }));
+vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
 /** Estado de uma store de lista, com tudo carregado e sem erro por omissão. */
 const lista = <T,>(itens: T[] = []) => ({ itens, carregado: true, erro: false });
@@ -71,6 +82,8 @@ beforeEach(() => {
   despesas = lista<DespesaCorrente>();
   vazias = lista();
   cfg = CONFIG_PADRAO;
+  removerReceita.mockClear();
+  removerDespesa.mockClear();
 });
 
 describe("Transacoes", () => {
@@ -236,6 +249,48 @@ describe("Transacoes", () => {
     for (const rotulo of esperados) {
       expect(screen.getByText(rotulo)).toBeInTheDocument();
     }
+  });
+});
+
+// Item 2 do lote de UX/nav (30/08): receita/despesa ganham o menu único
+// (Editar/Excluir) — os outros cinco tipos continuam na folha "Abrir em X".
+describe("menu de ações da linha (item 2)", () => {
+  test("tocar numa linha de receita abre o menu com Editar e Excluir", async () => {
+    receitas = lista([receita()]);
+    desenhar();
+
+    await userEvent.click(screen.getByText("Salário"));
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+  });
+
+  test("Excluir no menu remove a receita direto, sem abrir formulário", async () => {
+    receitas = lista([receita()]);
+    desenhar();
+
+    await userEvent.click(screen.getByText("Salário"));
+    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+
+    await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));
+  });
+
+  test("Excluir no menu remove a despesa direto", async () => {
+    despesas = lista([
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 4250,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+
+    await userEvent.click(screen.getByText("Mercado"));
+    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+
+    await waitFor(() => expect(removerDespesa).toHaveBeenCalledWith("u1", "d1"));
   });
 });
 

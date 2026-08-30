@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ListTree } from "lucide-react";
+import { ListTree, Pencil, Trash2 } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CategoriaBolha from "../components/CategoriaBolha";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import FiltroTransacoes from "../components/FiltroTransacoes";
+import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import SeletorCategoria from "../components/SeletorCategoria";
 import { useConfirmar } from "../hooks/useConfirmar";
-import { criarDespesa } from "../services/lancamentosService";
+import { criarDespesa, removerDespesa, removerReceita } from "../services/lancamentosService";
 import { removerCarga } from "../services/veiculoService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -24,6 +25,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
+import type { Currency } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
@@ -50,6 +52,75 @@ const TELA_DO_TIPO: Record<Transacao["origem"], { rota: string; nome: string; ab
   carga: { rota: "/veiculo", nome: "Veículo → Carregamentos", aba: "cargas" },
   despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas", aba: "despesas" },
 };
+
+/** Uma linha do extrato — item 2 do lote de UX/nav (30/08). Receita/despesa
+ *  (os dois tipos que o Registro Rápido já edita em qualquer tela do app)
+ *  ganham o mesmo menu único (Editar/Excluir) que Despesas e Receitas já
+ *  têm. Os outros cinco tipos (fixa, parcela, transferência, carga, despesa
+ *  do veículo) continuam a abrir a folha de detalhe com "Abrir em X" — não
+ *  têm um editor próprio aqui dentro, e criar cinco seria escopo novo, não
+ *  deste item (ver o commit de TVDE, mesma decisão para as despesas do
+ *  TVDE). */
+function LinhaTransacao({
+  t,
+  moeda,
+  nomeDaConta,
+  aoEditar,
+  aoExcluir,
+  aoAbrirDetalhe,
+}: {
+  t: Transacao;
+  moeda: Currency;
+  nomeDaConta: (id: string) => string;
+  aoEditar: (t: Transacao) => void;
+  aoExcluir: (t: Transacao) => void;
+  aoAbrirDetalhe: (t: Transacao) => void;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+  const entrada = entraDinheiro(t);
+  const editavel = t.origem === "receita" || t.origem === "despesa";
+
+  const acoes: AcaoItem[] = [
+    { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
+    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+  ];
+
+  return (
+    <>
+      <button
+        ref={ancoraRef}
+        className={styles.linha}
+        onClick={() => (editavel ? setMenuAberto(true) : aoAbrirDetalhe(t))}
+        aria-haspopup={editavel ? "dialog" : undefined}
+      >
+        <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
+        <span className={styles.texto}>
+          <span className={styles.titulo}>{t.titulo}</span>
+          <span className={styles.detalhe}>
+            {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
+            {t.categoria ? ` · ${t.categoria}` : ""}
+            {t.nota ? ` · ${t.nota}` : ""}
+            {t.conta ? ` · ${nomeDaConta(t.conta)}` : ""}
+          </span>
+        </span>
+        <span className={`${styles.valor} ${entrada ? styles.entrada : styles.saida}`}>
+          {entrada ? "+" : "−"}
+          {formatMoney(Math.abs(t.valor), moeda)}
+        </span>
+      </button>
+      {editavel && (
+        <MenuAcoesItem
+          aberta={menuAberto}
+          aoFechar={() => setMenuAberto(false)}
+          titulo={t.titulo}
+          ancoraRef={ancoraRef}
+          acoes={acoes}
+        />
+      )}
+    </>
+  );
+}
 
 /** Extrato geral do mês (item 22): tudo que movimentou dinheiro, num feed só.
  *  Clicar numa linha abre a folha de edição do tipo quando ela é global
@@ -139,13 +210,28 @@ export default function Transacoes() {
   const saldo = entradas - saidas;
   const filtroAtivo = filtroCategoria !== "" || filtroConta !== "";
 
-  function abrir(t: Transacao) {
-    if (t.origem === "receita" || t.origem === "despesa") {
-      abrirRegistro(t.origem, t.refId);
-      return;
-    }
+  // Item 2 do lote de UX/nav: receita/despesa ganham o menu único
+  // (Editar/Excluir) — os outros cinco tipos continuam na folha de detalhe
+  // de sempre, aberta por `abrirDetalhe`.
+  function editar(t: Transacao) {
+    if (t.origem === "receita" || t.origem === "despesa") abrirRegistro(t.origem, t.refId);
+  }
+
+  function abrirDetalhe(t: Transacao) {
     setCategoriaMover(null);
     setDetalhe(t);
+  }
+
+  async function excluirTransacao(t: Transacao) {
+    if (!uid) return;
+    if (!(await confirmar(`Excluir "${t.titulo}"?`))) return;
+    try {
+      if (t.origem === "receita") await removerReceita(uid, t.refId);
+      else if (t.origem === "despesa") await removerDespesa(uid, t.refId);
+      mostrarToast(t.origem === "receita" ? "Receita excluída" : "Despesa excluída");
+    } catch {
+      mostrarToast("Não foi possível excluir. Tente de novo.");
+    }
   }
 
   function fecharDetalhe() {
@@ -242,27 +328,17 @@ export default function Transacoes() {
         />
       ) : (
         <div className={styles.lista}>
-          {itensFiltrados.map((t) => {
-            const entrada = entraDinheiro(t);
-            return (
-              <button key={t.chave} className={styles.linha} onClick={() => abrir(t)}>
-                <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
-                <span className={styles.texto}>
-                  <span className={styles.titulo}>{t.titulo}</span>
-                  <span className={styles.detalhe}>
-                    {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-                    {t.categoria ? ` · ${t.categoria}` : ""}
-                    {t.nota ? ` · ${t.nota}` : ""}
-                    {t.conta ? ` · ${nomeAtualDoMetodo(cfg, t.conta)}` : ""}
-                  </span>
-                </span>
-                <span className={`${styles.valor} ${entrada ? styles.entrada : styles.saida}`}>
-                  {entrada ? "+" : "−"}
-                  {formatMoney(Math.abs(t.valor), cfg.currency)}
-                </span>
-              </button>
-            );
-          })}
+          {itensFiltrados.map((t) => (
+            <LinhaTransacao
+              key={t.chave}
+              t={t}
+              moeda={cfg.currency}
+              nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}
+              aoEditar={editar}
+              aoExcluir={(item) => void excluirTransacao(item)}
+              aoAbrirDetalhe={abrirDetalhe}
+            />
+          ))}
         </div>
       )}
 
