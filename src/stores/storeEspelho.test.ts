@@ -143,6 +143,39 @@ describe("criarStoreEspelho — rehidratação de um espelho mais antigo", () =>
     expect(useStore.getState().cfg.instituicoes).toEqual([{ id: "Banco X", nome: "Banco X" }]);
   });
 
+  test("mapa por chave dinâmica com default {} preserva TODO o conteúdo persistido (o bug real: faturasPagas)", async () => {
+    // O caso real, achado depois de publicado: `cfg.faturasPagas` (e
+    // categoriaCor, saldosIniciais, orcamentos... — todos mapas por chave
+    // dinâmica, sem como ter default além de `{}`) estava a ser trocado por
+    // `{}` na rehidratação, porque a correção anterior só olhava as chaves
+    // que já existiam no default (nenhuma, para um mapa vazio por natureza).
+    mockLocalStorage.setItem(
+      CHAVE,
+      JSON.stringify({
+        state: {
+          cfg: {
+            faturasPagas: { "AB Gold": { "2026-08": { pagamentos: [{ id: "1", valor: 500 }] } } },
+            moeda: "EUR",
+          },
+        },
+        version: 0,
+      }),
+    );
+    const { criarStoreEspelho } = await import("./storeEspelho");
+
+    const useStore = criarStoreEspelho<{
+      cfg: { faturasPagas: Record<string, unknown>; moeda: string };
+      carregado: boolean;
+      erro: boolean;
+    }>(CHAVE, { cfg: { faturasPagas: {}, moeda: "BRL" }, carregado: false, erro: false });
+
+    await useStore.persist.rehydrate();
+
+    expect(useStore.getState().cfg.faturasPagas).toEqual({
+      "AB Gold": { "2026-08": { pagamentos: [{ id: "1", valor: 500 }] } },
+    });
+  });
+
   test("nada persistido ainda: fica no estado inicial, sem lançar", async () => {
     const { criarStoreEspelho } = await import("./storeEspelho");
 

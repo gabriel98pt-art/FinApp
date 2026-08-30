@@ -16,7 +16,7 @@ function ehObjetoSimples(v: unknown): v is Record<string, unknown> {
 
 /** Mescla o que veio do `localStorage` por cima do estado inicial —
  *  recursivo, e validando o TIPO de cada campo contra o default, não só a
- *  presença. Duas voltas do mesmo P0 de 26/08, achadas em sequência sem
+ *  presença. Três voltas do mesmo P0 de 26/08, achadas em sequência sem
  *  acesso aos dados reais nem ao dispositivo, só pelo texto do erro:
  *
  *  1ª volta: o `merge` por omissão do zustand/persist é `{ ...atual,
@@ -32,12 +32,21 @@ function ehObjetoSimples(v: unknown): v is Record<string, unknown> {
  *  vazio `{}` num espelho antigo — nem ausente (cairia no default pela
  *  correção anterior) nem array (o resto do código sempre assumiu um). A
  *  correção anterior aceitava QUALQUER valor presente, sem checar se batia
- *  com o formato esperado. Agora recursivo e comparado campo a campo contra
- *  o `estadoInicial`: um array só é aceito do persistido se for mesmo um
- *  array (senão cai no default), um objeto simples mescla-se recursivamente
- *  campo a campo, e qualquer outra coisa (string, número, `null`) aceita o
- *  persistido tal como está — não há como validar o "formato certo" de um
- *  primitivo além de existir. */
+ *  com o formato esperado. Corrigido validando o tipo recursivamente contra
+ *  `estadoInicial` — mas iterando só `Object.keys(atual)`.
+ *
+ *  3ª volta (mesmo dia: "a fatura do cartão voltou a não paga, tive que
+ *  refazer os pagamentos parciais"): iterar só `Object.keys(atual)` apaga
+ *  todo o conteúdo de qualquer objeto que serve de MAPA por chave dinâmica —
+ *  `cfg.faturasPagas`, `categoriaCor`, `saldosIniciais`, `orcamentos`, etc.
+ *  têm default `{}` (não têm como ter chaves fixas: a chave é o id do cartão,
+ *  o nome da categoria...). Com o default vazio, `Object.keys(atual)` também
+ *  vinha vazio, e a rehidratação trocava o mapa inteiro por `{}` — apagando
+ *  faturas pagas, cores/ícones escolhidos, saldos, tudo. Agora percorre a
+ *  UNIÃO das chaves de `atual` e `persistido`: chave conhecida no default
+ *  continua validada recursivamente (mantém a correção da 2ª volta); chave
+ *  que só existe no persistido (entrada dinâmica de um mapa) é aceita como
+ *  está — não há default contra o que validar o formato dela. */
 function mesclarComDefaults(persistido: unknown, atual: unknown): unknown {
   if (Array.isArray(atual)) {
     return Array.isArray(persistido) ? persistido : atual;
@@ -47,8 +56,10 @@ function mesclarComDefaults(persistido: unknown, atual: unknown): unknown {
   }
   if (!ehObjetoSimples(persistido)) return atual;
   const combinado: Record<string, unknown> = { ...atual };
-  for (const chave of Object.keys(atual)) {
-    combinado[chave] = mesclarComDefaults(persistido[chave], atual[chave]);
+  const chaves = new Set([...Object.keys(atual), ...Object.keys(persistido)]);
+  for (const chave of chaves) {
+    combinado[chave] =
+      chave in atual ? mesclarComDefaults(persistido[chave], atual[chave]) : persistido[chave];
   }
   return combinado;
 }
