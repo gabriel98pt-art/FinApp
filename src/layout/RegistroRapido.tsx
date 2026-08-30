@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { Check, Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
-import type { Cents } from "../types";
+import type { Cents, TipoVeiculo } from "../types";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
@@ -69,10 +69,12 @@ const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => i + 2)
   .filter((n) => !ATALHOS_PARCELAS.includes(n))
   .map(String);
 
-const SUB_VEICULO: { valor: TipoRegistro; rotulo: string }[] = [
-  { valor: "carga", rotulo: "Abastecimento" },
-  { valor: "despesaVeiculo", rotulo: "Despesa" },
-];
+/** "Abastecimento" vira "Carga Elétrica" quando o veículo é 100% elétrico —
+ *  no híbrido fica genérico porque o toggle ainda cobre as duas dimensões
+ *  (a escolha elétrico/combustível vem depois, no sub-toggle de dimensão). */
+function rotuloAbastecimento(tipoVeiculo: TipoVeiculo): string {
+  return tipoVeiculo === "eletrico" ? "Carga Elétrica" : "Abastecimento";
+}
 
 /** Mesmo corte do resto do layout (ver `Pagina.tsx`). Acima dele a folha vira
  *  diálogo centrado (BottomSheet.module.css) e o arrasto sai de cena: puxar
@@ -176,6 +178,11 @@ export default function RegistroRapido() {
     () => TIPOS.filter((t) => t.valor !== "veiculo" || cfg.showVeiculo),
     [cfg.showVeiculo],
   );
+
+  const subVeiculo: { valor: TipoRegistro; rotulo: string }[] = [
+    { valor: "carga", rotulo: rotuloAbastecimento(cfg.tipoVeiculo) },
+    { valor: "despesaVeiculo", rotulo: "Despesa" },
+  ];
 
   /** Despesas que podem ter gerado este reembolso: as dos 30 dias ANTERIORES à
    *  data do reembolso, com as da categoria já escolhida à frente.
@@ -626,7 +633,7 @@ export default function RegistroRapido() {
                 ref={rgSubVeiculoRef}
                 onKeyDown={aoTeclarSubVeiculo}
               >
-                {SUB_VEICULO.map((s) => (
+                {subVeiculo.map((s) => (
                   <button
                     key={s.valor}
                     type="button"
