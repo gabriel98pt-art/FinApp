@@ -107,6 +107,27 @@
   outline: none;
 }
 
+/* Ajuste E do lote de 30/08: seta de voltar, só quando `aoVoltar` é passado
+   (ex. Registro Rápido, que nasce da escolha no menu do "+"). Absoluta sobre
+   o canto da folha — o pegador continua centrado, sem disputar espaço com
+   ela. */
+.botaoVoltar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--txt);
+}
+
+.botaoVoltar:hover {
+  background: var(--s2);
+}
+
 .pegador {
   width: 40px;
   height: 4px;
@@ -139,6 +160,12 @@
   font-size: var(--fs-heading);
   font-weight: 700;
   margin-bottom: 14px;
+}
+
+/* Com `.botaoVoltar` (absoluta, 32px + 14px do topo — 46px de fundo), o
+   título encostava na seta. Empurra só o suficiente pra limpar. */
+.tituloComVoltar {
+  margin-top: 20px;
 }
 
 /* Reduced motion: a folha não desliza — aparece e desaparece no lugar, por

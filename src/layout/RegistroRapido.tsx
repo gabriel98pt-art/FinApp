@@ -44,20 +44,16 @@ import {
 import styles from "./RegistroRapido.module.css";
 import Botao from "../components/Botao";
 
-/** Três escolhas de primeiro nível. "Veículo" não é um `TipoRegistro`: é o
- *  guarda-chuva de carga + despesa do veículo, que se resolve na sub-escolha
- *  logo abaixo. Ao entrar em Veículo cai sempre em Carga — como o tipo já
- *  guarda qual sub-escolha está ativa, sair e voltar reinicia sozinho, sem um
- *  segundo estado para manter em sincronia.
- *
- *  A cor de cada um vem do mesmo sistema de cor de categoria que pinta o
- *  botão flutuante e o donut — antes o Veículo era roxo aqui e lima no resto
- *  do app, duas cores para o mesmo conceito no mesmo fluxo. */
-const TIPOS: { valor: TipoRegistro | "veiculo"; rotulo: string }[] = [
-  { valor: "despesa", rotulo: "Despesa" },
-  { valor: "receita", rotulo: "Receita" },
-  { valor: "veiculo", rotulo: "Veículo" },
-];
+/** Título de cada "página" de registro — ajuste A do lote de 30/08. Os
+ *  mesmos nomes que o menu do "+" já usa (MenuRegistroRapido), pra abrir
+ *  já dizendo em qual das três a pessoa está, agora que o seletor de tipo
+ *  saiu daqui de dentro. */
+const TITULOS: Record<TipoRegistro, string> = {
+  despesa: "Nova despesa",
+  receita: "Nova receita",
+  carga: "Veículo",
+  despesaVeiculo: "Veículo",
+};
 
 /** Os 4 números de parcelas com botão próprio, o caminho rápido. */
 const ATALHOS_PARCELAS = [3, 6, 9, 12];
@@ -88,11 +84,10 @@ export default function RegistroRapido() {
   const aberta = useUiStore((s) => s.registroAberto);
   const tipo = useUiStore((s) => s.registroTipo);
   const editandoId = useUiStore((s) => s.editandoId);
-  const { abrirRegistro, fecharRegistro } = useUiStore();
+  const { abrirRegistro, fecharRegistro, abrirMenuRegistro } = useUiStore();
   const uid = useAuthStore((s) => s.sessao?.uid);
   const confirmar = useConfirmar();
   const mobile = useMediaQuery(MOBILE);
-  const { ref: rgTipoRef, onKeyDown: aoTeclarTipo } = useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgSubVeiculoRef, onKeyDown: aoTeclarSubVeiculo } =
     useRadiogroupTeclado<HTMLDivElement>();
   const { ref: rgModoCustoRef, onKeyDown: aoTeclarModoCusto } =
@@ -169,14 +164,6 @@ export default function RegistroRapido() {
   const [salvando, setSalvando] = useState(false);
 
   const ehVeiculo = tipo === "carga" || tipo === "despesaVeiculo";
-
-  /** Com o módulo Veículo desligado (Definições › Veículo), o registro rápido
-   *  deixa de oferecer o terceiro botão — a tela do módulo já não existe na
-   *  navegação, e um lançamento que só se pode ver lá não teria onde aparecer. */
-  const tipos = useMemo(
-    () => TIPOS.filter((t) => t.valor !== "veiculo" || cfg.showVeiculo),
-    [cfg.showVeiculo],
-  );
 
   const subVeiculo: { valor: TipoRegistro; rotulo: string }[] = [
     { valor: "carga", rotulo: rotuloAbastecimento(cfg.tipoVeiculo) },
@@ -580,62 +567,50 @@ export default function RegistroRapido() {
     <BottomSheet
       aberta={aberta}
       aoFechar={fecharRegistro}
-      titulo={editando ? "Editar lançamento" : "Registro rápido"}
+      titulo={editando ? "Editar lançamento" : TITULOS[tipo]}
       arrastavel={mobile}
       tamanho="grande"
+      // Ajuste A do lote de 30/08: só ao CRIAR — a folha nasceu do menu do
+      // "+" (item 1), então "voltar" é voltar pra ele. Editar abre direto
+      // desta folha (a partir de uma lista), sem passar pelo menu — não tem
+      // pra onde voltar.
+      aoVoltar={
+        !editando
+          ? () => {
+              fecharRegistro();
+              abrirMenuRegistro();
+            }
+          : undefined
+      }
     >
       <form className={styles.form} onSubmit={salvar}>
-        {!editando && (
-          <>
-            <div
-              className={styles.seletorTipo}
-              role="radiogroup"
-              aria-label="Tipo de lançamento"
-              ref={rgTipoRef}
-              onKeyDown={aoTeclarTipo}
-            >
-              {tipos.map((t) => {
-                const ativo = t.valor === "veiculo" ? ehVeiculo : tipo === t.valor;
-                const fundo = corDaCategoriaVisual(cfg, t.rotulo);
-                return (
-                  <button
-                    key={t.valor}
-                    type="button"
-                    role="radio"
-                    aria-checked={ativo}
-                    className={`${styles.tipo} ${ativo ? styles.tipoAtivo : ""}`}
-                    style={ativo ? { background: fundo, color: corDoIconeSobre(fundo) } : undefined}
-                    onClick={() => abrirRegistro(t.valor === "veiculo" ? "carga" : t.valor)}
-                  >
-                    {t.rotulo}
-                  </button>
-                );
-              })}
-            </div>
-
-            {ehVeiculo && (
-              <div
-                className={styles.subTipos}
-                role="radiogroup"
-                aria-label="Lançamento do veículo"
-                ref={rgSubVeiculoRef}
-                onKeyDown={aoTeclarSubVeiculo}
+        {/* Ajuste A do lote de 30/08: o seletor de tipo (Despesa/Receita/
+            Veículo) saiu daqui — quem escolhe o tipo agora é o menu do "+"
+            (item 1, MenuRegistroRapido), antes desta folha existir. A
+            sub-escolha do Veículo (Abastecimento/Despesa) continua: o menu
+            só decide "Veículo" de forma genérica, entra sempre em
+            Abastecimento por omissão. */}
+        {!editando && ehVeiculo && (
+          <div
+            className={styles.subTipos}
+            role="radiogroup"
+            aria-label="Lançamento do veículo"
+            ref={rgSubVeiculoRef}
+            onKeyDown={aoTeclarSubVeiculo}
+          >
+            {subVeiculo.map((s) => (
+              <button
+                key={s.valor}
+                type="button"
+                role="radio"
+                aria-checked={tipo === s.valor}
+                className={`${styles.subTipo} ${tipo === s.valor ? styles.subTipoAtivo : ""}`}
+                onClick={() => abrirRegistro(s.valor)}
               >
-                {subVeiculo.map((s) => (
-                  <button
-                    key={s.valor}
-                    type="button"
-                    role="radio"
-                    aria-checked={tipo === s.valor}
-                    className={`${styles.subTipo} ${tipo === s.valor ? styles.subTipoAtivo : ""}`}
-                    onClick={() => abrirRegistro(s.valor)}
-                  >
-                    {s.rotulo}
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
+                {s.rotulo}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* Na edição dá para trocar de lado: classificar mal receita/despesa é

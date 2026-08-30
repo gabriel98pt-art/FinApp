@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { ArrowLeft } from "lucide-react";
 import { useDragToClose } from "../hooks/useDragToClose";
 import { useFocoModal } from "../hooks/useFocoModal";
 import styles from "./BottomSheet.module.css";
@@ -59,6 +60,7 @@ export default function BottomSheet({
   arrastavel = true,
   nivel = 0,
   tamanho = "padrao",
+  aoVoltar,
 }: {
   aberta: boolean;
   aoFechar: () => void;
@@ -70,6 +72,11 @@ export default function BottomSheet({
   /** "grande" dá ~20% a mais de área — hoje só o Registro rápido usa
    *  (item 23). As demais folhas do app continuam no tamanho padrão. */
   tamanho?: "padrao" | "grande";
+  /** Seta de voltar no canto superior esquerdo, no lugar de `aoFechar` —
+   *  quando esta folha nasceu de uma escolha anterior (ex. o menu do "+",
+   *  item 1) e faz sentido voltar pra ela em vez de fechar tudo. Ausente por
+   *  omissão: a maioria das folhas do app não tem "de onde voltar". */
+  aoVoltar?: () => void;
 }) {
   const folhaRef = useRef<HTMLDivElement>(null);
   const veuRef = useRef<HTMLDivElement>(null);
@@ -136,6 +143,19 @@ export default function BottomSheet({
         // já não é alcançável, mesmo enquanto a mola a leva para fora.
         inert={!aberta}
       >
+        {/* Fora da `.zonaArrasto` de propósito: um botão dentro dela receberia
+            os mesmos handlers de ponteiro do arrasto, e um toque rápido podia
+            ser lido como o início de um gesto em vez de um clique. */}
+        {aoVoltar && (
+          <button
+            type="button"
+            className={styles.botaoVoltar}
+            onClick={aoVoltar}
+            aria-label="Voltar"
+          >
+            <ArrowLeft size={20} aria-hidden />
+          </button>
+        )}
         {arrastavel ? (
           <div
             className={styles.zonaArrasto}
@@ -145,14 +165,20 @@ export default function BottomSheet({
             onPointerCancel={arrasto.aoPointerCancel}
           >
             <div className={styles.pegador} aria-hidden />
-            <h2 id={tituloId} className={styles.titulo}>
+            <h2
+              id={tituloId}
+              className={`${styles.titulo} ${aoVoltar ? styles.tituloComVoltar : ""}`}
+            >
               {titulo}
             </h2>
           </div>
         ) : (
           <>
             <div className={styles.pegador} aria-hidden />
-            <h2 id={tituloId} className={styles.titulo}>
+            <h2
+              id={tituloId}
+              className={`${styles.titulo} ${aoVoltar ? styles.tituloComVoltar : ""}`}
+            >
               {titulo}
             </h2>
           </>

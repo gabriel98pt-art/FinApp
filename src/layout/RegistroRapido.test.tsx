@@ -43,6 +43,7 @@ let estadoUi = {
   editandoId: null as string | null,
   abrirRegistro: vi.fn(),
   fecharRegistro: vi.fn(),
+  abrirMenuRegistro: vi.fn(),
 };
 
 vi.mock("../stores/uiStore", () => ({
@@ -321,24 +322,44 @@ describe("nº de parcelas — atalhos e o seletor 'Outro número'", () => {
   });
 });
 
-// O módulo Veículo pode ser desligado (Definições › Veículo). Ligado é o
-// estado normal — só quem não tem carro o desliga — e então o terceiro botão
-// do seletor de tipo tem de sair daqui também, senão o registro rápido
-// continuava a abrir um formulário cuja tela já não existe na navegação.
-describe("módulo Veículo desligado", () => {
-  test("ligado (padrão): o botão Veículo está no seletor de tipo", () => {
+// O seletor de tipo (Despesa/Receita/Veículo) saiu do Registro Rápido —
+// ajuste A do lote de 30/08. Quem decide o tipo agora é o menu do "+"
+// (MenuRegistroRapido), e é lá que a cobertura de "módulo Veículo
+// desligado" mora (ver MenuRegistroRapido.test.tsx).
+
+describe("botão voltar e título por tipo (ajuste A, 30/08)", () => {
+  test("criando: mostra Voltar, que fecha e reabre o menu do +", async () => {
+    estadoUi = { ...estadoUi, editandoId: null, registroTipo: "despesa" };
     render(<RegistroRapido />);
-    const grupo = screen.getByRole("radiogroup", { name: "Tipo de lançamento" });
-    expect(within(grupo).getByRole("radio", { name: "Veículo" })).toBeInTheDocument();
+
+    const voltar = screen.getByRole("button", { name: "Voltar" });
+    await userEvent.click(voltar);
+
+    expect(estadoUi.fecharRegistro).toHaveBeenCalled();
+    expect(estadoUi.abrirMenuRegistro).toHaveBeenCalled();
   });
 
-  test("desligado: o botão Veículo some, Despesa e Receita ficam", () => {
-    cfg = { ...CONFIG_PADRAO, showVeiculo: false };
+  test("editando: sem Voltar — não veio do menu do +", () => {
+    despesas = lista<DespesaCorrente>([
+      { id: "d1", descricao: "Mercado", valor: 4200, data: "2026-08-10", categoria: "Alimentação" },
+    ]);
+    estadoUi = { ...estadoUi, editandoId: "d1", registroTipo: "despesa" };
     render(<RegistroRapido />);
 
-    const grupo = screen.getByRole("radiogroup", { name: "Tipo de lançamento" });
-    expect(within(grupo).queryByRole("radio", { name: "Veículo" })).not.toBeInTheDocument();
-    expect(within(grupo).getByRole("radio", { name: "Despesa" })).toBeInTheDocument();
-    expect(within(grupo).getByRole("radio", { name: "Receita" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Voltar" })).not.toBeInTheDocument();
+  });
+
+  test("título muda com o tipo: Nova despesa / Nova receita / Veículo", () => {
+    estadoUi = { ...estadoUi, editandoId: null, registroTipo: "despesa" };
+    const { rerender } = render(<RegistroRapido />);
+    expect(screen.getByRole("heading", { name: "Nova despesa" })).toBeInTheDocument();
+
+    estadoUi = { ...estadoUi, registroTipo: "receita" as never };
+    rerender(<RegistroRapido />);
+    expect(screen.getByRole("heading", { name: "Nova receita" })).toBeInTheDocument();
+
+    estadoUi = { ...estadoUi, registroTipo: "carga" as never };
+    rerender(<RegistroRapido />);
+    expect(screen.getByRole("heading", { name: "Veículo" })).toBeInTheDocument();
   });
 });
