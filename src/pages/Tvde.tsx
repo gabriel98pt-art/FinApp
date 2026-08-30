@@ -1,11 +1,12 @@
-import { useState, type FormEvent } from "react";
-import { CarTaxiFront, Plus, X } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { CarTaxiFront, Check, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
+import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import {
   criarDespesaTvde,
   definirSegMes,
@@ -216,6 +217,71 @@ function FormSemana({
   );
 }
 
+/** Uma linha de semana — item 2 do lote de UX/nav (30/08): o corpo clicável
+ *  + o botão de texto solto ao lado ("Desfazer lançamento"/"Lançar
+ *  receita") viram um menu único, junto de Editar/Excluir. */
+function LinhaSemana({
+  nSem,
+  rotulo,
+  teste,
+  detalhe,
+  lucro,
+  lancada,
+  aoEditar,
+  aoLancarReceita,
+  aoDesfazerLancamento,
+  aoExcluir,
+}: {
+  nSem: number;
+  rotulo: string;
+  teste: boolean;
+  detalhe: string;
+  lucro: string;
+  lancada: boolean;
+  aoEditar: () => void;
+  aoLancarReceita: () => void;
+  aoDesfazerLancamento: () => void;
+  aoExcluir: () => void;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  const acoes: AcaoItem[] = [
+    { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
+    lancada
+      ? { rotulo: "Desfazer lançamento", Icone: RotateCcw, onClick: aoDesfazerLancamento }
+      : { rotulo: "Lançar receita", Icone: Check, onClick: aoLancarReceita },
+    { rotulo: "Excluir", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+  ];
+
+  return (
+    <div className={styles.semana}>
+      <button
+        ref={ancoraRef}
+        className={styles.semanaInfo}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+      >
+        <span className={styles.semanaNome}>
+          {rotulo}
+          {teste ? <em className={styles.badgeTeste}>teste</em> : null}
+        </span>
+        <span className={styles.semanaDetalhe}>{detalhe}</span>
+      </button>
+      <div className={styles.semanaLado}>
+        <span className={styles.semanaLucro}>{lucro}</span>
+      </div>
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={`Semana ${nSem}`}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
+    </div>
+  );
+}
+
 export default function Tvde() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -277,6 +343,18 @@ export default function Tvde() {
     } catch (e) {
       mostrarToast(e instanceof Error ? e.message : "Não foi possível concluir.");
     }
+  }
+
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha —
+  // mesma guarda que `FormSemana` já tinha (não dá pra excluir uma semana
+  // com lançamento nas finanças ainda de pé).
+  async function excluirSemanaDaLista(nSem: number) {
+    if (lancamentos[String(nSem)]) {
+      mostrarToast("Desfaça o lançamento antes de excluir a semana.");
+      return;
+    }
+    if (!(await confirmar(`Excluir a semana ${nSem}?`))) return;
+    await agir(() => removerSemana(uid, nSem), "Semana excluída");
   }
 
   return (
@@ -358,53 +436,37 @@ export default function Tvde() {
                   const c = calcularSemana(w, cfg.pctFrota);
                   const lancada = lancamentos[String(nSem)];
                   return (
-                    <div key={nSem} className={styles.semana}>
-                      <button className={styles.semanaInfo} onClick={() => setEditando(nSem)}>
-                        <span className={styles.semanaNome}>
-                          Semana {nSem} · {rotuloDaSemana(cfg.inicioSemana1, nSem)}
-                          {w.teste ? <em className={styles.badgeTeste}>teste</em> : null}
-                        </span>
-                        <span className={styles.semanaDetalhe}>
-                          Fat. {eur(w.fat)} · Receita {eur(c.receita)} · Custos {eur(c.custos)}
-                        </span>
-                      </button>
-                      <div className={styles.semanaLado}>
-                        <span className={styles.semanaLucro}>{eur(c.lucro)}</span>
-                        {lancada ? (
-                          <button
-                            className={styles.acaoMini}
-                            onClick={() =>
-                              agir(
-                                () => desfazerLancamentoSemana(uid, nSem, lancada),
-                                "↩ Lançamento desfeito",
-                              )
-                            }
-                          >
-                            Desfazer lançamento
-                          </button>
-                        ) : (
-                          <button
-                            className={styles.acaoMini}
-                            onClick={() => {
-                              void (async () => {
-                                if (
-                                  !(await confirmar(
-                                    `Lançar ${eur(Math.round(c.receita))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
-                                  ))
-                                )
-                                  return;
-                                await agir(
-                                  () => lancarReceitaSemana(uid, nSem, dados),
-                                  "✓ Receita lançada nas finanças",
-                                );
-                              })();
-                            }}
-                          >
-                            Lançar receita
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    <LinhaSemana
+                      key={nSem}
+                      nSem={nSem}
+                      rotulo={`Semana ${nSem} · ${rotuloDaSemana(cfg.inicioSemana1, nSem)}`}
+                      teste={w.teste ?? false}
+                      detalhe={`Fat. ${eur(w.fat)} · Receita ${eur(c.receita)} · Custos ${eur(c.custos)}`}
+                      lucro={eur(c.lucro)}
+                      lancada={!!lancada}
+                      aoEditar={() => setEditando(nSem)}
+                      aoDesfazerLancamento={() =>
+                        void agir(
+                          () => desfazerLancamentoSemana(uid, nSem, lancada!),
+                          "↩ Lançamento desfeito",
+                        )
+                      }
+                      aoLancarReceita={() => {
+                        void (async () => {
+                          if (
+                            !(await confirmar(
+                              `Lançar ${eur(Math.round(c.receita))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                            ))
+                          )
+                            return;
+                          await agir(
+                            () => lancarReceitaSemana(uid, nSem, dados),
+                            "✓ Receita lançada nas finanças",
+                          );
+                        })();
+                      }}
+                      aoExcluir={() => void excluirSemanaDaLista(nSem)}
+                    />
                   );
                 })}
               </div>

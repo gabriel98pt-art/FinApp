@@ -121,3 +121,37 @@ describe("Tvde", () => {
     expect(screen.getByRole("tab", { name: "Meses" })).toHaveAttribute("aria-selected", "true");
   });
 });
+
+// Item 2 do lote de UX/nav (30/08): o corpo da linha + o botão de texto
+// solto ao lado ("Lançar receita"/"Desfazer lançamento") viram um menu
+// único, junto de Editar/Excluir.
+describe("menu de ações da semana (item 2)", () => {
+  test("semana sem lançamento: o menu oferece Editar, Lançar receita e Excluir", async () => {
+    dados = {
+      ...vazio(),
+      semanas: { "30": { fat: 100000, teste: false } },
+    } as unknown as DadosTvde;
+    render(<Tvde />);
+
+    await userEvent.click(screen.getByRole("button", { name: /Semana 30/ }));
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lançar receita" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Desfazer lançamento" })).not.toBeInTheDocument();
+  });
+
+  test("semana já lançada: o menu troca para Desfazer lançamento", async () => {
+    dados = {
+      ...vazio(),
+      semanas: { "30": { fat: 100000, teste: false } },
+      lancamentos: { "30": "desp1" },
+    } as unknown as DadosTvde;
+    render(<Tvde />);
+
+    await userEvent.click(screen.getByRole("button", { name: /Semana 30/ }));
+
+    expect(await screen.findByRole("button", { name: "Desfazer lançamento" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Lançar receita" })).not.toBeInTheDocument();
+  });
+});
