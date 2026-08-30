@@ -9,7 +9,7 @@
 // por isso é a que serve para provar o arranjo antes de o repetir.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -17,6 +17,15 @@ import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 // Firebase nunca é tocado: as páginas leem das stores, e é nelas que mandamos.
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+
+const removerReceita = vi.fn(async () => {});
+vi.mock("../services/lancamentosService", () => ({
+  removerReceita: (...a: unknown[]) => removerReceita(...(a as [])),
+}));
+vi.mock("../stores/authStore", () => ({
+  useAuthStore: (seletor: (s: unknown) => unknown) => seletor({ sessao: { uid: "u1" } }),
+}));
+vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
 const abrirRegistro = vi.fn();
 
@@ -113,14 +122,30 @@ describe("Receitas", () => {
     expect(abrirRegistro).toHaveBeenCalledWith("receita");
   });
 
-  test("clicar numa linha abre a edição daquela receita", async () => {
+  // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
+  // ações — Editar deixou de ser um toque direto, é uma das opções dele.
+  test("clicar numa linha abre o menu de ações; Editar abre a edição daquela receita", async () => {
     estadoReceitas = { itens: [receita()], carregado: true, erro: false };
     render(<Receitas />);
 
     await userEvent.click(screen.getByText("Salário"));
+    const editar = await screen.findByRole("button", { name: "Editar" });
+    await userEvent.click(editar);
+
     // Com o id: abrir a edição da linha errada é o tipo de troca que passa
     // despercebida até alguém editar o lançamento errado.
     expect(abrirRegistro).toHaveBeenCalledWith("receita", "r1");
+  });
+
+  test("Excluir no menu de ações pede confirmação e remove a receita", async () => {
+    estadoReceitas = { itens: [receita()], carregado: true, erro: false };
+    render(<Receitas />);
+
+    await userEvent.click(screen.getByText("Salário"));
+    const excluir = await screen.findByRole("button", { name: "Excluir" });
+    await userEvent.click(excluir);
+
+    await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));
   });
 });
 

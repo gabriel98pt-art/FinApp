@@ -2,9 +2,13 @@ import { TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import { removerReceita } from "../services/lancamentosService";
+import { useConfirmar } from "../hooks/useConfirmar";
+import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
+import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import {
   agruparPorChave,
@@ -23,11 +27,27 @@ import {
 import { formatMoney } from "../utils/money";
 
 export default function Receitas() {
+  const uid = useUidSessao();
+  const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
   const itens = useReceitasStore((s) => s.itens);
   const carregado = useReceitasStore((s) => s.carregado);
   const erro = useReceitasStore((s) => s.erro);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único, ao lado de
+  // Editar.
+  async function excluirReceita(id: string) {
+    const item = itens.find((r) => r.id === id);
+    if (!item) return;
+    if (!(await confirmar(`Excluir "${item.descricao}"?`))) return;
+    try {
+      await removerReceita(uid, id);
+      mostrarToast("Receita excluída");
+    } catch {
+      mostrarToast("Não foi possível excluir. Tente de novo.");
+    }
+  }
 
   // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
   const mes = useMesVisivelStore((s) => s.mes);
@@ -116,6 +136,7 @@ export default function Receitas() {
         vazioIcone={TrendingUp}
         aoAdicionar={() => abrirRegistro("receita")}
         aoEditar={(id) => abrirRegistro("receita", id)}
+        aoExcluir={(id) => void excluirReceita(id)}
       />
     </Pagina>
   );

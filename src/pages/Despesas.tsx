@@ -18,6 +18,7 @@ import {
   alternarPagoDespesaFixa,
   atualizarDespesaFixa,
   criarDespesaFixa,
+  removerDespesa,
   removerDespesaFixa,
 } from "../services/lancamentosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
@@ -218,6 +219,25 @@ export default function Despesas() {
       return;
     }
     abrirRegistro("despesa", id);
+  }
+
+  // Item 2 do lote de UX/nav: Excluir vira ação do menu único, ao lado de
+  // Editar — mesma guarda de "fat"/"parc" que `editar` já tinha, porque
+  // apagar direto aqui um espelho de fatura/parcela desalinharia o domínio
+  // que o gerou de verdade.
+  async function excluirDespesa(id: string) {
+    const item = itens.find((d) => d.id === id);
+    if (item?.origem === "fat") {
+      mostrarToast("Pagamento de fatura — gerencie na tela Cartões.");
+      return;
+    }
+    if (item?.origem === "parc") {
+      mostrarToast("Lançamento de parcela — gerencie na tela Parcelas.");
+      return;
+    }
+    if (!item) return;
+    if (!(await confirmar(`Excluir "${item.descricao}"?`))) return;
+    await agir(() => removerDespesa(uid, id), "Despesa excluída");
   }
 
   // ---- caixa de despesa fixa (criar/editar na mesma folha — itens 2 e 7) ----
@@ -494,6 +514,7 @@ export default function Despesas() {
               vazioIcone={TrendingDown}
               aoAdicionar={() => abrirRegistro("despesa")}
               aoEditar={editar}
+              aoExcluir={(id) => void excluirDespesa(id)}
             />
           </>
         )}

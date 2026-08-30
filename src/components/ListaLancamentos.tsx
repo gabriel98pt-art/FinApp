@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
 import ErroSincronizacao from "./ErroSincronizacao";
+import MenuAcoesItem from "./MenuAcoesItem";
 import Paginador from "./Paginador";
 import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
@@ -34,7 +35,75 @@ function dataCurta(data: IsoDate): string {
   return `${data.slice(8, 10)}/${data.slice(5, 7)}`;
 }
 
-/** Tabela de lançamentos (seção 7): linha clicável abre a edição. */
+/** Uma linha da lista — item 2 do lote de UX/nav (30/08): a linha inteira
+ *  abre o menu único de ações (Editar/Excluir) em vez de ir direto pro
+ *  formulário. Componente próprio porque `MenuAcoesItem` precisa de um
+ *  `ancoraRef` — um por linha, não um só pra lista inteira. */
+function LinhaLancamento({
+  item,
+  tom,
+  moeda,
+  aoEditar,
+  aoExcluir,
+}: {
+  item: ItemLista;
+  tom: "verde" | "vermelho";
+  moeda: Currency;
+  aoEditar: (id: Id) => void;
+  aoExcluir: (id: Id) => void;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  // O sinal e a cor são POR ITEM, não pelo `tom` da lista inteira. Um
+  // reembolso é uma despesa de valor negativo e vive na lista de despesas,
+  // que é `tom="vermelho"`: pela regra antiga saía "− €-75,00", com o sinal
+  // duas vezes. Valor negativo numa lista de despesas é dinheiro que
+  // VOLTOU, portanto verde e com "+", e o módulo no formatMoney para o
+  // menos não aparecer outra vez.
+  const entrada = item.valor < 0 ? true : tom === "verde";
+
+  return (
+    <li>
+      <button
+        ref={ancoraRef}
+        className={styles.linha}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+      >
+        {item.categoria !== undefined && <CategoriaBolha categoria={item.categoria} tamanho={30} />}
+        <span className={styles.principal}>
+          <span className={styles.descricao}>{item.descricao}</span>
+          <span className={styles.detalhe}>
+            {item.etiqueta} · {dataCurta(item.data)}
+          </span>
+          {item.sub !== undefined && <span className={styles.sub}>{item.sub}</span>}
+        </span>
+        <span className={`${styles.valor} ${entrada ? styles.verde : styles.vermelho}`}>
+          {entrada ? "+" : "−"} {formatMoney(Math.abs(item.valor), moeda)}
+        </span>
+      </button>
+
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={item.descricao}
+        ancoraRef={ancoraRef}
+        acoes={[
+          { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(item.id) },
+          {
+            rotulo: "Excluir",
+            Icone: Trash2,
+            onClick: () => aoExcluir(item.id),
+            tone: "perigo",
+          },
+        ]}
+      />
+    </li>
+  );
+}
+
+/** Tabela de lançamentos (seção 7): linha clicável abre o menu de ações. */
 export default function ListaLancamentos({
   titulo,
   itens,
@@ -46,6 +115,7 @@ export default function ListaLancamentos({
   moeda,
   aoAdicionar,
   aoEditar,
+  aoExcluir,
   rotuloTotal = "Total",
   total,
   erro = false,
@@ -63,6 +133,9 @@ export default function ListaLancamentos({
   moeda: Currency;
   aoAdicionar: () => void;
   aoEditar: (id: Id) => void;
+  /** Ação "Excluir" do menu único de ações (item 2 do lote de UX/nav). Quem
+   *  chama decide se confirma antes — aqui só se propaga o id escolhido. */
+  aoExcluir: (id: Id) => void;
   /** Sincronização caiu. Com itens em mão eles continuam a ser mostrados,
    *  com o aviso por cima; sem itens, o aviso ocupa o lugar do estado vazio,
    *  que aqui mentiria ("nenhuma despesa" quando na verdade não sabemos). */
@@ -114,34 +187,16 @@ export default function ListaLancamentos({
       ) : (
         <>
           <ul className={styles.lista}>
-            {visiveis.map((item) => {
-              // O sinal e a cor são POR ITEM, não pelo `tom` da lista inteira.
-              // Um reembolso é uma despesa de valor negativo e vive na lista de
-              // despesas, que é `tom="vermelho"`: pela regra antiga saía
-              // "− €-75,00", com o sinal duas vezes. Valor negativo numa lista
-              // de despesas é dinheiro que VOLTOU, portanto verde e com "+", e
-              // o módulo no formatMoney para o menos não aparecer outra vez.
-              const entrada = item.valor < 0 ? true : tom === "verde";
-              return (
-                <li key={item.id}>
-                  <button className={styles.linha} onClick={() => aoEditar(item.id)}>
-                    {item.categoria !== undefined && (
-                      <CategoriaBolha categoria={item.categoria} tamanho={30} />
-                    )}
-                    <span className={styles.principal}>
-                      <span className={styles.descricao}>{item.descricao}</span>
-                      <span className={styles.detalhe}>
-                        {item.etiqueta} · {dataCurta(item.data)}
-                      </span>
-                      {item.sub !== undefined && <span className={styles.sub}>{item.sub}</span>}
-                    </span>
-                    <span className={`${styles.valor} ${entrada ? styles.verde : styles.vermelho}`}>
-                      {entrada ? "+" : "−"} {formatMoney(Math.abs(item.valor), moeda)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+            {visiveis.map((item) => (
+              <LinhaLancamento
+                key={item.id}
+                item={item}
+                tom={tom}
+                moeda={moeda}
+                aoEditar={aoEditar}
+                aoExcluir={aoExcluir}
+              />
+            ))}
           </ul>
 
           <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />

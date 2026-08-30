@@ -8,7 +8,7 @@
 // comportamento que ninguém vê a não ser que navegue por teclado.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente, DespesaFixa } from "../types";
@@ -16,10 +16,12 @@ import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
+const removerDespesa = vi.fn(async () => {});
 vi.mock("../services/lancamentosService", () => ({
   alternarPagoDespesaFixa: vi.fn(async () => {}),
   atualizarDespesaFixa: vi.fn(async () => {}),
   criarDespesaFixa: vi.fn(async () => {}),
+  removerDespesa: (...a: unknown[]) => removerDespesa(...(a as [])),
   removerDespesaFixa: vi.fn(async () => {}),
 }));
 
@@ -272,6 +274,19 @@ describe("Despesas com reembolso", () => {
     despesas = lista([gasto()]);
     renderDespesas();
     expect(screen.queryByText(/reembolsado/)).not.toBeInTheDocument();
+  });
+
+  // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
+  // ações — Excluir vira uma opção dele, ao lado de Editar.
+  test("Excluir no menu de ações da linha pede confirmação e remove a despesa", async () => {
+    despesas = lista([gasto()]);
+    renderDespesas();
+
+    await userEvent.click(screen.getByText("Jantar de equipa"));
+    const excluir = await screen.findByRole("button", { name: "Excluir" });
+    await userEvent.click(excluir);
+
+    await waitFor(() => expect(removerDespesa).toHaveBeenCalledWith("u1", "d1"));
   });
 
   test("o total do mês já vem líquido", () => {

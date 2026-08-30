@@ -1,0 +1,37 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* No popover de desktop a caixa já tem padding e largura mínima
+     (Popover.module.css); na bottom sheet mobile isto é o corpo inteiro. */
+  min-width: 180px;
+}
+
+.acao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.acao:hover {
+  background: var(--s2);
+}
+
+.acao:active {
+  transform: scale(0.98);
+}
+
+.perigo {
+  color: var(--red);
+}
+
+.perigo:hover {
+  background: var(--tint-red-12);
+}
