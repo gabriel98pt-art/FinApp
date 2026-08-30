@@ -8,13 +8,42 @@
   min-width: 0;
 }
 
+/* Carrossel de uma linha só: rola pro lado em vez de dobrar em várias linhas
+   (ajuste do Gabriel, 30/08 — a fileira dobrada ainda lia como parede de
+   chips). `overscroll-behavior-x: contain` evita que o arrasto horizontal
+   "vaze" pro gesto de fechar a folha (a mesma direção de arrasto do
+   `useDragToClose` é vertical, mas o contain deixa isso explícito). A barra
+   de rolagem some (é um gesto de dedo, não uma UI pra olhar) e a margem
+   negativa + padding deixam o primeiro/último chip com a mesma folga dos
+   outros campos, sem cortar a sombra de foco. */
 .fileira {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  margin: 0 -20px;
+  padding: 2px 20px;
+  /* Esmaece as pontas em vez de cortar em seco — sinaliza "tem mais pra
+     rolar" sem precisar de seta nem sombra. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 20px,
+    #000 calc(100% - 20px),
+    transparent
+  );
+}
+
+.fileira::-webkit-scrollbar {
+  display: none;
 }
 
 .local {
+  flex: none;
+  scroll-snap-align: start;
   background: var(--s2);
   color: var(--mut);
   font-size: var(--fs-body);
@@ -31,22 +60,6 @@
 .localAtivo {
   background: var(--blu);
   color: var(--bg);
-}
-
-/* Mesma altura e forma dos chips para a fileira não ficar irregular, mas sem
-   fundo: é a saída para o resto da lista, não mais um local a escolher. */
-.mais {
-  background: none;
-  color: var(--blu);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  border-radius: var(--r-pill);
-  padding: 9px 14px;
-  white-space: nowrap;
-}
-
-.mais:hover {
-  background: var(--s2);
 }
 
 .vazio {

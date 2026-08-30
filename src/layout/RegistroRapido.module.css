@@ -1,7 +1,11 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  /* 14px → 20px: no Veículo (Local + 2 toggles + Valor + kWh + Data + Cartão,
+     tudo empilhado numa folha só) o campo de cima encostava quase no de
+     baixo — apertado demais pra distinguir onde um termina e o outro começa
+     (achado do Gabriel, 30/08). */
+  gap: 20px;
 }
 
 /* Os campos trazem `flex: 1` para dividir espaço quando estão lado a lado numa
