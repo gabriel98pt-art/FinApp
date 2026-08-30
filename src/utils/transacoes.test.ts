@@ -564,7 +564,60 @@ describe("transacoesDoMes", () => {
     );
     expect(t[0].titulo).toBe("Oficina do Zé");
     expect(t[0].nota).toBe("troca de óleo");
-    expect(t[0].categoria).toBe("Manutenção");
+    // Ajuste F do lote de 30/08: despesa do veículo não tem mais categoria
+    // escolhida — a categoria da transação é sempre "Veículo" (a mesma
+    // cor/ícone únicos, Definições › Veículo), mesmo quando o registo ainda
+    // guarda uma categoria de antes (aqui, "Manutenção") — o valor gravado é
+    // ignorado de propósito, não só nos registos novos.
+    expect(t[0].categoria).toBe("Veículo");
+  });
+
+  it("fixa do veículo mostra categoria 'Veículo' fixa, mesmo com uma antiga gravada (ajuste F)", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...VEICULO_VAZIO,
+          despesasFixas: [
+            {
+              id: "fv1",
+              descricao: "Seguro do carro",
+              valor: 4500,
+              // Valor de antes do ajuste F — ignorado de propósito na hora
+              // de mostrar (ver `categoria:` em `transacoesDoMes`).
+              categoria: "Seguro",
+              diaVencimento: 10,
+              pagoPorMes: {},
+            },
+          ],
+        },
+      },
+      "2026-06",
+      "2026-08",
+    );
+    expect(t).toHaveLength(1);
+    expect(t[0].categoria).toBe("Veículo");
+  });
+
+  it("fixa GERAL continua com a categoria escolhida — só a do veículo é fixa em 'Veículo'", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        despesasFixas: [
+          {
+            id: "f1",
+            descricao: "Renda",
+            valor: 50000,
+            categoria: "Casa",
+            diaVencimento: 8,
+            pagoPorMes: {},
+          },
+        ],
+      },
+      "2026-06",
+      "2026-08",
+    );
+    expect(t[0].categoria).toBe("Casa");
   });
 
   it("fixa sem dia de vencimento cai no dia 1, só pra ter lugar na ordem", () => {

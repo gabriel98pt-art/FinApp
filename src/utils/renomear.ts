@@ -103,8 +103,12 @@ export function validarNomeNovo(lista: string[], de: string, para: string): stri
   return nome;
 }
 
-/** Qual das 2 listas de categoria está a ser renomeada. */
-export type ListaCategoria = "categoriasDespesa" | "categoriasVeiculo";
+/** Categorias de despesa é a única lista renomeável deste tipo — fontes de
+ *  receita e locais de carregamento têm as próprias funções de patch abaixo.
+ *  "categoriasVeiculo" existiu aqui até o ajuste F do lote de 30/08: despesa
+ *  do veículo deixou de ter categoria (nome livre + ícone/cor únicos, em
+ *  Definições › Veículo). */
+export type ListaCategoria = "categoriasDespesa";
 
 /** Categoria: a lista escolhida, o visual (ícone/cor — namespace compartilhado
  *  entre as 2 listas e as fontes, ver types/config.ts), o teto de orçamento, e

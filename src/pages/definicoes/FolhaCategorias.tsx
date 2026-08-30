@@ -21,9 +21,10 @@ import { corDaCategoriaVisual } from "../../utils/categoriaVisual";
 import type { ConfigConta } from "../../types";
 import styles from "../Definicoes.module.css";
 
-/** Lista editável de categorias de despesa, categorias do veículo OU fontes
- *  de receita — o mesmo editor serve as três (item 19: ícone, cor, renomear,
- *  remover).
+/** Lista editável de categorias de despesa OU fontes de receita — o mesmo
+ *  editor serve as duas (item 19: ícone, cor, renomear, remover). Servia
+ *  também categorias do veículo, até o ajuste F do lote de 30/08 (despesa
+ *  do veículo deixou de ter categoria).
  *
  *  Extraído de Definicoes.tsx sem mudar nada do comportamento — só o
  *  wrapper, que passa de `<div className={grupo}>` pra esta BottomSheet.
@@ -41,7 +42,7 @@ export default function FolhaCategorias({
 }: {
   titulo: string;
   itens: string[];
-  lista: "categoriasDespesa" | "categoriasVeiculo" | "fontesReceita";
+  lista: "categoriasDespesa" | "fontesReceita";
   cfg: ConfigConta;
   uid: string;
   aberta: boolean;
@@ -214,13 +215,7 @@ export default function FolhaCategorias({
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
         nivel={nivel + 1}
-        aviso={
-          // As categorias do veículo não entram no orçamento por categoria —
-          // prometer que ele segue o nome novo seria mentira aqui.
-          lista === "categoriasVeiculo"
-            ? "As despesas do veículo e o ícone/cor seguem para o nome novo."
-            : "Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
-        }
+        aviso="Lançamentos, orçamento e o ícone/cor seguem para o nome novo."
       />
     </BottomSheet>
   );

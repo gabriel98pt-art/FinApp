@@ -329,12 +329,10 @@ export default function RegistroRapido() {
   const autoDebit = autoDebitEscolhido ?? autoDebitSugerido;
   const ehParcelada = tipo === "despesa" && parcelada && !editando;
 
-  const opcoes =
-    lado === "receita"
-      ? cfg.fontesReceita
-      : lado === "despesaVeiculo"
-        ? cfg.categoriasVeiculo
-        : cfg.categoriasDespesa;
+  // Ajuste F do lote de 30/08: despesa do veículo não escolhe mais
+  // categoria (nome livre + ícone/cor únicos, em Definições › Veículo) —
+  // sobram só despesa e receita usando esta lista.
+  const opcoes = lado === "receita" ? cfg.fontesReceita : cfg.categoriasDespesa;
 
   // Aviso de teto (seção 4.8): só despesa corrente não parcelada tem
   // categoria com orçamento configurável — fixas, parcelas e veículo vivem
@@ -429,8 +427,12 @@ export default function RegistroRapido() {
         await criarDespesaVeiculo(uid, {
           data,
           valor,
-          categoria: etiquetaFinal,
-          descricao: descricao.trim() || undefined,
+          // Ajuste F: categoria fixa — não é mais escolha do usuário. É o
+          // MESMO nome que a cor/ícone únicos do veículo usam (Definições ›
+          // Veículo), então esta despesa já nasce com o visual certo, sem
+          // precisar de nenhum código a mais em categoriaVisual.ts.
+          categoria: "Veículo",
+          descricao,
           contaCartao: conta || undefined,
         });
       } else if (ehParcelada) {
@@ -707,10 +709,11 @@ export default function RegistroRapido() {
               type="text"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              // Na despesa do veículo a descrição é opcional: sem ela o título
-              // continua a sair da categoria, como sempre saiu — exigi-la
-              // travaria um registo que hoje se faz só com valor e categoria.
-              required={tipo !== "despesaVeiculo"}
+              // Ajuste F do lote de 30/08: despesa do veículo passou a exigir
+              // descrição — sem categoria pra cair como título de reserva
+              // (era opcional antes exatamente por causa dela), um registo
+              // sem nome nenhum ficaria sem como se identificar na lista.
+              required
               maxLength={120}
             />
           </label>
@@ -875,7 +878,10 @@ export default function RegistroRapido() {
 
         <SeletorData valor={data} aoMudar={setData} />
 
-        {lado !== "carga" && (
+        {/* Ajuste F do lote de 30/08: despesa do veículo não escolhe mais
+            categoria — junto com "carga", sai da lista de tipos que mostram
+            este seletor. */}
+        {lado !== "carga" && lado !== "despesaVeiculo" && (
           <SeletorCategoria
             // Segue o lado escolhido, não o que o lançamento era: trocado para
             // receita, a lista passa a ser de fontes e o rótulo tem de a

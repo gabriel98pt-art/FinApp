@@ -105,29 +105,9 @@ describe("renomear categoria", () => {
     nadaOrfao(patch, "Alimentação");
   });
 
-  test("categoria do veículo usa a sua própria lista e alcança as despesas do veículo", () => {
-    const cfgV = cfgCom({
-      categoriasVeiculo: ["Manutenção", "Portagens"],
-      categoriaIcone: { Manutenção: "wrench" },
-    });
-    const dadosV: DadosRenomear = {
-      ...DADOS_RENOMEAR_VAZIOS,
-      despesasVeiculo: [
-        { id: "dv1", data: "2026-06-08", valor: 8900, categoria: "Manutenção" },
-        { id: "dv2", data: "2026-06-09", valor: 200, categoria: "Portagens" },
-      ],
-      fixasVeiculo: [
-        { id: "fv1", descricao: "Revisão", valor: 12000, categoria: "Manutenção", pagoPorMes: {} },
-      ],
-    };
-    const p = patchRenomearCategoria(cfgV, dadosV, "categoriasVeiculo", "Manutenção", "Oficina");
-    expect(p["cfg/categoriasVeiculo"]).toEqual(["Oficina", "Portagens"]);
-    expect(p["cfg/categoriaIcone/Oficina"]).toBe("wrench");
-    expect(p["veiculo/despesas/dv1/categoria"]).toBe("Oficina");
-    expect(p["veiculo/despesasFixas/fv1/categoria"]).toBe("Oficina");
-    expect(p["veiculo/despesas/dv2/categoria"]).toBeUndefined();
-    nadaOrfao(p, "Manutenção");
-  });
+  // "categoria do veículo usa a sua própria lista..." saiu daqui: o ajuste F
+  // do lote de 30/08 tirou a categoria da despesa do veículo (nome livre +
+  // ícone/cor únicos, em Definições › Veículo) — não há mais o que renomear.
 });
 
 describe("renomear fonte de receita", () => {

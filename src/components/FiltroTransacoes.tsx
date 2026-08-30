@@ -77,8 +77,10 @@ function Secao({
  *  Transferência interna — mais conta/cartão, numa folha só. Cada seção é de
  *  escolha única; as duas se combinam por E lógico (ver `filtrarTransacoes`).
  *
- *  Veículo (carga/despesa do veículo) fica fora do filtro de categoria: usa
- *  outra lista de categorias (`cfg.categoriasVeiculo`), item à parte. */
+ *  Veículo (carga/despesa do veículo) fica fora do filtro de categoria: desde
+ *  o ajuste F do lote de 30/08 nem tem mais categoria escolhível — é sempre
+ *  a categoria fixa "Veículo" (ver categoriaVisual.ts), que também não é
+ *  uma entrada de `cfg.categoriasDespesa`. */
 export default function FiltroTransacoes({
   categorias,
   contas,

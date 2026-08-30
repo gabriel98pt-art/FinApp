@@ -19,11 +19,12 @@ type CfgVisual = Pick<ConfigConta, "categoriaIcone" | "categoriaCor"> & {
 };
 
 /** Nome da categoria sintética que `transacoes.ts` atribui às cargas do
- *  veículo (Abastecimento) — fixo no código, não uma entrada de
- *  `cfg.categoriasVeiculo`. Sem estar numa lista de verdade, ela nunca
- *  aparecia na grade de Definições, e não havia como escolher cor/ícone
- *  pra ela: ficava sempre no fallback (um "C" azul sem relação com o
- *  veículo — item 7 do lote de UX/nav). */
+ *  veículo (Abastecimento) — fixo no código, nunca escolha do usuário. Sem
+ *  estar numa lista de verdade, ela nunca aparecia na grade de Definições, e
+ *  não havia como escolher cor/ícone pra ela: ficava sempre no fallback (um
+ *  "C" azul sem relação com o veículo — item 7 do lote de UX/nav). Desde o
+ *  ajuste F do mesmo lote (30/08), toda despesa do veículo — não só a
+ *  carga — é assim: categoria fixa, sem lista pra escolher. */
 const CATEGORIA_CARGA = "Carga Elétrica";
 
 /** Cor da categoria: escolha do usuário → cor semântica do nome → paleta pelo

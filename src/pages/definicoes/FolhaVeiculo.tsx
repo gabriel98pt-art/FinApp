@@ -4,10 +4,14 @@ import Seletor from "../../components/Seletor";
 import SettingsRow from "../../components/settings/SettingsRow";
 import SettingsSwitchRow from "../../components/settings/SettingsSwitchRow";
 import SeletorCor from "../../components/SeletorCor";
-import FolhaCategorias from "./FolhaCategorias";
-import { atualizarConfig, definirCorCategoria } from "../../services/cfgService";
+import SeletorIcone from "../../components/SeletorIcone";
+import {
+  atualizarConfig,
+  definirCorCategoria,
+  definirIconeCategoria,
+} from "../../services/cfgService";
 import { mostrarToast } from "../../stores/toastStore";
-import { corDaCategoriaVisual } from "../../utils/categoriaVisual";
+import { corDaCategoriaVisual, iconeDaCategoria } from "../../utils/categoriaVisual";
 import { TIPOS_VEICULO, rotuloTipoVeiculo } from "../../constants/veiculoPadrao";
 import type { ConfigConta, TipoVeiculo } from "../../types";
 import styles from "../Definicoes.module.css";
@@ -30,8 +34,8 @@ export default function FolhaVeiculo({
   aberta: boolean;
   aoFechar: () => void;
 }) {
-  const [categoriasAberto, setCategoriasAberto] = useState(false);
   const [corAberta, setCorAberta] = useState(false);
+  const [iconeAberto, setIconeAberto] = useState(false);
 
   /** Ligar/desligar o módulo inteiro. Mora aqui dentro, e não solto em
    *  Definições ao lado do Módulo TVDE, porque este é o sítio onde já vive
@@ -72,6 +76,20 @@ export default function FolhaVeiculo({
     }
   }
 
+  // Ajuste F do lote de 30/08: despesas do veículo deixaram de pedir
+  // categoria — viraram nome livre, com UM ícone só (e a mesma cor acima)
+  // valendo pra todas, escolhido aqui de uma vez. Carga/abastecimento
+  // continuam de fora: o ícone deles é fixo (tomada/bomba, item 7),
+  // condicional ao tipo do veículo, não este aqui.
+  async function escolherIcone(icone: string | null) {
+    setIconeAberto(false);
+    try {
+      await definirIconeCategoria(uid, "Veículo", icone);
+    } catch {
+      mostrarToast("Não foi possível salvar o ícone.");
+    }
+  }
+
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Veículo">
       <SettingsSwitchRow
@@ -104,34 +122,23 @@ export default function FolhaVeiculo({
               aoMudar={(v) => void mudarTipo(v)}
             />
           </div>
-          {/* Mesmo editor das categorias de despesa gerais — é a mesma coisa, só
-              noutra lista. De caminho ganha o que a versão de chips na página
-              Veículo nunca teve: ícone e cor por categoria. */}
-          <SettingsRow
-            titulo="Categorias de despesa"
-            valor={`${cfg.categoriasVeiculo.length} ativas`}
-            navegavel
-            onClick={() => setCategoriasAberto(true)}
-          />
           <SettingsRow
             titulo="Cor do Veículo"
             valor={cfg.categoriaCor?.["Veículo"] ? "Personalizada" : "Padrão"}
             navegavel
             onClick={() => setCorAberta(true)}
           />
+          {/* Ajuste F: só o ícone das despesas do veículo — carga/abastecimento
+              já tem o seu próprio, fixo (item 7), sem controle aqui. */}
+          <SettingsRow
+            titulo="Ícone das despesas"
+            valor={iconeDaCategoria(cfg, "Veículo") ? "Escolhido" : "Padrão"}
+            navegavel
+            onClick={() => setIconeAberto(true)}
+          />
         </>
       )}
 
-      <FolhaCategorias
-        titulo="Categorias do veículo"
-        itens={cfg.categoriasVeiculo}
-        lista="categoriasVeiculo"
-        cfg={cfg}
-        uid={uid}
-        aberta={categoriasAberto}
-        nivel={1}
-        aoFechar={() => setCategoriasAberto(false)}
-      />
       <SeletorCor
         aberta={corAberta}
         aoFechar={() => setCorAberta(false)}
@@ -142,6 +149,14 @@ export default function FolhaVeiculo({
         // engano confunde do mesmo jeito.
         coresEmUso={cfg.categoriasDespesa.map((c) => corDaCategoriaVisual(cfg, c))}
         aoEscolher={(c) => void escolherCor(c)}
+        nivel={1}
+      />
+      <SeletorIcone
+        aberta={iconeAberto}
+        aoFechar={() => setIconeAberto(false)}
+        titulo="Ícone das despesas do veículo"
+        valor={iconeDaCategoria(cfg, "Veículo")}
+        aoEscolher={(i) => void escolherIcone(i)}
         nivel={1}
       />
     </BottomSheet>

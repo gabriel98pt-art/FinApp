@@ -149,8 +149,6 @@ export interface ConfigConta {
    *  ciclo do mês seguinte; até ele (inclusive), ficam no mês em que
    *  aconteceram. */
   diaFechamentoFatura: Record<string, number>;
-  /** Categorias de despesa do veículo (antigo `vcat`). */
-  categoriasVeiculo: string[];
   /** Motorização do veículo (item B1) — decide que campos a aba de
    *  abastecimento mostra. Sem entrada, `normalizarConfig` repõe
    *  `"eletrico"`: o que o app já assumia implicitamente antes deste campo

@@ -12,16 +12,12 @@ import type { ConfigConta } from "../../types";
 
 vi.mock("../../services/firebase", () => ({ db: {}, auth: {} }));
 const atualizarConfig = vi.fn(async () => {});
-const adicionarItemLista = vi.fn(async () => {});
 const definirCorCategoria = vi.fn(async () => {});
+const definirIconeCategoria = vi.fn(async () => {});
 vi.mock("../../services/cfgService", () => ({
   atualizarConfig: (...a: unknown[]) => atualizarConfig(...(a as [])),
-  adicionarItemLista: (...a: unknown[]) => adicionarItemLista(...(a as [])),
-  removerItemLista: vi.fn(async () => {}),
-  renomearCategoria: vi.fn(async () => {}),
-  renomearFonte: vi.fn(async () => {}),
   definirCorCategoria: (...a: unknown[]) => definirCorCategoria(...(a as [])),
-  definirIconeCategoria: vi.fn(async () => {}),
+  definirIconeCategoria: (...a: unknown[]) => definirIconeCategoria(...(a as [])),
 }));
 vi.mock("../../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
@@ -33,8 +29,8 @@ function abrir(cfg: ConfigConta = CONFIG_PADRAO) {
 
 beforeEach(() => {
   atualizarConfig.mockClear();
-  adicionarItemLista.mockClear();
   definirCorCategoria.mockClear();
+  definirIconeCategoria.mockClear();
 });
 
 describe("FolhaVeiculo", () => {
@@ -50,31 +46,31 @@ describe("FolhaVeiculo", () => {
     expect(atualizarConfig).toHaveBeenCalledWith("u1", { tipoVeiculo: "combustao" });
   });
 
-  // As categorias do veículo eram chips soltos na aba Despesas da página
-  // Veículo, sem ícone nem cor. Passam pelo mesmo FolhaCategorias das
-  // categorias gerais — o que se garante aqui é que a lista certa chega lá.
-  test("a linha das categorias abre a lista do veículo, não a de despesa geral", async () => {
-    abrir();
-    await userEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
+  // Ajuste F do lote de 30/08: despesa do veículo deixou de ter categoria —
+  // no lugar, UM ícone só (e a mesma cor acima) valendo pra todas, exceto
+  // carga/abastecimento (ícone fixo, item 7).
+  test("a linha do ícone diz se está escolhido e abre o seletor", async () => {
+    abrir({ ...CONFIG_PADRAO, categoriaIcone: { Veículo: "wrench" } });
+    const linha = screen.getByRole("button", { name: /Ícone das despesas/ });
+    expect(linha).toHaveTextContent("Escolhido");
 
-    expect(screen.getByRole("dialog", { name: "Categorias do veículo" })).toBeInTheDocument();
-    for (const nome of CONFIG_PADRAO.categoriasVeiculo) {
-      expect(screen.getByText(nome)).toBeInTheDocument();
-    }
+    await userEvent.click(linha);
+    expect(
+      screen.getByRole("dialog", { name: "Ícone das despesas do veículo" }),
+    ).toBeInTheDocument();
   });
 
-  test("adicionar uma categoria grava na lista do veículo", async () => {
+  test('sem ícone escolhido a linha diz "Padrão"', () => {
     abrir();
-    await userEvent.click(screen.getByRole("button", { name: /Categorias de despesa/ }));
-    await userEvent.type(screen.getByRole("textbox"), "Estacionamento");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    expect(screen.getByRole("button", { name: /Ícone das despesas/ })).toHaveTextContent("Padrão");
+  });
 
-    expect(adicionarItemLista).toHaveBeenCalledWith(
-      "u1",
-      CONFIG_PADRAO,
-      "categoriasVeiculo",
-      "Estacionamento",
-    );
+  test("escolher um ícone grava em categoriaIcone['Veículo']", async () => {
+    abrir();
+    await userEvent.click(screen.getByRole("button", { name: /Ícone das despesas/ }));
+    await userEvent.click(screen.getByRole("button", { name: "wrench" }));
+
+    expect(definirIconeCategoria).toHaveBeenCalledWith("u1", "Veículo", "wrench");
   });
 
   // A cor não é campo próprio: "Veículo" entra no mesmo `categoriaCor` das
@@ -121,7 +117,7 @@ describe("FolhaVeiculo — interruptor do módulo", () => {
     abrir({ ...CONFIG_PADRAO, showVeiculo: false });
     expect(screen.getByRole("switch", { name: "Módulo Veículo" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Tipo de veículo/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Categorias de despesa/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ícone das despesas/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Cor do Veículo/ })).not.toBeInTheDocument();
   });
 });

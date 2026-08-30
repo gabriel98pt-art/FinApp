@@ -9,7 +9,6 @@ import CampoMoeda from "../components/CampoMoeda";
 import KpiCard from "../components/KpiCard";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import RenomearFolha from "../components/RenomearFolha";
-import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorData from "../components/SeletorData";
 import Seletor from "../components/Seletor";
 import SeletorLocal from "../components/SeletorLocal";
@@ -86,18 +85,25 @@ function rotuloQuantidade(c: Abastecimento): string {
 }
 
 /** Título de uma despesa do veículo na lista. O nome próprio (`descricao`) é
- *  opcional e só existe desde que o formulário passou a pedi-lo: sem ele — em
- *  todos os registos antigos — a categoria continua a fazer de nome, como
- *  sempre fez. */
+ *  obrigatório desde o ajuste F do lote de 30/08 (categoria deixou de existir
+ *  como escolha) — mas continua opcional NO TIPO, e o fallback fica: registos
+ *  antigos sem `descricao` ainda caem na categoria que tinham gravada, como
+ *  sempre fizeram. */
 function nomeDespesa(d: DespesaVeiculo): string {
   return d.descricao || d.categoria;
 }
 
 /** A linha de baixo da mesma despesa: o que não coube no título. A categoria
- *  só entra aqui quando já não é ela o título, senão aparecia duas vezes na
- *  mesma linha. */
+ *  só entra aqui quando já não é ela o título E ainda diz algo de verdade —
+ *  "Veículo" é o valor fixo que todo registo NOVO grava (ajuste F), e
+ *  repeti-lo aqui seria só ruído: já se está na tela Veículo. Um registo
+ *  antigo com uma categoria de antes (ex. "Manutenção") continua a mostrá-la. */
 function detalheDespesa(d: DespesaVeiculo): string {
-  return [d.descricao ? d.categoria : null, d.nota, `${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`]
+  return [
+    d.descricao && d.categoria !== "Veículo" ? d.categoria : null,
+    d.nota,
+    `${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`,
+  ]
     .filter(Boolean)
     .join(" · ");
 }
@@ -474,7 +480,6 @@ export default function Veiculo() {
   const [dvAberta, setDvAberta] = useState(false);
   const [dvEditandoId, setDvEditandoId] = useState<Id | null>(null);
   const [dvValor, setDvValor] = useState<Cents | null>(null);
-  const [dvCategoria, setDvCategoria] = useState("");
   const [dvConta, setDvConta] = useState("");
   const [dvData, setDvData] = useState(hojeIso());
   const [dvDescricao, setDvDescricao] = useState("");
@@ -485,7 +490,6 @@ export default function Veiculo() {
   function abrirEdicaoDespesa(d: DespesaVeiculo) {
     setDvEditandoId(d.id);
     setDvValor(d.valor);
-    setDvCategoria(d.categoria);
     setDvConta(d.contaCartao ?? "");
     setDvData(d.data);
     setDvDescricao(d.descricao ?? "");
@@ -500,11 +504,15 @@ export default function Veiculo() {
     if (!dvEditandoId) return;
     const valor = dvValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
+    if (!dvDescricao.trim()) return mostrarToast("Nome obrigatório.");
     const dados_ = {
       data: dvData,
       valor,
-      categoria: dvCategoria || cfg.categoriasVeiculo[0] || "Outros",
-      descricao: dvDescricao.trim() || undefined,
+      // Ajuste F do lote de 30/08: categoria fixa, não é mais escolha do
+      // usuário — é o MESMO nome que a cor/ícone únicos do veículo usam
+      // (Definições › Veículo).
+      categoria: "Veículo",
+      descricao: dvDescricao.trim(),
       contaCartao: dvConta || undefined,
       nota: dvNota.trim() || undefined,
     };
@@ -534,7 +542,6 @@ export default function Veiculo() {
   const [dfDescricao, setDfDescricao] = useState("");
   const [dfNota, setDfNota] = useState("");
   const [dfValor, setDfValor] = useState<Cents | null>(null);
-  const [dfCategoria, setDfCategoria] = useState("");
   const [dfDia, setDfDia] = useState("");
 
   function abrirNovaFixa() {
@@ -542,7 +549,6 @@ export default function Veiculo() {
     setDfDescricao("");
     setDfNota("");
     setDfValor(null);
-    setDfCategoria(cfg.categoriasVeiculo[0] ?? "");
     setDfDia("");
     setDfAberta(true);
   }
@@ -552,7 +558,6 @@ export default function Veiculo() {
     setDfDescricao(f.descricao);
     setDfNota(f.nota ?? "");
     setDfValor(f.valor);
-    setDfCategoria(f.categoria);
     setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
     setDfAberta(true);
   }
@@ -569,7 +574,9 @@ export default function Veiculo() {
       descricao: dfDescricao,
       nota: dfNota.trim() || undefined,
       valor,
-      categoria: dfCategoria || cfg.categoriasVeiculo[0] || "Outros",
+      // Ajuste F do lote de 30/08: categoria fixa — ver a mesma nota na
+      // despesa variável, acima.
+      categoria: "Veículo",
       diaVencimento: dia,
     };
     if (dfEditandoId) {
@@ -1074,11 +1081,6 @@ export default function Veiculo() {
             <CampoMoeda valor={dvValor} aoMudar={setDvValor} required />
           </label>
           <SeletorData valor={dvData} aoMudar={setDvData} />
-          <SeletorCategoria
-            valor={dvCategoria}
-            opcoes={cfg.categoriasVeiculo}
-            aoMudar={setDvCategoria}
-          />
           <Seletor
             rotulo="Conta/cartão"
             valor={dvConta}
@@ -1087,11 +1089,14 @@ export default function Veiculo() {
             aoMudar={setDvConta}
             rotuloVazio="Sem conta"
           />
+          {/* Ajuste F do lote de 30/08: sem categoria pra cair como título de
+              reserva, o nome passou a ser obrigatório. */}
           <label className={styles.campo}>
-            Nome (opcional)
+            Nome
             <input
               value={dvDescricao}
               onChange={(e) => setDvDescricao(e.target.value)}
+              required
               maxLength={80}
             />
           </label>
@@ -1138,11 +1143,6 @@ export default function Veiculo() {
               />
             </label>
           </div>
-          <SeletorCategoria
-            valor={dfCategoria}
-            opcoes={cfg.categoriasVeiculo}
-            aoMudar={setDfCategoria}
-          />
           <Botao type="submit" variante="submeter">
             {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
           </Botao>

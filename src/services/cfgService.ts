@@ -338,11 +338,7 @@ export async function removerCartao(uid: string, cfg: ConfigConta, nome: string)
 }
 
 type ListaDeCategorias =
-  | "categoriasDespesa"
-  | "categoriasVeiculo"
-  | "fontesReceita"
-  | "locaisCarregamento"
-  | "intermediadoresParcelamento";
+  "categoriasDespesa" | "fontesReceita" | "locaisCarregamento" | "intermediadoresParcelamento";
 
 /** Adiciona um item a uma das listas configuráveis (categorias de despesa,
  *  fontes de receita) — usadas no Registro Rápido, Cartões e Parcelas. */

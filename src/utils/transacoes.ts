@@ -161,8 +161,13 @@ export function transacoesDoMes(
 
   // Fixas (gerais e do veículo) só entram no mês em que foram pagas — marcadas
   // à mão, ou em débito automático no cartão, que não precisa de marcação.
-  const todasFixas = [...dados.despesasFixas, ...dados.veiculo.despesasFixas];
-  for (const f of todasFixas) {
+  // `deVeiculo` marca a origem porque a categoria delas se resolve diferente
+  // (ver o `categoria:` abaixo) — perde-se ao concatenar as duas listas.
+  const todasFixas: { f: DespesaFixa; deVeiculo: boolean }[] = [
+    ...dados.despesasFixas.map((f) => ({ f, deVeiculo: false })),
+    ...dados.veiculo.despesasFixas.map((f) => ({ f, deVeiculo: true })),
+  ];
+  for (const { f, deVeiculo } of todasFixas) {
     if (mesFechado ? !fixaAtivaNoMes(f, ym) : !fixaEfetivamentePaga(f, ym, mesReferencia, hoje))
       continue;
     itens.push({
@@ -173,7 +178,13 @@ export function transacoesDoMes(
       origem: "fixa",
       data: diaDoMes(ym, f.diaVencimento),
       titulo: f.descricao,
-      categoria: f.categoria,
+      // Ajuste F do lote de 30/08: despesa fixa do veículo perdeu a
+      // categoria escolhida — a cor/ícone que usa agora é sempre a
+      // "Veículo" única (Definições › Veículo), mesmo pra registos antigos
+      // que ainda têm uma categoria de antes gravada (ex. "Seguro") — o
+      // valor guardado no campo é ignorado aqui de propósito, não só nos
+      // novos.
+      categoria: deVeiculo ? "Veículo" : f.categoria,
       conta: f.contaCartao,
       nota: f.nota,
       valor: f.valor,
@@ -267,9 +278,13 @@ export function transacoesDoMes(
       // Com nome próprio, o par título/nota é o mesmo da despesa corrente.
       // Sem ele (registos anteriores ao campo `descricao`), a nota volta a
       // fazer de título — e aí não se repete em `nota`, senão aparecia duas
-      // vezes na mesma linha; sem nota nenhuma sobra a categoria.
+      // vezes na mesma linha; sem nota nenhuma sobra a categoria (só em
+      // registos velhos — de agora em diante `descricao` é obrigatória).
       titulo: d.descricao || d.nota || d.categoria,
-      categoria: d.categoria,
+      // Ajuste F do lote de 30/08: mesma regra da fixa do veículo, acima —
+      // categoria fixa em "Veículo", ignorando o que estiver gravado no
+      // campo (inclusive em registos antigos).
+      categoria: "Veículo",
       conta: d.contaCartao,
       nota: d.descricao ? d.nota : undefined,
       valor: d.valor,
@@ -298,8 +313,9 @@ export function transacoesDoMes(
 //     corrente, fixa e parcela usam a mesma lista `cfg.categoriasDespesa`
 //     (ver SeletorCategoria nas três telas), por isso "Despesa" cobre as três
 //     origens, e uma categoria específica também — só mais estreito.
-// Veículo (carga/despesaVeiculo) fica fora dos dois filtros: usa outra lista
-// de categorias (`cfg.categoriasVeiculo`) e não foi pedido aqui.
+// Veículo (carga/despesaVeiculo) fica fora dos dois filtros — não tem
+// categoria escolhível desde o ajuste F do lote de 30/08 (é sempre a fixa
+// "Veículo") e não foi pedido aqui.
 
 export const FILTRO_RECEITA = "Receita";
 export const FILTRO_DESPESA = "Despesa";
