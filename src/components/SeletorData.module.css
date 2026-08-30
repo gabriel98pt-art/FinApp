@@ -27,7 +27,12 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  flex: none;
+  /* As três opções (Hoje/Ontem/Escolher data) dividem o espaço em partes
+     iguais — segmented control uniforme. Antes só "Escolher data" tinha
+     `flex: 1`, e as outras duas encolhiam pro conteúdo: ficavam coladas
+     numa ponta e "Escolher data" sozinha com espaço desproporcional. */
+  flex: 1;
+  min-width: 0;
   padding: 9px 12px;
   border-radius: var(--raio-segmento, var(--r-xs));
   color: var(--mut);
@@ -44,8 +49,6 @@
 }
 
 .escolher {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
 }
 
