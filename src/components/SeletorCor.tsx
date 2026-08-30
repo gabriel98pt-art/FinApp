@@ -20,7 +20,12 @@ const CONTRASTE_MINIMO = 4.5;
  *  `coresEmUso`, se passado, marca com um pontinho discreto qualquer cor já
  *  usada por OUTRA categoria (pedido do Gabriel, 26/08: evitar repetir cor
  *  sem querer). Não impede escolher — só avisa; quem chama decide o que
- *  conta como "outra" (normalmente as demais categorias da mesma lista). */
+ *  conta como "outra" (normalmente as demais categorias da mesma lista).
+ *
+ *  `cores`, se passado, substitui a grade padrão (`CORES_CATEGORIA`) — usado
+ *  só pelas fontes de receita, que têm o verde de volta na frente
+ *  (`CORES_FONTE_RECEITA`, item 6 do lote de UX/nav de 30/08): o resto do
+ *  app (despesa, veículo) continua na grade sem verde, sem tocar aqui. */
 export default function SeletorCor({
   aberta,
   aoFechar,
@@ -30,6 +35,7 @@ export default function SeletorCor({
   nivel,
   corDeFundo,
   coresEmUso,
+  cores = CORES_CATEGORIA,
 }: {
   aberta: boolean;
   aoFechar: () => void;
@@ -39,6 +45,7 @@ export default function SeletorCor({
   nivel?: number;
   corDeFundo?: string[];
   coresEmUso?: string[];
+  cores?: string[];
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
@@ -46,7 +53,7 @@ export default function SeletorCor({
         Cor automática
       </button>
       <div className={`${styles.grade} ${styles.gradeCor}`}>
-        {CORES_CATEGORIA.map((c) => {
+        {cores.map((c) => {
           const reprovada =
             !!corDeFundo && corDeFundo.some((fundo) => razaoContraste(c, fundo) < CONTRASTE_MINIMO);
           const emUso = c !== valor && !!coresEmUso?.includes(c);

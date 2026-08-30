@@ -5,6 +5,7 @@ import CategoriaBolha from "../../components/CategoriaBolha";
 import RenomearFolha from "../../components/RenomearFolha";
 import SeletorCor from "../../components/SeletorCor";
 import SeletorIcone from "../../components/SeletorIcone";
+import { CORES_FONTE_RECEITA } from "../../constants/aparenciaCategoria";
 import {
   adicionarItemLista,
   definirCorCategoria,
@@ -226,6 +227,10 @@ export default function FolhaCategorias({
         // selecionada, mesmo já tendo uma cor bem definida.
         valor={corDe ? corDaCategoriaVisual(cfg, corDe) : ""}
         coresEmUso={coresEmUso}
+        // Item 6 do lote de UX/nav (30/08): só a lista de fontes de receita
+        // ganha o verde de volta na grade — despesa e veículo continuam sem
+        // ele, a regra "verde é de receita" não muda.
+        cores={lista === "fontesReceita" ? CORES_FONTE_RECEITA : undefined}
         aoEscolher={(c) => void escolherCor(c)}
         nivel={nivel + 1}
       />

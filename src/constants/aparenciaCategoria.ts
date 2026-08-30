@@ -72,7 +72,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
-import { PALETA_CATEGORIA } from "../utils/coresCategoria";
+import { PALETA_CATEGORIA, VERDE_RECEITA } from "../utils/coresCategoria";
 
 /** ~40 ícones de linha do `lucide-react` para finanças pessoais, agrupados por
  *  tema (a ordem da lista é a ordem da grade: comida, casa, carro, saúde,
@@ -191,3 +191,18 @@ export const CORES_CATEGORIA = [
   "#94a3b8",
   "#cbd5e1",
 ];
+
+/** MESMA grade, com o verde de Receita de volta na frente — só para o
+ *  seletor de cor das FONTES DE RECEITA (item 6 do lote de UX/nav, 30/08).
+ *  A regra "verde é exclusivo de receita" (pedido antigo do Gabriel, ver o
+ *  comentário grande em `utils/coresCategoria.ts`) segue de pé: o verde
+ *  continua FORA de `CORES_CATEGORIA`, então nenhuma categoria de despesa
+ *  ou do veículo o oferece. O bug era o oposto — DENTRO de receita, girar
+ *  na exclusão geral também tirava o verde de qualquer fonte que não fosse
+ *  a primeira a "reivindicá-lo", quando toda fonte de receita devia poder
+ *  usá-lo (é o sinal de "isto é receita", não a identidade de uma fonte
+ *  específica — ao contrário de despesa, onde cada categoria quer uma cor
+ *  distinta pra se separar no donut). `coresEmUso` continua só avisando,
+ *  nunca bloqueando (ver SeletorCor) — múltiplas fontes com verde é o
+ *  comportamento certo aqui, não um erro a prevenir. */
+export const CORES_FONTE_RECEITA = [VERDE_RECEITA, ...CORES_CATEGORIA];

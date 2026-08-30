@@ -96,6 +96,12 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
   return COR_SEMANTICA[categoria];
 }
 
+/** O MESMO verde de `COR_SEMANTICA.Receita`, exportado à parte — usado pela
+ *  grade de cores exclusiva das fontes de receita (`CORES_FONTE_RECEITA` em
+ *  `constants/aparenciaCategoria.ts`, item 6 do lote de UX/nav de 30/08).
+ *  Evita os dois lugares divergirem se o verde de Receita mudar de tom. */
+export const VERDE_RECEITA = COR_SEMANTICA.Receita;
+
 /** Paleta única de matizes — fonte de verdade tanto pra auto-atribuição
  *  (`corFallbackDaCategoria`, abaixo) quanto pro seletor manual (`CORES_
  *  CATEGORIA` em `constants/aparenciaCategoria.ts`, que acrescenta só os

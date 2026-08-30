@@ -123,6 +123,29 @@ describe("SeletorCor", () => {
     ).toBeNull();
   });
 
+  // Item 6 do lote de UX/nav (30/08): as fontes de receita passam uma grade
+  // própria (`CORES_FONTE_RECEITA`, com o verde na frente) — o resto do app
+  // continua na `CORES_CATEGORIA` padrão, sem verde nenhum.
+  test("com `cores`, oferece exatamente a grade passada — não a padrão", () => {
+    const aoEscolher = vi.fn();
+    render(
+      <SeletorCor
+        aberta
+        aoFechar={vi.fn()}
+        titulo="Cor"
+        valor=""
+        aoEscolher={aoEscolher}
+        cores={["#4ade80", "#ef4444"]}
+      />,
+    );
+
+    expect(screen.getAllByRole("button")).toHaveLength(3); // "Cor automática" + 2
+
+    const verde = screen.getByRole("button", { name: "Cor #4ade80" });
+    fireEvent.click(verde);
+    expect(aoEscolher).toHaveBeenCalledWith("#4ade80");
+  });
+
   test('"Cor automática" nunca é afetada pela checagem de contraste', () => {
     const aoEscolher = vi.fn();
     render(
