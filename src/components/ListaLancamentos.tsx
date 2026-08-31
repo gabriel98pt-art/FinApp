@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
 import ErroSincronizacao from "./ErroSincronizacao";
@@ -10,6 +10,7 @@ import type { Cents, Currency, Id, IsoDate } from "../types";
 import { total as somar } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import styles from "./ListaLancamentos.module.css";
+import Botao from "./Botao";
 
 /** Itens por página — mesmo valor do app de referência (DC_PGS = 15). */
 export const ITENS_POR_PAGINA = 15;
@@ -112,6 +113,7 @@ export default function ListaLancamentos({
   vazioSub,
   vazioIcone,
   moeda,
+  aoAdicionar,
   aoEditar,
   aoExcluir,
   rotuloTotal = "Total",
@@ -119,8 +121,8 @@ export default function ListaLancamentos({
   erro = false,
 }: {
   /** Sem título, o cartão nasce sem cabeçalho — quem chama já mostrou o
-   *  contexto em cima (ex. a aba "Correntes" de Despesas). Adicionar não vive
-   *  mais aqui: é o "+" do cabeçalho da página (hooks/useAcaoHeader.ts). */
+   *  contexto em cima (ex. a aba "Correntes" de Despesas) e põe o próprio
+   *  botão de adicionar noutro lugar. */
   titulo?: string;
   itens: ItemLista[];
   carregado: boolean;
@@ -129,6 +131,7 @@ export default function ListaLancamentos({
   vazioSub?: string;
   vazioIcone: LucideIcon;
   moeda: Currency;
+  aoAdicionar: () => void;
   aoEditar: (id: Id) => void;
   /** Ação "Excluir" do menu único de ações (item 2 do lote de UX/nav). Quem
    *  chama decide se confirma antes — aqui só se propaga o id escolhido. */
@@ -162,6 +165,9 @@ export default function ListaLancamentos({
       {titulo && (
         <div className={styles.cabecalho}>
           <h3 className={styles.titulo}>{titulo}</h3>
+          <Botao variante="texto" onClick={aoAdicionar}>
+            <Plus size={15} aria-hidden /> Adicionar
+          </Botao>
         </div>
       )}
 

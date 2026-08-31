@@ -48,7 +48,6 @@ vi.mock("../stores/mesVisivelStore", () => ({
 }));
 
 const Receitas = (await import("./Receitas")).default;
-const { useAcaoHeaderStore } = await import("../stores/acaoHeaderStore");
 
 const receita = (extra: Partial<Receita> = {}): Receita => ({
   id: "r1",
@@ -116,16 +115,10 @@ describe("Receitas", () => {
     expect(screen.getByText("Total agosto 2026")).toBeInTheDocument();
   });
 
-  // O botão de adicionar deixou de estar dentro da página: é o "+" do
-  // cabeçalho, que vive no AppShell e não é renderizado aqui. O que a página
-  // continua a ter de fazer é REGISTAR a ação — com o nome por extenso, que é
-  // tudo o que um leitor de ecrã tem para ler num ícone.
-  test("regista o + do cabeçalho, que abre o registo rápido no modo receita", () => {
+  test("Adicionar abre o registo rápido no modo receita", async () => {
     render(<Receitas />);
+    await userEvent.click(screen.getByRole("button", { name: /Adicionar/ }));
 
-    const acao = useAcaoHeaderStore.getState().acao;
-    expect(acao?.rotulo).toBe("Adicionar receita");
-    acao?.onClick?.();
     expect(abrirRegistro).toHaveBeenCalledWith("receita");
   });
 

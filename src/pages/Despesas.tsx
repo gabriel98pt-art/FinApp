@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
-import { Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
+import { Plus, Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
@@ -22,7 +22,6 @@ import {
   removerDespesaFixa,
 } from "../services/lancamentosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
-import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useUidSessao } from "../hooks/useUidSessao";
@@ -268,16 +267,6 @@ export default function Despesas() {
     setDfAberta(true);
   }
 
-  // O "+" do cabeçalho segue a aba aberta: em "Correntes" lança uma despesa
-  // do dia a dia, em "Fixas" abre a folha da despesa fixa. São dois fluxos
-  // diferentes, mas nunca estão à vista ao mesmo tempo — daí não valer a pena
-  // um menu a perguntar qual deles, ao contrário do Veículo.
-  useAcaoHeader(
-    aba === "fixas"
-      ? { rotulo: "Adicionar despesa fixa", onClick: abrirNovaFixa }
-      : { rotulo: "Adicionar despesa", onClick: () => abrirRegistro("despesa") },
-  );
-
   function abrirEdicaoFixa(f: DespesaFixa) {
     setDfEditandoId(f.id);
     setDfDescricao(f.descricao);
@@ -462,6 +451,15 @@ export default function Despesas() {
               {visao === "semana" && (
                 <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
               )}
+              {/* Já se está na aba "Correntes" — o título "Despesas correntes"
+                  do cartão de baixo era redundante. O botão sobe pra cá. */}
+              <Botao
+                variante="primaria"
+                className={styles.botaoAdicionarTopo}
+                onClick={() => abrirRegistro("despesa")}
+              >
+                <Plus size={15} aria-hidden /> Adicionar
+              </Botao>
             </div>
 
             <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
@@ -512,8 +510,9 @@ export default function Despesas() {
                   ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
                   : `Nenhuma despesa em ${rotuloMes(mes)}`
               }
-              vazioSub="Toque no + do cabeçalho para lançar a primeira."
+              vazioSub="Toque em Adicionar para lançar a primeira."
               vazioIcone={TrendingDown}
+              aoAdicionar={() => abrirRegistro("despesa")}
               aoEditar={editar}
               aoExcluir={(id) => void excluirDespesa(id)}
             />
@@ -524,6 +523,9 @@ export default function Despesas() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas</h3>
+              <Botao variante="primaria" onClick={abrirNovaFixa}>
+                <Plus size={15} aria-hidden /> Adicionar despesa fixa
+              </Botao>
             </div>
 
             <div className={styles.lista}>

@@ -123,14 +123,6 @@
   transform: translate(-50%, -50%);
 }
 
-/* O "+" da página. É uma AÇÃO (abre alguma coisa), ao contrário do tema e do
-   sino, que são interruptores — daí a cor cheia em vez do cinzento. Continua
-   do mesmo tamanho que os vizinhos: o pedido era substituir o botão de texto
-   "Adicionar X", não pôr outro botão grande no lugar dele. */
-.adicionar {
-  color: var(--txt);
-}
-
 .acao:hover {
   background: var(--s2);
   color: var(--txt);

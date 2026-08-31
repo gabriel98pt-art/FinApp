@@ -277,6 +277,11 @@
   flex-wrap: wrap;
 }
 
+/* Só posição: o desenho do botão vem de <Botao variante="primaria">. */
+.botaoAdicionarTopo {
+  margin-left: auto;
+}
+
 .alternadorVisao {
   display: flex;
   gap: 4px;

@@ -13,37 +13,17 @@ Período coberto: 23/07/2026 a 31/08/2026 — 481 mudanças registadas.
 
 - A marca "FinApp" some do cabeçalho só no iPhone SE de 1ª geração (ecrãs de
   320 pontos ou menos) — era o único jeito de o mês por extenso caber ao lado
-  dos 3 ícones sem cortar. Em qualquer telemóvel mais novo continua igual.
+  dos ícones sem cortar. Em qualquer telemóvel mais novo continua igual.
 - Ao corrigir isso apareceu um bug pior: esconder a marca fazia o mês pular
   pra outra coluna do cabeçalho e passar a competir por espaço com os ícones
   em vez de ter a faixa dele só pra si — o corte piorava em vez de sumir.
   Corrigido dando ao mês um lugar fixo no cabeçalho, que não dependa de mais
   nada estar visível ao lado.
-- O botão "Evento" do Calendário virou um "+" no cabeçalho. Era um botão de
-  texto que ficava por cima da grelha do mês e comia uma linha inteira do
-  telemóvel só para dizer o que a aba já dizia.
-- Receitas e Despesas seguiram o mesmo caminho. Em Receitas saiu o "Adicionar"
-  que estava no canto do cartão "Lançamentos". Em Despesas saíram dois: o da
-  aba "Correntes" e o "Adicionar despesa fixa" da aba "Fixas".
-- Em Despesas o "+" do cabeçalho muda com a aba aberta — em "Correntes" lança
-  uma despesa do dia a dia, em "Fixas" abre a folha da despesa fixa. Como as
-  duas abas nunca estão à vista ao mesmo tempo, não faz sentido o "+"
-  perguntar qual das duas se queria.
-- Onde a lista está vazia, o texto de ajuda passou a dizer "Toque no + do
-  cabeçalho" em vez de "Toque em Adicionar" — o botão que ele mandava procurar
-  já não existe nesse sítio.
-- Para isso o cabeçalho ganhou um lugar novo: cada tela pode pôr lá o SEU
-  botão de adicionar, e ele desaparece sozinho quando se muda de tela. É
-  diferente do "+" azul redondo que está sempre no fundo do ecrã — esse lança
-  transações de qualquer sítio; o do cabeçalho adiciona a coisa da tela onde
-  se está (um evento no Calendário, por exemplo).
-- Quem usa leitor de ecrã ouve "Adicionar evento", não só "Adicionar": o
-  desenho do "+" sozinho não diz o quê, por isso cada tela escreve o nome
-  completo da sua ação.
-- Medido ao vivo num telemóvel de 375 pontos: com o "+" a mais, "FinApp" e o
-  mês ("setembro 2026", "dezembro 2026" — os nomes mais compridos) continuam a
-  caber inteiros no cabeçalho. Só num ecrã de 320 pontos (iPhone de 2016) é
-  que o mês passa a aparecer cortado com "…".
+- Uma tentativa de pôr um "+" por página no cabeçalho (substituindo os
+  botões "Adicionar X" espalhados pelas telas) foi revertida no mesmo dia: o
+  Gabriel não quer nada de novo no cabeçalho sem pedir primeiro, mesmo que
+  pareça resolver um problema real de espaço. Os botões "Adicionar X"
+  voltam a ficar onde estavam, dentro de cada tela.
 - Os botões de "Desfazer" e "Refazer" saíram do cabeçalho. Eram as duas únicas
   coisas lá em cima que não abriam nada, e ocupavam espaço que no telemóvel
   faz falta.

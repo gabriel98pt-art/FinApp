@@ -1,10 +1,7 @@
-import { useRef, useState } from "react";
-import { Moon, Plus, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import MenuAcoesItem from "../components/MenuAcoesItem";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
-import { useAcaoHeaderStore } from "../stores/acaoHeaderStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useThemeStore } from "../stores/themeStore";
 import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
@@ -39,13 +36,6 @@ export default function Header() {
   const temaEfetivo = useTemaEfetivo();
   const definirTema = useThemeStore((s) => s.definirTema);
 
-  // O "+" da página aberta (stores/acaoHeaderStore.ts). Cada tela regista o
-  // seu ao montar e tira-o ao sair, portanto aqui só há que desenhar o que
-  // estiver lá — ou nada, nas telas que não têm o que adicionar.
-  const acao = useAcaoHeaderStore((s) => s.acao);
-  const refAdicionar = useRef<HTMLButtonElement>(null);
-  const [menuAberto, setMenuAberto] = useState(false);
-
   return (
     <header className={`${styles.header} material`}>
       <h1 className={styles.logo}>
@@ -61,21 +51,6 @@ export default function Header() {
           cabiam num telemóvel de 375. Agora vivem no menu "Mais" (telemóvel)
           e no fim da barra lateral (tablet/computador). */}
       <div className={styles.acoes}>
-        {/* Primeiro da fila de propósito: é o único que aparece e desaparece
-            conforme a tela, e pô-lo à frente deixa o tema e o sino sempre no
-            mesmo sítio em vez de os empurrar de página para página. */}
-        {acao && (
-          <button
-            ref={refAdicionar}
-            className={`${styles.acao} ${styles.adicionar}`}
-            onClick={() => (acao.acoes ? setMenuAberto(true) : acao.onClick?.())}
-            aria-label={acao.rotulo}
-            aria-haspopup={acao.acoes ? "menu" : undefined}
-            aria-expanded={acao.acoes ? menuAberto : undefined}
-          >
-            <Plus size={19} aria-hidden />
-          </button>
-        )}
         <button
           className={styles.acao}
           onClick={() => definirTema(temaEfetivo === "dark" ? "light" : "dark")}
@@ -86,20 +61,6 @@ export default function Header() {
         </button>
         <NotificacoesSino />
       </div>
-
-      {/* Telas com mais do que um tipo de "adicionar" (Veículo, Cartões): o
-          "+" pergunta o quê em vez de adivinhar. Reusa o mesmo menu das
-          pílulas e dos itens de lista — folha no telemóvel, popover ancorado
-          no computador. */}
-      {acao?.acoes && (
-        <MenuAcoesItem
-          aberta={menuAberto}
-          aoFechar={() => setMenuAberto(false)}
-          titulo={acao.rotulo}
-          ancoraRef={refAdicionar}
-          acoes={acao.acoes}
-        />
-      )}
     </header>
   );
 }
