@@ -13,7 +13,7 @@ Entrada mais recente no topo.
 
 ### Botões "Adicionar X" devem virar um "+" pequeno no cabeçalho
 
-**Encontrado em 01/09/2026**, na revisão da Etapa A do plano da App Store.
+**Encontrado em 31/08/2026**, na revisão da Etapa A do plano da App Store.
 
 Todas as abas que têm um botão para adicionar (Transações, Cartões, Veículos, etc.)
 usam o padrão "Adicionar X" em texto. No telemóvel, isto toma muito espaço no
@@ -38,7 +38,7 @@ depois de coordenação com a Etapa A (Acessibilidade + Design & Cor).
 
 ### Splash por tema no PWA
 
-**Levantado em 01/09/2026**.
+**Levantado em 31/08/2026**.
 
 O app nativo (Etapa D) tem splash screens em tema claro e escuro. A PWA também
 poderia ter, adaptando-se ao tema do utilizador — mas o Safari exige que o splash
@@ -50,7 +50,7 @@ entra se o Gabriel disser que vale a pena o overhead.
 
 ### Screenshots do manifest usam dados de demonstração
 
-**Levantado em 01/09/2026**, na Etapa B.
+**Levantado em 31/08/2026**, na Etapa B.
 
 O `manifest.json` já tem `screenshots` com URLs apontando a dados de exemplo.
 Para a App Store de verdade, a Apple exige screenshots em tamanhos específicos
@@ -62,7 +62,7 @@ Hoje fica com dados de demonstração só pra validar que a estrutura está cert
 
 ### Ícones antigos (v2/v3) continuam em `public/`
 
-**Levantado em 01/09/2026**.
+**Levantado em 31/08/2026**.
 
 O diretório `public/icons/` tem o novo ícone (`icon-v4.svg`) e as PNGs geradas
 dele. Os ícones das versões anteriores (v2 e v3) continuam lá, não foram apagados
