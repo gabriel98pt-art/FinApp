@@ -57,14 +57,22 @@
 .folha {
   --folha-y: 100vh;
   position: fixed;
-  bottom: 0;
+  /* O teclado do telemóvel não encolhe a página: no iOS, `dvh` continua a ser
+     o ecrã inteiro e o teclado desenha-se POR CIMA do fundo da folha — que é
+     exatamente onde ficam os botões de ação. A folha sobe a altura do teclado
+     (e encolhe outro tanto, logo abaixo) para o botão ficar sempre logo acima
+     dele. Sem teclado o token é 0px e isto é o `bottom: 0` de sempre.
+
+     Mexe-se em `bottom` e não em `transform` de propósito: o transform é da
+     mola do arrasto (useDragToClose), que o reescreve a cada frame. */
+  bottom: var(--altura-teclado);
   left: 50%;
   transform: translateX(-50%) translateY(var(--folha-y)) scale(var(--folha-escala));
   /* A folha recua a partir da borda de baixo: encolher pelo centro descolava-a
      do fundo do ecrã e abria uma faixa de fundo por baixo dela. */
   transform-origin: 50% 100%;
   width: min(100vw, 480px);
-  max-height: calc(100dvh - 48px);
+  max-height: calc(100dvh - 48px - var(--altura-teclado));
   overflow-y: auto;
   z-index: 46;
   background: var(--s1);
@@ -72,7 +80,7 @@
   border-bottom: none;
   border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   box-shadow: var(--sh-card);
-  padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  padding: 8px 20px calc(20px + var(--safe-baixo));
   opacity: 0;
   /* `visibility` e não `display:none`: o conteúdo fica montado (ver
      BottomSheet.tsx), mas fora da janela a sombra ainda espreitava pela borda
@@ -204,8 +212,14 @@
 .folhaGrande {
   width: min(100vw, 576px);
   /* Altura FIXA, não teto: com max-height a altura vinha do conteúdo e a
-     folha encolhia/crescia a cada troca de tipo. */
-  height: calc(100dvh - 38px);
+     folha encolhia/crescia a cada troca de tipo.
+
+     O desconto do teclado é o que faz o botão "Salvar" do Registro Rápido
+     continuar à vista: o `.acoes` do formulário tem `margin-top: auto`, ou
+     seja, está encostado ao fundo da folha — com a altura do ecrã inteiro, o
+     fundo caía debaixo do teclado e não havia como gravar sem primeiro o
+     fechar. Agora a folha acaba onde o teclado começa e o resto rola. */
+  height: calc(100dvh - 38px - var(--altura-teclado));
   display: flex;
   flex-direction: column;
 }
@@ -230,10 +244,13 @@
    O `min()` cuida da janela baixa: 32px de respiro em cima e embaixo. */
 @media (min-width: 768px) {
   .folhaGrande {
-    top: 50%;
+    /* Centrada no que SOBRA acima do teclado (num iPad ele existe): sem o
+       desconto, o centro do ecrã ficava atrás dele. Em monitor o token é 0px e
+       isto volta a ser o `top: 50%` de sempre. */
+    top: calc(50% - var(--altura-teclado) / 2);
     bottom: auto;
     height: auto;
-    max-height: min(720px, 100dvh - 64px);
+    max-height: min(720px, 100dvh - 64px - var(--altura-teclado));
     /* Já não encosta em baixo: ganha a borda e os cantos que faltavam. */
     border-bottom: 1px solid var(--brd);
     border-radius: var(--r-sheet);

@@ -244,4 +244,9 @@
   --safe-baixo: env(safe-area-inset-bottom, 0px);
   --safe-esq: env(safe-area-inset-left, 0px);
   --safe-dir: env(safe-area-inset-right, 0px);
+
+  /* Altura do teclado virtual, escrita a cada mudança por useAlturaTeclado.
+     Fica aqui o valor de repouso: sem teclado (e em qualquer browser sem a API
+     `visualViewport`) é sempre 0px, e quem depende dela fica como estava. */
+  --altura-teclado: 0px;
 }

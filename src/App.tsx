@@ -7,6 +7,7 @@ import { useCfgStore } from "./stores/cfgStore";
 import { useAplicarTema } from "./hooks/useAplicarTema";
 import { useAplicarModoDiscreto } from "./hooks/useAplicarModoDiscreto";
 import { useAplicarCoresPersonalizadas } from "./hooks/useAplicarCoresPersonalizadas";
+import { useAlturaTeclado } from "./hooks/useAlturaTeclado";
 import { usePwaUpdate } from "./hooks/usePwaUpdate";
 import { useRecarregarChunkFalho } from "./hooks/useRecarregarChunkFalho";
 import { useIgnorarArquivoSolto } from "./hooks/useIgnorarArquivoSolto";
@@ -58,6 +59,9 @@ export default function App() {
   useAplicarTema();
   useAplicarModoDiscreto();
   useAplicarCoresPersonalizadas();
+  // Fora do gate de sessão: o Login também é um formulário, e o teclado do
+  // telemóvel tapa-o do mesmo jeito que tapa as folhas lá dentro.
+  useAlturaTeclado();
   // Fora do gate de sessão de propósito: procurar versão nova não depende de
   // estar logado, e a tela de login também precisa de se atualizar.
   usePwaUpdate();
