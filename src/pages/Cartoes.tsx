@@ -1,5 +1,14 @@
-import { useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeftRight, CreditCard, Pencil, Plus, Trash2, Wallet, X } from "lucide-react";
+import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import {
+  ArrowLeftRight,
+  CreditCard,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
+  Wallet,
+  X,
+} from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
@@ -329,6 +338,54 @@ function LinhaTransferencia({
         acoes={acoes}
       />
     </div>
+  );
+}
+
+/** Pílula de conta/cartão com o menu único de ações.
+ *
+ *  Antes tinha três ícones colados lá dentro (adicionar método, renomear,
+ *  remover): mesmo esticados à altura toda da pílula, em LARGURA ficavam nos
+ *  ~26 pontos, longe dos 44 mínimos de toque — e ícones pequenos lado a lado é
+ *  onde o dedo mais erra de botão. Um só botão "⋯", com 44 de largura, abre as
+ *  mesmas ações em texto. Ver PENDENCIAS.md.
+ *
+ *  `children` é o que fica visível na pílula ao lado do nome (o tipo, e os
+ *  campos de dia de fecho/vencimento do cartão de crédito) — esses são campos
+ *  de escrever, não ações, e continuam onde estavam. */
+function ChipComMenu({
+  nome,
+  acoes,
+  children,
+}: {
+  nome: string;
+  acoes: AcaoItem[];
+  children?: ReactNode;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  return (
+    <li className={styles.chip}>
+      <span className={styles.chipNome}>{nome}</span>
+      {children}
+      <button
+        ref={ancoraRef}
+        type="button"
+        className={styles.chipMenu}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+        aria-label={`Ações de ${nome}`}
+      >
+        <MoreHorizontal size={16} aria-hidden />
+      </button>
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={nome}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
+    </li>
   );
 }
 
@@ -766,8 +823,29 @@ export default function Cartoes() {
         {cfg.contasCartoes.length > 0 && (
           <ul className={styles.chips}>
             {cfg.contasCartoes.map((c) => (
-              <li key={c} className={styles.chip}>
-                <span className={styles.chipNome}>{nomeDe(c)}</span>
+              <ChipComMenu
+                key={c}
+                nome={nomeDe(c)}
+                acoes={[
+                  {
+                    rotulo: "Adicionar método",
+                    Icone: Wallet,
+                    onClick: () => {
+                      const achado = localizarMetodo(cfg, c);
+                      if (!achado) return;
+                      setTipoNovoMetodo("credit");
+                      setAdicionandoMetodoA(achado.instituicao.id);
+                    },
+                  },
+                  { rotulo: "Renomear", Icone: Pencil, onClick: () => setRenomeando(c) },
+                  {
+                    rotulo: "Remover",
+                    Icone: Trash2,
+                    onClick: () => void remover(c),
+                    tone: "perigo",
+                  },
+                ]}
+              >
                 <span className={styles.chipTipo}>
                   {cfg.tipoCartao[c] === "credit" ? "crédito" : "débito"}
                 </span>
@@ -819,39 +897,7 @@ export default function Cartoes() {
                     </label>
                   </>
                 )}
-                <button
-                  type="button"
-                  className={styles.chipAcao}
-                  onClick={() => {
-                    const achado = localizarMetodo(cfg, c);
-                    if (!achado) return;
-                    setTipoNovoMetodo("credit");
-                    setAdicionandoMetodoA(achado.instituicao.id);
-                  }}
-                  aria-label={`Adicionar outro método a ${nomeDe(c)}`}
-                  title="Adicionar método"
-                >
-                  <Wallet size={14} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  className={styles.chipAcao}
-                  onClick={() => setRenomeando(c)}
-                  aria-label={`Renomear ${nomeDe(c)}`}
-                  title="Renomear"
-                >
-                  <Pencil size={14} aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.chipAcao} ${styles.chipRemover}`}
-                  onClick={() => void remover(c)}
-                  aria-label={`Remover ${nomeDe(c)}`}
-                  title="Remover"
-                >
-                  <X size={14} aria-hidden />
-                </button>
-              </li>
+              </ChipComMenu>
             ))}
           </ul>
         )}

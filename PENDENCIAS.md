@@ -11,6 +11,28 @@ Entrada mais recente no topo.
 
 ## Telemóvel
 
+### Botões "Adicionar X" devem virar um "+" pequeno no cabeçalho
+
+**Encontrado em 01/09/2026**, na revisão da Etapa A do plano da App Store.
+
+Todas as abas que têm um botão para adicionar (Transações, Cartões, Veículos, etc.)
+usam o padrão "Adicionar X" em texto. No telemóvel, isto toma muito espaço no
+cabeçalho — deve virar um ícone pequeno "+" que fica mais discreto e liberta
+espaço. O que vai ser adicionado é claro pelo contexto da aba.
+
+Também precisam sair do cabeçalho os botões de "Desfazer" e "Refazer" — hoje não
+está claro se são realmente usados, e tiram espaço que é crítico em mobile. Podem
+viver num gesto ou dentro do menu "Mais" se forem mesmo necessários.
+
+**Por que fica pendente**: é redesenho de padrão em 10+ telas (cada aba), não um
+ajuste isolado. Precisa de decisão conjunta com o Gabriel e depois de coordenação
+com a Etapa A (Acessibilidade + Design & Cor).
+
+**Prioridade**: solução para os botões de desfazer/refazer vem em primeiro lugar —
+avaliar se são realmente usados antes de redesenhar.
+
+---
+
 ### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
 
 **Encontrado em 31/08/2026**, na varredura de áreas de toque da Etapa A do
@@ -43,20 +65,40 @@ CSS. As três hipóteses:
 **Quem decide**: o Gabriel. Enquanto não decidir, fica a hipótese 3, que é o
 que está no código.
 
-### Dois ícones dentro de uma pílula nunca chegam aos 44 pontos de largura
+## Decisões pendentes (não bloqueiam nada)
 
-**Encontrado em 31/08/2026**, na mesma varredura.
+### Splash por tema no PWA
 
-Nas telas de gerir (locais do veículo, cartões), cada pílula tem o nome e dois
-botões colados — renomear e remover. As pílulas passaram a ter 44 pontos de
-altura e os botões esticam-se a ela toda, mas em largura ficam nos ~26.
+**Levantado em 01/09/2026**.
 
-**Por que ficou de fora**: o app já tem o padrão certo para isto — o menu de
-ações ("⋯" que abre editar/excluir) que todas as listas usam desde 30/08.
-Trocar os dois ícones inline por esse menu resolve o toque e ainda uniformiza
-o desenho, mas é redesenho destas telas, não um ajuste de área de toque.
+O app nativo (Etapa D) tem splash screens em tema claro e escuro. A PWA também
+poderia ter, adaptando-se ao tema do utilizador — mas o Safari exige que o splash
+seja definido no manifest por tema, e isso criaria 20+ ficheiros adicionais e uma
+regra de build complexa. **Decisão tomada: deixado de fora de propósito** — só
+entra se o Gabriel disser que vale a pena o overhead.
 
-**Se for para fazer**: reutilizar `MenuAcoesItem`, já pronto e já testado.
+---
+
+### Screenshots do manifest usam dados de demonstração
+
+**Levantado em 01/09/2026**, na Etapa B.
+
+O `manifest.json` já tem `screenshots` com URLs apontando a dados de exemplo.
+Para a App Store de verdade, a Apple exige screenshots em tamanhos específicos
+(540×720, 1170×2532, etc.). Capturar esses screenshots e tratá-los é **fora do
+escopo da Etapa B** — ficava pro momento em que se submete à loja (Etapa F).
+Hoje fica com dados de demonstração só pra validar que a estrutura está certa.
+
+---
+
+### Ícones antigos (v2/v3) continuam em `public/`
+
+**Levantado em 01/09/2026**.
+
+O diretório `public/icons/` tem o novo ícone (`icon-v4.svg`) e as PNGs geradas
+dele. Os ícones das versões anteriores (v2 e v3) continuam lá, não foram apagados
+— **de propósito**, pra não quebrar o cache de quem já tem o app instalado como
+PWA. Quando a Etapa F (submissão) passar, esses ficheiros antigos podem sair.
 
 ---
 
@@ -75,6 +117,18 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 ---
 
 ## Resolvido (fica registrado por onde passou)
+
+### Dois ícones dentro de uma pílula nunca chegam aos 44 pontos de largura
+
+**Resolvido em 31/08/2026**: os ícones colados dentro das pílulas de gerir
+saíram e deram lugar a um único botão "⋯", com os 44 pontos de largura e de
+altura, que abre o mesmo menu de ações que todas as listas do app já usam. Nos
+locais de abastecimento (Veículo) o menu tem Renomear e Remover; nas contas e
+cartões tem Adicionar método, Renomear e Remover — o terceiro ícone entrou
+junto porque tinha exatamente o mesmo problema de toque. Os campos de escrever
+que vivem na pílula do cartão de crédito (dia de fecho e de vencimento)
+ficaram onde estavam: são campos, não ações. Nada mudou no que cada ação faz,
+nem nos avisos de confirmação.
 
 ### Ícone "maskable" do manifest
 

@@ -5,12 +5,24 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 471 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 474 mudanças registadas.
 
 ---
 
 ## 31/08/2026
 
+- Nas pílulas de gerir (locais de abastecimento no Veículo, contas e cartões
+  em Cartões), os iconezinhos colados lá dentro deram lugar a um só botão
+  "⋯" — o mesmo menu de ações que as listas do app já usavam. Antes eram dois
+  ou três alvos de cerca de 26 pontos de largura, lado a lado, onde o dedo
+  acertava no botão errado; agora é um alvo de 44 por 44 que abre as ações
+  escritas por extenso.
+- No Veículo o menu tem Renomear e Remover. Em Cartões tem Adicionar método,
+  Renomear e Remover — este último ícone tinha o mesmo problema de tamanho,
+  por isso foi junto.
+- Os campos de escrever que vivem na pílula do cartão de crédito (dia de fecho
+  e dia de vencimento da fatura) ficaram onde estavam: são campos, não ações.
+  As perguntas de confirmação ao remover também continuam iguais.
 - O cabeçalho do app deixa de ficar por baixo do relógio e da bateria do
   iPhone. O app já se abria em ecrã inteiro, entalhe incluído, mas só três
   ficheiros reservavam a faixa do sistema — e nenhum deles era o cabeçalho.

@@ -194,10 +194,9 @@
   gap: 6px;
   background: var(--s2);
   border-radius: var(--r-pill);
-  padding: 5px 12px;
-  /* Os 44px mínimos de toque em altura, para os botões de renomear/remover lá
-     dentro se poderem esticar à pílula toda em vez de serem alvos de ~18px.
-     Ver PENDENCIAS.md quanto à largura. */
+  padding: 5px 5px 5px 12px;
+  /* Os 44px mínimos de toque em altura, para o botão de ações lá dentro se
+     poder esticar à pílula toda. */
   min-height: 44px;
   font-size: var(--fs-body);
   font-weight: 600;
@@ -212,24 +211,21 @@
   font-size: var(--fs-micro);
 }
 
-.chipAcao {
+/* Botão "⋯" que abre o menu de ações da pílula (adicionar método, renomear,
+   remover). Substituiu os três ícones colados: 44x44 de toque, um alvo só. */
+.chipMenu {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Estica à altura toda da pílula (44px, ver .chip) e alarga o toque para os
-     lados sem mudar o ícone de 14px que se vê. */
+  /* Estica à altura toda da pílula (44px, ver .chip) e garante 44 de largura. */
   align-self: stretch;
+  min-width: 44px;
   color: var(--mut);
-  padding: 2px 6px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
 }
 
-.chipAcao:hover {
+.chipMenu:hover {
   color: var(--txt);
-}
-
-.chipRemover:hover {
-  color: var(--red);
 }
 
 .gerirLinha {

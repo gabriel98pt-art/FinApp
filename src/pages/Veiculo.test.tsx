@@ -32,9 +32,10 @@ vi.mock("../services/veiculoService", () => ({
   VEICULO_VAZIO: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] },
 }));
 const atualizarConfig = vi.fn(async () => {});
+const removerItemLista = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("../services/cfgService", () => ({
   adicionarItemLista: vi.fn(async () => {}),
-  removerItemLista: vi.fn(async () => {}),
+  removerItemLista,
   renomearCategoria: vi.fn(async () => {}),
   renomearLocal: vi.fn(async () => {}),
   atualizarConfig: (...a: unknown[]) => atualizarConfig(...(a as [])),
@@ -83,6 +84,7 @@ beforeEach(() => {
   cfg = CONFIG_PADRAO;
   atualizarConfig.mockClear();
   removerCarga.mockClear();
+  removerItemLista.mockClear();
 });
 
 describe("Veiculo", () => {
@@ -217,5 +219,41 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
 
     await waitFor(() => expect(removerCarga).toHaveBeenCalledWith("u1", "c1"));
+  });
+});
+
+// 31/08: as pílulas de "Locais de abastecimento" tinham renomear e remover
+// como dois ícones colados, nenhum com 44 pontos de largura de toque. Passam
+// pelo mesmo menu único de ações do resto do app.
+describe("menu de ações da pílula de local", () => {
+  beforeEach(() => {
+    cfg = { ...CONFIG_PADRAO, locaisCarregamento: ["Galp Matosinhos"] };
+  });
+
+  test("o menu do local traz Renomear e Remover", async () => {
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Ações de Galp Matosinhos" }));
+
+    expect(await screen.findByRole("button", { name: "Renomear" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remover" })).toBeInTheDocument();
+  });
+
+  test("Remover no menu apaga o local da lista", async () => {
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Ações de Galp Matosinhos" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Remover" }));
+
+    await waitFor(() =>
+      expect(removerItemLista).toHaveBeenCalledWith(
+        "u1",
+        cfg,
+        "locaisCarregamento",
+        "Galp Matosinhos",
+      ),
+    );
   });
 });

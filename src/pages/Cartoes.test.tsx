@@ -283,9 +283,16 @@ describe("Cartoes", () => {
       cfg = { ...CONFIG_PADRAO, ...comInstituicoes(instituicao(CARTAO, "credito")) };
     });
 
-    test("botão por chip abre a folha com o nome da instituição, sem pedir nome", () => {
+    // As ações da pílula vivem no menu "⋯" desde 31/08 (dois/três ícones
+    // colados nunca chegavam aos 44 pontos de largura de toque).
+    function abrirAdicionarMetodo() {
+      fireEvent.click(screen.getByRole("button", { name: `Ações de ${CARTAO}` }));
+      fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));
+    }
+
+    test("ação no menu do chip abre a folha com o nome da instituição, sem pedir nome", () => {
       render(<Cartoes />);
-      fireEvent.click(screen.getByRole("button", { name: `Adicionar outro método a ${CARTAO}` }));
+      abrirAdicionarMetodo();
       expect(
         screen.getByRole("heading", { name: `Adicionar método — ${CARTAO}` }),
       ).toBeInTheDocument();
@@ -293,7 +300,7 @@ describe("Cartoes", () => {
 
     test("submeter chama adicionarMetodo com o id da instituição e o tipo escolhido", () => {
       render(<Cartoes />);
-      fireEvent.click(screen.getByRole("button", { name: `Adicionar outro método a ${CARTAO}` }));
+      abrirAdicionarMetodo();
       // O tipo já nasce em "Crédito" (padrão do formulário) — não precisa de
       // trocar nada para este teste, só confirmar.
       fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));

@@ -1,6 +1,17 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
-import { Car, Fuel, Gauge, Pencil, Plus, Repeat, Trash2, Wrench, Zap } from "lucide-react";
+import {
+  Car,
+  Fuel,
+  Gauge,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Repeat,
+  Trash2,
+  Wrench,
+  Zap,
+} from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -161,6 +172,54 @@ function ItemComMenu({
         acoes={acoes}
       />
     </div>
+  );
+}
+
+/** Pílula de local de abastecimento com o mesmo menu único de ações.
+ *
+ *  Antes tinha dois ícones colados lá dentro (renomear e remover): mesmo
+ *  esticados à altura toda da pílula, em LARGURA ficavam nos ~26 pontos, longe
+ *  dos 44 mínimos de toque — e dois alvos pequenos lado a lado é onde o dedo
+ *  mais erra de botão. Um só botão "⋯", com 44 de largura, abre as mesmas duas
+ *  ações em texto. Ver PENDENCIAS.md. */
+function ChipComMenu({
+  nome,
+  aoRenomear,
+  aoRemover,
+}: {
+  nome: string;
+  aoRenomear: () => void;
+  aoRemover: () => void;
+}) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const ancoraRef = useRef<HTMLButtonElement>(null);
+
+  const acoes: AcaoItem[] = [
+    { rotulo: "Renomear", Icone: Pencil, onClick: aoRenomear },
+    { rotulo: "Remover", Icone: Trash2, onClick: aoRemover, tone: "perigo" },
+  ];
+
+  return (
+    <li className={styles.chip}>
+      {nome}
+      <button
+        ref={ancoraRef}
+        type="button"
+        className={styles.chipMenu}
+        onClick={() => setMenuAberto(true)}
+        aria-haspopup="dialog"
+        aria-label={`Ações de ${nome}`}
+      >
+        <MoreHorizontal size={16} aria-hidden />
+      </button>
+      <MenuAcoesItem
+        aberta={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        titulo={nome}
+        ancoraRef={ancoraRef}
+        acoes={acoes}
+      />
+    </li>
   );
 }
 
@@ -771,26 +830,12 @@ export default function Veiculo() {
               {cfg.locaisCarregamento.length > 0 && (
                 <ul className={styles.chips}>
                   {cfg.locaisCarregamento.map((l) => (
-                    <li key={l} className={styles.chip}>
-                      {l}
-                      <button
-                        type="button"
-                        className={styles.chipAcao}
-                        aria-label={`Renomear ${l}`}
-                        title="Renomear"
-                        onClick={() => setRenomeando(l)}
-                      >
-                        <Pencil size={14} aria-hidden />
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.chipRemover}
-                        aria-label={`Remover ${l}`}
-                        onClick={() => void removerLocal(l)}
-                      >
-                        ×
-                      </button>
-                    </li>
+                    <ChipComMenu
+                      key={l}
+                      nome={l}
+                      aoRenomear={() => setRenomeando(l)}
+                      aoRemover={() => void removerLocal(l)}
+                    />
                   ))}
                 </ul>
               )}
