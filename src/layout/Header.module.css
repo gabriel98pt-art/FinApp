@@ -13,7 +13,14 @@
   display: grid;
   grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
-  padding: 10px 16px;
+  /* Em cima soma-se a faixa do entalhe/ilha da câmara: com `viewport-fit=cover`
+     (index.html) o topo da página é o topo do ECRÃ, e sem isto o logo e os
+     ícones ficavam por baixo do relógio e da bateria no iPhone. Nas laterais
+     entra a folga do ecrã deitado, onde o entalhe passa a ser de um dos lados.
+     Nos aparelhos sem faixa nenhuma os tokens valem 0px e o padding fica
+     exatamente o de antes. */
+  padding: calc(10px + var(--safe-topo)) calc(16px + var(--safe-dir)) 10px
+    calc(16px + var(--safe-esq));
   border-left: none;
   border-right: none;
   border-top: none;

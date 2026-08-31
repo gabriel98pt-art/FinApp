@@ -224,3 +224,24 @@
   --folga-indicador: max(6px, min(14px, env(safe-area-inset-bottom)));
   --alt-barra-nav: calc(57px + var(--folga-indicador));
 }
+
+/* Área segura do sistema — as quatro faixas onde o telemóvel desenha coisas
+   dele (o entalhe/ilha da câmara em cima, o indicador de gestos em baixo, e
+   nas laterais quando o ecrã está deitado) e onde o nosso conteúdo não pode
+   ficar.
+
+   O `index.html` já pede `viewport-fit=cover`, ou seja: a página ocupa o ecrã
+   TODO, entalhe incluído. Sem estes tokens aplicados, o cabeçalho fica por
+   baixo do relógio e da bateria — e é isso que se vê hoje num iPhone com o app
+   instalado no ecrã inicial (e será o mesmo dentro do Capacitor).
+
+   Estão aqui como token e não escritos à mão em cada ficheiro por dois
+   motivos: `env()` não funciona dentro de `@media`, e assim quem precisa da
+   folga escreve sempre a mesma conta. Onde não existe faixa nenhuma (browser
+   de secretária, Android sem entalhe) os quatro valem 0px e nada muda. */
+:root {
+  --safe-topo: env(safe-area-inset-top, 0px);
+  --safe-baixo: env(safe-area-inset-bottom, 0px);
+  --safe-esq: env(safe-area-inset-left, 0px);
+  --safe-dir: env(safe-area-inset-right, 0px);
+}

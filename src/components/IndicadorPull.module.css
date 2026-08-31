@@ -2,7 +2,10 @@
    conteúdo, que desliza por cima ao ser puxado. */
 .indicador {
   position: fixed;
-  top: 56px;
+  /* Os 56px são a altura do header; num telemóvel com entalhe o header desceu
+     a mesma faixa (Header.module.css), logo o indicador tem de descer também
+     — senão aparecia por trás dele em vez de por baixo. */
+  top: calc(56px + var(--safe-topo));
   left: 50%;
   z-index: 20;
   display: grid;

@@ -26,7 +26,10 @@
   /* Em baixo, o respiro dos 6px passa a incluir a faixa do indicador de
      gestos do iPhone (ver --folga-indicador). Nas laterais o padding some
      junto com a margem — a barra já vai até à borda. */
-  padding: 6px 0 var(--folga-indicador);
+  /* Nas laterais só entra folga com o ecrã deitado, onde o entalhe fica de um
+     dos lados e comeria a primeira (ou a última) aba. Em pé os dois tokens
+     valem 0px e a barra continua a ir de ponta a ponta, como antes. */
+  padding: 6px var(--safe-dir) var(--folga-indicador) var(--safe-esq);
   /* Só os cantos de CIMA — colada na base, os de baixo não têm o que
      arredondar. */
   border-radius: var(--r-sheet) var(--r-sheet) 0 0;

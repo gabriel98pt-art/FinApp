@@ -5,7 +5,11 @@
   margin: 0 auto 0 var(--sidebar-w);
   /* Espaço no fim da lista para o último item não ficar debaixo da barra nem
      do botão central, que sobe acima dela. */
-  padding: 16px 16px calc(var(--alt-barra-nav) + 77px);
+  /* Nas laterais soma-se a faixa do entalhe quando o telemóvel está deitado —
+     é o único caso em que ela não é zero. Em baixo o espaço da barra já vem de
+     --alt-barra-nav, que por sua vez já inclui o indicador de gestos. */
+  padding: 16px calc(16px + var(--safe-dir)) calc(var(--alt-barra-nav) + 77px)
+    calc(16px + var(--safe-esq));
 }
 
 @media (min-width: 768px) {

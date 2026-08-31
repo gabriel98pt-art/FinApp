@@ -13,7 +13,11 @@
   border-top: none;
   border-left: none;
   border-bottom: none;
-  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  /* A barra vai de topo a fundo do ecrã: em cima reserva o entalhe (no iPad
+     em paisagem a câmara fica exatamente deste lado) e à esquerda a faixa
+     lateral, além do indicador de gestos que já reservava em baixo. */
+  padding: calc(10px + var(--safe-topo)) 8px calc(10px + var(--safe-baixo));
+  padding-left: calc(8px + var(--safe-esq));
   /* 13 abas num tablet em paisagem podem não caber de uma vez. */
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -93,7 +97,8 @@
 /* Expandida (desktop): ícone + rótulo, alinhados à esquerda. */
 @media (min-width: 1024px) {
   .barra {
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    padding: calc(10px + var(--safe-topo)) 12px calc(10px + var(--safe-baixo));
+    padding-left: calc(12px + var(--safe-esq));
   }
 
   .aba {

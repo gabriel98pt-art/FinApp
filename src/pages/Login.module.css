@@ -3,7 +3,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  /* O cartão é centrado, mas num telemóvel pequeno (ou com o teclado aberto)
+     ele chega às bordas — e aí a faixa do entalhe em cima e a do indicador de
+     gestos em baixo cortavam-lhe os cantos. */
+  padding: calc(16px + var(--safe-topo)) calc(16px + var(--safe-dir)) calc(16px + var(--safe-baixo))
+    calc(16px + var(--safe-esq));
 }
 
 .cartao {
