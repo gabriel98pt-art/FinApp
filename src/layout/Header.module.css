@@ -27,8 +27,15 @@
 }
 
 /* Seletor de mês fixo no header (item 1). O min-width 0 (e o minmax na coluna)
-   é pra que num telemóvel estreito ele encolha em vez de empurrar o logo. */
+   é pra que num telemóvel estreito ele encolha em vez de empurrar o logo.
+   grid-column explícito é obrigatório: sem ele, a coluna do mês é decidida
+   por auto-posicionamento — e abaixo de 350px, quando a logo soma
+   `display: none`, deixa de existir como item de grid, e o mês seria
+   auto-colocado na coluna 1 (a que sobrou), a competir por espaço com as
+   ações em vez de ter a faixa do meio só para si. Piorava exatamente o
+   corte que o `display: none` da logo devia resolver. */
 .mes {
+  grid-column: 2;
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -44,6 +51,18 @@
   font-size: var(--fs-display);
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+/* Abaixo de 350px (iPhone SE de 1ª geração e aparelhos parecidos) o nome não
+   cabe mais ao lado do mês e dos 3 ícones do cabeçalho — "setembro 2026"
+   cortava uns 4pt. A partir de 375px (o menor ecrã que a Apple ainda
+   suporta) já cabe tudo, então a marca continua visível em qualquer
+   telemóvel real de hoje; só nesse aparelho específico ela sai, e quem já
+   abriu o app sabe que app é. */
+@media (max-width: 350px) {
+  .logo {
+    display: none;
+  }
 }
 
 .logo span {

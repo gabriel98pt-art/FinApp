@@ -5,12 +5,20 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 479 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 481 mudanças registadas.
 
 ---
 
 ## 31/08/2026
 
+- A marca "FinApp" some do cabeçalho só no iPhone SE de 1ª geração (ecrãs de
+  320 pontos ou menos) — era o único jeito de o mês por extenso caber ao lado
+  dos 3 ícones sem cortar. Em qualquer telemóvel mais novo continua igual.
+- Ao corrigir isso apareceu um bug pior: esconder a marca fazia o mês pular
+  pra outra coluna do cabeçalho e passar a competir por espaço com os ícones
+  em vez de ter a faixa dele só pra si — o corte piorava em vez de sumir.
+  Corrigido dando ao mês um lugar fixo no cabeçalho, que não dependa de mais
+  nada estar visível ao lado.
 - O botão "Evento" do Calendário virou um "+" no cabeçalho. Era um botão de
   texto que ficava por cima da grelha do mês e comia uma linha inteira do
   telemóvel só para dizer o que a aba já dizia.

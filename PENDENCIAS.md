@@ -11,6 +11,25 @@ Entrada mais recente no topo.
 
 ## Decisões pendentes (não bloqueiam nada)
 
+### O "+" de Cartões só abre "Adicionar transferência"
+
+**Levantado em 31/08/2026.** É o único fluxo de tela inteira que a página
+Cartões tem hoje — "Registrar pagamento" é de uma fatura específica,
+"Adicionar método" é de uma instituição específica, e criar conta/cartão
+nova é um formulário escrito na própria seção "Cartões e contas" (não abre
+nada). Se o Gabriel achar o "+" sozinho pouco óbvio, a proposta é mover
+"criar conta/cartão" pra uma folha também, e o "+" passar a abrir um menu com
+as duas opções — reaproveitando o mesmo `MenuAcoesItem` das pílulas. Prints
+reais + mockup da proposta: https://claude.ai/code/artifact/5f2a1fed-5038-4c82-a38f-37370e8f7fb8
+
+### Rótulo "Definir teto de categoria" foge do padrão "Adicionar X"
+
+**Levantado em 31/08/2026, decidido no mesmo dia.** É o único "+" cujo texto
+não começa com "Adicionar" — o Gabriel deixou a critério. Mantido como está:
+"Adicionar teto" descreveria mal a ação (a categoria já existe, o que se
+define é o limite dela), e mudar só esse rótulo pra combinar com os outros
+custaria clareza sem ganhar nada em troca.
+
 ### Splash por tema no PWA
 
 **Levantado em 31/08/2026**.
@@ -100,10 +119,9 @@ de procurar um botão que já não existe.
   o submeter do formulário escrito ali mesmo (nome + tipo). Não abre nada, e
   chamá-lo do cabeçalho obrigaria a saltar para um campo lá em baixo.
 
-**O que ficou por medir**: num ecrã de 320 pontos (iPhone SE de primeira
-geração) o terceiro ícone faz o mês passar a aparecer cortado com "…". A 375
-pontos, o mínimo que a Apple ainda suporta, foi medido ao vivo e cabe tudo
-inteiro, mesmo nos meses de nome mais comprido.
+**Resolvido em 31/08/2026** (era a única pendência real desta seção): a 320
+pontos a marca "FinApp" sai do cabeçalho — ver a seção "Cinco ícones..."
+abaixo para os detalhes.
 
 ### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
 
@@ -124,11 +142,21 @@ marca "FinApp" fica inteira, "setembro 2026" fica inteiro e os dois botões
 têm 44×44 pontos cada um, sem se tocarem nem roubarem toques às setas do mês.
 Sobram ainda ~26 pontos de folga.
 
-**O que ficou de fora**: num ecrã de 320 pontos (iPhone SE de primeira
-geração e anteriores) "setembro 2026" ainda corta os últimos caracteres — por
-uns 4 pontos. Não é regressão: antes desta mudança, nesse mesmo ecrã, o mês
-tinha 31 pontos e mostrava "sete…". Fica assim de propósito; a 320 pontos o
-corte é o comportamento previsto do rótulo, não um layout partido.
+**320 pontos, resolvido em 31/08/2026**: o Gabriel topou tirar a marca
+"FinApp" do cabeçalho como solução — abaixo de 350 pontos ela some
+(`@media (max-width: 350px)` em `Header.module.css`), o que sobra é espaço de
+sobra pro mês por extenso. Em qualquer telemóvel real de hoje (375 pontos ou
+mais, o mínimo que a Apple ainda suporta) a marca continua visível — só some
+no caso extremo do iPhone SE de 1ª geração.
+
+Pelo caminho apareceu um bug pior do que o corte original: esconder a logo
+com `display: none` faz o item deixar de existir no grid, e o mês — que não
+tinha `grid-column` explícito, só a logo e as ações tinham — auto-posicionava
+na coluna que sobrou (a 1, não a do meio), competindo por espaço com os
+ícones em vez de ter a faixa central só para si. Cortava PIOR do que antes.
+Corrigido dando `grid-column: 2` explícito ao `.mes`. Medido ao vivo a 320
+pontos, em Início e em Cartões (3 ícones): "Agosto 2026" cabe inteiro nos
+dois.
 
 ### Dois ícones dentro de uma pílula nunca chegam aos 44 pontos de largura
 
