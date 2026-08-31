@@ -569,10 +569,17 @@ export interface FrasesPorTom {
  *  número — a tela incrementa-o a cada pergunta.
  *
  *  Os corpos das frases começam em minúscula porque podem vir atrás de um
- *  nome ("Gabriel, em julho…"); sem nome, capitaliza-se aqui. */
+ *  nome ("Gabriel, em julho…"); sem nome, capitaliza-se aqui.
+ *
+ *  Bug corrigido: `frases[tom]` assumia que `cfg.copiloto.tom`, vindo direto
+ *  do RTDB sem validação de campo (ver `normalizarConfig`), era sempre
+ *  "direto" ou "acolhedor". Um valor gravado à mão ou por uma versão antiga
+ *  do campo tornava `frases[tom]` `undefined`, e o `.length` a seguir
+ *  rebentava — a mesma classe de dado corrompido que `iaUsoService.ts` já
+ *  trata com `typeof atual === "number" ? atual : 0`. */
 function variar(ctx: ContextoCopiloto, frases: FrasesPorTom): string {
   const tom = ctx.cfg.copiloto?.tom ?? "direto";
-  const lista = frases[tom].length ? frases[tom] : frases.direto;
+  const lista = frases[tom]?.length ? frases[tom] : frases.direto;
   const corpo = lista[(ctx.variante ?? 0) % lista.length];
   const v = vocativo(ctx);
   return v ? v + corpo : corpo.charAt(0).toUpperCase() + corpo.slice(1);

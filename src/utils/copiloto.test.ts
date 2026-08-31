@@ -913,6 +913,16 @@ describe("personalização do Copiloto", () => {
     expect(resp).not.toContain("<img");
     expect(resp).toContain("&lt;img");
   });
+
+  test("tom corrompido no RTDB (fora de direto/acolhedor) não rebenta a resposta", () => {
+    // `cfg.copiloto.tom` chega do RTDB sem validação de campo — um valor
+    // gravado à mão ou por uma versão antiga do campo não pode fazer
+    // `responderPergunta` lançar exceção.
+    const resp = responderPergunta("qual meu saldo?", comNome("Ana", "invalido" as never));
+
+    expect(resp).toMatch(/^Ana, /);
+    expect(resp).toContain("1.850,00");
+  });
 });
 
 // ---------------------------------------------------------------------------
