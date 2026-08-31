@@ -6,6 +6,7 @@ import {
   Gauge,
   MoreHorizontal,
   Pencil,
+  Plus,
   Repeat,
   Trash2,
   Wrench,
@@ -38,7 +39,6 @@ import {
 } from "../services/veiculoService";
 import { adicionarItemLista, removerItemLista, renomearLocal } from "../services/cfgService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
-import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useUidSessao } from "../hooks/useUidSessao";
@@ -612,44 +612,6 @@ export default function Veiculo() {
     setDfAberta(true);
   }
 
-  // O "+" do cabeçalho no Veículo. Aqui há QUATRO coisas diferentes para
-  // adicionar, uma por aba, e por isso ele não é sempre igual:
-  //
-  //  - numa aba de conteúdo (Abastecimentos, Despesas, Fixas, Km) faz logo a
-  //    da aba aberta — o que está à vista não deixa dúvida de qual é;
-  //  - no "Resumo" não há aba nenhuma a apontar para uma das quatro, e um "+"
-  //    que escolhesse por conta própria escolheria mal. Lá ele abre o menu com
-  //    as quatro, o mesmo das listas e das pílulas de gerir.
-  const ADICIONAR_POR_ABA = {
-    cargas: {
-      rotulo: "Adicionar abastecimento",
-      Icone: Fuel,
-      onClick: () => abrirRegistro("carga"),
-    },
-    despesas: {
-      rotulo: "Adicionar despesa do veículo",
-      Icone: Wrench,
-      onClick: () => abrirRegistro("despesaVeiculo"),
-    },
-    fixas: { rotulo: "Adicionar despesa fixa do veículo", Icone: Repeat, onClick: abrirNovaFixa },
-    km: { rotulo: "Adicionar quilometragem", Icone: Gauge, onClick: abrirNovoKm },
-  } as const;
-
-  useAcaoHeader(
-    aba === "resumo"
-      ? {
-          rotulo: "Adicionar no veículo",
-          acoes: Object.values(ADICIONAR_POR_ABA).map(({ rotulo, Icone, onClick }) => ({
-            // No menu o rótulo é o nome da coisa; o "Adicionar" já está dito
-            // pelo botão que o abriu.
-            rotulo: rotulo.replace(/^Adicionar /, "").replace(/^./, (c) => c.toUpperCase()),
-            Icone,
-            onClick,
-          })),
-        }
-      : ADICIONAR_POR_ABA[aba],
-  );
-
   function abrirEdicaoFixa(f: DespesaFixa) {
     setDfEditandoId(f.id);
     setDfDescricao(f.descricao);
@@ -737,8 +699,8 @@ export default function Veiculo() {
       </div>
 
       {/* As 5 abas vêm da mesma store, então o aviso é um só, acima delas. Fica
-          na versão compacta mesmo sem dados: o "+" do cabeçalho continua a
-          fazer sentido, e o estado vazio de cada aba deixa de enganar com a
+          na versão compacta mesmo sem dados: os botões de adicionar continuam
+          a fazer sentido, e o estado vazio de cada aba deixa de enganar com a
           tira logo acima a dizer que a sincronização caiu. */}
       {erro && <ErroSincronizacao compacto />}
 
@@ -753,7 +715,7 @@ export default function Veiculo() {
                     ? "Nenhum registo do veículo ainda"
                     : `Nenhum registo do veículo em ${rotuloMes(mes)}`
                 }
-                sub="Toque no + do cabeçalho para registar km, abastecimentos ou despesas."
+                sub="Use as abas acima para registar km, abastecimentos e despesas."
               />
             ) : (
               <>
@@ -790,6 +752,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Abastecimentos</h3>
+              <Botao variante="primaria" onClick={() => abrirRegistro("carga")}>
+                <Plus size={15} aria-hidden /> Adicionar abastecimento
+              </Botao>
             </div>
 
             {/* Item B1: a motorização decide que campos o formulário (aqui e
@@ -840,7 +805,7 @@ export default function Veiculo() {
                       ? `Nenhum abastecimento em ${rotuloDaSemana(semanaAtual)}`
                       : `Nenhum abastecimento em ${rotuloMes(mes)}`
                   }
-                  sub="Registe um abastecimento com o + do cabeçalho."
+                  sub="Registe um abastecimento com o botão acima."
                 />
               ) : (
                 [...cargasVisiveis]
@@ -893,6 +858,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
+              <Botao variante="primaria" onClick={() => abrirRegistro("despesaVeiculo")}>
+                <Plus size={15} aria-hidden /> Adicionar despesa
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -900,7 +868,7 @@ export default function Veiculo() {
                 <EstadoVazio
                   Icone={Wrench}
                   mensagem={`Nenhuma despesa do veículo em ${rotuloMes(mes)}`}
-                  sub="Manutenção, seguro, portagens — registe com o + do cabeçalho."
+                  sub="Manutenção, seguro, portagens — registe com o botão acima."
                 />
               ) : (
                 [...despesasVisiveis]
@@ -924,6 +892,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
+              <Botao variante="primaria" onClick={abrirNovaFixa}>
+                <Plus size={15} aria-hidden /> Adicionar despesa fixa
+              </Botao>
             </div>
 
             <div className={styles.lista}>
@@ -989,6 +960,9 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
+              <Botao variante="primaria" onClick={abrirNovoKm}>
+                <Plus size={15} aria-hidden /> Adicionar quilometragem
+              </Botao>
             </div>
 
             <div className={styles.lista}>

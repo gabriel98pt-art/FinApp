@@ -22,18 +22,6 @@ Período coberto: 23/07/2026 a 31/08/2026 — 481 mudanças registadas.
 - O botão "Evento" do Calendário virou um "+" no cabeçalho. Era um botão de
   texto que ficava por cima da grelha do mês e comia uma linha inteira do
   telemóvel só para dizer o que a aba já dizia.
-- O resto das telas foi atrás: Parcelas ("Nova parcela"), Cartões ("Adicionar
-  transferência"), TVDE (a semana, só na aba Semanas), Planejamento (o fundo de
-  poupança na aba Metas e o teto de categoria na aba Orçamento) e Veículo.
-- No Veículo há quatro coisas diferentes para adicionar, uma por aba. Nas abas
-  de conteúdo o "+" faz logo a da aba aberta; no "Resumo", onde nenhuma aba
-  aponta para uma delas, ele abre um menu com as quatro — abastecimento,
-  despesa, despesa fixa e quilometragem — em vez de escolher mal.
-- Ficaram como estavam, de propósito: os botões que pertencem a um item e não
-  à tela (o "Contribuir" de um fundo, o "Adicionar método" de uma instituição
-  de Cartões, o "Pagar" de uma fatura) e o formulário de criar conta/cartão em
-  Cartões, que é preenchido ali mesmo. Transações, Início, Importar e
-  Definições não criam nada por botão e continuam sem "+".
 - Receitas e Despesas seguiram o mesmo caminho. Em Receitas saiu o "Adicionar"
   que estava no canto do cartão "Lançamentos". Em Despesas saíram dois: o da
   aba "Correntes" e o "Adicionar despesa fixa" da aba "Fixas".

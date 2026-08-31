@@ -175,6 +175,21 @@
   font-weight: 700;
 }
 
+.adicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--blu);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+}
+
+.adicionar:hover {
+  background: var(--s2);
+}
+
 .fundos {
   display: grid;
   grid-template-columns: 1fr;

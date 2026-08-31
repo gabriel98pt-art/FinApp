@@ -6,7 +6,7 @@
 // delas com um número de separadores que não seja dois.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
@@ -67,7 +67,6 @@ vi.mock("../stores/lancamentosStore", () => ({
 vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
 const Veiculo = (await import("./Veiculo")).default;
-const { useAcaoHeaderStore } = await import("../stores/acaoHeaderStore");
 
 // Veiculo usa `useLocation` (item 4.6, aba pedida por Transações) — precisa
 // de um Router em volta, mesmo nos testes que não navegam.
@@ -156,41 +155,6 @@ describe("Veiculo", () => {
 });
 
 // Item B1: elétrico/combustão/híbrido escolhido na própria aba Abastecimentos.
-// O "+" do cabeçalho é um só e o Veículo tem quatro coisas para adicionar,
-// uma por aba. Numa aba de conteúdo ele faz a da aba; no Resumo, onde nada
-// aponta para uma delas, abre o menu com as quatro em vez de escolher mal.
-describe("o + do cabeçalho", () => {
-  test("no Resumo oferece as quatro coisas, sem escolher nenhuma", () => {
-    renderVeiculo();
-    const acao = useAcaoHeaderStore.getState().acao;
-
-    expect(acao?.rotulo).toBe("Adicionar no veículo");
-    expect(acao?.acoes?.map((a) => a.rotulo)).toEqual([
-      "Abastecimento",
-      "Despesa do veículo",
-      "Despesa fixa do veículo",
-      "Quilometragem",
-    ]);
-  });
-
-  test("numa aba de conteúdo faz logo a coisa daquela aba", async () => {
-    renderVeiculo();
-
-    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
-    expect(useAcaoHeaderStore.getState().acao?.rotulo).toBe("Adicionar abastecimento");
-    expect(useAcaoHeaderStore.getState().acao?.acoes).toBeUndefined();
-
-    await userEvent.click(screen.getByRole("tab", { name: "Km" }));
-    expect(useAcaoHeaderStore.getState().acao?.rotulo).toBe("Adicionar quilometragem");
-
-    // E abre mesmo a folha daquela aba, não a de outra.
-    act(() => useAcaoHeaderStore.getState().acao?.onClick?.());
-    expect(
-      await screen.findByRole("heading", { name: "Registar quilometragem" }),
-    ).toBeInTheDocument();
-  });
-});
-
 describe("tipo de veículo (item B1)", () => {
   // A escolha mudou-se para Definições › Veículo (FolhaVeiculo). Aqui a página
   // só REFLETE o que estiver escolhido — e não pode voltar a oferecer o

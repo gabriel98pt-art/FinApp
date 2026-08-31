@@ -95,6 +95,26 @@
   font-weight: 700;
 }
 
+.cabecalhoAcoes {
+  display: flex;
+  gap: 4px;
+}
+
+.adicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--lrj);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+}
+
+.adicionar:hover {
+  background: var(--s2);
+}
+
 .lista {
   display: flex;
   flex-direction: column;

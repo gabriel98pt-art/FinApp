@@ -143,7 +143,7 @@ describe("Planejamento", () => {
 describe("aba Orçamento — tetos por categoria", () => {
   test("sem tectos definidos: convida a definir o primeiro", () => {
     montar();
-    expect(screen.getByText(/definir um teto mensal por categoria/)).toBeInTheDocument();
+    expect(screen.getByText(/Defina um teto mensal por categoria/)).toBeInTheDocument();
   });
 
   test("com teto: mostra a categoria, a percentagem gasta e é clicável", () => {

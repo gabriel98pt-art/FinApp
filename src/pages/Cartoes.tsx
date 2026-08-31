@@ -4,6 +4,7 @@ import {
   CreditCard,
   MoreHorizontal,
   Pencil,
+  Plus,
   Trash2,
   Wallet,
   X,
@@ -33,7 +34,6 @@ import {
   criarTransferencia,
   removerTransferencia,
 } from "../services/lancamentosService";
-import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -612,12 +612,6 @@ export default function Cartoes() {
     setTfAberta(true);
   }
 
-  // O "+" do cabeçalho de Cartões. É o único fluxo da tela que abre um
-  // formulário novo: pagar fatura parte de uma fatura já existente, e criar
-  // conta/cartão é o formulário escrito na própria secção "Cartões e contas"
-  // (precisa do nome ali à mão, não faz sentido chamá-lo de cima).
-  useAcaoHeader({ rotulo: "Adicionar transferência", onClick: abrirNovaTransferencia });
-
   function abrirEdicaoTransferencia(t: Transferencia) {
     setTfEditandoId(t.id);
     setTfData(t.data);
@@ -931,6 +925,9 @@ export default function Cartoes() {
 
       <div className={styles.cabecalhoLista}>
         <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
+        <Botao variante="primaria" onClick={abrirNovaTransferencia}>
+          <Plus size={15} aria-hidden /> Adicionar transferência
+        </Botao>
       </div>
 
       <div className={styles.lista}>
@@ -943,7 +940,7 @@ export default function Cartoes() {
           <EstadoVazio
             Icone={ArrowLeftRight}
             mensagem={`Nenhuma transferência em ${rotuloMes(mes)}`}
-            sub="Toque no + do cabeçalho para mover dinheiro entre contas."
+            sub="Mova dinheiro entre contas com o botão Adicionar transferência."
           />
         ) : (
           ordenarPorDataDesc(transferenciasDoMes).map((t) => (

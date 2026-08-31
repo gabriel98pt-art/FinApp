@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
+import { Plus } from "lucide-react";
 import BottomSheet from "./BottomSheet";
 import CampoMoeda from "./CampoMoeda";
 import CategoriaBolha from "./CategoriaBolha";
 import Seletor from "./Seletor";
-import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { definirOrcamento } from "../services/cfgService";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -200,24 +200,20 @@ export default function OrcamentoCard() {
     setFormAberto(true);
   }
 
-  // O "+" do cabeçalho enquanto a aba "Orçamento" do Planejamento está aberta.
-  // Quem o regista é o cartão, e não a página, porque o formulário do teto é
-  // estado daqui de dentro. Sem `uid` o cartão nem se desenha, e então também
-  // não há ação nenhuma a oferecer lá em cima.
-  useAcaoHeader(uid ? { rotulo: "Definir teto de categoria", onClick: abrirNovo } : null);
-
   if (!uid) return null;
 
   return (
     <div className={styles.card}>
       <div className={styles.cabecalho}>
         <p className={styles.titulo}>Orçamento por categoria</p>
+        <Botao variante="primaria" onClick={abrirNovo}>
+          <Plus size={15} aria-hidden /> Definir teto
+        </Botao>
       </div>
 
       {status.length === 0 ? (
         <p className={styles.vazio}>
-          Toque no + do cabeçalho para definir um teto mensal por categoria e acompanhar o gasto
-          aqui.
+          Defina um teto mensal por categoria pra acompanhar o gasto aqui.
         </p>
       ) : (
         <div className={styles.lista}>

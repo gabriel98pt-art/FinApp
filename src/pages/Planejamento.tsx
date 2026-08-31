@@ -13,7 +13,6 @@ import ResumoAnual from "../components/ResumoAnual";
 import type { Cents } from "../types";
 import { contribuirFundo, criarFundo, removerFundo } from "../services/fundosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
-import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -164,11 +163,6 @@ export default function Planejamento() {
     setPrazo("");
     setNovoAberto(true);
   }
-
-  // O "+" do cabeçalho na aba "Metas". Na aba "Orçamento" quem o regista é o
-  // próprio OrcamentoCard — o que lá se cria é um teto de categoria, e o
-  // estado desse formulário vive dentro dele.
-  useAcaoHeader(aba === "metas" ? { rotulo: "Adicionar fundo", onClick: abrirNovoFundo } : null);
 
   async function salvarFundo(e: FormEvent) {
     e.preventDefault();
@@ -355,6 +349,9 @@ export default function Planejamento() {
                 {fundos.length > 0 &&
                   `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
               </h3>
+              <button className={styles.adicionar} onClick={abrirNovoFundo}>
+                <Plus size={15} aria-hidden /> Novo fundo
+              </button>
             </div>
 
             {erro && fundos.length > 0 && <ErroSincronizacao compacto />}
@@ -365,7 +362,7 @@ export default function Planejamento() {
               <EstadoVazio
                 Icone={Target}
                 mensagem="Nenhum fundo criado"
-                sub="Toque no + do cabeçalho para criar o primeiro fundo de poupança."
+                sub="Adicione um fundo de poupança com o botão + Novo fundo."
               />
             ) : (
               <div className={styles.fundos}>
