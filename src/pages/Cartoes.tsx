@@ -359,17 +359,20 @@ export default function Cartoes() {
   // rename só se via aqui... e nem aqui.
   const nomeDe = (id: string) => nomeAtualDoMetodo(cfg, id);
 
-  // O valor das faturas e os quatro KPIs saem de cinco domínios, não só das
-  // transferências (que já eram verificadas mais abaixo). Se um deles não
-  // sincroniza, "Devido no mês" mostra um número MENOR do que o real, em
-  // silêncio — e uma fatura que parece mais barata do que é leva a pagar a
-  // menos. É o mesmo problema que Início tinha.
+  // O valor das faturas e os quatro KPIs saem de seis domínios, transferências
+  // incluídas: `montarDadosFatura`/`dadosContas` somam `transferencias` em
+  // "Devido no mês", "Restante" e "Saldo em contas" (ver utils/fatura.ts e
+  // utils/contas.ts). O banner de `erroTransferencias` mais abaixo só cobre a
+  // lista de transferências — sem transferências aqui, um erro de sync desse
+  // domínio deixava os KPIs do topo errados em silêncio, o mesmo problema que
+  // Início já teve.
   const erroValores = [
     useDespesasStore((s) => s.erro),
     useDespesasFixasStore((s) => s.erro),
     useParcelasStore((s) => s.erro),
     useVeiculoStore((s) => s.erro),
     useReceitasStore((s) => s.erro),
+    erroTransferencias,
   ].some(Boolean);
 
   const mes = useMesVisivelStore((s) => s.mes);
