@@ -39,7 +39,7 @@
   max-width: 100%;
 }
 
-/* No header o espaço é disputado com o logo e as 3 ações: a 375px, "setembro
+/* No header o espaço é disputado com o logo e as ações: a 375px, "setembro
    2026" só cabe inteiro com o seletor apertado assim. Fora do header (o
    SeletorSemana e qualquer uso futuro) nada disto se aplica. */
 .compacto {

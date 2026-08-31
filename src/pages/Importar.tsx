@@ -166,7 +166,7 @@ export default function Importar() {
   const indiceHistoricoAtual = useHistoricoStore((s) => s.pilha.indice);
   const foiDesfeito =
     Boolean(importadoEm) && indiceAoImportar !== null && indiceHistoricoAtual < indiceAoImportar;
-  // Alguém desfez (↩ no topo) depois desta importação: os dados já voltaram no
+  // Alguém desfez (↩ no menu "Mais") depois desta importação: os dados já voltaram no
   // Firebase, então a revisão volta a ficar editável — mesmo sem `importadoEm`
   // ainda ter sido limpo, é como se não tivesse sido confirmada.
   const mostrandoImportado = Boolean(importadoEm) && !foiDesfeito;
@@ -398,7 +398,7 @@ export default function Importar() {
       }
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
       // Não limpa `linhas`/`texto` aqui: se o usuário confirmou sem querer e
-      // for desfazer (↩) no topo, a revisão volta exatamente como estava —
+      // for desfazer (↩) no menu "Mais", a revisão volta exatamente como estava —
       // sem reanalisar o extrato do zero e perder as marcações. `importadoEm`
       // troca a tela pra um estado "importado" (ver useEffect mais abaixo,
       // que limpa sozinho depois de um tempo, e o que detecta um desfazer).
@@ -537,7 +537,8 @@ export default function Importar() {
         <div className={styles.importado}>
           <p>
             ✓ {linhas.length} lançamento(s) importado(s). Se foi engano, clica em{" "}
-            <strong>Desfazer</strong> (↩) no topo — a revisão volta exatamente como estava.
+            <strong>Desfazer</strong> (↩) no menu <strong>Mais</strong> — a revisão volta exatamente
+            como estava.
           </p>
           <p className={styles.importadoAviso}>
             Esta lista limpa sozinha em alguns minutos, ou{" "}

@@ -21,6 +21,7 @@ vi.mock("../stores/uiStore", () => ({
     s({ abrirRegistro: vi.fn(), abrirMenuRegistro: vi.fn() }),
 }));
 
+const { useHistoricoStore } = await import("../stores/historicoStore");
 const MobileNav = (await import("./MobileNav")).default;
 
 function desenhar() {
@@ -33,6 +34,7 @@ function desenhar() {
 
 beforeEach(() => {
   cfg = CONFIG_PADRAO;
+  useHistoricoStore.setState({ pilha: { pilha: [], indice: -1 } });
 });
 
 // O módulo Veículo desliga-se em Definições › Veículo. Ligado é o estado
@@ -75,5 +77,30 @@ describe("MobileNav — menu Mais", () => {
 
     const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
     expect(menu).toHaveAttribute("inert");
+  });
+});
+
+// Desfazer/refazer saíram do cabeçalho em 31/08/2026 (cinco ícones a 44
+// pontos não cabem a 375px) e passaram a viver aqui, numa secção "Ações"
+// separada das abas.
+describe("MobileNav — ações de desfazer/refazer", () => {
+  test("estão no menu Mais, e no mesmo <div> das abas (é dele que vem o inert)", () => {
+    desenhar();
+    const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
+    expect(menu).toContainElement(screen.getByRole("button", { name: "Desfazer" }));
+    expect(menu).toContainElement(screen.getByRole("button", { name: "Refazer" }));
+  });
+
+  test("histórico vazio: as duas ficam desativadas", () => {
+    desenhar();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Refazer" })).toBeDisabled();
+  });
+
+  test("com algo para desfazer, o botão fica disponível", () => {
+    useHistoricoStore.setState({ pilha: { pilha: ["{}", "{}"], indice: 1 } });
+    desenhar();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Refazer" })).toBeDisabled();
   });
 });

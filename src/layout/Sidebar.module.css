@@ -41,6 +41,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Serve links (abas) e botões (as ações lá em baixo): o botão não estica
+     sozinho como o link dentro do <li>. */
+  width: 100%;
   border-radius: var(--r-sm);
   color: var(--mut);
   font-size: var(--fs-body);
@@ -69,6 +72,22 @@
 
 .icone {
   flex: none;
+}
+
+/* Desfazer/refazer, separados das abas por um risco: as de cima levam a uma
+   tela, estas fazem alguma coisa na hora. */
+.acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--brd);
+}
+
+.acoes .aba:disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 /* Rail (tablet): só o ícone, centrado. */

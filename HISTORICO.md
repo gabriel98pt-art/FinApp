@@ -5,12 +5,33 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 474 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 479 mudanças registadas.
 
 ---
 
 ## 31/08/2026
 
+- Os botões de "Desfazer" e "Refazer" saíram do cabeçalho. Eram as duas únicas
+  coisas lá em cima que não abriam nada, e ocupavam espaço que no telemóvel
+  faz falta.
+- No telemóvel foram para o menu "Mais" (o botão de baixo à direita), numa
+  secção própria chamada "Ações", separada das abas por um risco: as de cima
+  levam a uma tela, estas fazem alguma coisa na hora — e o menu fecha-se logo
+  a seguir, para se ver o resultado. Ficam apagadas quando não há nada para
+  desfazer ou refazer, como ficavam no cabeçalho.
+- No tablet e no computador, onde não existe menu "Mais", foram para o fim da
+  barra lateral, também separadas das abas por um risco. Sem isto ficavam sem
+  sítio nenhum nesses ecrãs.
+- Com isso, o cabeçalho do telemóvel deixou de estar apertado: sobraram dois
+  ícones (tema e lembretes) e cada um passou a ter finalmente os 44 pontos de
+  toque em largura, o mínimo da Apple — antes tinham 31. O desenho do ícone
+  não mudou de tamanho: quem cresceu foi a zona clicável à volta dele, e o
+  espaço entre os dois aumentou para que uma zona não invada a outra.
+- Medido ao vivo num telemóvel de 375 pontos: "FinApp" e "setembro 2026"
+  cabem inteiros, com folga. Era o problema anotado nas pendências desde
+  ontem, e resolveu-se tirando botões em vez de redesenhar os que ficaram.
+- O aviso da tela Importar ("se foi engano, clica em Desfazer") passou a
+  apontar para o menu "Mais" em vez de "no topo".
 - Nas pílulas de gerir (locais de abastecimento no Veículo, contas e cartões
   em Cartões), os iconezinhos colados lá dentro deram lugar a um só botão
   "⋯" — o mesmo menu de ações que as listas do app já usavam. Antes eram dois

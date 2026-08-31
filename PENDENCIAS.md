@@ -20,50 +20,19 @@ usam o padrão "Adicionar X" em texto. No telemóvel, isto toma muito espaço no
 cabeçalho — deve virar um ícone pequeno "+" que fica mais discreto e liberta
 espaço. O que vai ser adicionado é claro pelo contexto da aba.
 
-Também precisam sair do cabeçalho os botões de "Desfazer" e "Refazer" — hoje não
-está claro se são realmente usados, e tiram espaço que é crítico em mobile. Podem
-viver num gesto ou dentro do menu "Mais" se forem mesmo necessários.
+~~Também precisam sair do cabeçalho os botões de "Desfazer" e "Refazer".~~
+**RESOLVIDO em 31/08/2026** — o Gabriel decidiu tirá-los do cabeçalho. Foram para
+o menu "Mais" (telemóvel), numa secção própria chamada "Ações", separada das abas
+por um risco: as de cima levam a uma tela, estas fazem alguma coisa na hora e o
+menu fecha-se logo a seguir. No tablet e no computador, onde não há menu "Mais",
+foram para o fim da barra lateral, com o mesmo risco a separá-los das abas. Ver a
+secção "Resolvido" mais abaixo.
 
-**Por que fica pendente**: é redesenho de padrão em 10+ telas (cada aba), não um
-ajuste isolado. Precisa de decisão conjunta com o Gabriel e depois de coordenação
-com a Etapa A (Acessibilidade + Design & Cor).
-
-**Prioridade**: solução para os botões de desfazer/refazer vem em primeiro lugar —
-avaliar se são realmente usados antes de redesenhar.
+**Por que fica pendente** (a parte do "+"): é redesenho de padrão em 10+ telas
+(cada aba), não um ajuste isolado. Precisa de decisão conjunta com o Gabriel e
+depois de coordenação com a Etapa A (Acessibilidade + Design & Cor).
 
 ---
-
-### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
-
-**Encontrado em 31/08/2026**, na varredura de áreas de toque da Etapa A do
-plano da App Store.
-
-O cabeçalho tem, da esquerda para a direita: a marca "FinApp", o seletor de
-mês e cinco botões (desfazer, refazer, tema, lembretes e o sino). O mínimo de
-toque da Apple é 44×44 pontos. Em altura já ficou resolvido — os cinco têm
-agora 44 pontos, com a área de toque a crescer por fora do desenho.
-
-Em largura não dá: cinco botões a 44 pontos são 220 pontos só de ícones. Num
-telemóvel de 375 pontos, tirando a margem, sobram 343 — e ainda é preciso lá
-caber "FinApp" (~85) e "setembro 2026". Hoje cada botão tem cerca de 31
-pontos de largura de toque, e as setas do mês cerca de 34.
-
-**Por que ficou de fora**: qualquer saída é decisão de desenho, não conta de
-CSS. As três hipóteses:
-
-1. Tirar botões do cabeçalho. Desfazer e refazer são os candidatos naturais —
-   são as duas únicas ações que não abrem nada e podiam viver noutro sítio
-   (um gesto, ou dentro do menu "Mais").
-2. Tirar o seletor de mês do cabeçalho e pô-lo no topo de cada página. Liberta
-   ~120 pontos de uma vez, mas o mês deixa de ser a referência sempre à vista
-   que é hoje.
-3. Aceitar os ~31 pontos de largura como estão. A altura de 44 já resolve a
-   maior parte dos toques falhados (o dedo erra mais em cima/baixo do que aos
-   lados numa fileira horizontal), e a Apple aplica o mínimo com alguma folga
-   nas barras dela próprias.
-
-**Quem decide**: o Gabriel. Enquanto não decidir, fica a hipótese 3, que é o
-que está no código.
 
 ## Decisões pendentes (não bloqueiam nada)
 
@@ -117,6 +86,31 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 ---
 
 ## Resolvido (fica registrado por onde passou)
+
+### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
+
+**Resolvido em 31/08/2026**, pela hipótese 1 da lista original: tirar botões
+do cabeçalho, e não redesenhar os outros. O Gabriel decidiu que desfazer e
+refazer saem de lá — eram as duas únicas ações do cabeçalho que não abriam
+nada. Ficaram o tema e o sino dos lembretes.
+
+Com dois botões em vez de cinco, a conta passa a fechar: 2 × 44 = 88 pontos,
+onde antes eram precisos 220. O desenho de cada ícone continua nos 30 pontos
+(discreto, como sempre foi) — quem tem os 44 é a área de toque invisível à
+volta dele. O espaço entre os dois passou de 1 para 14 pontos, que é o que
+faz as duas áreas encostarem sem se sobreporem: sem isso um toque na
+fronteira ia parar ao botão errado.
+
+Medido ao vivo num telemóvel de 375 pontos, com a pré-visualização local: a
+marca "FinApp" fica inteira, "setembro 2026" fica inteiro e os dois botões
+têm 44×44 pontos cada um, sem se tocarem nem roubarem toques às setas do mês.
+Sobram ainda ~26 pontos de folga.
+
+**O que ficou de fora**: num ecrã de 320 pontos (iPhone SE de primeira
+geração e anteriores) "setembro 2026" ainda corta os últimos caracteres — por
+uns 4 pontos. Não é regressão: antes desta mudança, nesse mesmo ecrã, o mês
+tinha 31 pontos e mostrava "sete…". Fica assim de propósito; a 320 pontos o
+corte é o comportamento previsto do rótulo, não um layout partido.
 
 ### Dois ícones dentro de uma pílula nunca chegam aos 44 pontos de largura
 

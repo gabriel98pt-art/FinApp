@@ -55,7 +55,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 1px;
+  /* Sobraram dois botões (tema e sino) desde que desfazer/refazer foram para
+     o menu "Mais" e para a barra lateral. O intervalo passou de 1px a 14px
+     porque é ele que dá o PASSO de 44 pontos entre os dois: 30 de desenho +
+     14 de folga. Assim cada área de toque tem os 44 pontos da Apple em
+     largura e encosta na do vizinho sem a invadir — antes só a altura os
+     tinha. */
+  gap: 14px;
   /* O ícone tem folga dentro do seu quadrado; puxar o grupo aproxima-o
      opticamente da borda sem mexer no padding do header (que mantém o logo
      alinhado com o conteúdo das páginas). */
@@ -65,8 +71,8 @@
 .acao {
   display: grid;
   place-items: center;
-  /* Apertados para caber cinco botões (o sino entrou) sem empurrar o mês
-     no meio do header. */
+  /* O quadrado VISUAL continua discreto (30px); quem tem os 44 pontos de
+     toque é a área invisível logo abaixo. */
   width: 30px;
   height: 30px;
   border-radius: var(--r-sm);
@@ -78,36 +84,24 @@
     opacity var(--dur-fast) var(--ease-exit);
 }
 
-/* Área de toque de 44px de ALTURA sem mexer no quadrado visual de 30px — o
+/* Área de toque de 44×44 pontos sem mexer no quadrado visual de 30px — o
    mínimo da Apple, e o mesmo truque que as setas do mês já usavam
-   (SeletorMes.module.css). Os 7px que faltam de cada lado caem dentro do
-   padding de 10px do header, portanto não empurram nada.
+   (SeletorMes.module.css). Os 7px que sobram de cada lado caem dentro do
+   padding do header, portanto não empurram nada.
 
-   Na horizontal fica só o que existe sem roubar toques: cada botão estica até
-   ao meio do intervalo até ao vizinho (o `gap` é de 1px, daí o meio pixel), e
-   os das pontas esticam também para fora do grupo, onde não há vizinho nenhum.
-   Ir aos 44px de largura em todos os cinco exigia ~220px só de ações — mais do
-   que o header tem a 375px com o logo e o mês ao lado. Está anotado em
-   PENDENCIAS.md: é uma decisão de desenho (tirar um botão daqui), não uma
-   conta de CSS. */
+   A largura só passou a caber quando desfazer e refazer saíram do header
+   (31/08/2026): cinco botões a 44 pontos eram 220px só de ações, mais do que
+   o header tem a 375px com o logo e o mês ao lado. Com dois, são 88 — e o
+   `gap` de 14px em `.acoes` garante que as duas áreas encostam sem se
+   sobrepor, senão um toque na fronteira ia parar ao botão errado. */
 .acao::before {
   content: "";
   position: absolute;
   top: 50%;
-  left: -0.5px;
-  right: -0.5px;
+  left: 50%;
+  width: 44px;
   height: 44px;
-  transform: translateY(-50%);
-}
-
-.acao:first-child::before {
-  left: -7px;
-}
-
-.acao:last-child::before {
-  /* O grupo já é puxado 5px para fora (margin-right), e ainda sobram os 16px
-     de padding do header: há espaço de sobra para esticar deste lado. */
-  right: -12px;
+  transform: translate(-50%, -50%);
 }
 
 .acao:hover {

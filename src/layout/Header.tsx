@@ -1,12 +1,10 @@
-import { Moon, Redo2, Sun, Undo2 } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
-import { useHistoricoStore } from "../stores/historicoStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useThemeStore } from "../stores/themeStore";
 import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
-import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./Header.module.css";
 
 /** Rotas cujo conteúdo é por mês — só nelas o seletor aparece (item 1). O
@@ -37,10 +35,6 @@ export default function Header() {
   const mostrarMes = ROTAS_COM_MES.includes(pathname);
   const temaEfetivo = useTemaEfetivo();
   const definirTema = useThemeStore((s) => s.definirTema);
-  const podeUndo = useHistoricoStore((s) => podeDesfazer(s.pilha));
-  const podeRedo = useHistoricoStore((s) => podeRefazer(s.pilha));
-  const desfazer = useHistoricoStore((s) => s.desfazer);
-  const refazer = useHistoricoStore((s) => s.refazer);
 
   return (
     <header className={`${styles.header} material`}>
@@ -52,25 +46,11 @@ export default function Header() {
           <SeletorMes mes={mes} aoMudar={setMes} compacto />
         </div>
       )}
+      {/* Desfazer e refazer saíram daqui em 31/08/2026: eram as duas únicas
+          ações do header que não abriam nada, e cinco botões a 44 pontos não
+          cabiam num telemóvel de 375. Agora vivem no menu "Mais" (telemóvel)
+          e no fim da barra lateral (tablet/computador). */}
       <div className={styles.acoes}>
-        <button
-          className={styles.acao}
-          onClick={() => void desfazer()}
-          disabled={!podeUndo}
-          aria-label="Desfazer"
-          title="Desfazer"
-        >
-          <Undo2 size={17} aria-hidden />
-        </button>
-        <button
-          className={styles.acao}
-          onClick={() => void refazer()}
-          disabled={!podeRedo}
-          aria-label="Refazer"
-          title="Refazer"
-        >
-          <Redo2 size={17} aria-hidden />
-        </button>
         <button
           className={styles.acao}
           onClick={() => definirTema(temaEfetivo === "dark" ? "light" : "dark")}

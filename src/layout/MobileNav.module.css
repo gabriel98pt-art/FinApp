@@ -216,6 +216,27 @@
   transform: scale(0.97);
 }
 
+/* Só as ações (desfazer/refazer) podem estar indisponíveis — uma aba nunca
+   está. Mesmo desenho de "apagado" do header de onde vieram. */
+.itemMais:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Risco de separação entre as abas (destinos) e as ações. Ocupa a linha
+   inteira das duas colunas. */
+.tituloSecao {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding: 8px 12px 2px;
+  border-top: 1px solid var(--brd);
+  color: var(--mut);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .itemMaisAtivo {
   color: var(--blu);
   background: var(--s2);

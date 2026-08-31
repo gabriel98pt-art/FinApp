@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus, Redo2, Undo2 } from "lucide-react";
 import {
   ABAS_MENU_MAIS,
   NAV_MOBILE_DIREITA,
@@ -8,8 +8,10 @@ import {
   type AbaDef,
 } from "../constants/abas";
 import { useCfgStore } from "../stores/cfgStore";
+import { useHistoricoStore } from "../stores/historicoStore";
 import { useUiStore } from "../stores/uiStore";
 import { estiloBotaoRegistro } from "../utils/corBotaoRegistro";
+import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./MobileNav.module.css";
 
 function ItemAba({ aba, aoNavegar }: { aba: AbaDef; aoNavegar: () => void }) {
@@ -46,6 +48,23 @@ export default function MobileNav() {
   const maisAtivo = abasMais.some((a) => a.rota === pathname);
   const fecharMais = () => setMaisAberto(false);
 
+  // Desfazer/refazer viviam no cabeçalho até 31/08/2026 — saíram de lá porque
+  // cinco ícones a 44 pontos não cabem num telemóvel de 375. A lógica é a
+  // mesma de antes, só mudou onde o botão vive.
+  const podeUndo = useHistoricoStore((s) => podeDesfazer(s.pilha));
+  const podeRedo = useHistoricoStore((s) => podeRefazer(s.pilha));
+  const desfazer = useHistoricoStore((s) => s.desfazer);
+  const refazer = useHistoricoStore((s) => s.refazer);
+
+  /** Ação instantânea: fecha o menu e só depois corre, para que o resultado
+   *  (e o aviso "↩ Desfeito") apareça na tela, não por trás do véu. */
+  function acao(fn: () => Promise<void>) {
+    return () => {
+      fecharMais();
+      void fn();
+    };
+  }
+
   return (
     <>
       <div
@@ -76,6 +95,30 @@ export default function MobileNav() {
             {titulo}
           </NavLink>
         ))}
+
+        {/* Secção à parte, e não mais duas entradas na lista: as de cima são
+            destinos (levam a uma aba), estas fazem alguma coisa e o menu
+            fecha-se logo. Os filhos ficam TODOS diretos do menu — envolver as
+            abas num <div> partiria o `inert`, que é lido a partir daqui. */}
+        <span className={styles.tituloSecao}>Ações</span>
+        <button
+          className={styles.itemMais}
+          onClick={acao(desfazer)}
+          disabled={!podeUndo}
+          aria-label="Desfazer"
+        >
+          <Undo2 size={18} aria-hidden />
+          Desfazer
+        </button>
+        <button
+          className={styles.itemMais}
+          onClick={acao(refazer)}
+          disabled={!podeRedo}
+          aria-label="Refazer"
+        >
+          <Redo2 size={18} aria-hidden />
+          Refazer
+        </button>
       </div>
 
       <nav className={`${styles.barra} material`} aria-label="Navegação principal">
