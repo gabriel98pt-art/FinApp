@@ -228,33 +228,12 @@
   color: var(--txt);
 }
 
-.gerirLinha {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.gerirLinha input,
-.gerirLinha select {
-  background: var(--s2);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
-  padding: 9px 12px;
-  color: var(--txt);
-  font-size: var(--fs-title);
-  flex: 1;
-  min-width: 120px;
-}
-
-/* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
-   de acento sempre presente. A ação principal da tela é a de cima. */
-.gerirBotao {
-  background: var(--s3);
-  color: var(--txt);
-  font-weight: 700;
+/* Criar conta/cartão mudou-se para Definições (31/08/2026) — aqui fica só a
+   lista do que já existe (renomear/remover/dia de fatura, via o menu "⋯" de
+   cada pílula) e esta nota a dizer onde foi parar o "adicionar". */
+.gerirNota {
+  color: var(--mut);
   font-size: var(--fs-body);
-  border-radius: var(--r-sm);
-  padding: 9px 14px;
 }
 
 /* Sheets */

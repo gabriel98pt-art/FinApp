@@ -9,51 +9,7 @@ Entrada mais recente no topo.
 
 ---
 
-## Telemóvel
-
-### Botões "Adicionar X" devem virar um "+" pequeno no cabeçalho
-
-**Encontrado em 31/08/2026**, na revisão da Etapa A do plano da App Store.
-
-Todas as abas que têm um botão para adicionar (Transações, Cartões, Veículos, etc.)
-usam o padrão "Adicionar X" em texto. No telemóvel, isto toma muito espaço no
-cabeçalho — deve virar um ícone pequeno "+" que fica mais discreto e liberta
-espaço. O que vai ser adicionado é claro pelo contexto da aba.
-
-~~Também precisam sair do cabeçalho os botões de "Desfazer" e "Refazer".~~
-**RESOLVIDO em 31/08/2026** — o Gabriel decidiu tirá-los do cabeçalho. Foram para
-o menu "Mais" (telemóvel), numa secção própria chamada "Ações", separada das abas
-por um risco: as de cima levam a uma tela, estas fazem alguma coisa na hora e o
-menu fecha-se logo a seguir. No tablet e no computador, onde não há menu "Mais",
-foram para o fim da barra lateral, com o mesmo risco a separá-los das abas. Ver a
-secção "Resolvido" mais abaixo.
-
-**Por que fica pendente** (a parte do "+"): é redesenho de padrão em 10+ telas
-(cada aba), não um ajuste isolado. Precisa de decisão conjunta com o Gabriel e
-depois de coordenação com a Etapa A (Acessibilidade + Design & Cor).
-
----
-
 ## Decisões pendentes (não bloqueiam nada)
-
-### O "+" de Cartões só abre "Adicionar transferência"
-
-**Levantado em 31/08/2026.** É o único fluxo de tela inteira que a página
-Cartões tem hoje — "Registrar pagamento" é de uma fatura específica,
-"Adicionar método" é de uma instituição específica, e criar conta/cartão
-nova é um formulário escrito na própria seção "Cartões e contas" (não abre
-nada). Se o Gabriel achar o "+" sozinho pouco óbvio, a proposta é mover
-"criar conta/cartão" pra uma folha também, e o "+" passar a abrir um menu com
-as duas opções — reaproveitando o mesmo `MenuAcoesItem` das pílulas. Prints
-reais + mockup da proposta: https://claude.ai/code/artifact/5f2a1fed-5038-4c82-a38f-37370e8f7fb8
-
-### Rótulo "Definir teto de categoria" foge do padrão "Adicionar X"
-
-**Levantado em 31/08/2026, decidido no mesmo dia.** É o único "+" cujo texto
-não começa com "Adicionar" — o Gabriel deixou a critério. Mantido como está:
-"Adicionar teto" descreveria mal a ação (a categoria já existe, o que se
-define é o limite dela), e mudar só esse rótulo pra combinar com os outros
-custaria clareza sem ganhar nada em troca.
 
 ### Splash por tema no PWA
 
@@ -105,6 +61,28 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 ---
 
 ## Resolvido (fica registrado por onde passou)
+
+### Criar conta ou cartão mudou-se para Definições
+
+**Resolvido em 31/08/2026.** O formulário de nome + tipo que vivia escrito
+dentro da seção "Cartões e contas", na própria tela de Cartões, agora é uma
+folha em Definições ("Registo" → "Nova conta ou cartão"). Cartões continua
+com a lista do que já existe e a gestão de cada um (renomear, remover, dia
+de fatura — pelo menu "⋯" de cada pílula); só o "criar" é que mudou de casa.
+
+Resolve de quebra a dúvida sobre o "+" de Cartões só abrir "Adicionar
+transferência": com "criar conta/cartão" fora da tela, esse "+" passa a ter
+só mesmo um fluxo — não precisa de virar menu.
+
+### "Adicionar X" no cabeçalho — tentado e revertido no mesmo dia
+
+**Tentado e revertido em 31/08/2026.** Chegou a existir um "+" por página no
+cabeçalho, substituindo os botões "Adicionar X" espalhados pelas telas (ver
+commits `04c01c8`, `8f99fb3`, `253a821`, revertidos em `236c3e2`/`260eeba`).
+O Gabriel rejeitou assim que viu, com firmeza: o cabeçalho não recebe nada de
+novo sem ele pedir primeiro — regra geral daqui pra frente, não só deste
+caso. Os botões "Adicionar X" voltam a ficar dentro de cada tela, como
+sempre estiveram.
 
 ### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
 

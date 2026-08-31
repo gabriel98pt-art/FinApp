@@ -25,6 +25,7 @@ import FolhaCorBotao from "./definicoes/FolhaCorBotao";
 import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
 import FolhaNotificacoes from "./definicoes/FolhaNotificacoes";
 import FolhaVeiculo from "./definicoes/FolhaVeiculo";
+import FolhaContaCartao from "./definicoes/FolhaContaCartao";
 import { rotuloTipoVeiculo } from "../constants/veiculoPadrao";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
@@ -130,6 +131,7 @@ export default function Definicoes() {
   const [kpisAberto, setKpisAberto] = useState(false);
   const [notificacoesAberto, setNotificacoesAberto] = useState(false);
   const [veiculoAberto, setVeiculoAberto] = useState(false);
+  const [contaCartaoAberta, setContaCartaoAberta] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -228,6 +230,11 @@ export default function Definicoes() {
           valor={`${cfg.categoriasDespesa.length} ativas`}
           navegavel
           onClick={() => setCategoriasAberto(true)}
+        />
+        <SettingsRow
+          titulo="Nova conta ou cartão"
+          navegavel
+          onClick={() => setContaCartaoAberta(true)}
         />
         <SettingsRow
           titulo="Fontes de receita"
@@ -343,6 +350,12 @@ export default function Definicoes() {
         uid={uid}
         aberta={veiculoAberto}
         aoFechar={() => setVeiculoAberto(false)}
+      />
+      <FolhaContaCartao
+        cfg={cfg}
+        uid={uid}
+        aberta={contaCartaoAberta}
+        aoFechar={() => setContaCartaoAberta(false)}
       />
     </Pagina>
   );

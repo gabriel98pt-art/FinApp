@@ -19,7 +19,6 @@ import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorData from "../components/SeletorData";
 import {
-  adicionarCartao,
   adicionarMetodo,
   definirFaturaManual,
   definirSaldoInicial,
@@ -448,8 +447,6 @@ export default function Cartoes() {
     resumo: ResumoConta;
     saldoInicial: Cents;
   } | null>(null);
-  const [novoNome, setNovoNome] = useState("");
-  const [novoTipo, setNovoTipo] = useState<TipoCartao>("credit");
   const [valorTexto, setValorTexto] = useState<Cents | null>(null);
   const [pagarDe, setPagarDe] = useState("");
   // Dia em que a fatura foi mesmo paga. Começa em hoje — quem regista no
@@ -544,21 +541,6 @@ export default function Cartoes() {
   const saldoEmContas = resumos
     .filter((r) => r.tipo !== "credit")
     .reduce((s, r) => s + r.saldoAtual, 0);
-
-  async function adicionar(e: FormEvent) {
-    e.preventDefault();
-    const nome = novoNome.trim();
-    if (!nome) return mostrarToast("Escreva um nome primeiro.");
-    try {
-      await adicionarCartao(uid, cfg, nome, novoTipo);
-      mostrarToast(
-        `✓ ${novoTipo === "credit" ? "Cartão de crédito" : "Conta de débito"} adicionado`,
-      );
-      setNovoNome("");
-    } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
-    }
-  }
 
   async function submeterNovoMetodo(e: FormEvent) {
     e.preventDefault();
@@ -818,7 +800,7 @@ export default function Cartoes() {
         </div>
       )}
 
-      <form className={styles.gerir} onSubmit={adicionar}>
+      <div className={styles.gerir}>
         <p className={styles.gerirTitulo}>Cartões e contas</p>
         {cfg.contasCartoes.length > 0 && (
           <ul className={styles.chips}>
@@ -901,27 +883,10 @@ export default function Cartoes() {
             ))}
           </ul>
         )}
-        <div className={styles.gerirLinha}>
-          <input
-            placeholder="Nome (ex. AB Gold)"
-            aria-label="Nome da conta ou cartão"
-            value={novoNome}
-            onChange={(e) => setNovoNome(e.target.value)}
-          />
-          <Seletor
-            variante="inline"
-            rotulo="Tipo"
-            nivel={0}
-            valor={novoTipo}
-            opcoes={["credit", "debit"]}
-            rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
-            aoMudar={(t) => setNovoTipo(t as TipoCartao)}
-          />
-          <button type="submit" className={styles.gerirBotao}>
-            Adicionar
-          </button>
-        </div>
-      </form>
+        <p className={styles.gerirNota}>
+          Para adicionar uma conta ou cartão novo, vá em Definições → Nova conta ou cartão.
+        </p>
+      </div>
 
       <div className={styles.cabecalhoLista}>
         <h3 className={styles.tituloSecao}>Transferências entre contas</h3>

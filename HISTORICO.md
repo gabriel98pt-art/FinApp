@@ -5,12 +5,19 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 481 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 483 mudanças registadas.
 
 ---
 
 ## 31/08/2026
 
+- Criar uma conta ou cartão novo mudou-se da tela de Cartões para Definições
+  ("Registo" → "Nova conta ou cartão"). Cartões continua com a lista do que
+  já existe e a gestão de cada um — renomear, remover, dia da fatura — pelo
+  menu "⋯" de cada pílula; só o formulário de criar é que mudou de casa.
+- De brinde, o "+" de Cartões (que abre "Adicionar transferência") deixa de
+  ter uma segunda pergunta em aberto: com "criar conta/cartão" fora da tela,
+  sobra só esse fluxo mesmo — não precisava virar um menu com duas opções.
 - A marca "FinApp" some do cabeçalho só no iPhone SE de 1ª geração (ecrãs de
   320 pontos ou menos) — era o único jeito de o mês por extenso caber ao lado
   dos ícones sem cortar. Em qualquer telemóvel mais novo continua igual.
