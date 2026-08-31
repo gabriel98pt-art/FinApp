@@ -170,10 +170,21 @@
   padding: 12px 14px;
 }
 
+/* A etiqueta só embrulha a caixinha de marcar — sem texto ao lado, o alvo era
+   os 18px do próprio quadradinho, e é o controlo MAIS importante desta tela
+   (é ele que decide se a linha do extrato entra ou não). Cresce por padding e
+   volta ao sítio por margem negativa: a caixa fica exatamente onde estava, o
+   toque é que passa a apanhar a faixa do cartão à volta dela — 42px de
+   largura, contra 18. Em altura a etiqueta já se esticava ao cartão inteiro
+   (o `.linha` é flex sem `align-items`, logo `stretch`), portanto essa metade
+   já estava resolvida. Só invade espaço do próprio cartão, nunca o do
+   vizinho: à direita para no `gap` de 10px que a separa do texto. */
 .linhaAcao {
   display: flex;
   align-items: flex-start;
-  padding-top: 2px;
+  padding: 2px 10px 0 14px;
+  margin-left: -14px;
+  margin-right: -10px;
 }
 
 .linhaAcao input {
@@ -400,6 +411,10 @@
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
+  /* A etiqueta inteira (caixa + texto) é o alvo, mas tinha só a altura de uma
+     linha de texto miúdo — ~20px. Marca-se aqui o que vai ser APAGADO, é o
+     último sítio onde se quer um toque impreciso. */
+  min-height: 44px;
   gap: 8px;
   font-size: var(--fs-label);
   color: var(--txt);

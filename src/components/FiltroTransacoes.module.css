@@ -17,6 +17,20 @@
     color var(--dur-fast) var(--ease-exit);
 }
 
+/* Área de toque de 44×44 (mínimo da Apple) sem alargar o círculo visual de
+   32px. Vive na mesma fileira do botão de ordenar, com folga de sobra entre
+   os dois, portanto os 6px extra de cada lado não roubam toques a ninguém.
+   O `::before` está livre — o badge de contagem é um elemento a sério. */
+.botao::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
 .botao:hover {
   color: var(--txt);
   background: var(--s3);

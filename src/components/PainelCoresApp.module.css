@@ -67,7 +67,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 4px;
+  /* 6px → 7px para a linha ter 46px de altura (32 do botão + 7 de cada lado):
+     a área de toque de 44px dos botões de ação cabe inteira dentro da linha,
+     sem transbordar para a de cima ou a de baixo e roubar-lhes toques. */
+  padding: 7px 4px;
   border-radius: var(--r-sm);
 }
 
@@ -104,6 +107,26 @@
   height: 32px;
   border-radius: var(--r-sm);
   color: var(--mut);
+  /* Âncora da área de toque invisível, logo abaixo. */
+  position: relative;
+}
+
+/* 44×44 de área de toque (mínimo da Apple) sem engordar o quadrado visual de
+   32px. Em largura estica só até ao meio do intervalo de 10px que separa os
+   botões, para nenhum roubar o toque do vizinho — o último ainda estica para
+   fora do grupo, onde só há a margem do painel. */
+.acao::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  right: -5px;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.acao:last-child::before {
+  right: -10px;
 }
 
 .acao:hover {

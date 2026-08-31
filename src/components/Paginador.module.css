@@ -20,6 +20,30 @@
   background: var(--s2);
 }
 
+/* Área de toque de 44×44 (mínimo da Apple) sem alargar o quadrado visual de
+   28px. Os 8px extra de cada lado cabem no `gap` de 10px que separa as setas
+   do rótulo "3 de 7" no meio — que não é clicável — e no padding do próprio
+   paginador. Nenhum dos dois botões chega a tocar no outro. */
+.pager button {
+  position: relative;
+}
+
+.pager button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Desativado não é alvo: o `pointer-events` do :disabled já trata do botão,
+   mas a área invisível continuaria a comer o toque em volta dele. */
+.pager button:disabled::before {
+  display: none;
+}
+
 .pager button:hover:not(:disabled) {
   background: var(--s3);
 }

@@ -273,6 +273,11 @@
   background: var(--s2);
   border-radius: var(--r-pill);
   padding: 5px 12px;
+  /* A pílula passa a ter os 44px mínimos de toque em altura: o "×" lá dentro
+     estica-se a ela toda (align-self: stretch), e assim deixa de ser um alvo
+     de ~14×21px. Ver PENDENCIAS.md: em largura ele ainda fica curto, e isso
+     já é redesenho da pílula, não conta de CSS. */
+  min-height: 44px;
   font-size: var(--fs-body);
   font-weight: 600;
 }
@@ -281,7 +286,13 @@
   color: var(--mut);
   font-size: var(--fs-title);
   line-height: 1;
-  padding: 0 2px;
+  /* Ocupa a altura toda da pílula e alarga o toque para dentro do padding
+     dela, sem mudar nada do que se vê. */
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding: 0 8px;
+  margin-right: -8px;
 }
 
 .chipRemover:hover {

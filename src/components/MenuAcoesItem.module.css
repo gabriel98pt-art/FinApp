@@ -13,6 +13,10 @@
   gap: 10px;
   width: 100%;
   padding: 11px 12px;
+  /* Uma linha de texto com este padding dá ~43px — um pixel abaixo do mínimo
+     de toque da Apple, e este é o menu de ações de cada lançamento (editar,
+     duplicar, excluir), onde carregar na opção errada custa caro. */
+  min-height: 44px;
   border-radius: var(--r-sm);
   text-align: left;
   font-size: var(--fs-body);

@@ -37,6 +37,8 @@
   flex: none;
   width: 46px;
   height: 26px;
+  /* Âncora da área de toque invisível, mais abaixo. */
+  position: relative;
   padding: 2px;
   box-sizing: border-box;
   border-radius: var(--r-pill);
@@ -56,8 +58,26 @@
   justify-content: flex-end;
 }
 
+/* O trilho tem 46×26px: a largura já passa o mínimo de toque da Apple, a
+   altura não. Os 9px que faltam de cada lado saem numa área invisível e caem
+   dentro do padding de 14px da própria linha — não chegam à linha vizinha,
+   portanto não há risco de ligar o interruptor errado. */
+.switch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
 .switch:disabled {
   opacity: 0.5;
+}
+
+.switch:disabled::before {
+  display: none;
 }
 
 .polegar {

@@ -71,9 +71,43 @@
   height: 30px;
   border-radius: var(--r-sm);
   color: var(--mut);
+  /* Âncora da área de toque invisível, logo abaixo. */
+  position: relative;
   transition:
     background var(--dur-fast) var(--ease-exit),
     opacity var(--dur-fast) var(--ease-exit);
+}
+
+/* Área de toque de 44px de ALTURA sem mexer no quadrado visual de 30px — o
+   mínimo da Apple, e o mesmo truque que as setas do mês já usavam
+   (SeletorMes.module.css). Os 7px que faltam de cada lado caem dentro do
+   padding de 10px do header, portanto não empurram nada.
+
+   Na horizontal fica só o que existe sem roubar toques: cada botão estica até
+   ao meio do intervalo até ao vizinho (o `gap` é de 1px, daí o meio pixel), e
+   os das pontas esticam também para fora do grupo, onde não há vizinho nenhum.
+   Ir aos 44px de largura em todos os cinco exigia ~220px só de ações — mais do
+   que o header tem a 375px com o logo e o mês ao lado. Está anotado em
+   PENDENCIAS.md: é uma decisão de desenho (tirar um botão daqui), não uma
+   conta de CSS. */
+.acao::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -0.5px;
+  right: -0.5px;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.acao:first-child::before {
+  left: -7px;
+}
+
+.acao:last-child::before {
+  /* O grupo já é puxado 5px para fora (margin-right), e ainda sobram os 16px
+     de padding do header: há espaço de sobra para esticar deste lado. */
+  right: -12px;
 }
 
 .acao:hover {

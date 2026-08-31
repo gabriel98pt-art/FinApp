@@ -75,6 +75,22 @@
   border-radius: var(--r-sm);
   background: var(--s2);
   color: var(--txt);
+  /* Âncora da área de toque invisível, logo abaixo. */
+  position: relative;
+}
+
+/* Área de toque de 44×44 (mínimo da Apple) sem engordar o quadrado visual. As
+   duas setas ficam nas pontas do cabeçalho do calendário, com o nome do mês
+   esticado entre elas (`justify-content: space-between`) — os 5px extra de
+   cada lado caem em espaço vazio. */
+.seta::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .seta:hover {
