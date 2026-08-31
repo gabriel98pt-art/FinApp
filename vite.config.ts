@@ -62,7 +62,20 @@ export default defineConfig({
       // autoUpdate: nova versão publicada entra sozinha na próxima navegação,
       // sem diálogo pedindo confirmação ao usuário (seção 6.1).
       registerType: "autoUpdate",
-      includeAssets: ["icons/icon-v2.svg", "icons/apple-touch-icon-v2.png"],
+      // Ficheiros que não entram no `globPatterns` (que só apanha
+      // js/css/html/svg/woff2/json) mas têm de estar em cache para o app
+      // instalar com o ícone certo mesmo sem rede. Estavam a apontar para a
+      // versão 2 do desenho, que já não existe desde a v3 — ou seja, o
+      // precache do ícone estava morto há duas versões.
+      // O ícone de 1024 px (só para o envio à App Store) e as imagens do ecrã
+      // de arranque ficam de fora de propósito: são ~130 kB que nenhum browser
+      // usa, só o empacotamento nativo.
+      includeAssets: [
+        "icons/icon-v4.svg",
+        "icons/apple-touch-icon-v4.png",
+        "icons/icon-192-v4.png",
+        "icons/icon-512-v4.png",
+      ],
       manifest: false, // manifest.json próprio já existe em public/
       workbox: {
         // Precache do app shell: todo HTML/JS/CSS gerado no build — abre

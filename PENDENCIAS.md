@@ -21,21 +21,20 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 
 **Se um dia mudar de ideia**: revisitar só se o plano de sair de PWA mudar.
 
-### Ícone "maskable" do manifest
-
-**Por que ficou de fora**: hoje o manifest só tem um ícone (SVG, `purpose:
-"any"`). Em Android, o sistema recorta esse ícone num círculo/quadrado
-arredondado ao instalar — sem uma versão pensada pra esse recorte
-("maskable", com margem de segurança), partes do desenho podem ficar
-cortadas.
-
-**O que falta pra resolver**: um arquivo de imagem novo (variante do ícone
-atual, com a margem certa) — isso não se resolve só escrevendo código, precisa
-de alguém desenhando ou de uma ferramenta de imagem.
-
 ---
 
 ## Resolvido (fica registrado por onde passou)
+
+### Ícone "maskable" do manifest
+
+**Resolvido em 31/08/2026**: o manifest passou a ter os ícones em imagem
+(192, 512 e 1024 px), gerados a partir do mesmo desenho que já existia
+(`icon-v4.svg`) por um script novo, `npm run icones`. O de 512 px é declarado
+duas vezes, uma como ícone normal e outra como "maskable" — o desenho já tem
+folga de sobra para o recorte redondo do Android (a marca ocupa 75% do raio
+seguro), por isso não foi preciso um desenho novo. Não fez falta ninguém a
+desenhar: o SVG continua a ser a única fonte, e trocar o desenho volta a ser
+trocar um ficheiro e correr um comando.
 
 ### `usePullToRefresh` recalculava a tela a cada milímetro de arrasto
 

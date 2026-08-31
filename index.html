@@ -16,6 +16,21 @@
          brilho por cima, e um ficheiro já arredondado ficaria cortado. -->
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-v4.png" />
     <link rel="manifest" href="/manifest.json" />
+    <!-- Ecrã de arranque (splash): NÃO se declara aqui.
+         O `apple-touch-startup-image` do Safari só é aceite quando a imagem
+         tem exactamente as dimensões do ecrã do aparelho — obrigaria a uma
+         imagem por modelo de iPhone (mais de vinte ficheiros) e continuaria a
+         ser ignorado em qualquer modelo novo. Em vez disso:
+         - hoje, no browser/PWA, o arranque usa o `background_color` do
+           manifest (#0A1622) com o ícone por cima — a mesma marinha da chapa
+           do ícone e da primeira tela, por isso não há salto de cor;
+         - no empacotamento nativo (Etapa C), as duas imagens de
+           `public/splash/` (clara e escura, 2732×2732, geradas por
+           `npm run icones`) entram como ecrã de arranque, e aí sim o iOS
+           escolhe a certa conforme o tema do aparelho. -->
+    <!-- Não há `apple-mobile-web-app-capable` de propósito: mudaria o
+         comportamento do "Adicionar ao ecrã principal" e o `display:
+         standalone` do manifest já é lido pelo iOS desde a versão 16.4. -->
     <!-- Achado da auditoria de Performance & PWA: nenhum preconnect pros
          hosts do Firebase — a primeira chamada de auth/dados pagava DNS +
          TLS do zero. Só os três hosts que o app realmente usa (email/senha,

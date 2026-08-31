@@ -1,8 +1,11 @@
 {
+  "id": "/",
   "name": "FinApp",
   "short_name": "FinApp",
   "description": "Finanças pessoais",
+  "lang": "pt-PT",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0A1622",
   "theme_color": "#0A1622",
@@ -11,7 +14,54 @@
       "src": "/icons/icon-v4.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-v4.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-v4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-v4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-1024-v4.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/inicio-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Início: receitas, despesas e gastos por categoria do mês"
+    },
+    {
+      "src": "/screenshots/despesas-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Despesas do mês, com total e maior categoria"
+    },
+    {
+      "src": "/screenshots/inicio-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Início no computador, com o menu lateral e o Copiloto"
     }
   ]
 }

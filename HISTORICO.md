@@ -5,7 +5,31 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 30/08/2026 — 452 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 460 mudanças registadas.
+
+---
+
+## 31/08/2026
+
+- O ícone do app passa a existir também em imagem, em três tamanhos (192, 512
+  e 1024 pontos), gerados a partir do mesmo desenho de sempre. Antes só havia
+  o desenho vetorial, que o Android e a loja da Apple não aceitam sozinho.
+- O de 1024 é o exigido para enviar o app à App Store: sai quadrado, sem
+  cantos arredondados e sem fundo transparente, como a Apple obriga.
+- O ícone também passa a estar declarado como "recortável": quando o Android
+  corta o ícone num círculo ao instalar, já não corta nada do desenho.
+- Novo comando `npm run icones`: refaz todas essas imagens a partir do
+  desenho. Trocar o ícone volta a ser trocar um ficheiro e correr um comando,
+  em vez de exportar cinco imagens à mão.
+- O app passa a ter fotografias de apresentação no manifesto — duas de
+  telemóvel (Início e Despesas) e uma de computador. São elas que o Android e
+  o Chrome mostram na janela de "instalar app", que antes aparecia vazia.
+- Preparado o ecrã de arranque para tema claro e escuro: duas imagens novas
+  em `public/splash/`, com o fundo de cada tema e a marca ao centro, prontas
+  para quando o app for empacotado como app nativo.
+- Corrigido: a lista de ficheiros que o app guarda para funcionar sem
+  internet ainda apontava para a versão 2 do ícone, que já não existe desde a
+  versão 3 — ou seja, o ícone não estava a ser guardado há duas versões.
 
 ---
 
