@@ -5,12 +5,47 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 460 mudanças registadas.
+Período coberto: 23/07/2026 a 31/08/2026 — 471 mudanças registadas.
 
 ---
 
 ## 31/08/2026
 
+- O cabeçalho do app deixa de ficar por baixo do relógio e da bateria do
+  iPhone. O app já se abria em ecrã inteiro, entalhe incluído, mas só três
+  ficheiros reservavam a faixa do sistema — e nenhum deles era o cabeçalho.
+- A mesma folga chegou também à barra lateral (tablet e computador), à barra
+  de baixo, ao conteúdo das páginas e à tela de entrada — nestas três últimas
+  conta sobretudo com o telemóvel deitado, em que o entalhe passa a estar de
+  um dos lados.
+- O indicador de "puxar para recarregar" desce junto com o cabeçalho, senão
+  aparecia por trás dele em vez de por baixo.
+- O teclado do telemóvel deixa de tapar o botão "Salvar" do Registro Rápido.
+  No iPhone o teclado não encolhe a página: desenhava-se por cima do fundo da
+  folha, que é exatamente onde está o botão. Agora a folha sobe e encurta-se a
+  altura do teclado, e o botão fica sempre logo acima dele. Vale para todas as
+  folhas do app, não só o Registro Rápido.
+- Ignora de propósito os encolhimentos pequenos: a barra de endereço do Safari
+  também mexe na janela ao rolar, e sem esse cuidado a folha dava um salto a
+  cada scroll.
+- Botões e ícones pequenos ganharam área de toque de 44 pontos, o mínimo da
+  Apple — sem ficarem maiores no ecrã. A zona clicável cresce por fora do
+  desenho, e nunca para o lado do botão vizinho, para não haver troca de
+  toques.
+- Onde isso aconteceu: os ícones do cabeçalho, o paginador das listas, os
+  botões de ordenar e de filtrar, as setas do calendário, a seta de voltar das
+  folhas, os interruptores das Definições, a lista de categorias, o painel de
+  cores, o menu de ações de cada lançamento e as abas do menu "Mais".
+- As pílulas de gerir (locais do veículo, cartões, intermediadores de
+  parcelamento) passaram a ter 44 pontos de altura: os "x" e lápis lá dentro
+  eram alvos de 18 pontos e agora ocupam a pílula toda.
+- Na tela de Importar, a caixinha que decide se cada linha do extrato entra —
+  o controlo mais importante dessa tela — tinha 18 pontos de largura de
+  toque; passou a 42. A caixa de "apagar" da revisão de duplicatas ganhou 44
+  pontos de altura.
+- Ficou anotado em pendências um caso que precisa de decisão: os cinco ícones
+  do cabeçalho não cabem todos com 44 pontos de largura num telemóvel de 375
+  pontos sem tirar espaço ao seletor de mês.
 - O ícone do app passa a existir também em imagem, em três tamanhos (192, 512
   e 1024 pontos), gerados a partir do mesmo desenho de sempre. Antes só havia
   o desenho vetorial, que o Android e a loja da Apple não aceitam sozinho.
