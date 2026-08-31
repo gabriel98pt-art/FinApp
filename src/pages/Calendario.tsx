@@ -6,6 +6,7 @@ import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import { criarEvento, removerEvento } from "../services/eventosService";
+import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -188,6 +189,11 @@ export default function Calendario() {
     setNovoAberto(true);
   }
 
+  // O "+" do cabeçalho enquanto o Calendário está aberto. Substitui o botão
+  // "Evento" que ficava por cima da grelha e comia uma linha inteira no
+  // telemóvel.
+  useAcaoHeader({ rotulo: "Adicionar evento", onClick: () => abrirNovoEvento() });
+
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
     if (!titulo.trim()) return mostrarToast("Título obrigatório.");
@@ -234,12 +240,8 @@ export default function Calendario() {
         />
       </Kpis>
 
-      <div className={styles.linhaMes}>
-        <Botao variante="primaria" onClick={() => abrirNovoEvento()}>
-          <Plus size={15} aria-hidden /> Evento
-        </Botao>
-      </div>
-
+      {/* O botão "Evento" que estava aqui virou o "+" do cabeçalho (ver o
+          `useAcaoHeader` lá em cima). */}
       <div className={styles.grid}>
         <div className={styles.cabecalhoSemana}>
           {rotulosDiasSemana(cfg.diaInicioSemana).map((d, i) => (

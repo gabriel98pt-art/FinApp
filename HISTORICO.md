@@ -11,6 +11,21 @@ Período coberto: 23/07/2026 a 31/08/2026 — 479 mudanças registadas.
 
 ## 31/08/2026
 
+- O botão "Evento" do Calendário virou um "+" no cabeçalho. Era um botão de
+  texto que ficava por cima da grelha do mês e comia uma linha inteira do
+  telemóvel só para dizer o que a aba já dizia.
+- Para isso o cabeçalho ganhou um lugar novo: cada tela pode pôr lá o SEU
+  botão de adicionar, e ele desaparece sozinho quando se muda de tela. É
+  diferente do "+" azul redondo que está sempre no fundo do ecrã — esse lança
+  transações de qualquer sítio; o do cabeçalho adiciona a coisa da tela onde
+  se está (um evento no Calendário, por exemplo).
+- Quem usa leitor de ecrã ouve "Adicionar evento", não só "Adicionar": o
+  desenho do "+" sozinho não diz o quê, por isso cada tela escreve o nome
+  completo da sua ação.
+- Medido ao vivo num telemóvel de 375 pontos: com o "+" a mais, "FinApp" e o
+  mês ("setembro 2026", "dezembro 2026" — os nomes mais compridos) continuam a
+  caber inteiros no cabeçalho. Só num ecrã de 320 pontos (iPhone de 2016) é
+  que o mês passa a aparecer cortado com "…".
 - Os botões de "Desfazer" e "Refazer" saíram do cabeçalho. Eram as duas únicas
   coisas lá em cima que não abriam nada, e ocupavam espaço que no telemóvel
   faz falta.
