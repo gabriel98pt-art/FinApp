@@ -14,6 +14,16 @@ Período coberto: 23/07/2026 a 31/08/2026 — 479 mudanças registadas.
 - O botão "Evento" do Calendário virou um "+" no cabeçalho. Era um botão de
   texto que ficava por cima da grelha do mês e comia uma linha inteira do
   telemóvel só para dizer o que a aba já dizia.
+- Receitas e Despesas seguiram o mesmo caminho. Em Receitas saiu o "Adicionar"
+  que estava no canto do cartão "Lançamentos". Em Despesas saíram dois: o da
+  aba "Correntes" e o "Adicionar despesa fixa" da aba "Fixas".
+- Em Despesas o "+" do cabeçalho muda com a aba aberta — em "Correntes" lança
+  uma despesa do dia a dia, em "Fixas" abre a folha da despesa fixa. Como as
+  duas abas nunca estão à vista ao mesmo tempo, não faz sentido o "+"
+  perguntar qual das duas se queria.
+- Onde a lista está vazia, o texto de ajuda passou a dizer "Toque no + do
+  cabeçalho" em vez de "Toque em Adicionar" — o botão que ele mandava procurar
+  já não existe nesse sítio.
 - Para isso o cabeçalho ganhou um lugar novo: cada tela pode pôr lá o SEU
   botão de adicionar, e ele desaparece sozinho quando se muda de tela. É
   diferente do "+" azul redondo que está sempre no fundo do ecrã — esse lança

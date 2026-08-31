@@ -3,6 +3,7 @@ import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
 import { removerReceita } from "../services/lancamentosService";
+import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -34,6 +35,10 @@ export default function Receitas() {
   const carregado = useReceitasStore((s) => s.carregado);
   const erro = useReceitasStore((s) => s.erro);
   const abrirRegistro = useUiStore((s) => s.abrirRegistro);
+
+  // O "+" do cabeçalho enquanto Receitas está aberta. Substitui o "Adicionar"
+  // que ficava no cabeçalho do cartão de lançamentos.
+  useAcaoHeader({ rotulo: "Adicionar receita", onClick: () => abrirRegistro("receita") });
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único, ao lado de
   // Editar.
@@ -132,9 +137,8 @@ export default function Receitas() {
         rotuloTotal={`Total ${rotuloMes(mes)}`}
         total={total(receitasNosTotais(doMesExibido))}
         vazio={`Nenhuma receita em ${rotuloMes(mes)}`}
-        vazioSub="Toque em Adicionar para lançar a primeira."
+        vazioSub="Toque no + do cabeçalho para lançar a primeira."
         vazioIcone={TrendingUp}
-        aoAdicionar={() => abrirRegistro("receita")}
         aoEditar={(id) => abrirRegistro("receita", id)}
         aoExcluir={(id) => void excluirReceita(id)}
       />

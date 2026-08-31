@@ -57,6 +57,7 @@ vi.mock("../stores/authStore", () => ({
 vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
 const Despesas = (await import("./Despesas")).default;
+const { useAcaoHeaderStore } = await import("../stores/acaoHeaderStore");
 
 // Despesas usa `useLocation` (item 4.6, aba pedida por Transações) — precisa
 // de um Router em volta, mesmo nos testes que não navegam.
@@ -92,6 +93,21 @@ describe("Despesas", () => {
   test("sem despesas: estado vazio da aba Correntes", () => {
     renderDespesas();
     expect(screen.getByText(/Nenhuma despesa em agosto 2026/)).toBeInTheDocument();
+  });
+
+  // O "+" do cabeçalho é um só, mas Despesas tem dois fluxos de adicionar.
+  // Como nunca estão à vista ao mesmo tempo, ele segue a aba aberta em vez de
+  // abrir um menu a perguntar — e o nome muda com ele, senão o leitor de ecrã
+  // anunciava a ação errada.
+  test("o + do cabeçalho segue a aba: despesa corrente em Correntes, fixa em Fixas", async () => {
+    renderDespesas();
+    expect(useAcaoHeaderStore.getState().acao?.rotulo).toBe("Adicionar despesa");
+
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+    expect(useAcaoHeaderStore.getState().acao?.rotulo).toBe("Adicionar despesa fixa");
+
+    useAcaoHeaderStore.getState().acao?.onClick?.();
+    expect(await screen.findByRole("heading", { name: "Nova despesa fixa" })).toBeInTheDocument();
   });
 
   test("aba Fixas sem nada mostra o vazio próprio, não o das correntes", async () => {
