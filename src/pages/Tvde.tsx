@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { CarTaxiFront, Check, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { CarTaxiFront, Check, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import KpiCard from "../components/KpiCard";
@@ -18,6 +18,7 @@ import {
   salvarSemana,
 } from "../services/tvdeService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
+import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -318,6 +319,15 @@ export default function Tvde() {
   // da semana do calendário de hoje (que muda sozinha e pula buracos). Sem
   // nenhuma registrada ainda, a semana de hoje é o melhor palpite inicial.
   const proximaSemanaFalta = numeros.length ? numeros[numeros.length - 1] + 1 : semanaAtualN;
+
+  // O "+" do cabeçalho só existe na aba "Semanas": é a única das quatro onde
+  // se cria alguma coisa — "Meses" e "Períodos" são vistas de leitura e
+  // "Extras" são definições, que se gravam ali mesmo.
+  useAcaoHeader(
+    aba === "semanas"
+      ? { rotulo: "Adicionar semana", onClick: () => setEditando(proximaSemanaFalta) }
+      : null,
+  );
   const semanaDestaque =
     semanas[String(semanaAtualN)] ??
     (numeros.length ? semanas[String(numeros[numeros.length - 1])] : undefined);
@@ -411,14 +421,6 @@ export default function Tvde() {
           <>
             <div className={styles.cabecalho}>
               <h3 className={styles.subtitulo}>Semanas</h3>
-              <div className={styles.cabecalhoAcoes}>
-                <button
-                  className={styles.adicionar}
-                  onClick={() => setEditando(proximaSemanaFalta)}
-                >
-                  <Plus size={15} aria-hidden /> Semana
-                </button>
-              </div>
             </div>
             {erro && numeros.length > 0 && <ErroSincronizacao compacto />}
             {erro && numeros.length === 0 ? (

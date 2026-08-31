@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Check, CheckCheck, History, Layers, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, CheckCheck, History, Layers, Pencil, Trash2 } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -18,6 +18,7 @@ import {
 } from "../services/parcelasService";
 import { atualizarParcela } from "../services/lancamentosService";
 import { adicionarItemLista, removerItemLista } from "../services/cfgService";
+import { useAcaoHeader } from "../hooks/useAcaoHeader";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
@@ -451,6 +452,10 @@ export default function Parcelas() {
     setFolhaAberta(true);
   }
 
+  // O "+" do cabeçalho. Substitui o "Nova parcela" que estava ao lado do
+  // título da lista, encostado ao seletor de ordem.
+  useAcaoHeader({ rotulo: "Adicionar parcela", onClick: abrirNova });
+
   function abrirEdicao(p: Parcela) {
     setEditando(p);
     setFolhaAberta(true);
@@ -535,9 +540,6 @@ export default function Parcelas() {
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
-          <Botao variante="texto" onClick={abrirNova}>
-            <Plus size={15} aria-hidden /> Nova parcela
-          </Botao>
         </div>
       </div>
 

@@ -545,7 +545,7 @@ export default function Despesas() {
                   }
                   sub={
                     despesasFixas.length === 0
-                      ? "Toque em Adicionar despesa fixa para criar a primeira."
+                      ? "Toque no + do cabeçalho para criar a primeira."
                       : "As já criadas começam ou terminam em outros meses."
                   }
                 />

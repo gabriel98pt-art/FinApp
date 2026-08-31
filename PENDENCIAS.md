@@ -9,31 +9,6 @@ Entrada mais recente no topo.
 
 ---
 
-## Telemóvel
-
-### Botões "Adicionar X" devem virar um "+" pequeno no cabeçalho
-
-**Encontrado em 31/08/2026**, na revisão da Etapa A do plano da App Store.
-
-Todas as abas que têm um botão para adicionar (Transações, Cartões, Veículos, etc.)
-usam o padrão "Adicionar X" em texto. No telemóvel, isto toma muito espaço no
-cabeçalho — deve virar um ícone pequeno "+" que fica mais discreto e liberta
-espaço. O que vai ser adicionado é claro pelo contexto da aba.
-
-~~Também precisam sair do cabeçalho os botões de "Desfazer" e "Refazer".~~
-**RESOLVIDO em 31/08/2026** — o Gabriel decidiu tirá-los do cabeçalho. Foram para
-o menu "Mais" (telemóvel), numa secção própria chamada "Ações", separada das abas
-por um risco: as de cima levam a uma tela, estas fazem alguma coisa na hora e o
-menu fecha-se logo a seguir. No tablet e no computador, onde não há menu "Mais",
-foram para o fim da barra lateral, com o mesmo risco a separá-los das abas. Ver a
-secção "Resolvido" mais abaixo.
-
-**Por que fica pendente** (a parte do "+"): é redesenho de padrão em 10+ telas
-(cada aba), não um ajuste isolado. Precisa de decisão conjunta com o Gabriel e
-depois de coordenação com a Etapa A (Acessibilidade + Design & Cor).
-
----
-
 ## Decisões pendentes (não bloqueiam nada)
 
 ### Splash por tema no PWA
@@ -86,6 +61,49 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 ---
 
 ## Resolvido (fica registrado por onde passou)
+
+### Botões "Adicionar X" viraram um "+" no cabeçalho
+
+**Resolvido em 31/08/2026**, com a decisão do Gabriel de avançar. Cada tela
+passou a poder pôr o SEU botão de adicionar no cabeçalho da app, e ele
+desaparece sozinho quando se muda de tela. Não é o "+" azul redondo do fundo
+do ecrã (esse é global, lança transações de qualquer sítio) — é outro botão,
+pequeno e discreto, ao lado do tema e do sino.
+
+**Telas convertidas** (o botão de texto saiu, o "+" entrou):
+
+- Calendário — "Adicionar evento"
+- Receitas — "Adicionar receita"
+- Despesas — segue a aba: "Adicionar despesa" / "Adicionar despesa fixa"
+- Parcelas — "Adicionar parcela"
+- Cartões — "Adicionar transferência"
+- Planejamento — segue a aba: "Definir teto de categoria" / "Adicionar fundo"
+- TVDE — só na aba Semanas: "Adicionar semana"
+- Veículo — segue a aba (abastecimento, despesa, despesa fixa, quilometragem);
+  no "Resumo", onde nenhuma aba aponta para uma delas, o "+" abre um menu com
+  as quatro em vez de escolher por conta própria
+
+Cada "+" diz por extenso o que adiciona a quem usa leitor de ecrã ("Adicionar
+evento", não só "Adicionar"): o desenho sozinho não diz o quê. Onde uma lista
+está vazia, o texto de ajuda passou a mandar tocar no "+" do cabeçalho em vez
+de procurar um botão que já não existe.
+
+**O que ficou de fora, de propósito** (e porquê):
+
+- **Transações** não tem botão de adicionar nenhum — é uma vista de leitura do
+  que já foi lançado. Continua sem "+".
+- **Início**, **Importar** e **Definições** também não criam nada por botão.
+- Ações que pertencem a UM ITEM, e não à tela: "Contribuir" num fundo,
+  "Adicionar método" numa instituição de Cartões, "Pagar" numa fatura. Um "+"
+  no cabeçalho não saberia de qual item se estava a falar.
+- O formulário "Cartões e contas", em Cartões, tem um botão "Adicionar" que é
+  o submeter do formulário escrito ali mesmo (nome + tipo). Não abre nada, e
+  chamá-lo do cabeçalho obrigaria a saltar para um campo lá em baixo.
+
+**O que ficou por medir**: num ecrã de 320 pontos (iPhone SE de primeira
+geração) o terceiro ícone faz o mês passar a aparecer cortado com "…". A 375
+pontos, o mínimo que a Apple ainda suporta, foi medido ao vivo e cabe tudo
+inteiro, mesmo nos meses de nome mais comprido.
 
 ### Cinco ícones no cabeçalho não cabem com 44 pontos de largura
 

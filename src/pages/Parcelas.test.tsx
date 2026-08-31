@@ -5,7 +5,7 @@
 // dizer "nenhuma compra parcelada" a quem tem dez compras, todas pagas.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Parcela } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -43,6 +43,7 @@ vi.mock("../services/parcelasService", async (original) => ({
 }));
 
 const Parcelas = (await import("./Parcelas")).default;
+const { useAcaoHeaderStore } = await import("../stores/acaoHeaderStore");
 
 /** 300,00 em 3× a começar em junho de 2026. */
 const parcela = (extra: Partial<Parcela> = {}): Parcela => ({
@@ -176,7 +177,9 @@ describe("Parcelas", () => {
 
   test("erro de validação associa os campos relevantes via aria-describedby — achado da auditoria de Acessibilidade", async () => {
     render(<Parcelas />);
-    await userEvent.click(screen.getByRole("button", { name: "Nova parcela" }));
+    // O botão de criar saiu da página e virou o "+" do cabeçalho, que vive no
+    // AppShell e não é renderizado aqui — abrimos a folha pela ação registada.
+    act(() => useAcaoHeaderStore.getState().acao?.onClick?.());
 
     await userEvent.type(screen.getByLabelText("Nome"), "Portátil");
     await userEvent.type(screen.getByLabelText("Total (€)"), "50000");
