@@ -96,11 +96,19 @@ export function corSemanticaDaCategoria(categoria: string): string | undefined {
   return COR_SEMANTICA[categoria];
 }
 
-/** O MESMO verde de `COR_SEMANTICA.Receita`, exportado à parte — usado pela
- *  grade de cores exclusiva das fontes de receita (`CORES_FONTE_RECEITA` em
- *  `constants/aparenciaCategoria.ts`, item 6 do lote de UX/nav de 30/08).
- *  Evita os dois lugares divergirem se o verde de Receita mudar de tom. */
-export const VERDE_RECEITA = COR_SEMANTICA.Receita;
+/** Verde da grade de cores exclusiva das fontes de receita
+ *  (`CORES_FONTE_RECEITA` em `constants/aparenciaCategoria.ts`, item 6 do
+ *  lote de UX/nav de 30/08). Era o mesmo hex de `COR_SEMANTICA.Receita`
+ *  (`#4ade80`) até o Gabriel notar (31/08) que 3 das suas fontes reais
+ *  (Vencimento, Transferência, Wise) ainda tinham o verde vivo `#22c55e` —
+ *  gravado de propósito no dia 26/08, quando ele pediu "verde geral" de
+ *  volta por um instante e reverteu no mesmo dia (ver o histórico em
+ *  `PALETA_CATEGORIA` acima). A cor ficou gravada nessas 3 fontes mesmo
+ *  depois da reversão do código, e voltou a ser a referência do que "verde
+ *  de receita" deveria parecer — por isso vira o padrão daqui pra frente,
+ *  independente do `--grn`/`COR_SEMANTICA.Receita` usados no resto do app
+ *  (FAB, selo Pago, categoria "Receita"), que continuam em `#4ade80`. */
+export const VERDE_RECEITA = "#22c55e";
 
 /** Paleta única de matizes — fonte de verdade tanto pra auto-atribuição
  *  (`corFallbackDaCategoria`, abaixo) quanto pro seletor manual (`CORES_
