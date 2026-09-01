@@ -25,7 +25,7 @@ import FolhaCorBotao from "./definicoes/FolhaCorBotao";
 import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
 import FolhaNotificacoes from "./definicoes/FolhaNotificacoes";
 import FolhaVeiculo from "./definicoes/FolhaVeiculo";
-import FolhaContaCartao from "./definicoes/FolhaContaCartao";
+import FolhaContasCartoes from "./definicoes/FolhaContasCartoes";
 import { rotuloTipoVeiculo } from "../constants/veiculoPadrao";
 
 const MOEDAS: { valor: Currency; rotulo: string }[] = [
@@ -131,7 +131,7 @@ export default function Definicoes() {
   const [kpisAberto, setKpisAberto] = useState(false);
   const [notificacoesAberto, setNotificacoesAberto] = useState(false);
   const [veiculoAberto, setVeiculoAberto] = useState(false);
-  const [contaCartaoAberta, setContaCartaoAberta] = useState(false);
+  const [contasCartoesAberta, setContasCartoesAberta] = useState(false);
 
   const uid = sessao?.uid;
 
@@ -231,10 +231,15 @@ export default function Definicoes() {
           navegavel
           onClick={() => setCategoriasAberto(true)}
         />
+        {/* "Nova conta ou cartão" era só o criar (31/08). Desde 01/09 a folha
+            faz a gestão toda — criar, renomear, remover, dias de fatura —, e o
+            rótulo tem de dizer isso: quem procura onde se apaga um cartão não
+            entrava numa linha chamada "Nova". */}
         <SettingsRow
-          titulo="Nova conta ou cartão"
+          titulo="Contas e cartões"
+          valor={`${cfg.contasCartoes.length} ${cfg.contasCartoes.length === 1 ? "ativa" : "ativas"}`}
           navegavel
-          onClick={() => setContaCartaoAberta(true)}
+          onClick={() => setContasCartoesAberta(true)}
         />
         <SettingsRow
           titulo="Fontes de receita"
@@ -351,11 +356,11 @@ export default function Definicoes() {
         aberta={veiculoAberto}
         aoFechar={() => setVeiculoAberto(false)}
       />
-      <FolhaContaCartao
+      <FolhaContasCartoes
         cfg={cfg}
         uid={uid}
-        aberta={contaCartaoAberta}
-        aoFechar={() => setContaCartaoAberta(false)}
+        aberta={contasCartoesAberta}
+        aoFechar={() => setContasCartoesAberta(false)}
       />
     </Pagina>
   );

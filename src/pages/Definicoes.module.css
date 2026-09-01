@@ -154,6 +154,60 @@
   color: var(--red);
 }
 
+/* ---- Contas e cartões (01/09/2026) ----
+   Vieram inteiras da tela de Cartões, onde eram pílulas com um menu "⋯".
+   Reaproveitam a lista de categorias acima (.listaCategorias/.linhaCategoria/
+   .acaoCategoria) — o item é que deixa de ser uma linha só: o cartão de
+   crédito tem ainda os dois dias da fatura numa segunda linha, porque são
+   campos de escrever e não cabiam ao lado dos botões sem apertar o nome. */
+.itemConta {
+  display: flex;
+  flex-direction: column;
+}
+
+.tipoConta {
+  flex: none;
+  color: var(--mut);
+  font-size: var(--fs-micro);
+}
+
+.diasFatura {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  /* Alinha com o nome da conta na linha de cima (.linhaCategoria tem 4px de
+     padding lateral), e recua o suficiente para se ler como detalhe dela. */
+  padding: 0 4px 6px 12px;
+}
+
+/* Campo minúsculo, só dois dígitos — é o dia do mês, não uma data. */
+.campoDia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-micro);
+  color: var(--mut);
+}
+
+.campoDia input {
+  width: 2.6em;
+  padding: 2px 4px;
+  border: 1px solid var(--brd);
+  border-radius: var(--r-xs);
+  background: var(--s1);
+  color: var(--txt);
+  font-size: var(--fs-micro);
+  text-align: center;
+}
+
+/* Folha de "Adicionar método", aninhada nesta: um seletor e um botão. */
+.formMetodo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+}
+
 .chips {
   list-style: none;
   margin: 0;
