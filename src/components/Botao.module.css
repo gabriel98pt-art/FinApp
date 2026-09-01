@@ -50,6 +50,19 @@
   background: var(--s2);
 }
 
+/* Botão de CRIAR reduzido ao "+" (01/09/2026): dentro do corpo das páginas, o
+   "+ Adicionar abastecimento" ao lado do título repetia por extenso o que o
+   título já dizia, e em ecrã estreito era o texto do botão que empurrava o
+   título para duas linhas. Fica só o ícone, quadrado; o texto inteiro passa
+   para `aria-label`, portanto quem usa leitor de ecrã continua a ouvir "
+   Adicionar abastecimento" e não "mais".
+
+   Combina-se com qualquer variante — muda só a forma, nunca a cor. */
+.soIcone {
+  gap: 0;
+  padding: 8px;
+}
+
 /* Ações destrutivas, em dois pesos — porque não são todas igualmente graves e
    antes eram: "excluir parcela" era texto vermelho, "sair" era texto vermelho
    com ícone, e "apagar conta" (a única sem volta possível) era um botão cinzento

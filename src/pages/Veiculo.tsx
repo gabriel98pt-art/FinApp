@@ -772,8 +772,16 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Abastecimentos</h3>
-              <Botao variante="primaria" onClick={() => abrirRegistro("carga")}>
-                <Plus size={15} aria-hidden /> Adicionar abastecimento
+              {/* Só o "+" (01/09): o título ao lado já diz "Abastecimentos" —
+                  ver .soIcone em Botao.module.css. A frase inteira vive no
+                  aria-label. */}
+              <Botao
+                variante="primaria"
+                soIcone
+                aria-label="Adicionar abastecimento"
+                onClick={() => abrirRegistro("carga")}
+              >
+                <Plus size={16} aria-hidden />
               </Botao>
             </div>
 
@@ -879,8 +887,13 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
-              <Botao variante="primaria" onClick={() => abrirRegistro("despesaVeiculo")}>
-                <Plus size={15} aria-hidden /> Adicionar despesa
+              <Botao
+                variante="primaria"
+                soIcone
+                aria-label="Adicionar despesa"
+                onClick={() => abrirRegistro("despesaVeiculo")}
+              >
+                <Plus size={16} aria-hidden />
               </Botao>
             </div>
 
@@ -913,8 +926,13 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
-              <Botao variante="primaria" onClick={abrirNovaFixa}>
-                <Plus size={15} aria-hidden /> Adicionar despesa fixa
+              <Botao
+                variante="primaria"
+                soIcone
+                aria-label="Adicionar despesa fixa"
+                onClick={abrirNovaFixa}
+              >
+                <Plus size={16} aria-hidden />
               </Botao>
             </div>
 
@@ -981,8 +999,13 @@ export default function Veiculo() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
-              <Botao variante="primaria" onClick={abrirNovoKm}>
-                <Plus size={15} aria-hidden /> Adicionar quilometragem
+              <Botao
+                variante="primaria"
+                soIcone
+                aria-label="Adicionar quilometragem"
+                onClick={abrirNovoKm}
+              >
+                <Plus size={16} aria-hidden />
               </Botao>
             </div>
 

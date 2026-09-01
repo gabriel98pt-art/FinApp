@@ -459,10 +459,12 @@ export default function Despesas() {
                   do cartão de baixo era redundante. O botão sobe pra cá. */}
               <Botao
                 variante="primaria"
+                soIcone
                 className={styles.botaoAdicionarTopo}
                 onClick={() => abrirRegistro("despesa")}
+                aria-label="Adicionar despesa"
               >
-                <Plus size={15} aria-hidden /> Adicionar
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 
@@ -527,8 +529,13 @@ export default function Despesas() {
           <>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas</h3>
-              <Botao variante="primaria" onClick={abrirNovaFixa}>
-                <Plus size={15} aria-hidden /> Adicionar despesa fixa
+              <Botao
+                variante="primaria"
+                soIcone
+                onClick={abrirNovaFixa}
+                aria-label="Adicionar despesa fixa"
+              >
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 

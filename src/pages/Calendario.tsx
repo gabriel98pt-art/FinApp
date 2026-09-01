@@ -237,8 +237,11 @@ export default function Calendario() {
       </Kpis>
 
       <div className={styles.linhaMes}>
-        <Botao variante="primaria" onClick={() => abrirNovoEvento()}>
-          <Plus size={15} aria-hidden /> Evento
+        {/* Só o "+": o texto do botão migrou para o aria-label (sweep de
+            01/09/2026). Continua exatamente onde sempre esteve, no corpo da
+            página — o cabeçalho não recebe botões de criar. */}
+        <Botao variante="primaria" soIcone onClick={() => abrirNovoEvento()} aria-label="Adicionar evento">
+          <Plus size={18} aria-hidden />
         </Botao>
       </div>
 
@@ -333,7 +336,7 @@ export default function Calendario() {
           <EstadoVazio
             Icone={CalendarDays}
             mensagem="Nenhum evento ainda"
-            sub="Toque em + Evento pra agendar o primeiro."
+            sub="Toque no + pra agendar o primeiro."
           />
         )
       )}

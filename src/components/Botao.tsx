@@ -9,6 +9,11 @@ export type VarianteBotao = "primaria" | "submeter" | "texto" | "perigo" | "peri
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variante: VarianteBotao;
+  /** Botão reduzido ao ícone (o "+" de criar, dentro do corpo das páginas).
+   *  Quem o usa passa OBRIGATORIAMENTE um `aria-label` com a frase inteira —
+   *  "Adicionar abastecimento", não "adicionar" — porque é o que sobra para
+   *  quem não vê o ícone. */
+  soIcone?: boolean;
 };
 
 /** Botão da app.
@@ -23,13 +28,13 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
  *  `className` continua a ser aceite e vem depois das classes da variante, para
  *  quem precisa de layout local (largura, alinhamento na grelha) sem redefinir
  *  o desenho. */
-export default function Botao({ variante, className, type, ...resto }: Props) {
+export default function Botao({ variante, soIcone, className, type, ...resto }: Props) {
   return (
     <button
       // <button> sem type dentro de <form> submete por omissão, e quase nenhuma
       // das chamadas quer isso; quem quer passa type="submit".
       type={type ?? "button"}
-      className={`${styles.base} ${styles[variante]}${className ? ` ${className}` : ""}`}
+      className={`${styles.base} ${styles[variante]}${soIcone ? ` ${styles.soIcone}` : ""}${className ? ` ${className}` : ""}`}
       {...resto}
     />
   );

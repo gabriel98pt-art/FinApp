@@ -693,8 +693,15 @@ export default function Cartoes() {
 
       <div className={styles.cabecalhoLista}>
         <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
-        <Botao variante="primaria" onClick={abrirNovaTransferencia}>
-          <Plus size={15} aria-hidden /> Adicionar transferência
+        {/* Só o "+", ao lado do título da secção que já diz do que se trata;
+            o texto inteiro fica no aria-label (sweep de 01/09/2026). */}
+        <Botao
+          variante="primaria"
+          soIcone
+          onClick={abrirNovaTransferencia}
+          aria-label="Adicionar transferência"
+        >
+          <Plus size={18} aria-hidden />
         </Botao>
       </div>
 
@@ -708,7 +715,7 @@ export default function Cartoes() {
           <EstadoVazio
             Icone={ArrowLeftRight}
             mensagem={`Nenhuma transferência em ${rotuloMes(mes)}`}
-            sub="Mova dinheiro entre contas com o botão Adicionar transferência."
+            sub="Toque no + para mover dinheiro entre contas."
           />
         ) : (
           ordenarPorDataDesc(transferenciasDoMes).map((t) => (
