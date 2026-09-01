@@ -115,6 +115,15 @@
   background: var(--s2);
 }
 
+/* Botão de criar reduzido ao "+" (01/09/2026): o título ao lado já diz
+   "Semanas". Fica quadrado, com a frase inteira no aria-label. Mesma ideia do
+   .soIcone do botão partilhado (Botao.module.css) — aqui à parte só porque
+   este botão tem a cor laranja própria do módulo TVDE. */
+.adicionarSoIcone {
+  gap: 0;
+  padding: 6px 8px;
+}
+
 .lista {
   display: flex;
   flex-direction: column;

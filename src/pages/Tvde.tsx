@@ -6,6 +6,7 @@ import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import Paginador from "../components/Paginador";
 import { ITENS_POR_PAGINA } from "../components/ListaLancamentos";
@@ -160,7 +161,18 @@ function FormSemana({
       titulo={n !== null ? `Semana ${n} · ${rotuloDaSemana(dados.cfg.inicioSemana1, n)}` : ""}
     >
       <form className={styles.form} onSubmit={salvar}>
-        {CAMPOS_DINHEIRO.map(([k, nome]) => (
+        {/* O faturamento é o número da semana — tudo o resto (portagens,
+            aluguel, recargas) é desconto sobre ele. Sai da lista de linhas e
+            abre o formulário no campo grande, como nas outras telas (item 4 do
+            lote de UX/nav, 30/08). Os outros seis continuam em linhas
+            compactas: são muitos, e seis campos gigantes seguidos davam um
+            formulário sem centro nenhum. */}
+        <CampoValorDestaque
+          rotulo="Faturamento"
+          valor={valores.fat ?? null}
+          aoMudar={(v) => setValores({ ...valores, fat: v })}
+        />
+        {CAMPOS_DINHEIRO.filter(([k]) => k !== "fat").map(([k, nome]) => (
           <label key={k} className={styles.campoLinha}>
             <span>
               {nome}
@@ -428,11 +440,14 @@ export default function Tvde() {
             <div className={styles.cabecalho}>
               <h3 className={styles.subtitulo}>Semanas</h3>
               <div className={styles.cabecalhoAcoes}>
+                {/* Só o "+" (01/09): o título ao lado já diz "Semanas". A
+                    frase inteira vive no aria-label. */}
                 <button
-                  className={styles.adicionar}
+                  className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
+                  aria-label="Nova semana"
                   onClick={() => setEditando(proximaSemanaFalta)}
                 >
-                  <Plus size={15} aria-hidden /> Semana
+                  <Plus size={16} aria-hidden />
                 </button>
               </div>
             </div>
@@ -642,9 +657,18 @@ export default function Tvde() {
               <p className={styles.blocoNota}>
                 Lançar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
               </p>
+              {/* O valor sobe para o campo grande (item 4 do lote de UX/nav,
+                  30/08) e o mês fica na linha com o botão. Antes eram três
+                  caixas do mesmo tamanho lado a lado, e a do meio — a única
+                  que interessa guardar — não se distinguia das outras. */}
+              <CampoValorDestaque valor={segValor} aoMudar={setSegValor} required />
               <div className={styles.linhaDupla}>
-                <input type="month" value={segMes} onChange={(e) => setSegMes(e.target.value)} />
-                <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
+                <input
+                  type="month"
+                  aria-label="Mês de pagamento"
+                  value={segMes}
+                  onChange={(e) => setSegMes(e.target.value)}
+                />
                 <button type="submit" className={styles.botaoMini}>
                   Salvar
                 </button>
@@ -682,14 +706,20 @@ export default function Tvde() {
               <p className={styles.blocoNota}>
                 Separadas das Despesas gerais — específicas do trabalho de motorista.
               </p>
+              {/* Mesmo tratamento do bloco da Segurança Social, acima: o valor
+                  no campo grande, a descrição e o botão na linha de baixo. O
+                  campo de texto ganhou aria-label — tinha só placeholder, que
+                  desaparece assim que se escreve e não serve de nome para quem
+                  usa leitor de ecrã. */}
+              <CampoValorDestaque valor={despValor} aoMudar={setDespValor} required />
               <div className={styles.linhaDupla}>
                 <input
                   placeholder="Descrição"
+                  aria-label="Descrição"
                   value={despDescricao}
                   onChange={(e) => setDespDescricao(e.target.value)}
                   required
                 />
-                <CampoMoeda valor={despValor} aoMudar={setDespValor} required />
                 <button type="submit" className={styles.botaoMini}>
                   Adicionar
                 </button>
