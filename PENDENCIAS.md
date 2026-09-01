@@ -9,6 +9,28 @@ Entrada mais recente no topo.
 
 ---
 
+## Sweep de padronização (01/09/2026) — parado no meio, falta retomar
+
+**Contexto**: dois agentes rodando em paralelo, cada um varrendo um grupo de
+telas atrás de dois padrões (item 4 do lote de UX/nav — "Quanto?" + Descrição
+única — e botões "+ Adicionar X" virarem só ícone), bateram no limite de
+sessão compartilhado entre Principal/Gestor/Auxiliar no meio do trabalho.
+
+**Já feito e no ar** (commit `b5b4cf1`): Cartões (Nova transferência),
+Despesas (Nova despesa fixa) e Veículo (despesa variável, despesa fixa,
+abastecimento) — os três com o padrão "Quanto?" + Descrição única.
+
+**Falta** (retomar depois do reset do limite, ~6h20 Lisboa):
+- Padronizar formulário: Calendário (novo evento), Parcelas, Planejamento
+  (fundo/contribuição, "Definir teto" em `OrcamentoCard.tsx`), TVDE.
+- Botões "+ Adicionar X" virarem ícone (nenhuma tela mexida ainda): Calendário,
+  Cartões, Despesas (×2), Veículo (×4), Parcelas, Planejamento, TVDE — sempre
+  dentro do corpo da página, nunca no cabeçalho (regra fixa, ver
+  `feedback_finapp_nada_no_cabecalho`).
+- "débito automático" da lista de Despesas Fixas: rewrap pra ícone compacto
+  (sugestão do Gabriel: "↻" perto do dia, ou selo no ícone da categoria) —
+  nem começado.
+
 ## Listas que ficaram SEM paginação (01/09/2026)
 
 **Contexto**: em 01/09 o Gabriel pediu paginação em Transações "e em qualquer
