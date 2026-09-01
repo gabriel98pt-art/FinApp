@@ -1,5 +1,9 @@
 # FinApp na App Store — plano de execução
 
+> **Actualizado a 01/09/2026** — etapas A e B fechadas e publicadas; etapa C
+> (Capacitor) **adiada por decisão do Gabriel, sem data**; as 4 decisões da secção 2
+> continuam todas em aberto.
+>
 > Escrito em 31/08/2026. Substitui o roadmap (secções 17 e 18) de
 > [`plano-mobile-capacitor.md`](./plano-mobile-capacitor.md), que continua válido
 > como **auditoria técnica** (o que existe no código, quais os riscos, que plugins
@@ -16,30 +20,31 @@
 
 ### Já feito (não é preciso repetir)
 
+- **Etapas A e B fechadas em 31/08** — ver detalhe na secção 3. O ecrã já respeita
+  o entalhe e a barra do sistema, o teclado já não tapa o "Salvar", os alvos de
+  toque pequenos passaram todos aos 44 pontos da Apple, e o manifest já tem os
+  ícones PNG (192/512/1024, com o 512 também em `maskable`) e as `screenshots`.
 - **App web maduro e estável**: React + Vite + Zustand + Firebase, 186 ficheiros
   de código, 85 ficheiros de teste, CI a passar.
 - **`theme-color` já acompanha o tema** (`useAplicarTema.ts`) — era o ponto 7.1 da
   auditoria, foi resolvido depois dela.
-- **Ícone já declarado como `maskable`** no manifest (`icon-v4.svg`,
-  `purpose: "any maskable"`) — falta só a versão em PNG.
 - **Cota de IA fechada também no servidor** (27/08) — era uma das dívidas apontadas
   para quando o Copiloto virasse funcionalidade paga.
-- **`env(safe-area-inset-*)` em uso**, `viewport-fit=cover` no HTML, `apple-touch-icon`
-  tratado, cache offline com estratégia por tipo de recurso.
 - **Trabalho pesado de UX móvel feito em 25–31/08**: nav colada à base, menu único de
   ações em todas as listas, Registro Rápido reorganizado, folhas (bottom sheets)
-  ajustadas.
+  ajustadas, Desfazer/Refazer fora do cabeçalho, criar conta ou cartão movido de
+  Cartões para Definições.
 
-### Ainda não existe (verificado no código a 31/08)
+### Ainda não existe (verificado no código a 01/09)
 
 | O que falta                                    | Onde se vê que não existe                      |
 | ---------------------------------------------- | ---------------------------------------------- |
-| Qualquer dependência `@capacitor/*`            | `package.json`                                 |
+| Qualquer dependência `@capacitor/*`            | `package.json` — etapa C adiada, ver secção 3  |
 | Pastas `domain/`, `entitlement/`, `platform/`  | `src/`                                         |
 | Nó `/billing/$uid` com `.write: false`         | `database.rules.json` (só existe `users/$uid`) |
 | Campo de plano/assinatura no modelo de dados   | `src/types/` — nenhuma referência a plano      |
-| Ícones PNG (192/512/1024) e `screenshots`      | `public/icons/` só tem SVG + apple-touch-icon  |
-| Conta Apple Developer, nome de loja, bundle id | em aberto (confirmado pelo Gestor)             |
+| Screenshots reais da App Store                 | as do manifest são de demonstração (etapa F)   |
+| Conta Apple Developer, nome de loja, bundle id | em aberto — nenhuma das 4 decisões foi tomada  |
 
 ---
 
@@ -108,33 +113,54 @@ Três saídas, por ordem de recomendação:
 Estimativas em **sessões de trabalho** (uma sessão ≈ 2–3 h de trabalho de um agente
 com revisão do Gabriel pelo meio) e em tempo de calendário.
 
-### Etapa A — Preparar o ecrã para telemóvel a sério
+### ✅ Etapa A — Preparar o ecrã para telemóvel a sério
 
-**2 sessões · 1–2 dias · pode começar agora**
+**FEITA em 31/08/2026**
 Equipa: Acessibilidade + Design & Cor
 
-1. Varrer **todas** as telas com cabeçalho ou rodapé fixo à procura de conteúdo
-   colado ao notch / à barra inferior (hoje só 4 ficheiros usam `safe-area-inset`).
-2. Testar o teclado virtual a tapar campos nas folhas com formulário (o botão
-   "Salvar" do Registro Rápido é o caso mais provável).
-3. Confirmar que nenhum botão ou ícone tem área de toque abaixo de 44×44 pt
-   (mínimo da Apple).
+1. ✅ O cabeçalho, a barra lateral e as barras inferiores passaram a reservar a
+   faixa do sistema — o cabeçalho deixou de ficar por baixo do relógio e da
+   bateria do iPhone. Antes só três ficheiros tratavam disso, e nenhum era o
+   cabeçalho.
+2. ✅ O teclado do telemóvel deixou de tapar o botão "Salvar".
+3. ✅ Alvos de toque de 44 pontos nos botões pequenos: os ícones do cabeçalho
+   (tinham 31 pontos) e as pílulas de gerir do Veículo e dos Cartões, onde dois
+   ou três iconezinhos de ~26 pontos deram lugar a um só menu "⋯".
 
-**Pronto quando**: as três varreduras estão feitas e as correções commitadas.
+**Ficou também desta etapa** (não estava no plano, apareceu ao resolver o espaço
+do cabeçalho): Desfazer/Refazer saíram do cabeçalho para o menu "Mais" no
+telemóvel e para o fim da barra lateral no computador; a marca "FinApp" some do
+cabeçalho só em ecrãs de 320 pontos ou menos.
 
-### Etapa B — Fechar o manifest e os ícones
+**Uma tentativa revertida**: pôr um "+" por página no cabeçalho, no lugar dos
+botões "Adicionar X" espalhados pelas telas, foi feita e desfeita no mesmo dia —
+nada de novo entra no cabeçalho sem pedido do Gabriel, mesmo que resolva um
+problema real de espaço.
 
-**1 sessão · meio dia · pode começar agora**
+### ✅ Etapa B — Fechar o manifest e os ícones
+
+**FEITA em 31/08/2026**
 Equipa: Performance & PWA + Design & Cor
 
-1. Gerar PNG do ícone em 192, 512 e 1024 px a partir do `icon-v4.svg`
-   (o 1024 é obrigatório para a App Store).
-2. Acrescentar `screenshots` ao manifest.
-3. Preparar o ecrã de arranque (splash) com o fundo certo em tema claro e escuro.
+1. ✅ Ícone em PNG nos 192, 512 e 1024 px, gerados do `icon-v4.svg`; o 512 entra
+   duas vezes no manifest, uma como `any` e outra como `maskable`.
+2. ✅ `screenshots` no manifest (dois de telemóvel, um de computador).
+3. ⏸️ O ecrã de arranque (splash) por tema **ficou de fora de propósito** na app
+   web: o Safari obriga a declarar um ficheiro por tamanho de ecrã, o que dava 20+
+   imagens e uma regra de build complicada para pouco ganho. O splash claro/escuro
+   entra na app nativa, quando a etapa C arrancar.
 
-**Pronto quando**: `PENDENCIAS.md` deixa de ter a linha do ícone maskable.
+**Duas coisas ficaram anotadas em `PENDENCIAS.md`**: as screenshots do manifest
+usam dados de demonstração (as reais da loja fazem-se na etapa F, nos tamanhos que
+a Apple exige) e os ícones antigos (v2/v3) continuam em `public/` de propósito,
+para não partir o cache de quem já tem o app instalado.
 
-### Etapa C — Empacotar com Capacitor
+### ⏸️ Etapa C — Empacotar com Capacitor
+
+**ADIADA por decisão do Gabriel, sem data marcada.** Nada foi instalado, o Xcode
+não foi tocado, e o resto desta secção continua válido para quando for retomada.
+A única coisa adiantada: a skill `webapp-to-capacitor` (Cap-go) foi verificada
+como legítima, mas **não** foi instalada.
 
 **4 sessões · 1 semana · a etapa de maior risco**
 Equipa: Migração Nativa (nova, ver secção 4) + Segurança
@@ -205,7 +231,9 @@ recusam apps:
    Definições, falta confirmar que o texto e o fluxo servem para a revisão.
 4. **Política de privacidade e termos publicados** num link acessível.
 5. **Screenshots por tamanho de ecrã** e metadata (nome, subtítulo, categoria
-   Finanças, palavras-chave).
+   Finanças, palavras-chave). As que estão hoje no manifest são de demonstração e
+   servem só para validar a estrutura — as da loja têm tamanhos próprios
+   (540×720, 1170×2532, etc.) e capturam-se aqui, com dados reais.
 
 **Pronto quando**: estado "Ready for Sale" na App Store Connect.
 
@@ -238,20 +266,20 @@ Play Console (25 USD, pagamento único).
 A tabela viva está em [`EQUIPES_AUDITORIA.md`](./EQUIPES_AUDITORIA.md). Para este
 plano há **uma equipa nova** e mudanças de âmbito em duas existentes:
 
-| Equipa                       | Skills                                                    | Etapas     |
-| ---------------------------- | --------------------------------------------------------- | ---------- |
-| **Migração Nativa** _(nova)_ | `apple-design`, `pwa-expert` + skill de Capacitor (falta) | C, D, E, F |
-| Acessibilidade               | `fixing-accessibility`                                    | A          |
-| Design & Cor                 | `apple-design`, `color-expert`                            | A, B       |
-| Performance & PWA            | `pwa-expert`, `web-perf`                                  | B, F       |
-| Conversão/Comercial          | `webapp-paywall-implementation`, `dark-pattern-audit`     | F, G       |
-| Segurança                    | `supply-chain-risk-auditor`                               | C, D, G    |
-| Testes/QA                    | `vitest`, agente `finapp-visual-qa`                       | todas      |
+| Equipa                       | Skills                                                             | Etapas     |
+| ---------------------------- | ------------------------------------------------------------------ | ---------- |
+| **Migração Nativa** _(nova)_ | `apple-design`, `pwa-expert`, `webapp-to-capacitor` (por instalar) | C, D, E, F |
+| Acessibilidade               | `fixing-accessibility`                                             | A          |
+| Design & Cor                 | `apple-design`, `color-expert`                                     | A, B       |
+| Performance & PWA            | `pwa-expert`, `web-perf`                                           | B, F       |
+| Conversão/Comercial          | `webapp-paywall-implementation`, `dark-pattern-audit`              | F, G       |
+| Segurança                    | `supply-chain-risk-auditor`                                        | C, D, G    |
+| Testes/QA                    | `vitest`, agente `finapp-visual-qa`                                | todas      |
 
-**Falta instalar**: uma skill de Capacitor/Ionic. O "FinApp Skill Scout" (rotina
-diária) já cruzou um candidato no repositório `majiayu000/claude-skill-registry`,
-ainda **por verificar** — mesma checagem de legitimidade que se fez às outras antes
-de instalar. Isto é a primeira tarefa da equipa Migração Nativa.
+**Skill de Capacitor — verificada, por instalar (01/09)**: a candidata é a
+`webapp-to-capacitor`, da Cap-go, e já passou a checagem de legitimidade. Não foi
+instalada porque a etapa C está adiada; instala-se no dia em que a etapa arrancar,
+e é aí que a equipa Migração Nativa passa a existir de facto.
 
 ---
 
@@ -283,8 +311,9 @@ de instalar. Isto é a primeira tarefa da equipa Migração Nativa.
 | Play Console (etapa H)      | 25 USD, uma vez                 |
 | **Para chegar à App Store** | **≈ €92**                       |
 
-Tempo total realista até "Ready for Sale", sem contar a etapa G: **13 sessões de
-trabalho, 4 a 6 semanas de calendário** com o ritmo actual do projecto.
+Tempo total realista até "Ready for Sale", sem contar a etapa G: eram **13 sessões
+de trabalho**; com as etapas A e B fechadas, **faltam 10** — 3 a 5 semanas de
+calendário a partir do dia em que a etapa C for retomada.
 
 ---
 
