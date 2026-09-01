@@ -79,9 +79,20 @@ function mesesComMovimento(ctx: ContextoCopiloto): YearMonth[] {
     ...ctx.veiculo.despesas.map((d) => d.data),
   ];
   const meses = datas.map((d) => d.slice(0, 7));
-  // Fixas e parcelas não têm data única: contribuem por plano, mês a mês.
-  // Cobri-las exige varrer desde o primeiro movimento até hoje de qualquer
-  // forma, que é o que o intervalo abaixo faz.
+  // Fixas e parcelas não têm data única: contribuem por plano, mês a mês, e o
+  // início dessa contribuição pode vir de ANTES do primeiro lançamento solto
+  // (ex.: uma renda lançada desde janeiro numa conta cujo primeiro registro
+  // avulso só aparece em março). Sem entrar aqui também, o intervalo abaixo
+  // começava tarde demais e os meses que ficavam de fora nunca tinham a
+  // contribuição da fixa/parcela descontada do saldo acumulado — o mesmo furo
+  // que `primeiroMesComDespesa` (utils/resumoMensal.ts) já existe para evitar.
+  // Parcela sempre tem `primeiroMes`; fixa sem `inicio` fica de fora de
+  // propósito — sem essa data não há um mês certo de onde partir a soma
+  // (mesma regra de `mesesPagosComoAutoDebit`, utils/fatura.ts).
+  meses.push(...ctx.parcelas.map((p) => p.primeiroMes));
+  for (const f of [...ctx.despesasFixas, ...ctx.veiculo.despesasFixas]) {
+    if (f.inicio) meses.push(f.inicio);
+  }
   const primeiro = meses.length ? meses.reduce((a, m) => (m < a ? m : a)) : ctx.mesReal;
   const ultimo = ctx.mesReal;
 

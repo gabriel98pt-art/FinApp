@@ -5,7 +5,7 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 499 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 500 mudanças registadas.
 
 ---
 
@@ -130,6 +130,11 @@ Período coberto: 23/07/2026 a 01/09/2026 — 499 mudanças registadas.
   uma tela de conferência, onde esconder linhas atrás de páginas é justamente
   como se importa sem ter visto tudo. O porquê de cada uma ficou escrito no
   PENDENCIAS.md.
+- Corrigido no Copiloto: quando uma despesa fixa (ex. renda) vinha sendo
+  descontada desde antes de qualquer outro lançamento na conta, os meses só
+  dela ficavam de fora da soma que dá "quanto tenho disponível" — o Copiloto
+  respondia com um saldo maior do que o real. Agora esses meses entram na
+  conta também.
 
 ---
 

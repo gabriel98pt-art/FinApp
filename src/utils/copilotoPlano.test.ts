@@ -196,6 +196,27 @@ describe("buildFinanceSnapshot", () => {
     expect(s.saldoDoMes).toBe(70000);
   });
 
+  test("uma fixa mais antiga que o primeiro lançamento solto ainda entra no acumulado", () => {
+    // A fixa começa em janeiro (ver o helper `fixa`), mas o único lançamento
+    // avulso é de junho — sem olhar para `inicio` da fixa, o acumulado
+    // começava a somar só em junho e os meses de janeiro a maio, em que a
+    // renda também saiu, nunca eram descontados.
+    const s = buildFinanceSnapshot(
+      ctx({
+        receitas: [receita("2026-06-01", 200000)],
+        despesasFixas: [fixa(50000, 5)],
+      }),
+    );
+
+    // 200.000 de receita − 6 meses fechados de renda (janeiro a junho) de
+    // 50.000. Julho (mês corrente) não entra: a fixa do helper não tem
+    // `autoDebit`/`contaCartao` nem está marcada em `pagoPorMes`, então
+    // `fixaEfetivamentePaga` ainda não a considera paga — o mesmo
+    // comportamento de sempre para o mês em curso, sem relação com o bug
+    // corrigido aqui (que é só sobre onde o intervalo COMEÇA).
+    expect(s.saldoDisponivel).toBe(200000 - 6 * 50000);
+  });
+
   test("a janela de 30 dias atravessa a virada do mês", () => {
     // Fixa que vence no dia 5 de agosto, estando hoje a 15 de julho: está
     // dentro dos 30 dias e tem de aparecer. Olhar só para o mês corrente
