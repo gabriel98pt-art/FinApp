@@ -21,6 +21,7 @@ Despesas (Nova despesa fixa) e Veículo (despesa variável, despesa fixa,
 abastecimento) — os três com o padrão "Quanto?" + Descrição única.
 
 **Falta** (retomar depois do reset do limite, ~6h20 Lisboa):
+
 - Padronizar formulário: Calendário (novo evento), Parcelas, Planejamento
   (fundo/contribuição, "Definir teto" em `OrcamentoCard.tsx`), TVDE.
 - Botões "+ Adicionar X" virarem ícone (nenhuma tela mexida ainda): Calendário,

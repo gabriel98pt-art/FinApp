@@ -4,7 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
-import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import { criarEvento, removerEvento } from "../services/eventosService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
@@ -66,9 +66,13 @@ export default function Calendario() {
   const mes = useMesVisivelStore((s) => s.mes);
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
+  // Um só campo de texto livre (01/09/2026): a folha tinha "Título" e "Nota
+  // (opcional)", dois campos para a mesma coisa — e ninguém sabia em qual
+  // escrever "Dentista às 15h". Segue o Registro Rápido, Cartões e Despesas,
+  // que já unificaram Nome + Nota num "Descrição" único (item 4 do lote de
+  // UX/nav, 30/08). O que se escreve aqui é o título do evento.
   const [titulo, setTitulo] = useState("");
   const [dataNovo, setDataNovo] = useState(hojeIso());
-  const [nota, setNota] = useState("");
   const [valorTexto, setValorTexto] = useState<Cents | null>(null);
 
   // Trocar de mês no topo fecha o detalhe do dia — senão a folha continua
@@ -182,7 +186,6 @@ export default function Calendario() {
    *  agosto muito depois de se ter saído desse dia. */
   function abrirNovoEvento(data: string = hoje) {
     setTitulo("");
-    setNota("");
     setValorTexto(null);
     setDataNovo(data);
     setNovoAberto(true);
@@ -190,15 +193,14 @@ export default function Calendario() {
 
   async function salvarEvento(e: FormEvent) {
     e.preventDefault();
-    if (!titulo.trim()) return mostrarToast("Título obrigatório.");
+    if (!titulo.trim()) return mostrarToast("Descrição obrigatória.");
     // Campo opcional: vazio grava sem valor, como sempre.
     const valor = valorTexto ?? undefined;
     try {
-      await criarEvento(uid, { titulo, data: dataNovo, descricao: nota || undefined, valor });
+      await criarEvento(uid, { titulo, data: dataNovo, valor });
       mostrarToast("✓ Evento adicionado");
       setNovoAberto(false);
       setTitulo("");
-      setNota("");
       setValorTexto(null);
     } catch {
       mostrarToast("Não foi possível salvar.");
@@ -409,9 +411,22 @@ export default function Calendario() {
 
       <BottomSheet aberta={novoAberto} aoFechar={() => setNovoAberto(false)} titulo="Novo evento">
         <form className={styles.form} onSubmit={salvarEvento}>
+          {/* Valor em destaque e em primeiro, como no Registro Rápido e nas
+              outras folhas do app (CampoValorDestaque). Aqui é opcional — um
+              evento pode ser só um lembrete —, e o rótulo diz isso. */}
+          <CampoValorDestaque
+            rotulo="Quanto? (opcional)"
+            valor={valorTexto}
+            aoMudar={setValorTexto}
+          />
           <label className={styles.campo}>
-            Título
-            <input value={titulo} onChange={(e) => setTitulo(e.target.value)} required />
+            Descrição
+            <input
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+              maxLength={120}
+            />
           </label>
           <label className={styles.campo}>
             Data
@@ -421,14 +436,6 @@ export default function Calendario() {
               onChange={(e) => setDataNovo(e.target.value)}
               required
             />
-          </label>
-          <label className={styles.campo}>
-            Valor (opcional)
-            <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} />
-          </label>
-          <label className={styles.campo}>
-            Nota (opcional)
-            <input value={nota} onChange={(e) => setNota(e.target.value)} />
           </label>
           <Botao type="submit" variante="submeter">
             Adicionar evento
