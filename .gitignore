@@ -22,3 +22,10 @@ SPEC_REESCRITA_COMPLETA.md
 # — e com caminhos absolutos desta máquina lá dentro, que não servem a mais
 # ninguém.
 graphify-out/
+
+# Config de agente do Codex CLI (ferramenta local, não faz parte da app) e
+# screenshots de QA visual manual — entraram no repo por engano num commit de
+# 01/09/2026 (outro agente rodando em paralelo), nunca deviam ter sido
+# versionados.
+.codex/
+.qa-screenshots/
