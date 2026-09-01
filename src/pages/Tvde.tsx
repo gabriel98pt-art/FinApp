@@ -7,6 +7,8 @@ import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
+import Paginador from "../components/Paginador";
+import { ITENS_POR_PAGINA } from "../components/ListaLancamentos";
 import {
   criarDespesaTvde,
   definirSegMes,
@@ -295,6 +297,7 @@ export default function Tvde() {
   const fontesReceita = useCfgStore((s) => s.cfg.fontesReceita);
 
   const [editando, setEditando] = useState<number | null>(null);
+  const [paginaSemanas, setPaginaSemanas] = useState(1);
   const [aba, setAba] = useState<AbaTvde>("semanas");
   const { propsLista, propsAba } = useAbasTeclado({
     abas: ABAS.map(([id]) => id),
@@ -309,6 +312,19 @@ export default function Tvde() {
 
   const { cfg, semanas, segPorMes, lancamentos, despesas } = dados;
   const numeros = numerosDasSemanas(semanas);
+
+  // A lista de semanas é a única do app que não está presa a um mês: guarda
+  // TODAS as semanas já registadas, uma por semana do ano. Ao fim do primeiro
+  // ano são 52 cartões grandes seguidos, e a semana passada — a que se abre
+  // mais — fica atrás de uma rolagem cada vez maior. Em páginas de 15, como
+  // as listas de lançamentos, a mais recente está sempre à vista.
+  const semanasDesc = [...numeros].reverse();
+  const paginasSemanas = Math.ceil(semanasDesc.length / ITENS_POR_PAGINA) || 1;
+  const paginaSemanasAtual = Math.min(paginaSemanas, paginasSemanas);
+  const semanasVisiveis = semanasDesc.slice(
+    (paginaSemanasAtual - 1) * ITENS_POR_PAGINA,
+    paginaSemanasAtual * ITENS_POR_PAGINA,
+  );
   const t = totaisPerformance(semanas, segPorMes, cfg.inicioSemana1, cfg.pctFrota);
   const meses = dadosPorMes(semanas, segPorMes, cfg.inicioSemana1, cfg.pctFrota);
   const periodos = dadosPorPeriodo(semanas, cfg.pctFrota);
@@ -431,7 +447,7 @@ export default function Tvde() {
               />
             ) : (
               <div className={styles.lista}>
-                {[...numeros].reverse().map((nSem) => {
+                {semanasVisiveis.map((nSem) => {
                   const w = semanas[String(nSem)];
                   const c = calcularSemana(w, cfg.pctFrota);
                   const lancada = lancamentos[String(nSem)];
@@ -470,6 +486,13 @@ export default function Tvde() {
                   );
                 })}
               </div>
+            )}
+            {numeros.length > 0 && (
+              <Paginador
+                pagina={paginaSemanasAtual}
+                paginas={paginasSemanas}
+                aoMudar={setPaginaSemanas}
+              />
             )}
             <p className={styles.notaEur}>
               Valores sempre em EUR — este módulo não segue a moeda da conta.

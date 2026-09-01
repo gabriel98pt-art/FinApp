@@ -49,11 +49,6 @@ Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
 - Por baixo, o par de botões "Mês / Semana" virou uma peça só, reaproveitável,
   em vez de mais uma cópia do mesmo desenho. Despesas e Veículo continuam com
   a versão antiga deles até serem passados para a nova numa mudança à parte.
-
----
-
-## 01/09/2026
-
 - Nas listas de lançamentos (Despesas, Receitas, Parcelas), a linha de baixo
   de cada item passou a começar pela data: era "Alimentação · 05/08", agora é
   "05/08 · Alimentação". A razão é simples: numa lista já ordenada por data, é
@@ -64,6 +59,28 @@ Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
   km e o resumo do mês), que tinham o mesmo formato com a data no fim.
 - As telas de Transações e Calendário já mostravam a data primeiro — agora o
   app inteiro segue a mesma ordem.
+- Transações passou a mostrar o extrato em páginas de 15, com as setas ‹ › no
+  fim, iguais às de Despesas e Receitas. Era a lista maior do app a desenhar
+  tudo de uma vez: junta seis tipos de movimento do mês (receitas, despesas,
+  fixas, parcelas, transferências e o veículo), então num mês normal passava
+  fácil das cem linhas para rolar.
+- Mudar de mês ou de filtro volta à página 1 — sem isso, filtrar estando na
+  página 5 deixava à vista um pedaço do meio de uma lista que nunca se viu
+  começar.
+- Os KPIs de cima e o "N transações" do cabeçalho continuam a contar o mês
+  inteiro, não só a página aberta.
+- A lista de semanas do TVDE também passou a ter páginas de 15. É a única
+  lista do app que não está presa a um mês: guarda todas as semanas já
+  registadas, uma por semana do ano — ao fim do primeiro ano são 52 cartões
+  seguidos, com a semana passada (a que mais se abre) cada vez mais longe.
+- As restantes listas foram auditadas uma a uma e ficaram sem paginação de
+  propósito, porque estão presas a um mês ou a uma semana e não crescem: as
+  transferências de Cartões, as duas do Calendário, as quatro do Veículo, as
+  tabelas de Meses e Períodos do TVDE e as listas de configuração de
+  Definições. A pré-visualização do Importar fica de fora por outro motivo: é
+  uma tela de conferência, onde esconder linhas atrás de páginas é justamente
+  como se importa sem ter visto tudo. O porquê de cada uma ficou escrito no
+  PENDENCIAS.md.
 
 ---
 

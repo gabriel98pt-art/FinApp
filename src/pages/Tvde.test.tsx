@@ -155,3 +155,52 @@ describe("menu de ações da semana (item 2)", () => {
     expect(screen.queryByRole("button", { name: "Lançar receita" })).not.toBeInTheDocument();
   });
 });
+
+// 01/09: a lista de semanas é a única do app que não está presa a um mês —
+// guarda TODAS as semanas já registadas, uma por semana do ano. Ao fim do
+// primeiro ano são 52 cartões grandes seguidos e a semana passada, a que mais
+// se abre, fica atrás de uma rolagem cada vez maior.
+describe("paginação das semanas (01/09)", () => {
+  /** `n` semanas registadas, numeradas de 1 a n. */
+  const comSemanas = (n: number) =>
+    ({
+      ...vazio(),
+      semanas: Object.fromEntries(
+        Array.from({ length: n }, (_, i) => [String(i + 1), { fat: 100000, teste: false }]),
+      ),
+    }) as unknown as DadosTvde;
+
+  /** Os cartões de semana à vista agora — o rótulo é "Semana N · <datas>". */
+  const semanasNaTela = () => screen.getAllByRole("button", { name: /^Semana \d+ ·/ });
+
+  test("com 15 semanas ou menos, nada de paginador", () => {
+    dados = comSemanas(15);
+    render(<Tvde />);
+
+    expect(semanasNaTela()).toHaveLength(15);
+    expect(screen.queryByRole("button", { name: "Página seguinte" })).toBeNull();
+  });
+
+  test("com mais de 15, mostra 15 e as mais recentes vêm primeiro", () => {
+    dados = comSemanas(20);
+    render(<Tvde />);
+
+    expect(semanasNaTela()).toHaveLength(15);
+    // A lista é do mais recente para o mais antigo: a 20 abre a página 1 e a
+    // 5 já caiu para a seguinte.
+    expect(screen.getByRole("button", { name: /^Semana 20 ·/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Semana 5 ·/ })).toBeNull();
+    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+  });
+
+  test("a página seguinte mostra as semanas mais antigas", async () => {
+    dados = comSemanas(20);
+    render(<Tvde />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Página seguinte" }));
+
+    expect(semanasNaTela()).toHaveLength(5);
+    expect(screen.getByRole("button", { name: /^Semana 5 ·/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Semana 20 ·/ })).toBeNull();
+  });
+});

@@ -9,6 +9,81 @@ Entrada mais recente no topo.
 
 ---
 
+## Listas que ficaram SEM paginação (01/09/2026)
+
+**Contexto**: em 01/09 o Gabriel pediu paginação em Transações "e em qualquer
+outra lista do app que não tenha". Foram auditadas todas as listas. Ganharam
+paginação: **Transações** (o extrato do mês) e **TVDE → Semanas**. As de baixo
+ficaram de fora, cada uma pelo seu motivo. Nenhuma é "esqueci" — todas foram
+olhadas e decididas.
+
+O critério foi um só: **a lista pode crescer sem limite claro e passar das 15
+linhas num uso normal?** Se não pode, paginar só acrescenta um controlo a mais
+para não fazer nada.
+
+### Cartões → Transferências entre contas — **não paginada**
+
+Mostra só as transferências do mês exibido. Mover dinheiro entre contas
+próprias é coisa de duas ou três vezes por mês; chegar a 15 num mês só seria
+excecional. **Segundo motivo, mais imediato**: a tela de Cartões estava a ser
+reestruturada em paralelo no mesmo dia (a secção "Cartões e contas"), e mexer
+lá agora só criava conflito. **Se um dia mudar**: é o mesmo padrão de
+Transações, mais ou menos 15 linhas de código.
+
+### Calendário → Próximos 7 dias e a folha de um dia — **não paginadas**
+
+A primeira é, por definição, uma janela de sete dias; a segunda é o que cai
+num único dia. As duas são pequenas por desenho, não por acaso — o limite está
+no calendário, não na quantidade de dados. Paginar aqui era pôr setas numa
+lista que raramente passa de meia dúzia de linhas.
+
+### Veículo → abastecimentos, despesas, fixas e km — **não paginadas**
+
+Todas presas ao mês exibido. Um mês de abastecimentos são 4 a 10 registos, as
+fixas do veículo são 2 ou 3. A de km é a que mais pode crescer (quem anota
+todos os dias chega aos 30), e é a primeira candidata **se o Gabriel disser
+que incomoda** — mas hoje não justifica.
+
+### Importar → pré-visualização do extrato — **não paginada, de propósito**
+
+Esta pode ter centenas de linhas, e mesmo assim fica sem paginação: é uma tela
+de conferência, onde se marca linha a linha o que entra e o que fica de fora
+antes de gravar. Espalhar isso por páginas é o cenário perfeito para alguém
+importar sem ter visto metade, ou perder marcações ao mudar de página. A tela
+já tem filtros por decisão (todas / importar / ignorar), que é a forma certa de
+encurtar a lista aqui.
+
+### TVDE → Meses e Períodos — **não paginadas**
+
+São tabelas compactas de uma linha de três números cada, uma por mês (12 por
+ano). Cinco anos de uso dão 60 linhas curtas — muito diferente dos cartões
+grandes da aba Semanas. Revisitar só se alguém usar o módulo por vários anos.
+
+### Definições → categorias, fontes, locais de abastecimento — **não paginadas**
+
+São listas de configuração que o próprio utilizador escreve. Quem tem 40
+categorias tem um problema de organização, não de paginação.
+
+---
+
+## Ordem "data · categoria": onde NÃO foi aplicada (01/09/2026)
+
+Na mesma tarefa, a linha de baixo dos itens de lista passou a começar pela
+data. Duas listas ficaram como estavam **porque não têm data nenhuma**:
+
+- **Despesas → Fixas**: a linha é "Saúde · ActivoBank · dia 1 · débito
+  automático". O "dia 1" não é uma data, é o dia de vencimento que se repete
+  todo mês — não há o que alinhar numa coluna, e pô-lo à frente empurrava para
+  segundo plano a categoria, que é o que identifica a linha.
+- **Parcelas**: mesma coisa, e ali a linha começa pelo valor total da compra,
+  que é o número âncora.
+
+**Se o Gabriel quiser na mesma**: é uma linha em cada ficheiro
+(`src/pages/Despesas.tsx` e `src/pages/Parcelas.tsx`), trocar a ordem dos
+pedaços do texto. Ficou por decidir, não por esquecimento.
+
+---
+
 ## Decisões pendentes (não bloqueiam nada)
 
 ### Splash por tema no PWA

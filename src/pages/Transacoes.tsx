@@ -8,7 +8,9 @@ import CategoriaBolha from "../components/CategoriaBolha";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import FiltroTransacoes from "../components/FiltroTransacoes";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
+import Paginador from "../components/Paginador";
 import SeletorCategoria from "../components/SeletorCategoria";
+import { ITENS_POR_PAGINA } from "../components/ListaLancamentos";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { criarDespesa, removerDespesa, removerReceita } from "../services/lancamentosService";
 import { removerCarga } from "../services/veiculoService";
@@ -118,6 +120,65 @@ function LinhaTransacao({
           acoes={acoes}
         />
       )}
+    </>
+  );
+}
+
+/** O extrato em páginas de 15 (01/09). Era a única lista grande do app que
+ *  ainda desenhava tudo de uma vez: junta seis domínios do mês (receitas,
+ *  despesas, fixas, parcelas, transferências e veículo), então num mês normal
+ *  passa fácil das cem linhas — e a pessoa tinha de rolar por todas para
+ *  chegar ao fim, com o telemóvel a montar cem linhas de cada vez que
+ *  qualquer coisa mudava.
+ *
+ *  Componente à parte, e não estado da página, por causa da `key`: quem o usa
+ *  troca a chave quando a lista muda de identidade (outro mês, outro filtro)
+ *  e isso reinicia a página em 1 — o mesmo truque que Despesas já faz com o
+ *  ListaLancamentos. Sem isso, filtrar estando na página 5 deixava à vista
+ *  uma fatia do meio de uma lista que a pessoa nunca viu começar. */
+function ExtratoPaginado({
+  itens,
+  moeda,
+  nomeDaConta,
+  aoEditar,
+  aoExcluir,
+  aoAbrirDetalhe,
+}: {
+  itens: Transacao[];
+  moeda: Currency;
+  nomeDaConta: (id: string) => string;
+  aoEditar: (t: Transacao) => void;
+  aoExcluir: (t: Transacao) => void;
+  aoAbrirDetalhe: (t: Transacao) => void;
+}) {
+  const [pagina, setPagina] = useState(1);
+
+  // Mesmo cálculo do ListaLancamentos, incluindo o `Math.min`: apagar linhas
+  // até a última página deixar de existir não pode deixar a tela em branco.
+  const paginas = Math.ceil(itens.length / ITENS_POR_PAGINA) || 1;
+  const paginaAtual = Math.min(pagina, paginas);
+  const visiveis = itens.slice(
+    (paginaAtual - 1) * ITENS_POR_PAGINA,
+    paginaAtual * ITENS_POR_PAGINA,
+  );
+
+  return (
+    <>
+      <div className={styles.lista}>
+        {visiveis.map((t) => (
+          <LinhaTransacao
+            key={t.chave}
+            t={t}
+            moeda={moeda}
+            nomeDaConta={nomeDaConta}
+            aoEditar={aoEditar}
+            aoExcluir={aoExcluir}
+            aoAbrirDetalhe={aoAbrirDetalhe}
+          />
+        ))}
+      </div>
+
+      <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />
     </>
   );
 }
@@ -327,19 +388,16 @@ export default function Transacoes() {
           sub="Tente outra categoria ou conta, ou limpe o filtro no ícone acima."
         />
       ) : (
-        <div className={styles.lista}>
-          {itensFiltrados.map((t) => (
-            <LinhaTransacao
-              key={t.chave}
-              t={t}
-              moeda={cfg.currency}
-              nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}
-              aoEditar={editar}
-              aoExcluir={(item) => void excluirTransacao(item)}
-              aoAbrirDetalhe={abrirDetalhe}
-            />
-          ))}
-        </div>
+        <ExtratoPaginado
+          /* key: trocar de mês ou de filtro é outra lista — volta pra página 1 */
+          key={`${mes}-${filtroCategoria}-${filtroConta}`}
+          itens={itensFiltrados}
+          moeda={cfg.currency}
+          nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}
+          aoEditar={editar}
+          aoExcluir={(item) => void excluirTransacao(item)}
+          aoAbrirDetalhe={abrirDetalhe}
+        />
       )}
 
       <BottomSheet

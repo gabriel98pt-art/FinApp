@@ -294,6 +294,75 @@ describe("menu de ações da linha (item 2)", () => {
   });
 });
 
+// 01/09: o extrato era a última lista grande do app a desenhar tudo de uma
+// vez. Junta seis domínios do mês, então cem linhas num mês normal é comum.
+describe("paginação do extrato (01/09)", () => {
+  /** N despesas do mesmo dia, "Compra 01", "Compra 02", …
+   *
+   *  Ids com zero à frente de propósito: no mesmo dia o extrato desempata
+   *  pelo id em ordem alfabética (`utils/transacoes.ts`), e sem o zero "d10"
+   *  vinha antes de "d2". Com o zero, a ordem na tela é a numérica. */
+  const compras = (n: number) =>
+    Array.from({ length: n }, (_, i) => {
+      const num = String(i + 1).padStart(2, "0");
+      return {
+        id: `d${num}`,
+        descricao: `Compra ${num}`,
+        valor: 1000 + i,
+        data: "2026-08-10",
+        categoria: i === 0 ? "Transporte" : "Alimentação",
+      } as DespesaCorrente;
+    });
+
+  test("com 15 ou menos, nada de paginador — não há o que navegar", () => {
+    despesas = lista(compras(15));
+    desenhar();
+
+    expect(screen.getByText("Compra 15")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Página seguinte" })).toBeNull();
+  });
+
+  test("com mais de 15, mostra as 15 primeiras e o paginador", () => {
+    despesas = lista(compras(20));
+    desenhar();
+
+    expect(screen.getByText("Compra 01")).toBeInTheDocument();
+    expect(screen.getByText("Compra 15")).toBeInTheDocument();
+    expect(screen.queryByText("Compra 16")).toBeNull();
+    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+    // A contagem do cabeçalho continua a ser do mês inteiro, não da página.
+    expect(screen.getByText("20 transações")).toBeInTheDocument();
+  });
+
+  test("a página seguinte mostra o resto", async () => {
+    despesas = lista(compras(20));
+    desenhar();
+
+    await userEvent.click(screen.getByRole("button", { name: "Página seguinte" }));
+
+    expect(screen.getByText("Compra 16")).toBeInTheDocument();
+    expect(screen.queryByText("Compra 01")).toBeNull();
+    expect(screen.getByText("2 / 2")).toBeInTheDocument();
+  });
+
+  test("filtrar volta à página 1 em vez de deixar a tela vazia", async () => {
+    // O defeito que a `key` evita: estando na página 2 e filtrando para uma
+    // categoria com uma linha só, a página 2 dessa lista não existe.
+    despesas = lista(compras(20));
+    desenhar();
+
+    await userEvent.click(screen.getByRole("button", { name: "Página seguinte" }));
+    expect(screen.getByText("2 / 2")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Filtrar/ }));
+    await userEvent.click(await screen.findByRole("radio", { name: /Transporte/ }));
+
+    // "Compra 01" é a única de Transporte — e tem de estar à vista.
+    expect(screen.getByText("Compra 01")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Página seguinte" })).toBeNull();
+  });
+});
+
 function receita(): Receita {
   return {
     id: "r1",
