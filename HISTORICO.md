@@ -5,11 +5,17 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 502 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 503 mudanças registadas.
 
 ---
 
 ## 01/09/2026
+
+- O gráfico "Despesas por categoria" do Início passou a contar pela mesma
+  regra que os KPIs "Despesas"/"Receitas" ao lado (fluxo de caixa, pela data
+  real). Antes os dois números da mesma tela discordavam: o KPI já mostrava a
+  parcela paga com atraso, o gráfico não — a categoria dela ficava vazia até o
+  mês seguinte, como se o dinheiro tivesse ido para lugar nenhum.
 
 - No Início, "Despesas" e "Receitas" passam a somar o que foi de fato pago no
   mês — pela data real de cada lançamento, não pelo mês a que a dívida se

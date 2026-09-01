@@ -8,11 +8,10 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
-import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
+import { rotuloMes } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
-import { despesaPorCategoriaMes, paradasDonut } from "../utils/despesaPorCategoria";
+import { despesaPorCategoriaRegistradaMes, paradasDonut } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import styles from "./DonutCategoriaCard.module.css";
 
@@ -36,7 +35,6 @@ export default function DonutCategoriaCard() {
   const navegar = useNavigate();
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
-  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const [aberta, setAberta] = useState(false);
   const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
@@ -44,18 +42,13 @@ export default function DonutCategoriaCard() {
 
   // Segue o seletor do header, como os KPIs ao lado — senão o donut ficaria
   // preso no mês de hoje enquanto o resto do Início mostra outro mês.
-  // `mesReal` continua no mês de hoje: é ele que decide se uma fixa/parcela
-  // do mês corrente só conta depois de marcada como paga.
+  //
+  // Fluxo de caixa (01/09/2026), mesma regra dos KPIs "Despesas"/"Receitas"
+  // ao lado — pela data real de cada lançamento, não pelo mês de vencimento
+  // do cronograma. Sem `mesReal`/`hoje`: cash-flow não tem "mês corrente
+  // ainda não fechado", só a data de cada coisa.
   const mes = useMesVisivelStore((s) => s.mes);
-  const fatias = despesaPorCategoriaMes(
-    despesas,
-    despesasFixas,
-    parcelas,
-    veiculo,
-    mes,
-    mesAtual(),
-    hojeIso(),
-  );
+  const fatias = despesaPorCategoriaRegistradaMes(despesas, despesasFixas, veiculo, mes);
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 

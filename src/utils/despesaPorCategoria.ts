@@ -16,7 +16,7 @@ import type {
 import { despesasNosTotais, doMes } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga } from "./fatura";
 import { estaEfetivamentePaga, mesesDaParcela, valorDaParcela } from "./parcelas";
-import { totalVeiculoMes } from "./veiculo";
+import { totalCargasMes, totalVeiculoMes } from "./veiculo";
 
 export interface FatiaCategoria {
   categoria: string;
@@ -86,6 +86,70 @@ export function despesaPorCategoriaMes(
     // 0% não desenha nada e uma negativa desenha ao contrário: em ambos os
     // casos entra lixo na legenda e o total do donut deixa de bater com a
     // soma das fatias visíveis.
+    .filter(([, valor]) => valor > 0)
+    .map(([categoria, valor]) => ({ categoria, valor, pct: 0 }))
+    .sort((a, b) => b.valor - a.valor);
+
+  const total = fatias.reduce((s, f) => s + f.valor, 0);
+  return fatias.map((f) => ({ ...f, pct: total > 0 ? Math.round((f.valor / total) * 100) : 0 }));
+}
+
+/** Mesmas fatias, mas em FLUXO DE CAIXA — pela data real de cada lançamento,
+ *  não pelo mês de vencimento do cronograma. Par de `despesaRegistradaMes`
+ *  (utils/resumoMensal.ts), só que com o detalhe por categoria; usada só no
+ *  donut do Início (item 01/09/2026), pra bater com o KPI "Despesas" da
+ *  mesma tela — antes os dois usavam regras diferentes na MESMA página: o
+ *  KPI já tinha virado fluxo de caixa, o donut continuava preso ao
+ *  cronograma, e uma parcela paga com atraso aparecia no total mas sumia da
+ *  categoria dela.
+ *
+ *  Mesma leitura de `despesaRegistradaMes` pras fixas sem lançamento-espelho
+ *  (dado de antes de 01/09/2026): caem no mês de vencimento, sem
+ *  aproximação nova. */
+export function despesaPorCategoriaRegistradaMes(
+  despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
+  veiculo: DadosVeiculo,
+  ym: YearMonth,
+): FatiaCategoria[] {
+  const porCategoria = new Map<string, Cents>();
+  const somar = (categoria: string, valor: Cents) => {
+    if (valor === 0) return;
+    porCategoria.set(categoria, (porCategoria.get(categoria) ?? 0) + valor);
+  };
+
+  // 'fat'/'recon' fora, como sempre; 'parc'/'fixa'/'reemb' ENTRAM — é a data
+  // real deles que decide o mês aqui, não o cronograma que os gerou.
+  const semDuplicar = (d: { origem?: string }) => d.origem !== "fat" && d.origem !== "recon";
+  for (const d of doMes(despesasCorrentes.filter(semDuplicar), ym)) {
+    somar(d.categoria, d.valor);
+  }
+
+  // Fixas gerais pagas neste mês SEM lançamento-espelho ainda (dado antigo):
+  // caem no mês de vencimento, mesmo fallback de `despesaRegistradaMes`.
+  for (const f of despesasFixas.filter((f) => f.pagoPorMes[ym] === true)) {
+    const temEspelho = despesasCorrentes.some(
+      (d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym,
+    );
+    if (!temEspelho) somar(f.categoria, f.valor);
+  }
+
+  // Veículo inteiro numa fatia sintética só, como despesaPorCategoriaMes já
+  // fazia — cargas contam sempre (sem estado pago/pendente); despesas e
+  // fixas seguem a mesma regra de cima, com o espelho em veiculo.despesas.
+  let veiculoTotal = totalCargasMes(veiculo, ym);
+  for (const d of doMes(veiculo.despesas.filter(semDuplicar), ym)) {
+    veiculoTotal += d.valor;
+  }
+  for (const f of veiculo.despesasFixas.filter((f) => f.pagoPorMes[ym] === true)) {
+    const temEspelho = veiculo.despesas.some(
+      (d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym,
+    );
+    if (!temEspelho) veiculoTotal += f.valor;
+  }
+  somar("Veículo", veiculoTotal);
+
+  const fatias = [...porCategoria.entries()]
     .filter(([, valor]) => valor > 0)
     .map(([categoria, valor]) => ({ categoria, valor, pct: 0 }))
     .sort((a, b) => b.valor - a.valor);

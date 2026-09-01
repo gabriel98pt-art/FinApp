@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Parcela } from "../types";
 import {
   despesaPorCategoriaMes,
+  despesaPorCategoriaRegistradaMes,
   maiorCategoriaRelevante,
   paradasDonut,
   totalDasFatias,
@@ -606,5 +607,147 @@ describe("despesaPorCategoriaMes — precisão de dia no mês corrente", () => {
       );
     expect(veiculoEm("2026-07-05")).toBeUndefined();
     expect(veiculoEm("2026-07-25")?.valor).toBe(8000);
+  });
+});
+
+// Bug relatado pelo Gabriel em 01/09/2026, depois de já ter o KPI "Despesas"
+// corrigido: o donut de categorias, NA MESMA TELA (Início), continuava preso
+// ao cronograma — uma parcela paga com atraso entrava no total mas sumia da
+// categoria dela. As duas contas da mesma página têm de bater.
+describe("despesaPorCategoriaRegistradaMes — fluxo de caixa, mesmo par do KPI", () => {
+  test("soma despesas correntes pela data real, por categoria", () => {
+    const despesas = [
+      corrente({ id: "d1", valor: 3000, categoria: "Alimentação", data: "2026-09-05" }),
+      corrente({ id: "d2", valor: 6000, categoria: "Lazer", data: "2026-09-06" }),
+    ];
+    const fatias = despesaPorCategoriaRegistradaMes(despesas, [], SEM_VEICULO, "2026-09");
+    expect(fatias.map((f) => [f.categoria, f.valor])).toEqual([
+      ["Lazer", 6000],
+      ["Alimentação", 3000],
+    ]);
+  });
+
+  test("'fat' e 'recon' ficam de fora", () => {
+    const despesas = [
+      corrente({ id: "d1", valor: 5000, categoria: "Cartão", origem: "fat", data: "2026-09-05" }),
+      corrente({ id: "d2", valor: 100, categoria: "Outros", origem: "recon", data: "2026-09-05" }),
+    ];
+    expect(despesaPorCategoriaRegistradaMes(despesas, [], SEM_VEICULO, "2026-09")).toEqual([]);
+  });
+
+  // O caso relatado: parcela do advogado, referente a Agosto, paga em
+  // Setembro. O espelho tem a data real; a categoria segue a data, não o
+  // `parcelaMes`.
+  test("parcela paga com atraso entra na categoria dela, no mês em que foi paga", () => {
+    const espelho = [
+      corrente({
+        id: "d1",
+        descricao: "Advogado",
+        valor: 30000,
+        categoria: "Parcelas",
+        data: "2026-09-01",
+        origem: "parc",
+        parcelaId: "p1",
+        parcelaMes: "2026-08",
+      }),
+    ];
+    expect(despesaPorCategoriaRegistradaMes(espelho, [], SEM_VEICULO, "2026-08")).toEqual([]);
+    expect(despesaPorCategoriaRegistradaMes(espelho, [], SEM_VEICULO, "2026-09")).toEqual([
+      { categoria: "Parcelas", valor: 30000, pct: 100 },
+    ]);
+  });
+
+  test("fixa paga sem espelho (dado antigo) cai na categoria, no mês de vencimento", () => {
+    const fixas = [fixa({ categoria: "Casa", valor: 45000, pagoPorMes: { "2026-06": true } })];
+    expect(despesaPorCategoriaRegistradaMes([], fixas, SEM_VEICULO, "2026-06")).toEqual([
+      { categoria: "Casa", valor: 45000, pct: 100 },
+    ]);
+    expect(despesaPorCategoriaRegistradaMes([], fixas, SEM_VEICULO, "2026-07")).toEqual([]);
+  });
+
+  test("fixa paga COM espelho conta na categoria, na data real do pagamento", () => {
+    const fixas = [
+      fixa({ id: "f1", categoria: "Casa", valor: 45000, pagoPorMes: { "2026-08": true } }),
+    ];
+    const espelho = [
+      corrente({
+        id: "d1",
+        categoria: "Casa",
+        valor: 45000,
+        data: "2026-09-02",
+        origem: "fixa",
+        fixaId: "f1",
+        fixaMes: "2026-08",
+      }),
+    ];
+    expect(despesaPorCategoriaRegistradaMes(espelho, fixas, SEM_VEICULO, "2026-08")).toEqual([]);
+    expect(despesaPorCategoriaRegistradaMes(espelho, fixas, SEM_VEICULO, "2026-09")).toEqual([
+      { categoria: "Casa", valor: 45000, pct: 100 },
+    ]);
+  });
+
+  // A recarga que o Gabriel lançou: carga do veículo, sempre "realizada" no
+  // dia em que é registada — sem gate de pago/pendente, ao contrário das
+  // fixas do veículo.
+  test("carga do veículo entra na fatia 'Veículo' na data dela, sempre", () => {
+    const veiculo: DadosVeiculo = {
+      cargas: [{ id: "c1", data: "2026-09-10", kwh: 40, precoKwh: 25, custo: 1000, local: "Casa" }],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    };
+    expect(despesaPorCategoriaRegistradaMes([], [], veiculo, "2026-09")).toEqual([
+      { categoria: "Veículo", valor: 1000, pct: 100 },
+    ]);
+  });
+
+  test("despesa fixa do veículo segue a mesma regra de espelho/sem-espelho, na fatia 'Veículo'", () => {
+    const semEspelho: DadosVeiculo = {
+      cargas: [],
+      despesas: [],
+      despesasFixas: [
+        {
+          id: "f1",
+          descricao: "Seguro",
+          valor: 8000,
+          categoria: "Veículo",
+          pagoPorMes: { "2026-06": true },
+        },
+      ],
+      quilometragem: [],
+    };
+    expect(despesaPorCategoriaRegistradaMes([], [], semEspelho, "2026-06")).toEqual([
+      { categoria: "Veículo", valor: 8000, pct: 100 },
+    ]);
+
+    const comEspelho: DadosVeiculo = {
+      cargas: [],
+      despesas: [
+        {
+          id: "vd1",
+          descricao: "Seguro",
+          valor: 8000,
+          data: "2026-07-03",
+          categoria: "Veículo",
+          origem: "fixa",
+          fixaId: "f1",
+          fixaMes: "2026-06",
+        },
+      ],
+      despesasFixas: [
+        {
+          id: "f1",
+          descricao: "Seguro",
+          valor: 8000,
+          categoria: "Veículo",
+          pagoPorMes: { "2026-06": true },
+        },
+      ],
+      quilometragem: [],
+    };
+    expect(despesaPorCategoriaRegistradaMes([], [], comEspelho, "2026-06")).toEqual([]);
+    expect(despesaPorCategoriaRegistradaMes([], [], comEspelho, "2026-07")).toEqual([
+      { categoria: "Veículo", valor: 8000, pct: 100 },
+    ]);
   });
 });
