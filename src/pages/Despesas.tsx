@@ -7,6 +7,7 @@ import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import CampoValorDestaque from "../components/CampoValorDestaque";
+import ItemComMenu from "../components/ItemComMenu";
 import ListaLancamentos from "../components/ListaLancamentos";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -331,6 +332,14 @@ export default function Despesas() {
     await agir(() => removerDespesaFixa(uid, atual.id), "Despesa fixa excluída");
   }
 
+  // Excluir direto do menu da linha (02/09/2026) — não depende da folha de
+  // edição estar aberta, ao contrário de `excluirFixa` acima (essa continua
+  // a servir o botão "Excluir" de DENTRO da folha).
+  async function excluirFixaDaLista(f: DespesaFixa) {
+    if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
+    await agir(() => removerDespesaFixa(uid, f.id), "Despesa fixa excluída");
+  }
+
   return (
     <Pagina titulo="Despesas">
       {/* Fora das abas: os três já contam fixas, parcelas e veículo (ver o
@@ -570,65 +579,66 @@ export default function Despesas() {
                   // o selo, aqui, também some como ação (ver `!f.autoDebit`
                   // abaixo), igual ao "Pagar" some numa parcela autoDebit.
                   const paga = fixaEfetivamentePaga(f, mes, mesAtual(), hojeIso());
-                  return (
-                    <div key={f.id} className={styles.item}>
-                      {/* Linha inteira abre a caixa de edição (item 7); só o
-                            selo Pago/Pendente continua com ação própria. */}
-                      <button className={styles.itemCorpo} onClick={() => abrirEdicaoFixa(f)}>
-                        <span className={styles.itemTexto}>
-                          <span className={styles.itemNome}>{f.descricao}</span>
-                          <span className={styles.itemDetalhe}>
-                            {f.categoria}
-                            {f.nota ? ` · ${f.nota}` : ""}
-                            {f.contaCartao ? ` · ${nomeAtualDoMetodo(cfg, f.contaCartao)}` : ""}
-                            {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
-                            {/* Um ↻ colado ao "dia N", em vez das duas palavras
-                                por extenso que partiam a linha (01/09/2026). O
-                                RotateCw e não o Repeat de cima: o Repeat marca
-                                "isto repete-se todo mês", que é o que TODA fixa
-                                faz — aqui o que se diz é outra coisa, que esta
-                                se paga sozinha. */}
-                            {f.autoDebit && (
-                              <span
-                                className={styles.marcaAutoDebit}
-                                role="img"
-                                aria-label="débito automático"
-                                title="Débito automático"
-                              >
-                                <RotateCw size={12} aria-hidden />
-                              </span>
-                            )}
-                          </span>
-                        </span>
-                        <span className={styles.itemValor}>{formatMoney(f.valor, moeda)}</span>
-                      </button>
-                      {f.autoDebit ? (
+                  const detalhe = (
+                    <>
+                      {f.categoria}
+                      {f.nota ? ` · ${f.nota}` : ""}
+                      {f.contaCartao ? ` · ${nomeAtualDoMetodo(cfg, f.contaCartao)}` : ""}
+                      {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                      {/* Um ↻ colado ao "dia N", em vez das duas palavras por
+                          extenso que partiam a linha (01/09/2026). O RotateCw e
+                          não o Repeat de cima: o Repeat marca "isto repete-se
+                          todo mês", que é o que TODA fixa faz — aqui o que se
+                          diz é outra coisa, que esta se paga sozinha. */}
+                      {f.autoDebit && (
                         <span
-                          className={`${styles.badgeToggle} ${styles.badgeAuto} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          className={styles.marcaAutoDebit}
+                          role="img"
+                          aria-label="débito automático"
+                          title="Débito automático"
                         >
-                          {paga ? "Pago" : "Pendente"}
+                          <RotateCw size={12} aria-hidden />
                         </span>
-                      ) : (
-                        <button
-                          className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
-                          // Sem nome próprio, uma lista de oito fixas dava oito
-                          // botões chamados "Pago"/"Pendente" e nada dizia a
-                          // qual despesa cada um pertencia — o nome da fixa está
-                          // no botão ao lado, que é outro elemento. O
-                          // aria-pressed dá o estado; o rótulo diz de quem é.
-                          aria-pressed={paga}
-                          aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
-                          onClick={() =>
-                            void agir(
-                              () => alternarPagoDespesaFixa(uid, f, mes, !paga, itens),
-                              paga ? "Marcado como pendente" : "✓ Pago",
-                            )
-                          }
-                        >
-                          {paga ? "Pago" : "Pendente"}
-                        </button>
                       )}
-                    </div>
+                    </>
+                  );
+                  return (
+                    <ItemComMenu
+                      key={f.id}
+                      nome={f.descricao}
+                      detalhe={detalhe}
+                      valor={formatMoney(f.valor, moeda)}
+                      aoEditar={() => abrirEdicaoFixa(f)}
+                      aoExcluir={() => void excluirFixaDaLista(f)}
+                      extra={
+                        f.autoDebit ? (
+                          <span
+                            className={`${styles.badgeToggle} ${styles.badgeAuto} ${paga ? styles.badgePago : styles.badgePendente}`}
+                          >
+                            {paga ? "Pago" : "Pendente"}
+                          </span>
+                        ) : (
+                          <button
+                            className={`${styles.badgeToggle} ${paga ? styles.badgePago : styles.badgePendente}`}
+                            // Sem nome próprio, uma lista de oito fixas dava oito
+                            // botões chamados "Pago"/"Pendente" e nada dizia a
+                            // qual despesa cada um pertencia — o nome da fixa está
+                            // no botão ao lado, que é outro elemento. O
+                            // aria-pressed dá o estado; o rótulo diz de quem é.
+                            aria-pressed={paga}
+                            aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
+                            onClick={() =>
+                              void agir(
+                                () => alternarPagoDespesaFixa(uid, f, mes, !paga, itens),
+                                paga ? "Marcado como pendente" : "✓ Pago",
+                              )
+                            }
+                          >
+                            {paga ? "Pago" : "Pendente"}
+                          </button>
+                        )
+                      }
+                    />
                   );
                 })
               )}

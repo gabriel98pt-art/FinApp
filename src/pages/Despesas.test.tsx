@@ -17,12 +17,14 @@ import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 const removerDespesa = vi.fn(async () => {});
+const alternarPagoDespesaFixa = vi.fn(async () => {});
+const removerDespesaFixa = vi.fn(async () => {});
 vi.mock("../services/lancamentosService", () => ({
-  alternarPagoDespesaFixa: vi.fn(async () => {}),
+  alternarPagoDespesaFixa: (...a: unknown[]) => alternarPagoDespesaFixa(...(a as [])),
   atualizarDespesaFixa: vi.fn(async () => {}),
   criarDespesaFixa: vi.fn(async () => {}),
   removerDespesa: (...a: unknown[]) => removerDespesa(...(a as [])),
-  removerDespesaFixa: vi.fn(async () => {}),
+  removerDespesaFixa: (...a: unknown[]) => removerDespesaFixa(...(a as [])),
 }));
 
 const lista = <T,>(itens: T[] = []) => ({ itens, carregado: true, erro: false });
@@ -121,6 +123,46 @@ describe("Despesas", () => {
     // indistinguíveis — e sem aria-pressed nada dizia que alternam.
     const selo = screen.getByRole("button", { name: "Netflix — pendente" });
     expect(selo).toHaveAttribute("aria-pressed", "false");
+  });
+});
+
+// Achado do Gabriel (02/09/2026): a linha da fixa ia direto pra edição, ao
+// contrário de toda outra lista do app (Transações, Parcelas, Veículo), que
+// abre um menu com Editar/Excluir. Fixas era a única exceção.
+describe("menu de ações da linha de fixas (02/09/2026)", () => {
+  test("tocar na linha abre o menu com Editar e Excluir, não a edição direto", async () => {
+    fixas = lista([fixa()]);
+    renderDespesas();
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+
+    await userEvent.click(screen.getByText("Netflix"));
+
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    // A edição não abre sozinha — só depois de escolher "Editar" no menu.
+    expect(screen.queryByRole("heading", { name: "Editar despesa fixa" })).not.toBeInTheDocument();
+  });
+
+  test('"Editar" no menu abre a folha de edição', async () => {
+    fixas = lista([fixa()]);
+    renderDespesas();
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+
+    await userEvent.click(screen.getByText("Netflix"));
+    await userEvent.click(await screen.findByRole("button", { name: "Editar" }));
+
+    expect(screen.getByRole("heading", { name: "Editar despesa fixa" })).toBeInTheDocument();
+  });
+
+  test("o selo Pago/Pendente continua a alternar direto, sem passar pelo menu", async () => {
+    fixas = lista([fixa()]);
+    renderDespesas();
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Netflix — pendente" }));
+
+    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(alternarPagoDespesaFixa).toHaveBeenCalledWith("u1", fixa(), "2026-08", true, []);
   });
 });
 

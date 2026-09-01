@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Car,
@@ -17,6 +17,7 @@ import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoValorDestaque from "../components/CampoValorDestaque";
+import ItemComMenu from "../components/ItemComMenu";
 import KpiCard from "../components/KpiCard";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import RenomearFolha from "../components/RenomearFolha";
@@ -128,62 +129,6 @@ function detalheDespesa(d: DespesaVeiculo): string {
  *  editáveis. */
 function juntarDescricao(nome: string | undefined, nota: string | undefined): string {
   return [nome, nota].filter(Boolean).join(" · ");
-}
-
-/** Item de lista com o menu único de ações (item 2 do lote de UX/nav de
- *  30/08): a linha inteira abre Editar/Excluir num popover, em vez de ir
- *  direto pro formulário. Reaproveitado nas 5 listas desta tela (resumo,
- *  cargas, despesas, fixas, km) — cada uma só muda o que `aoEditar`/
- *  `aoExcluir` fazem. `extra` é só pro badge Pago/Pendente das fixas, que
- *  fica FORA do botão — é o próprio toggle, um controlo já dedicado e
- *  único, não um dos "botões espalhados" que este item veio consolidar. */
-function ItemComMenu({
-  nome,
-  detalhe,
-  valor,
-  aoEditar,
-  aoExcluir,
-  extra,
-}: {
-  nome: string;
-  detalhe: string;
-  valor?: string;
-  aoEditar: () => void;
-  aoExcluir: () => void;
-  extra?: ReactNode;
-}) {
-  const [menuAberto, setMenuAberto] = useState(false);
-  const ancoraRef = useRef<HTMLButtonElement>(null);
-
-  const acoes: AcaoItem[] = [
-    { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
-    { rotulo: "Excluir", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
-  ];
-
-  return (
-    <div className={styles.item}>
-      <button
-        ref={ancoraRef}
-        className={styles.itemCorpo}
-        onClick={() => setMenuAberto(true)}
-        aria-haspopup="dialog"
-      >
-        <span className={styles.itemTexto}>
-          <span className={styles.itemNome}>{nome}</span>
-          <span className={styles.itemDetalhe}>{detalhe}</span>
-        </span>
-        {valor !== undefined && <span className={styles.itemValor}>{valor}</span>}
-      </button>
-      {extra}
-      <MenuAcoesItem
-        aberta={menuAberto}
-        aoFechar={() => setMenuAberto(false)}
-        titulo={nome}
-        ancoraRef={ancoraRef}
-        acoes={acoes}
-      />
-    </div>
-  );
 }
 
 /** Pílula de local de abastecimento com o mesmo menu único de ações.

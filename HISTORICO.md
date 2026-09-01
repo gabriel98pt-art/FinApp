@@ -5,7 +5,7 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 02/09/2026 — 504 mudanças registadas.
+Período coberto: 23/07/2026 a 02/09/2026 — 505 mudanças registadas.
 
 ---
 
@@ -17,6 +17,11 @@ Período coberto: 23/07/2026 a 02/09/2026 — 504 mudanças registadas.
   "Pago" dela é calculado pelo dia de vencimento, ninguém clica em nada.
   Corrigido: agora conta pelo mesmo dia de vencimento, com a mesma precisão
   de dia que o resto do app já usa pra débito automático.
+- Na lista de Despesas Fixas, tocar numa despesa ia direto para a edição —
+  era a única lista do app que fazia isso. Em Transações, Parcelas e Veículo,
+  tocar abre um menu com "Editar" e "Excluir", e é o que Despesas Fixas passa
+  a fazer também. O selo "Pago"/"Pendente" continua a alternar com um toque
+  só, sem passar pelo menu.
 
 ## 01/09/2026
 
