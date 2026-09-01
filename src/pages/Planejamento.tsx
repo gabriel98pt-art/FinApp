@@ -4,7 +4,7 @@ import { Check, Plus, Target, X, XCircle } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
-import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import KpiCard from "../components/KpiCard";
 import OrcamentoCard from "../components/OrcamentoCard";
@@ -349,8 +349,12 @@ export default function Planejamento() {
                 {fundos.length > 0 &&
                   `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
               </h3>
-              <button className={styles.adicionar} onClick={abrirNovoFundo}>
-                <Plus size={15} aria-hidden /> Novo fundo
+              <button
+                className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
+                aria-label="Novo fundo"
+                onClick={abrirNovoFundo}
+              >
+                <Plus size={16} aria-hidden />
               </button>
             </div>
 
@@ -362,7 +366,7 @@ export default function Planejamento() {
               <EstadoVazio
                 Icone={Target}
                 mensagem="Nenhum fundo criado"
-                sub="Adicione um fundo de poupança com o botão + Novo fundo."
+                sub="Adicione um fundo de poupança com o botão + aqui em cima."
               />
             ) : (
               <div className={styles.fundos}>
@@ -466,13 +470,22 @@ export default function Planejamento() {
 
       <BottomSheet aberta={novoAberto} aoFechar={() => setNovoAberto(false)} titulo="Novo fundo">
         <form className={styles.form} onSubmit={salvarFundo}>
+          {/* A meta é o centro do formulário, não "mais um campo" (item 4 do
+              lote de UX/nav, 30/08) — mesmo componente de Cartões, Despesas,
+              Veículo e Parcelas. O rótulo muda porque a pergunta aqui não é
+              quanto se gastou, é quanto se quer juntar. */}
+          <CampoValorDestaque
+            rotulo="Quanto quer juntar?"
+            valor={alvo}
+            aoMudar={setAlvo}
+            required
+          />
+          {/* Continua "Nome", e não "Descrição": é o nome próprio do fundo
+              ("Viagem ao Japão"), que aparece como título do cartão na lista.
+              Não havia aqui um segundo campo de texto para juntar a este. */}
           <label className={styles.campo}>
             Nome
             <input value={nome} onChange={(e) => setNome(e.target.value)} required />
-          </label>
-          <label className={styles.campo}>
-            Meta
-            <CampoMoeda valor={alvo} aoMudar={setAlvo} required />
           </label>
           <label className={styles.campo}>
             Prazo (opcional)
@@ -490,10 +503,9 @@ export default function Planejamento() {
         titulo={`Contribuir — ${fundos.find((f) => f.id === contribuindo)?.nome ?? ""}`}
       >
         <form className={styles.form} onSubmit={submeterContribuicao}>
-          <label className={styles.campo}>
-            Valor
-            <CampoMoeda valor={contribValor} aoMudar={setContribValor} required />
-          </label>
+          {/* Único campo da folha — com mais razão ainda deve ser o campo
+              grande, e não um rótulo "Valor" em corpo de texto. */}
+          <CampoValorDestaque valor={contribValor} aoMudar={setContribValor} required />
           <button type="submit" className={styles.salvar}>
             Contribuir
           </button>

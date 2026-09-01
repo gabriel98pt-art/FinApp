@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import BottomSheet from "./BottomSheet";
-import CampoMoeda from "./CampoMoeda";
+import CampoValorDestaque from "./CampoValorDestaque";
 import CategoriaBolha from "./CategoriaBolha";
 import Seletor from "./Seletor";
 import { definirOrcamento } from "../services/cfgService";
@@ -148,10 +148,18 @@ function FormTeto({
             aviso="Todas as categorias já têm um teto definido."
           />
         )}
-        <label className={styles.campo}>
-          Teto mensal
-          <CampoMoeda valor={valor} aoMudar={setValor} required disabled={salvando} />
-        </label>
+        {/* O teto é o número que a folha inteira existe para definir (item 4 do
+            lote de UX/nav, 30/08) — mesmo campo grande de Cartões, Despesas,
+            Veículo, Parcelas e Fundos. A categoria fica ANTES dele quando se
+            está a criar: escolher a categoria é que dá sentido ao número, e
+            invertê-los era pedir "quanto?" sem dizer de quê. */}
+        <CampoValorDestaque
+          rotulo="Quanto por mês?"
+          valor={valor}
+          aoMudar={setValor}
+          required
+          disabled={salvando}
+        />
         <Botao type="submit" variante="submeter" disabled={salvando}>
           {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Definir teto"}
         </Botao>
@@ -173,7 +181,7 @@ function FormTeto({
 /** Orçamento por categoria (seção 4.8): gasto real vs. teto do mês exibido,
  *  cor da própria categoria na barra e selo quando fica perto ou estoura. O
  *  teto define-se e edita-se aqui mesmo — tocar numa linha abre a folha de
- *  edição, "+ Definir teto" abre a de criação. */
+ *  edição, o "+" ao lado do título abre a de criação. */
 export default function OrcamentoCard() {
   const uid = useAuthStore((s) => s.sessao?.uid);
   const cfg = useCfgStore((s) => s.cfg);
@@ -206,8 +214,10 @@ export default function OrcamentoCard() {
     <div className={styles.card}>
       <div className={styles.cabecalho}>
         <p className={styles.titulo}>Orçamento por categoria</p>
-        <Botao variante="primaria" onClick={abrirNovo}>
-          <Plus size={15} aria-hidden /> Definir teto
+        {/* Só o "+" (01/09): o título ao lado já diz "Orçamento por categoria".
+            O texto inteiro vive no aria-label. */}
+        <Botao variante="primaria" soIcone aria-label="Definir teto" onClick={abrirNovo}>
+          <Plus size={16} aria-hidden />
         </Botao>
       </div>
 

@@ -190,6 +190,16 @@
   background: var(--s2);
 }
 
+/* Botão de criar reduzido ao "+" (01/09/2026): o título ao lado já diz
+   "Fundos", e o texto do botão empurrava-o para duas linhas em ecrã estreito.
+   Fica quadrado; a frase inteira passa para o aria-label. Mesma ideia do
+   .soIcone do botão partilhado (Botao.module.css) — aqui à parte só porque
+   este botão tem cor e peso próprios desta tela. */
+.adicionarSoIcone {
+  gap: 0;
+  padding: 6px 8px;
+}
+
 .fundos {
   display: grid;
   grid-template-columns: 1fr;
