@@ -620,7 +620,7 @@ export default function Despesas() {
                           aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                           onClick={() =>
                             void agir(
-                              () => alternarPagoDespesaFixa(uid, f.id, mes, !paga),
+                              () => alternarPagoDespesaFixa(uid, f, mes, !paga, itens),
                               paga ? "Marcado como pendente" : "✓ Pago",
                             )
                           }

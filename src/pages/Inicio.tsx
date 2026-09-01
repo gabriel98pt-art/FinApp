@@ -22,10 +22,11 @@ import {
   mesAtual,
   receitasNosTotais,
   saldoTotal,
+  totalDoMes,
 } from "../utils/calculos";
 import { totalFixasGeral } from "../utils/despesasFixas";
 import { totalParcelasGeral } from "../utils/parcelas";
-import { resumoMesCompleto } from "../utils/resumoMensal";
+import { despesaRegistradaMes } from "../utils/resumoMensal";
 import { totalVeiculoGeral } from "../utils/veiculo";
 import { formatMoney } from "../utils/money";
 
@@ -62,8 +63,24 @@ export default function Inicio() {
   const mes = useMesVisivelStore((s) => s.mes);
   const mesReal = mesAtual();
   const hoje = hojeIso();
-  // despesa do mês inclui fixas gerais + parcelas + veículo (Parte A) — fonte
-  // única em utils/resumoMensal.ts
+  // "Despesas" e "Receitas" aqui são FLUXO DE CAIXA (01/09/2026, pedido do
+  // Gabriel) — soma do que foi de fato registrado/pago no mês, pela data real
+  // de cada lançamento, não pelo mês de vencimento do cronograma. Pagar uma
+  // parcela ou fixa atrasada, já no mês seguinte, agora conta no mês em que o
+  // dinheiro saiu — antes ficava preso ao mês a que a dívida se referia, e
+  // parecia que o pagamento "sumia" (o total do mês em que se pagou de
+  // verdade não se mexia nada).
+  //
+  // Receita não precisa de função própria: `totalDoMes` já soma por data
+  // desde sempre. Despesa tem `despesaRegistradaMes` (utils/resumoMensal.ts)
+  // porque combina 3 fontes (correntes+parcelas, fixas, veículo) e trata o
+  // caso de fixas pagas antes de 01/09/2026, sem o lançamento-espelho que
+  // passou a existir a partir de agora (contam pelo mês de vencimento, como
+  // sempre contaram — não é aproximação nova, é o de sempre preservado).
+  //
+  // Só o KPI do Início muda de significado: Despesas/Metas/Resumo Anual/
+  // Copiloto continuam com `despesaRealizadaMes` (cronograma), de propósito
+  // — não é o mesmo número, e não deveria ser.
   //
   // useMemo (achado da auditoria de Performance): Início não tem lista
   // própria, mas soma 5 domínios inteiros a cada render — inclusive um
@@ -71,11 +88,11 @@ export default function Inicio() {
   // referências dos arrays das stores só mudam quando os dados de fato
   // mudam (todo service do app substitui o array, nunca muta em lugar), então
   // a lista de dependências já é o sinal certo de "recalcular ou não".
-  const resumo = useMemo(
-    () =>
-      resumoMesCompleto(receitas, despesas, despesasFixas, parcelas, veiculo, mes, mesReal, hoje),
-    [receitas, despesas, despesasFixas, parcelas, veiculo, mes, mesReal, hoje],
-  );
+  const resumo = useMemo(() => {
+    const r = totalDoMes(receitasNosTotais(receitas), mes);
+    const d = despesaRegistradaMes(despesas, despesasFixas, veiculo, mes);
+    return { receitas: r, despesas: d, saldo: r - d };
+  }, [receitas, despesas, despesasFixas, veiculo, mes]);
   // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
   // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
   // pagamento de fatura contava como despesa por cima da compra original e a

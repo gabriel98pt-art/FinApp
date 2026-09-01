@@ -4,6 +4,13 @@ import type { Cents, Id, IsoDate, YearMonth } from "./common";
  *  - 'parc': gerado por uma parcela mensal (seção 4.3)
  *  - 'fat':  registro de pagamento de fatura (excluído do cálculo da própria
  *            fatura para evitar contagem circular, seção 4.1)
+ *  - 'fixa': gerado ao marcar uma despesa fixa como paga (01/09/2026) — mesmo
+ *            papel do 'parc' para parcelas: carrega a DATA REAL do pagamento,
+ *            que `pagoPorMes` (um booleano sem data) nunca guardou. Existe
+ *            pra alimentar o total de fluxo de caixa do Início
+ *            (`despesaRegistradaMes`) sem duplicar o valor que já entra pela
+ *            via de cronograma (`contribuicaoFixasMes`) — por isso também
+ *            excluído de `despesasNosTotais`, igual a 'parc'.
  *  - 'recon': criado pela reconciliação da importação bancária
  *  - 'reemb': dinheiro devolvido sobre uma despesa já lançada (o jantar em
  *             grupo que os amigos pagam de volta). Guardado como despesa de
@@ -14,9 +21,9 @@ import type { Cents, Id, IsoDate, YearMonth } from "./common";
  *             mostra os 25 € que ficaram, não 100 nem dois números soltos.
  *             (Mesmo padrão do YNAB para estornos e divisão de contas.)
  *
- *             Ao contrário dos outros três, 'reemb' NÃO é excluído dos totais
+ *             Ao contrário dos outros, 'reemb' NÃO é excluído dos totais
  *             (`despesasNosTotais`): ele existe justamente para os reduzir. */
-export type OrigemLancamento = "parc" | "fat" | "recon" | "reemb";
+export type OrigemLancamento = "parc" | "fat" | "fixa" | "recon" | "reemb";
 
 interface LancamentoBase {
   id: Id;
@@ -81,6 +88,10 @@ export interface DespesaCorrente extends LancamentoBase {
   /** Num pagamento de fatura (origem 'fat'): qual cartão/mês ele quita. */
   fatCartao?: string;
   fatMes?: YearMonth;
+  /** Vínculo com a despesa fixa que gerou este lançamento (origem 'fixa',
+   *  01/09/2026) — mesmo par que `parcelaId`/`parcelaMes`, um mês por vez. */
+  fixaId?: Id;
+  fixaMes?: YearMonth;
   /** Num reembolso (origem 'reemb'): a despesa que este valor reduz.
    *
    *  OPCIONAL de propósito, ao contrário do `parcelaId`: às vezes o reembolso

@@ -5,11 +5,25 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 500 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 502 mudanças registadas.
 
 ---
 
 ## 01/09/2026
+
+- No Início, "Despesas" e "Receitas" passam a somar o que foi de fato pago no
+  mês — pela data real de cada lançamento, não pelo mês a que a dívida se
+  referia. Uma parcela ou despesa fixa paga com atraso, já no mês seguinte,
+  agora entra no total do mês em que o dinheiro saiu — antes ficava presa ao
+  mês antigo e o pagamento parecia "não contar em lugar nenhum". As outras
+  telas (Despesas, Metas, Resumo Anual, Copiloto) continuam a contar pelo
+  cronograma de sempre, de propósito — são números diferentes com propósitos
+  diferentes.
+- Marcar uma despesa fixa (geral ou do veículo) como paga passa a guardar a
+  data real do pagamento, do mesmo jeito que uma parcela já fazia — antes só
+  se sabia QUE mês foi pago, nunca QUANDO de verdade. Fixas marcadas pagas
+  antes de hoje continuam a contar certinho, pelo mês de vencimento — nada no
+  que já existe muda de lugar.
 
 - Parcelas, Planejamento, Orçamento e TVDE passaram a ter a mesma cara das
   outras telas: em cada folha, o dinheiro deixou de ser uma caixa pequena

@@ -2,10 +2,11 @@
 // despesas,despesasFixas,quilometragem} — 4 sub-coleções combinadas num único
 // DadosVeiculo pra quem consome (utils/veiculo.ts, telas).
 
-import { onValue, push, ref, remove, set } from "firebase/database";
+import { onValue, push, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
+import { hojeIso } from "../utils/calculos";
 import { VEICULO_VAZIO } from "../constants/veiculoPadrao";
 import type {
   Abastecimento,
@@ -146,16 +147,45 @@ export const atualizarFixaVeiculo = (uid: string, item: DespesaFixa) =>
   atualizar<DespesaFixa>(uid, "despesasFixas", item);
 export const removerFixaVeiculo = (uid: string, id: Id) => remover(uid, "despesasFixas", id);
 
+/** Mesmo espelho com data real que `alternarPagoDespesaFixa`
+ *  (lancamentosService.ts) cria para as fixas gerais (01/09/2026) — aqui
+ *  gravado em `veiculo/despesas`, não em `despesasCorrentes`, porque é onde
+ *  as despesas do veículo vivem. Ver o comentário lá para o porquê. */
 export async function alternarPagoFixaVeiculo(
   uid: string,
-  fixaId: Id,
+  f: DespesaFixa,
   mes: YearMonth,
   pago: boolean,
+  despesas: DespesaVeiculo[],
 ) {
   snapshotHistorico();
-  const r = ref(db, `${caminho(uid, "despesasFixas", fixaId)}/pagoPorMes/${mes}`);
-  if (pago) await set(r, true);
-  else await remove(r);
+  if (pago) {
+    const lancamento: Omit<DespesaVeiculo, "id"> = {
+      descricao: f.descricao,
+      valor: f.valor,
+      data: hojeIso(),
+      categoria: f.categoria,
+      contaCartao: f.contaCartao,
+      origem: "fixa",
+      fixaId: f.id,
+      fixaMes: mes,
+    };
+    const dcId = push(ref(db, caminho(uid, "despesas"))).key!;
+    await update(ref(db, raiz(uid)), {
+      [`despesas/${dcId}`]: semIndefinidos(lancamento),
+      [`despesasFixas/${f.id}/pagoPorMes/${mes}`]: true,
+    });
+    return;
+  }
+  const atualizacoes: Record<string, unknown> = {
+    [`despesasFixas/${f.id}/pagoPorMes/${mes}`]: null,
+  };
+  despesas
+    .filter((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === mes)
+    .forEach((d) => {
+      atualizacoes[`despesas/${d.id}`] = null;
+    });
+  await update(ref(db, raiz(uid)), atualizacoes);
 }
 
 // ---- Quilometragem ----

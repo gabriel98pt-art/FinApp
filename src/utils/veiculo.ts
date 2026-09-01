@@ -10,7 +10,7 @@ import type {
   IsoDate,
   YearMonth,
 } from "../types";
-import { doMes, mesDe, totalDoMes } from "./calculos";
+import { despesasNosTotais, doMes, mesDe, totalDoMes } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
@@ -18,7 +18,9 @@ export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
 }
 
 export function totalDespesasVeiculoMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
-  return totalDoMes(veiculo.despesas, ym);
+  // Exclui o espelho de fixa (origem 'fixa', 01/09/2026): o valor dela já
+  // entra por `contribuicaoFixasVeiculoMes`, contá-lo aqui também duplicava.
+  return totalDoMes(despesasNosTotais(veiculo.despesas), ym);
 }
 
 /** Contribuição das despesas fixas do veículo no mês. Mesma regra do app de
@@ -77,7 +79,9 @@ export function totalVeiculoGeral(
   hoje?: IsoDate,
 ): Cents {
   const cargas = veiculo.cargas.reduce((s, c) => s + c.custo, 0);
-  const despesas = veiculo.despesas.reduce((s, d) => s + d.valor, 0);
+  // Mesma exclusão de totalDespesasVeiculoMes: o espelho de fixa não conta
+  // aqui, senão soma duas vezes com o `fixas` logo abaixo.
+  const despesas = despesasNosTotais(veiculo.despesas).reduce((s, d) => s + d.valor, 0);
   const fixas = veiculo.despesasFixas.reduce((s, f) => {
     const marcados = Object.entries(f.pagoPorMes ?? {})
       .filter(([, pago]) => pago)

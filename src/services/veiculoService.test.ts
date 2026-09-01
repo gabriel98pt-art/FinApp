@@ -5,9 +5,12 @@
 // mensal para sempre.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { Abastecimento } from "../types";
+import type { Abastecimento, DespesaFixa, DespesaVeiculo } from "../types";
 
 let dados: Record<string, unknown> = {};
+/** Cada chamada a update(), para provar que lançamento + pagoPorMes vão na
+ *  mesma escrita (mesmo cuidado de parcelasService.test.ts). */
+let updates: { caminho: string; mudancas: Record<string, unknown> }[] = [];
 let contador = 0;
 /** caminho → callback de sucesso do onValue, para disparar leituras à mão. */
 const observadores = new Map<string, (snap: { val: () => unknown }) => void>();
@@ -30,6 +33,7 @@ vi.mock("firebase/database", () => ({
     delete dados[r.caminho];
   },
   update: async (r: { caminho: string }, mudancas: Record<string, unknown>) => {
+    updates.push({ caminho: r.caminho, mudancas });
     for (const [k, v] of Object.entries(mudancas)) {
       if (v === null) delete dados[`${r.caminho}/${k}`];
       else dados[`${r.caminho}/${k}`] = v;
@@ -57,6 +61,7 @@ const carga: Omit<Abastecimento, "id"> = {
 
 beforeEach(() => {
   dados = {};
+  updates = [];
   contador = 0;
   observadores.clear();
   snapshot.mockClear();
@@ -137,15 +142,56 @@ describe("remover", () => {
 });
 
 describe("alternarPagoFixaVeiculo", () => {
-  test("marcar grava true, desmarcar remove o mês", async () => {
-    await s.alternarPagoFixaVeiculo(UID, "f1", "2026-08", true);
+  const fixa: DespesaFixa = {
+    id: "f1",
+    descricao: "Seguro",
+    valor: 4500,
+    categoria: "Veículo",
+    pagoPorMes: {},
+  };
+
+  test("marcar grava true e cria o lançamento-espelho em veiculo/despesas, na mesma escrita", async () => {
+    await s.alternarPagoFixaVeiculo(UID, fixa, "2026-08", true, []);
+    expect(updates).toHaveLength(1);
+    expect(updates[0].caminho).toBe(RAIZ);
+    const chaves = Object.keys(updates[0].mudancas).map((k) => k.split("/")[0]);
+    expect(chaves.sort()).toEqual(["despesas", "despesasFixas"]);
     expect(dados[`${RAIZ}/despesasFixas/f1/pagoPorMes/2026-08`]).toBe(true);
-    await s.alternarPagoFixaVeiculo(UID, "f1", "2026-08", false);
-    expect(dados).toEqual({});
+    const chaveDespesa = Object.keys(updates[0].mudancas).find((k) => k.startsWith("despesas/"))!;
+    const lancamento = updates[0].mudancas[chaveDespesa] as DespesaVeiculo;
+    expect(lancamento.origem).toBe("fixa");
+    expect(lancamento.fixaId).toBe("f1");
+    expect(lancamento.fixaMes).toBe("2026-08");
+    expect(lancamento.valor).toBe(4500);
+  });
+
+  test("desmarcar remove o mês e o lançamento-espelho daquele mês", async () => {
+    const despesas: DespesaVeiculo[] = [
+      {
+        id: "d1",
+        descricao: "Seguro",
+        valor: 4500,
+        data: "2026-08-05",
+        categoria: "Veículo",
+        origem: "fixa",
+        fixaId: "f1",
+        fixaMes: "2026-08",
+      },
+    ];
+    await s.alternarPagoFixaVeiculo(UID, fixa, "2026-08", false, despesas);
+    expect(updates[0].mudancas).toEqual({
+      "despesasFixas/f1/pagoPorMes/2026-08": null,
+      "despesas/d1": null,
+    });
+  });
+
+  test("desmarcar sem lançamento correspondente: só desfaz o pago", async () => {
+    await s.alternarPagoFixaVeiculo(UID, fixa, "2026-08", false, []);
+    expect(updates[0].mudancas).toEqual({ "despesasFixas/f1/pagoPorMes/2026-08": null });
   });
 
   test("passa pelo histórico", async () => {
-    await s.alternarPagoFixaVeiculo(UID, "f1", "2026-08", true);
+    await s.alternarPagoFixaVeiculo(UID, fixa, "2026-08", true, []);
     expect(snapshot).toHaveBeenCalledTimes(1);
   });
 });

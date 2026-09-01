@@ -1,5 +1,5 @@
-import type { Cents, Id, IsoDate } from "./common";
-import type { DespesaFixa } from "./lancamentos";
+import type { Cents, Id, IsoDate, YearMonth } from "./common";
+import type { DespesaFixa, OrigemLancamento } from "./lancamentos";
 
 /** Motorização do veículo — decide que campos a aba de abastecimento mostra
  *  (item B1). Sem escolha explícita nas configurações, `"eletrico"` é o
@@ -65,6 +65,12 @@ export interface DespesaVeiculo {
   /** Conta/cartão que pagou — se for crédito, entra na fatura do ciclo. */
   contaCartao?: string;
   nota?: string;
+  /** Presente só no espelho gerado ao marcar uma despesa fixa do veículo como
+   *  paga (origem 'fixa', 01/09/2026) — mesmo papel do `origem`/`fixaId`/
+   *  `fixaMes` de `DespesaCorrente`. Ausente em toda despesa variável comum. */
+  origem?: OrigemLancamento;
+  fixaId?: Id;
+  fixaMes?: YearMonth;
 }
 
 /** Dados do veículo (antigo `veh`). Locais de carregamento salvos vivem em

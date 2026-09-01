@@ -7,6 +7,7 @@ import type {
   DadosVeiculo,
   DespesaCorrente,
   DespesaFixa,
+  Id,
   IsoDate,
   Parcela,
   Receita,
@@ -15,7 +16,7 @@ import type {
 import { despesasNosTotais, mesDe, mesesRecentes, receitasNosTotais, totalDoMes } from "./calculos";
 import { contribuicaoFixasMes } from "./despesasFixas";
 import { contribuicaoParcelasMes } from "./parcelas";
-import { totalVeiculoMes } from "./veiculo";
+import { totalCargasMes, totalVeiculoMes } from "./veiculo";
 
 export interface ResumoMesCompleto {
   receitas: Cents;
@@ -123,4 +124,68 @@ export interface CelulaJanela {
  *  olhar um mês adiante não torna passado o que ainda não aconteceu. */
 export function janelaResumoAnual(n: number, ate: YearMonth, mesReal: YearMonth): CelulaJanela[] {
   return mesesRecentes(n, ate).map((ym) => ({ ym, futuro: ym > mesReal }));
+}
+
+/** Despesas fixas pagas em `ym` que ainda não têm o lançamento-espelho de
+ *  data real (origem 'fixa') — dado gravado antes de 01/09/2026, quando
+ *  marcar como paga só gravava `pagoPorMes`, sem lançamento nenhum.
+ *
+ *  Contam pelo valor cheio, no MÊS DE VENCIMENTO — mesma leitura que o app
+ *  sempre deu a essas fixas, agora só isolada nesta função (que soma por
+ *  data). Não é aproximação nova: é o comportamento de sempre, preservado
+ *  pra quem pagou antes de o espelho existir. Uma fixa marcada paga DEPOIS
+ *  desta mudança sempre tem espelho (`alternarPagoDespesaFixa`/
+ *  `alternarPagoFixaVeiculo` criam-no na hora), então cai fora deste filtro e
+ *  entra pela via normal, com a data real de quando saiu. */
+function fixasSemEspelhoNoMes(
+  fixas: DespesaFixa[],
+  comEspelho: { origem?: string; fixaId?: Id; fixaMes?: YearMonth }[],
+  ym: YearMonth,
+): Cents {
+  return fixas
+    .filter((f) => f.pagoPorMes[ym] === true)
+    .filter(
+      (f) => !comEspelho.some((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym),
+    )
+    .reduce((s, f) => s + f.valor, 0);
+}
+
+/** Despesa do mês, mas em FLUXO DE CAIXA — soma do que foi de fato
+ *  registrado/pago naquele mês, pela data real de cada lançamento, e não
+ *  pelo mês de vencimento do cronograma (`despesaRealizadaMes`, a função
+ *  "oficial" usada em Início/Despesas/Metas/Resumo Anual/Copiloto).
+ *
+ *  Pedido do Gabriel (01/09/2026): pagar uma parcela ou fixa atrasada, já no
+ *  mês seguinte, deve aparecer no mês em que o dinheiro saiu de verdade — não
+ *  ficar preso ao mês a que a dívida se referia. Usada só no KPI "Despesas"
+ *  do Início; as outras telas continuam com `despesaRealizadaMes` de
+ *  propósito (é o número que os KPIs de Parcelas, Metas etc. já usam e não
+ *  deve mudar de significado nelas).
+ *
+ *  Receita não precisa do par: `totalDoMes(receitasNosTotais(receitas), ym)`
+ *  já soma por data desde sempre — não existe "receita fixa" agendada com o
+ *  mesmo problema de cronograma que a despesa tem. */
+export function despesaRegistradaMes(
+  despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
+  veiculo: DadosVeiculo,
+  ym: YearMonth,
+): Cents {
+  // 'fat' fica de fora sempre: a compra no cartão que formou a fatura já
+  // teve a SUA própria data contada aqui; contar também o pagamento da
+  // fatura duplicava o mesmo dinheiro. 'recon' é ajuste de saldo, não gasto.
+  // 'parc' e 'fixa' ENTRAM aqui — ao contrário de `despesasNosTotais`, que os
+  // exclui pra não duplicar contra o cronograma (`contribuicaoParcelasMes`/
+  // `contribuicaoFixasMes`); em fluxo de caixa não existe cronograma
+  // nenhum pra duplicar contra, só a data real de cada um.
+  const semDuplicar = (d: { origem?: string }) => d.origem !== "fat" && d.origem !== "recon";
+  const correntesRegistradas = despesasCorrentes.filter(semDuplicar);
+  const veiculoDespesasRegistradas = veiculo.despesas.filter(semDuplicar);
+  return (
+    totalDoMes(correntesRegistradas, ym) +
+    fixasSemEspelhoNoMes(despesasFixas, despesasCorrentes, ym) +
+    totalCargasMes(veiculo, ym) +
+    totalDoMes(veiculoDespesasRegistradas, ym) +
+    fixasSemEspelhoNoMes(veiculo.despesasFixas, veiculo.despesas, ym)
+  );
 }

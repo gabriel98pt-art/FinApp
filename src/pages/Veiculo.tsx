@@ -978,7 +978,7 @@ export default function Veiculo() {
                             aria-label={`${f.descricao} — ${paga ? "pago" : "pendente"}`}
                             onClick={() =>
                               void agir(
-                                () => alternarPagoFixaVeiculo(uid, f.id, mes, !paga),
+                                () => alternarPagoFixaVeiculo(uid, f, mes, !paga, dados.despesas),
                                 paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
                               )
                             }

@@ -4,10 +4,13 @@
 // daqui vai para o caminho certo do RTDB e passa pelo histórico.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { DespesaCorrente, Receita } from "../types";
+import type { DespesaCorrente, DespesaFixa, Receita } from "../types";
 
 /** caminho completo no RTDB → valor gravado. */
 let dados: Record<string, unknown> = {};
+/** Cada chamada a update(), para provar que lançamento + pagoPorMes vão na
+ *  mesma escrita (mesmo cuidado de parcelasService.test.ts). */
+let updates: { caminho: string; mudancas: Record<string, unknown> }[] = [];
 let contador = 0;
 
 vi.mock("./firebase", () => ({ db: {} }));
@@ -28,6 +31,7 @@ vi.mock("firebase/database", () => ({
     delete dados[r.caminho];
   },
   update: async (r: { caminho: string }, mudancas: Record<string, unknown>) => {
+    updates.push({ caminho: r.caminho, mudancas });
     for (const [k, v] of Object.entries(mudancas)) {
       if (v === null) delete dados[`${r.caminho}/${k}`];
       else dados[`${r.caminho}/${k}`] = v;
@@ -51,6 +55,7 @@ const receita: Omit<Receita, "id"> = {
 
 beforeEach(() => {
   dados = {};
+  updates = [];
   contador = 0;
   snapshot.mockClear();
 });
@@ -141,26 +146,71 @@ describe("remover", () => {
 });
 
 describe("alternarPagoDespesaFixa", () => {
-  test("marcar pago grava true no mês", async () => {
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", true);
+  const fixa: DespesaFixa = {
+    id: "f1",
+    descricao: "Renda",
+    valor: 60000,
+    categoria: "Casa",
+    contaCartao: "Cartão Gold",
+    pagoPorMes: {},
+  };
+
+  /** O lançamento-espelho criado no último update(), seja qual for a chave. */
+  function lancamentoCriado(): DespesaCorrente {
+    const ultimo = updates[updates.length - 1].mudancas;
+    const chave = Object.keys(ultimo).find((k) => k.startsWith("despesasCorrentes/"))!;
+    return ultimo[chave] as DespesaCorrente;
+  }
+
+  test("marcar pago grava true no mês e cria o lançamento-espelho, na mesma escrita", async () => {
+    await s.alternarPagoDespesaFixa(UID, fixa, "2026-08", true, []);
+    expect(updates).toHaveLength(1);
+    expect(updates[0].caminho).toBe(RAIZ);
+    const chaves = Object.keys(updates[0].mudancas).map((k) => k.split("/")[0]);
+    expect(chaves.sort()).toEqual(["despesasCorrentes", "despesasFixas"]);
     expect(dados[`${RAIZ}/despesasFixas/f1/pagoPorMes/2026-08`]).toBe(true);
   });
 
-  test("desmarcar remove o mês em vez de gravar false", async () => {
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", true);
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", false);
-    expect(dados).toEqual({});
+  // 01/09/2026: o espelho é o que dá ao Início a DATA REAL do pagamento —
+  // sem ele, uma fixa paga com atraso ficava presa ao mês de vencimento no
+  // fluxo de caixa (ver despesaRegistradaMes, utils/resumoMensal.ts).
+  test("o lançamento fica vinculado à fixa e ao mês, com a data de hoje", async () => {
+    await s.alternarPagoDespesaFixa(UID, fixa, "2026-08", true, []);
+    const l = lancamentoCriado();
+    expect(l.origem).toBe("fixa");
+    expect(l.fixaId).toBe("f1");
+    expect(l.fixaMes).toBe("2026-08");
+    expect(l.valor).toBe(60000);
+    expect(l.contaCartao).toBe("Cartão Gold");
   });
 
-  test("não toca nos outros meses", async () => {
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-07", true);
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", true);
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", false);
-    expect(Object.keys(dados)).toEqual([`${RAIZ}/despesasFixas/f1/pagoPorMes/2026-07`]);
+  test("desmarcar remove o mês e o lançamento-espelho daquele mês", async () => {
+    const despesas: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Renda",
+        valor: 60000,
+        data: "2026-08-05",
+        categoria: "Casa",
+        origem: "fixa",
+        fixaId: "f1",
+        fixaMes: "2026-08",
+      },
+    ];
+    await s.alternarPagoDespesaFixa(UID, fixa, "2026-08", false, despesas);
+    expect(updates[0].mudancas).toEqual({
+      "despesasFixas/f1/pagoPorMes/2026-08": null,
+      "despesasCorrentes/d1": null,
+    });
+  });
+
+  test("desmarcar sem lançamento correspondente: só desfaz o pago", async () => {
+    await s.alternarPagoDespesaFixa(UID, fixa, "2026-08", false, []);
+    expect(updates[0].mudancas).toEqual({ "despesasFixas/f1/pagoPorMes/2026-08": null });
   });
 
   test("passa pelo histórico", async () => {
-    await s.alternarPagoDespesaFixa(UID, "f1", "2026-08", true);
+    await s.alternarPagoDespesaFixa(UID, fixa, "2026-08", true, []);
     expect(snapshot).toHaveBeenCalledTimes(1);
   });
 });

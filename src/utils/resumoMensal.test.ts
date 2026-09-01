@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
 import {
   despesaRealizadaMes,
+  despesaRegistradaMes,
   janelaResumoAnual,
   primeiroMesComDespesa,
   resumoMesCompleto,
@@ -286,5 +287,165 @@ describe("primeiroMesComDespesa — desde quando há história do lado do gasto"
 
   test("sem despesa nenhuma, é null", () => {
     expect(primeiroMesComDespesa([], [], [], veiculo())).toBeNull();
+  });
+});
+
+// Bug relatado pelo Gabriel em 01/09/2026: pagou uma parcela atrasada
+// (referente a Agosto, já em Setembro) e o total de Despesas do Início não
+// mudou em nenhum dos dois meses — porque o KPI usava `despesaRealizadaMes`,
+// que soma por CRONOGRAMA, não por quando o dinheiro saiu de verdade.
+// `despesaRegistradaMes` é o par em fluxo de caixa, só para o Início.
+describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
+  test("soma despesas correntes + cargas/despesas do veículo pela data real", () => {
+    const despesas: DespesaCorrente[] = [
+      { id: "d1", descricao: "Mercado", valor: 5000, data: "2026-09-05", categoria: "Alimentação" },
+    ];
+    const v = veiculo({
+      cargas: [{ id: "c1", data: "2026-09-10", kwh: 40, precoKwh: 25, custo: 1000, local: "Casa" }],
+      despesas: [
+        { id: "vd1", descricao: "Pneu", valor: 8000, data: "2026-09-12", categoria: "Manutenção" },
+      ],
+    });
+    expect(despesaRegistradaMes(despesas, [], v, "2026-09")).toBe(14000);
+  });
+
+  test("'fat' e 'recon' ficam de fora, como em despesaRealizadaMes", () => {
+    const despesas: DespesaCorrente[] = [
+      {
+        id: "d1",
+        valor: 9999,
+        data: "2026-09-05",
+        descricao: "Fatura",
+        categoria: "Cartão",
+        origem: "fat",
+      },
+      {
+        id: "d2",
+        valor: 100,
+        data: "2026-09-05",
+        descricao: "Ajuste",
+        categoria: "Outros",
+        origem: "recon",
+      },
+    ];
+    expect(despesaRegistradaMes(despesas, [], veiculo(), "2026-09")).toBe(0);
+  });
+
+  // O caso do advogado: parcela referente a Agosto, paga só em Setembro. O
+  // espelho (origem 'parc') tem `data: "2026-09-01"` e `parcelaMes: "2026-08"`
+  // — em fluxo de caixa, o que manda é a DATA, não o mês de referência.
+  test("parcela paga com atraso conta no mês em que o dinheiro saiu, não no mês de referência", () => {
+    const espelho: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Advogado",
+        valor: 10000,
+        data: "2026-09-01",
+        categoria: "Parcelas",
+        origem: "parc",
+        parcelaId: "p1",
+        parcelaMes: "2026-08",
+      },
+    ];
+    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-08")).toBe(0);
+    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-09")).toBe(10000);
+  });
+
+  test("fixa geral já com espelho (paga depois de 01/09/2026): conta no mês real do pagamento", () => {
+    const fixas: DespesaFixa[] = [
+      {
+        id: "f1",
+        descricao: "Renda",
+        valor: 45000,
+        categoria: "Casa",
+        diaVencimento: 5,
+        pagoPorMes: { "2026-08": true },
+      },
+    ];
+    const espelho: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Renda",
+        valor: 45000,
+        data: "2026-09-03",
+        categoria: "Casa",
+        origem: "fixa",
+        fixaId: "f1",
+        fixaMes: "2026-08",
+      },
+    ];
+    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-08")).toBe(0);
+    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-09")).toBe(45000);
+  });
+
+  // Dado de antes de 01/09/2026: `pagoPorMes` gravado sem lançamento nenhum
+  // (a funcionalidade não existia). Cai no mês de vencimento — o mesmo que
+  // sempre foi, não é aproximação nova, é o comportamento preservado.
+  test("fixa geral paga ANTES de existir o espelho: conta no mês de vencimento", () => {
+    const fixas: DespesaFixa[] = [
+      {
+        id: "f1",
+        descricao: "Renda",
+        valor: 45000,
+        categoria: "Casa",
+        pagoPorMes: { "2026-06": true },
+      },
+    ];
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06")).toBe(45000);
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-07")).toBe(0);
+  });
+
+  test("fixa geral não paga não conta nada — ao contrário de despesaRealizadaMes", () => {
+    const fixas: DespesaFixa[] = [
+      { id: "f1", descricao: "Renda", valor: 45000, categoria: "Casa", pagoPorMes: {} },
+    ];
+    // despesaRealizadaMes conta o valor cheio num mês fechado mesmo sem
+    // pagamento (cronograma); despesaRegistradaMes não — sem pagamento não
+    // há dinheiro nenhum que tenha saído.
+    expect(despesaRealizadaMes([], fixas, [], veiculo(), "2026-06", "2026-08")).toBe(45000);
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06")).toBe(0);
+  });
+
+  test("fixa do veículo segue a mesma regra, com o espelho em veiculo.despesas", () => {
+    // sem espelho (dado antigo): conta no mês de vencimento.
+    const semEspelho = veiculo({
+      despesasFixas: [
+        {
+          id: "f1",
+          descricao: "Seguro",
+          valor: 4500,
+          categoria: "Veículo",
+          pagoPorMes: { "2026-06": true },
+        },
+      ],
+    });
+    expect(despesaRegistradaMes([], [], semEspelho, "2026-06")).toBe(4500);
+
+    // com espelho (pago depois de 01/09/2026): conta na data real.
+    const comEspelho = veiculo({
+      despesasFixas: [
+        {
+          id: "f1",
+          descricao: "Seguro",
+          valor: 4500,
+          categoria: "Veículo",
+          pagoPorMes: { "2026-06": true },
+        },
+      ],
+      despesas: [
+        {
+          id: "vd1",
+          descricao: "Seguro",
+          valor: 4500,
+          data: "2026-07-02",
+          categoria: "Veículo",
+          origem: "fixa",
+          fixaId: "f1",
+          fixaMes: "2026-06",
+        },
+      ],
+    });
+    expect(despesaRegistradaMes([], [], comEspelho, "2026-06")).toBe(0);
+    expect(despesaRegistradaMes([], [], comEspelho, "2026-07")).toBe(4500);
   });
 });

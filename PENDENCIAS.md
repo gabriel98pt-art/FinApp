@@ -206,6 +206,38 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 
 ## Resolvido (fica registrado por onde passou)
 
+### "Despesas"/"Receitas" do Início viraram fluxo de caixa
+
+**Resolvido em 01/09/2026.** Bug relatado pelo Gabriel: pagou uma parcela
+referente a Agosto já em Setembro (o dinheiro só saiu da conta nesse dia), e
+o "Total do mês" do Início não refletiu o pagamento em lugar nenhum —
+investigação confirmou com teste real que o total de Agosto E o de Setembro
+ficavam idênticos antes e depois de pagar (`despesaRealizadaMes` soma por
+CRONOGRAMA: mês fechado conta o valor cheio, pago ou não).
+
+Decisão do Gabriel (confirmada com o Gestor antes de mexer): o Início passa a
+somar por FLUXO DE CAIXA — pela data real de cada lançamento —, sem tocar na
+função que Despesas/Metas/Resumo Anual/Copiloto usam (essas continuam com o
+número de cronograma, de propósito). Nova função `despesaRegistradaMes`
+(`utils/resumoMensal.ts`).
+
+**O problema estrutural por baixo**: parcelas já tinham um lançamento-espelho
+com a data real do pagamento (`pagarMesParcela`); despesas fixas (gerais e do
+veículo) não tinham NADA — só `pagoPorMes: { mes: true }`, um booleano sem
+hora nem dia. Corrigido "de vez" (opção escolhida pelo Gabriel entre 3): agora
+marcar uma fixa como paga também grava um lançamento-espelho com `data:
+hojeIso()` (mesmo padrão da parcela, origem `'fixa'` nova). Sem migração:
+fixas marcadas pagas ANTES desta mudança não têm espelho, e o fluxo de caixa
+trata isso caindo de volta no mês de vencimento — o mesmo resultado de
+sempre, não uma aproximação nova. Só pagamentos DAQUI PRA FRENTE ganham data
+real.
+
+26 testes novos em `resumoMensal.test.ts` cobrindo os casos (mês fechado,
+mês corrente, com espelho, sem espelho, veículo), mais testes de serviço
+(`lancamentosService.test.ts`, `veiculoService.test.ts`) provando que
+lançamento + `pagoPorMes` gravam na MESMA escrita atômica, e um teste de
+página em `Inicio.test.tsx` fixando o caso exato do advogado.
+
 ### Contas e cartões mudaram-se inteiros para Definições
 
 **Resolvido em 01/09/2026**, em dois tempos.

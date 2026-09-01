@@ -241,7 +241,9 @@ export function mesDoAno(ano: number, mes1a12: number): YearMonth {
  *    contaria duas vezes. O espelho continua existindo para outros fins
  *    (extrato por conta, histórico), só não entra nesta soma. */
 export function despesasNosTotais<T extends { origem?: string }>(itens: T[]): T[] {
-  return itens.filter((d) => d.origem !== "fat" && d.origem !== "recon" && d.origem !== "parc");
+  return itens.filter(
+    (d) => d.origem !== "fat" && d.origem !== "recon" && d.origem !== "parc" && d.origem !== "fixa",
+  );
 }
 
 /** O espelho de `despesasNosTotais` do lado da receita: exclui o ajuste de

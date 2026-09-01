@@ -73,6 +73,31 @@ describe("Inicio", () => {
     expect(screen.getByRole("button", { name: /Despesas/ })).toBeInTheDocument();
   });
 
+  // Bug relatado pelo Gabriel em 01/09/2026: pagou uma parcela referente a
+  // Agosto já em Setembro, e o KPI "Despesas" do mês não refletiu — porque
+  // usava o total por CRONOGRAMA (despesaRealizadaMes), não por quando o
+  // dinheiro saiu de verdade. Agora é despesaRegistradaMes (fluxo de caixa).
+  test('"Despesas" conta pela data real do lançamento, não pelo mês de referência da parcela', () => {
+    // mesVisivelStore está fixo em "2026-08" (topo do ficheiro). O espelho
+    // da parcela é de Agosto (parcelaMes), mas foi pago em Setembro (data) —
+    // não deve entrar no total de Agosto.
+    despesas = lista<DespesaCorrente>([
+      {
+        id: "d1",
+        descricao: "Advogado",
+        valor: 10000,
+        data: "2026-09-01",
+        categoria: "Parcelas",
+        origem: "parc",
+        parcelaId: "p1",
+        parcelaMes: "2026-08",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+    const botao = screen.getByRole("button", { name: /Despesas/ });
+    expect(botao).toHaveTextContent("€ 0,00");
+  });
+
   test("tudo sincronizado: nenhum aviso", () => {
     desenhar();
     expect(screen.queryByText(/não sincronizaram/)).not.toBeInTheDocument();

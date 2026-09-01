@@ -3,9 +3,10 @@
 // users/{uid} (Security Rules); `fin_v5` marca o schema da reescrita
 // (o app legado usava fin_v4).
 
-import { onValue, push, ref, remove, set } from "firebase/database";
+import { onValue, push, ref, remove, set, update } from "firebase/database";
 import { db } from "./firebase";
 import { snapshotHistorico } from "../stores/historicoStore";
+import { hojeIso } from "../utils/calculos";
 import type {
   DespesaCorrente,
   DespesaFixa,
@@ -121,16 +122,51 @@ export const atualizarDespesaFixa = (uid: string, item: DespesaFixa) =>
   atualizar(uid, "despesasFixas", item);
 export const removerDespesaFixa = (uid: string, id: Id) => remover(uid, "despesasFixas", id);
 
+/** Marca (ou desmarca) uma fixa como paga num mês. Além do booleano de
+ *  sempre em `pagoPorMes`, grava um lançamento-espelho com a DATA REAL do
+ *  pagamento (origem 'fixa', 01/09/2026) — mesmo papel do espelho que
+ *  `pagarMesParcela` já cria para as parcelas. Sem isto, `pagoPorMes` sabe
+ *  QUE mês foi pago mas não QUANDO de verdade — o "Despesas" do Início
+ *  contava tudo pelo mês de vencimento, mesmo uma fixa paga com atraso já no
+ *  mês seguinte (ver `despesaRegistradaMes`, utils/resumoMensal.ts).
+ *
+ *  `despesas` só é preciso pra desmarcar (achar e apagar o espelho certo) —
+ *  ao marcar, o espelho é sempre novo. */
 export async function alternarPagoDespesaFixa(
   uid: string,
-  fixaId: Id,
+  f: DespesaFixa,
   mes: YearMonth,
   pago: boolean,
+  despesas: DespesaCorrente[],
 ) {
   snapshotHistorico();
-  const r = ref(db, `${caminho(uid, "despesasFixas", fixaId)}/pagoPorMes/${mes}`);
-  if (pago) await set(r, true);
-  else await remove(r);
+  if (pago) {
+    const lancamento: Omit<DespesaCorrente, "id"> = {
+      descricao: f.descricao,
+      valor: f.valor,
+      data: hojeIso(),
+      categoria: f.categoria,
+      contaCartao: f.contaCartao,
+      origem: "fixa",
+      fixaId: f.id,
+      fixaMes: mes,
+    };
+    const dcId = push(ref(db, caminho(uid, "despesasCorrentes"))).key!;
+    await update(ref(db, `users/${uid}/fin_v5`), {
+      [`despesasCorrentes/${dcId}`]: semIndefinidos(lancamento),
+      [`despesasFixas/${f.id}/pagoPorMes/${mes}`]: true,
+    });
+    return;
+  }
+  const atualizacoes: Record<string, unknown> = {
+    [`despesasFixas/${f.id}/pagoPorMes/${mes}`]: null,
+  };
+  despesas
+    .filter((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === mes)
+    .forEach((d) => {
+      atualizacoes[`despesasCorrentes/${d.id}`] = null;
+    });
+  await update(ref(db, `users/${uid}/fin_v5`), atualizacoes);
 }
 
 // ---- Transferências entre contas ----
