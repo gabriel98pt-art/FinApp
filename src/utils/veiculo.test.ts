@@ -196,6 +196,27 @@ describe("totalVeiculoGeral — acumulado de todos os tempos", () => {
     });
     expect(totalVeiculoGeral(v, "2026-08")).toBe(4500);
   });
+
+  // O bug: o mês corrente (mesReferencia) contava sempre como já saído, mesmo
+  // antes do dia de vencimento — mesma precisão de dia que
+  // contribuicaoFixasVeiculoMes já tinha, mas que faltava aqui.
+  test("com `hoje`, o mês corrente só entra depois do dia de vencimento", () => {
+    const v = veiculo({
+      despesasFixas: [
+        fixa({
+          valor: 4500,
+          contaCartao: "AB Gold (C)",
+          autoDebit: true,
+          inicio: "2026-06",
+          diaVencimento: 27,
+        }),
+      ],
+    });
+    // junho, julho já fechados; agosto (corrente) ainda não venceu
+    expect(totalVeiculoGeral(v, "2026-08", "2026-08-08")).toBe(4500 * 2);
+    // agosto já venceu
+    expect(totalVeiculoGeral(v, "2026-08", "2026-08-27")).toBe(4500 * 3);
+  });
 });
 
 describe("dadosDespesaDaCarga — recarga que afinal não era recarga", () => {

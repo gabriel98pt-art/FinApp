@@ -84,10 +84,10 @@ export default function Inicio() {
   const acumulado = useMemo(
     () =>
       saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
-      totalFixasGeral(despesasFixas, mesReal) -
-      totalParcelasGeral(parcelas, mesReal) -
-      totalVeiculoGeral(veiculo, mesReal),
-    [receitas, despesas, despesasFixas, parcelas, veiculo, mesReal],
+      totalFixasGeral(despesasFixas, mesReal, hoje) -
+      totalParcelasGeral(parcelas, mesReal, hoje) -
+      totalVeiculoGeral(veiculo, mesReal, hoje),
+    [receitas, despesas, despesasFixas, parcelas, veiculo, mesReal, hoje],
   );
 
   return (

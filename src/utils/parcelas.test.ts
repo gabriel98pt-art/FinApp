@@ -249,6 +249,24 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
     });
     expect(totalParcelasGeral([p], "2026-07")).toBe(1867 + 1866);
   });
+
+  // O bug: o mês corrente (mesReferencia) contava sempre como já resolvido,
+  // mesmo antes do dia de vencimento — mesma precisão de dia que
+  // estaEfetivamentePaga já tinha, mas que faltava chegar até aqui.
+  test("com `hoje`, o mês corrente só entra depois do dia de vencimento", () => {
+    const p = parcela({
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 27,
+      primeiroMes: "2026-06",
+      numParcelas: 3,
+      pagoPorMes: {},
+    });
+    // junho já fechado; julho (corrente) ainda não venceu
+    expect(totalParcelasGeral([p], "2026-07", "2026-07-08")).toBe(1867);
+    // julho já venceu
+    expect(totalParcelasGeral([p], "2026-07", "2026-07-27")).toBe(1867 + 1866);
+  });
 });
 
 describe("totalDaCompra — os dois modos do Registro Rápido", () => {

@@ -31,13 +31,27 @@ export function contribuicaoFixasMes(
  *  "Já saíram" são os meses marcados à mão MAIS, com `mesReferencia`, os meses
  *  em que a fixa saiu sozinha do cartão (ver `mesesPagosComoAutoDebit`), sem
  *  contar duas vezes um mês que esteja nos dois. Sem `mesReferencia` conta só o
- *  marcado, como sempre contou. */
-export function totalFixasGeral(fixas: DespesaFixa[], mesReferencia?: YearMonth): Cents {
+ *  marcado, como sempre contou.
+ *
+ *  Com `hoje`, o mês de `mesReferencia` (o corrente) ganha a mesma precisão de
+ *  DIA que `contribuicaoFixasMes` já tinha — sem isto, uma fixa em débito
+ *  automático que vence dia 27 contava o mês inteiro já saído logo no dia 1,
+ *  inflando o "saldo acumulado" do Início com dinheiro que ainda nem saiu da
+ *  conta. */
+export function totalFixasGeral(
+  fixas: DespesaFixa[],
+  mesReferencia?: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   return fixas.reduce((s, f) => {
     const marcados = Object.entries(f.pagoPorMes ?? {})
       .filter(([, pago]) => pago)
       .map(([mes]) => mes as YearMonth);
-    const automaticos = mesReferencia ? mesesPagosComoAutoDebit(f, mesReferencia) : [];
+    const automaticos = mesReferencia
+      ? mesesPagosComoAutoDebit(f, mesReferencia).filter((mes) =>
+          fixaEfetivamentePaga(f, mes, mesReferencia, hoje),
+        )
+      : [];
     return s + f.valor * new Set([...marcados, ...automaticos]).size;
   }, 0);
 }

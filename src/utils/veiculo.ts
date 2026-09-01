@@ -66,15 +66,27 @@ export function totalVeiculoMes(
  *  Mesmo tratamento de `totalFixasGeral` (utils/despesasFixas.ts): com
  *  `mesReferencia`, os meses em débito automático contam mesmo sem marcação
  *  manual, sem contar duas vezes um mês que esteja também marcado à mão. Sem
- *  `mesReferencia`, só o marcado, como sempre contou. */
-export function totalVeiculoGeral(veiculo: DadosVeiculo, mesReferencia?: YearMonth): Cents {
+ *  `mesReferencia`, só o marcado, como sempre contou.
+ *
+ *  Com `hoje`, o mês de `mesReferencia` ganha precisão de DIA, mesma razão de
+ *  `totalFixasGeral`: sem isto, uma fixa do veículo em débito automático que
+ *  vence dia 27 já contava o mês inteiro saído no dia 1. */
+export function totalVeiculoGeral(
+  veiculo: DadosVeiculo,
+  mesReferencia?: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   const cargas = veiculo.cargas.reduce((s, c) => s + c.custo, 0);
   const despesas = veiculo.despesas.reduce((s, d) => s + d.valor, 0);
   const fixas = veiculo.despesasFixas.reduce((s, f) => {
     const marcados = Object.entries(f.pagoPorMes ?? {})
       .filter(([, pago]) => pago)
       .map(([mes]) => mes as YearMonth);
-    const automaticos = mesReferencia ? mesesPagosComoAutoDebit(f, mesReferencia) : [];
+    const automaticos = mesReferencia
+      ? mesesPagosComoAutoDebit(f, mesReferencia).filter((mes) =>
+          fixaEfetivamentePaga(f, mes, mesReferencia, hoje),
+        )
+      : [];
     return s + f.valor * new Set([...marcados, ...automaticos]).size;
   }, 0);
   return cargas + despesas + fixas;

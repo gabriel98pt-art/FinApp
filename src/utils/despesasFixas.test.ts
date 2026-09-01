@@ -133,4 +133,21 @@ describe("totalFixasGeral com fixa em débito automático", () => {
     expect(totalFixasGeral([semCartao], "2026-08")).toBe(0);
     expect(totalFixasGeral([semAuto], "2026-08")).toBe(0);
   });
+
+  // O bug: o mês corrente (mesReferencia) contava sempre como já saído, mesmo
+  // antes do dia de vencimento — mesma precisão de dia que contribuicaoFixasMes
+  // já tinha, mas que faltava aqui.
+  test("com `hoje`, o mês corrente só entra depois do dia de vencimento", () => {
+    const f = fixa({
+      valor: 4500,
+      contaCartao: CARTAO,
+      autoDebit: true,
+      inicio: "2026-05",
+      diaVencimento: 27,
+    });
+    // maio, junho, julho já fechados; agosto (corrente) ainda não venceu
+    expect(totalFixasGeral([f], "2026-08", "2026-08-08")).toBe(4500 * 3);
+    // agosto já venceu
+    expect(totalFixasGeral([f], "2026-08", "2026-08-27")).toBe(4500 * 4);
+  });
 });

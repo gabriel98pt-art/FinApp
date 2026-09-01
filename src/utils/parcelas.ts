@@ -83,13 +83,22 @@ export function pagoNoMes(parcelas: Parcela[], ym: YearMonth, mesReferencia: Yea
  *  manual (`estaEfetivamentePaga`) — sem ele, só o marcado à mão, como sempre
  *  contou (o plano da parcela é sempre finito, ao contrário da fixa em aberto,
  *  então aqui não há o problema de "não saber até onde recuar" que
- *  `totalFixasGeral` tem). */
-export function totalParcelasGeral(parcelas: Parcela[], mesReferencia?: YearMonth): Cents {
+ *  `totalFixasGeral` tem).
+ *
+ *  Com `hoje`, o mês de `mesReferencia` ganha precisão de DIA, mesma razão de
+ *  `estaEfetivamentePaga`: sem isto, uma parcela em débito automático que
+ *  vence dia 27 já contava o mês inteiro resolvido no dia 1. */
+export function totalParcelasGeral(
+  parcelas: Parcela[],
+  mesReferencia?: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   return parcelas.reduce(
     (s, p) =>
       s +
       mesesDaParcela(p).reduce(
-        (sp, m) => (estaEfetivamentePaga(p, m, mesReferencia) ? sp + valorDaParcela(p, m) : sp),
+        (sp, m) =>
+          estaEfetivamentePaga(p, m, mesReferencia, hoje) ? sp + valorDaParcela(p, m) : sp,
         0,
       ),
     0,
