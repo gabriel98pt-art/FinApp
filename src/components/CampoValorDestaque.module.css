@@ -1,0 +1,39 @@
+/* Mesmo padrão do campo comum (RegistroRapido.module.css .campo), mas
+   centralizado — este é sempre o centro do formulário, nunca "mais um
+   campo" ao lado de outros. */
+.campo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  font-size: var(--fs-body);
+  color: var(--mut);
+}
+
+.rotulo {
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.valor {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--txt);
+  width: 100%;
+}
+
+/* Sem `outline: none` no `:focus`: o campo continua a desenhar o anel azul
+   padrão do navegador — um input sem contorno visível em repouso ainda
+   precisa de indicar foco por teclado (achado da auditoria de
+   Acessibilidade). */
+
+/* Verde só aqui: é o campo Valor de uma RECEITA, nunca de despesa/veículo —
+   ver a regra "verde só em Receita" (categoriaVisual.ts). */
+.receita {
+  color: var(--grn);
+}

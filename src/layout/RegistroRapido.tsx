@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { Check, Square, SquareCheck } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import type { Cents, TipoVeiculo } from "../types";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -746,45 +747,43 @@ export default function RegistroRapido() {
             Parcelamento — pedir os dois seria pedir o mesmo número duas
             vezes. */}
         {!ehParcelada && (
-          <label className={`${styles.campo} ${styles.campoValorDestaque}`}>
-            <span className={styles.rotuloValorDestaque}>
-              {tipo !== "carga"
+          <CampoValorDestaque
+            rotulo={
+              tipo !== "carga"
                 ? "Quanto?"
                 : modoCusto === "total"
                   ? "Quanto?"
                   : dimensao === "eletrico"
                     ? `Preço por kWh (${simbolo})`
-                    : `Preço por litro (${simbolo})`}
-            </span>
-            <CampoMoeda
-              valor={
-                tipo !== "carga" || modoCusto === "total"
-                  ? valorTexto
-                  : dimensao === "eletrico"
-                    ? precoKwh
-                    : precoLitro
-              }
-              aoMudar={
-                tipo !== "carga" || modoCusto === "total"
-                  ? (v) => {
-                      setValorTexto(v);
-                      if (tipo === "carga" && !quantidadeTocada) palpitarQuantidade(v, descricao);
-                    }
-                  : dimensao === "eletrico"
-                    ? setPrecoKwh
-                    : setPrecoLitro
-              }
-              required
-              className={`${styles.valorDestaque} ${lado === "receita" ? styles.valorDestaqueReceita : ""}`}
-              // As mensagens de erro deste formulário já descrevem UM campo
-              // cada ("Valor inválido...", "kWh inválido.", "Escolha em
-              // quantas parcelas...", "Dia do vencimento..."), mas o estado
-              // só guarda o texto, não qual campo — aria-describedby nos
-              // campos relevantes, não aria-invalid (exigiria saber
-              // exatamente qual — achado da auditoria de Acessibilidade).
-              aria-describedby={erro !== null ? "erro-registro" : undefined}
-            />
-          </label>
+                    : `Preço por litro (${simbolo})`
+            }
+            valor={
+              tipo !== "carga" || modoCusto === "total"
+                ? valorTexto
+                : dimensao === "eletrico"
+                  ? precoKwh
+                  : precoLitro
+            }
+            aoMudar={
+              tipo !== "carga" || modoCusto === "total"
+                ? (v) => {
+                    setValorTexto(v);
+                    if (tipo === "carga" && !quantidadeTocada) palpitarQuantidade(v, descricao);
+                  }
+                : dimensao === "eletrico"
+                  ? setPrecoKwh
+                  : setPrecoLitro
+            }
+            tom={lado === "receita" ? "receita" : undefined}
+            required
+            // As mensagens de erro deste formulário já descrevem UM campo
+            // cada ("Valor inválido...", "kWh inválido.", "Escolha em
+            // quantas parcelas...", "Dia do vencimento..."), mas o estado
+            // só guarda o texto, não qual campo — aria-describedby nos
+            // campos relevantes, não aria-invalid (exigiria saber
+            // exatamente qual — achado da auditoria de Acessibilidade).
+            aria-describedby={erro !== null ? "erro-registro" : undefined}
+          />
         )}
 
         {/* Depois do Valor, não antes: o valor é o que mais importa decidir
