@@ -5,12 +5,35 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 487 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
 
 ---
 
 ## 01/09/2026
 
+- Ontem a criação de uma conta ou cartão tinha mudado da tela de Cartões para
+  Definições, e a gestão do que já existia (renomear, remover, dia da fatura)
+  tinha ficado para trás. O Gabriel reconsiderou: hoje foi tudo junto. A linha
+  em Definições passou a chamar-se "Contas e cartões", com a contagem ao lado,
+  e é lá que se cria, se muda o nome, se apaga e se acertam os dois dias da
+  fatura do cartão de crédito.
+- Cada conta aparece numa linha só, com o tipo (crédito ou débito) ao lado do
+  nome e três botões à direita: juntar um segundo cartão ao mesmo banco,
+  renomear e remover. É o mesmo desenho da lista de categorias de despesa, que
+  já vivia ali — quem já mexeu numa vai reconhecer a outra.
+- Nos cartões de crédito, os campos "fecha dia" e "vence dia" ficam numa linha
+  própria por baixo do nome. Antes estavam espremidos dentro da pílula, ao lado
+  dos botões, e apertavam o nome da conta em telemóvel.
+- A tela de Cartões perdeu a seção "Cartões e contas" do fundo por completo.
+  Ficou só com o que se lê: os quatro valores do topo, os quadros de cada
+  conta, as faturas (pagar, ajustar, reabrir) e as transferências entre contas.
+  Nada disso mudou.
+- O convite que aparecia quando não há conta nenhuma dizia "Adicione abaixo" —
+  já não havia nada abaixo. Agora diz onde é: Definições → Contas e cartões.
+- Nota de desenho, assumida de propósito: aqui as ações de cada item são botões
+  visíveis, e não o menu "⋯" que Transações, Parcelas e Veículo usam. Foi
+  escolha do Gabriel — vale mais estar igual ao resto de Definições do que
+  igual ao resto do app.
 - A tela de Receitas ganhou o mesmo sistema de organizar a lista que Despesas
   já tinha há algum tempo: os botões "Mais recentes / Mais antigas / Maior
   valor / Menor valor" logo acima dos lançamentos. Antes a lista vinha sempre

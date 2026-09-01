@@ -62,17 +62,31 @@ não vale investir numa tela pra uma etapa que vai ser substituída.
 
 ## Resolvido (fica registrado por onde passou)
 
-### Criar conta ou cartão mudou-se para Definições
+### Contas e cartões mudaram-se inteiros para Definições
 
-**Resolvido em 31/08/2026.** O formulário de nome + tipo que vivia escrito
-dentro da seção "Cartões e contas", na própria tela de Cartões, agora é uma
-folha em Definições ("Registo" → "Nova conta ou cartão"). Cartões continua
-com a lista do que já existe e a gestão de cada um (renomear, remover, dia
-de fatura — pelo menu "⋯" de cada pílula); só o "criar" é que mudou de casa.
+**Resolvido em 01/09/2026**, em dois tempos.
+
+Em **31/08** foi só o formulário de criar: o campo de nome + tipo que vivia
+dentro da seção "Cartões e contas", na própria tela de Cartões, virou uma
+folha em Definições ("Registo" → "Nova conta ou cartão"). A lista do que já
+existe e a gestão de cada um (renomear, remover, dia de fatura, pelo menu "⋯"
+de cada pílula) ficaram em Cartões.
+
+Em **01/09** o Gabriel reconsiderou e pediu a gestão toda no mesmo sítio. A
+folha passou a chamar-se "Contas e cartões" e faz agora tudo: criar,
+renomear, remover, juntar um 2.º método à mesma instituição e acertar os dois
+dias da fatura. A seção "Cartões e contas" saiu inteira da tela de Cartões,
+que ficou só com o que se lê (KPIs, quadros, faturas, transferências).
 
 Resolve de quebra a dúvida sobre o "+" de Cartões só abrir "Adicionar
 transferência": com "criar conta/cartão" fora da tela, esse "+" passa a ter
 só mesmo um fluxo — não precisa de virar menu.
+
+**Inconsistência assumida de propósito**: nesta folha as ações de cada item
+são botões visíveis na linha (o desenho da lista de categorias, que é o
+padrão de Definições), e não o menu "⋯" (`MenuAcoesItem`) que Transações,
+Parcelas e Veículo usam para editar item de lista. O Gabriel decidiu assim
+com o custo à vista — não é um esquecimento a corrigir depois.
 
 ### "Adicionar X" no cabeçalho — tentado e revertido no mesmo dia
 

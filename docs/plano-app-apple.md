@@ -125,7 +125,10 @@ Equipa: Acessibilidade + Design & Cor
 2. ✅ O teclado do telemóvel deixou de tapar o botão "Salvar".
 3. ✅ Alvos de toque de 44 pontos nos botões pequenos: os ícones do cabeçalho
    (tinham 31 pontos) e as pílulas de gerir do Veículo e dos Cartões, onde dois
-   ou três iconezinhos de ~26 pontos deram lugar a um só menu "⋯".
+   ou três iconezinhos de ~26 pontos deram lugar a um só menu "⋯". (As pílulas
+   dos Cartões deixaram de existir em 01/09: a gestão de contas e cartões
+   mudou-se inteira para Definições, onde cada linha tem os 44 pontos de
+   altura da lista de categorias. As do Veículo continuam.)
 
 **Ficou também desta etapa** (não estava no plano, apareceu ao resolver o espaço
 do cabeçalho): Desfazer/Refazer saíram do cabeçalho para o menu "Mais" no
