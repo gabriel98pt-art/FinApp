@@ -725,7 +725,10 @@ export default function Veiculo() {
                     <ItemComMenu
                       key={c.id}
                       nome={`Abastecimento · ${c.local}`}
-                      detalhe={`${rotuloQuantidade(c)} · ${c.data.slice(8, 10)}/${c.data.slice(5, 7)}`}
+                      /* Data primeiro (01/09), igual a ListaLancamentos: numa
+                         lista ordenada por data, as datas alinhadas à esquerda
+                         são o que se procura ao correr o olho pela coluna. */
+                      detalhe={`${c.data.slice(8, 10)}/${c.data.slice(5, 7)} · ${rotuloQuantidade(c)}`}
                       valor={formatMoney(c.custo, cfg.currency)}
                       aoEditar={() => abrirEdicaoCarga(c)}
                       aoExcluir={() => void excluirCargaDaLista(c.id)}
@@ -814,7 +817,8 @@ export default function Veiculo() {
                     <ItemComMenu
                       key={c.id}
                       nome={c.local}
-                      detalhe={`${rotuloQuantidade(c)} · ${formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/${c.kwh !== undefined ? "kWh" : "L"} · ${c.data.slice(8, 10)}/${c.data.slice(5, 7)}${c.sessao ? ` · ${c.sessao}` : ""}`}
+                      /* Data primeiro (01/09), igual a ListaLancamentos. */
+                      detalhe={`${c.data.slice(8, 10)}/${c.data.slice(5, 7)} · ${rotuloQuantidade(c)} · ${formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/${c.kwh !== undefined ? "kWh" : "L"}${c.sessao ? ` · ${c.sessao}` : ""}`}
                       valor={formatMoney(c.custo, cfg.currency)}
                       aoEditar={() => abrirEdicaoCarga(c)}
                       aoExcluir={() => void excluirCargaDaLista(c.id)}
@@ -979,7 +983,8 @@ export default function Veiculo() {
                     <ItemComMenu
                       key={k.id}
                       nome={`${k.km.toLocaleString("pt-PT")} km`}
-                      detalhe={`${k.nota ? `${k.nota} · ` : ""}${k.data.slice(8, 10)}/${k.data.slice(5, 7)}`}
+                      /* Data primeiro (01/09), igual a ListaLancamentos. */
+                      detalhe={`${k.data.slice(8, 10)}/${k.data.slice(5, 7)}${k.nota ? ` · ${k.nota}` : ""}`}
                       aoEditar={() => abrirEdicaoKm(k)}
                       aoExcluir={() => void excluirKmDaLista(k.id)}
                     />

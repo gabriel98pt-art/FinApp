@@ -52,6 +52,21 @@ Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
 
 ---
 
+## 01/09/2026
+
+- Nas listas de lançamentos (Despesas, Receitas, Parcelas), a linha de baixo
+  de cada item passou a começar pela data: era "Alimentação · 05/08", agora é
+  "05/08 · Alimentação". A razão é simples: numa lista já ordenada por data, é
+  a data que se procura ao correr o olho pela coluna — e ela ficava no fim de
+  um texto de comprimento variável, num sítio diferente em cada linha. À
+  esquerda, todas as datas caem alinhadas.
+- A mesma troca foi feita nas listas do Veículo (abastecimentos, registos de
+  km e o resumo do mês), que tinham o mesmo formato com a data no fim.
+- As telas de Transações e Calendário já mostravam a data primeiro — agora o
+  app inteiro segue a mesma ordem.
+
+---
+
 ## 31/08/2026
 
 - Criar uma conta ou cartão novo mudou-se da tela de Cartões para Definições

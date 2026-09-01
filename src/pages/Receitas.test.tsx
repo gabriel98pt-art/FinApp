@@ -115,6 +115,16 @@ describe("Receitas", () => {
     expect(screen.getByText("Total agosto 2026")).toBeInTheDocument();
   });
 
+  // 01/09: a linha de baixo passou a ser "data · etiqueta" (era
+  // "etiqueta · data"). Fica sob teste porque é a única prova de que a ordem
+  // não volta atrás sem querer — a mudança é de uma linha e não parte nada.
+  test("linha de detalhe: a data vem primeiro, a etiqueta depois", () => {
+    estadoReceitas = { itens: [receita({ nota: "bónus" })], carregado: true, erro: false };
+    render(<Receitas />);
+
+    expect(screen.getByText("05/08 · Trabalho · bónus")).toBeInTheDocument();
+  });
+
   test("Adicionar abre o registo rápido no modo receita", async () => {
     render(<Receitas />);
     await userEvent.click(screen.getByRole("button", { name: /Adicionar/ }));

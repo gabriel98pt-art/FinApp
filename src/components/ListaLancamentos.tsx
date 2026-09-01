@@ -74,8 +74,14 @@ function LinhaLancamento({
         {item.categoria !== undefined && <CategoriaBolha categoria={item.categoria} tamanho={30} />}
         <span className={styles.principal}>
           <span className={styles.descricao}>{item.descricao}</span>
+          {/* Data primeiro, etiqueta depois (01/09): numa lista já ordenada por
+              data, é a data que a pessoa procura ao correr o olho pela coluna —
+              e ela ficava no fim de uma etiqueta de comprimento variável, num
+              sítio diferente em cada linha. À esquerda, alinhada, todas as datas
+              caem na mesma coluna. Mesma ordem que Transações e Calendário já
+              usavam. */}
           <span className={styles.detalhe}>
-            {item.etiqueta} · {dataCurta(item.data)}
+            {dataCurta(item.data)} · {item.etiqueta}
           </span>
           {item.sub !== undefined && <span className={styles.sub}>{item.sub}</span>}
         </span>
