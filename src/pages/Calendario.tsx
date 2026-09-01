@@ -240,7 +240,12 @@ export default function Calendario() {
         {/* Só o "+": o texto do botão migrou para o aria-label (sweep de
             01/09/2026). Continua exatamente onde sempre esteve, no corpo da
             página — o cabeçalho não recebe botões de criar. */}
-        <Botao variante="primaria" soIcone onClick={() => abrirNovoEvento()} aria-label="Adicionar evento">
+        <Botao
+          variante="primaria"
+          soIcone
+          onClick={() => abrirNovoEvento()}
+          aria-label="Adicionar evento"
+        >
           <Plus size={18} aria-hidden />
         </Botao>
       </div>
