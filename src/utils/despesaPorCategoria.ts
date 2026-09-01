@@ -104,13 +104,19 @@ export function despesaPorCategoriaMes(
  *  categoria dela.
  *
  *  Mesma leitura de `despesaRegistradaMes` pras fixas sem lançamento-espelho
- *  (dado de antes de 01/09/2026): caem no mês de vencimento, sem
- *  aproximação nova. */
+ *  — dado de antes de 01/09/2026 OU débito automático (que nunca vai ter
+ *  espelho: `alternarPagoDespesaFixa` nem chega a ser chamada pra essas,
+ *  o selo delas é só leitura). As duas caem no mês que `fixaEfetivamentePaga`
+ *  disser, sem aproximação nova — é a mesma precisão de dia do resto do
+ *  app. Sem isto, uma fixa em débito automático (ex. um seguro) nunca
+ *  aparecia em fatia nenhuma (achado do Gabriel, 02/09/2026). */
 export function despesaPorCategoriaRegistradaMes(
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
 ): FatiaCategoria[] {
   const porCategoria = new Map<string, Cents>();
   const somar = (categoria: string, valor: Cents) => {
@@ -125,9 +131,9 @@ export function despesaPorCategoriaRegistradaMes(
     somar(d.categoria, d.valor);
   }
 
-  // Fixas gerais pagas neste mês SEM lançamento-espelho ainda (dado antigo):
-  // caem no mês de vencimento, mesmo fallback de `despesaRegistradaMes`.
-  for (const f of despesasFixas.filter((f) => f.pagoPorMes[ym] === true)) {
+  // Fixas gerais "pagas" neste mês SEM lançamento-espelho — dado antigo ou
+  // débito automático, mesmo fallback de `despesaRegistradaMes`.
+  for (const f of despesasFixas.filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))) {
     const temEspelho = despesasCorrentes.some(
       (d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym,
     );
@@ -141,7 +147,7 @@ export function despesaPorCategoriaRegistradaMes(
   for (const d of doMes(veiculo.despesas.filter(semDuplicar), ym)) {
     veiculoTotal += d.valor;
   }
-  for (const f of veiculo.despesasFixas.filter((f) => f.pagoPorMes[ym] === true)) {
+  for (const f of veiculo.despesasFixas.filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))) {
     const temEspelho = veiculo.despesas.some(
       (d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym,
     );

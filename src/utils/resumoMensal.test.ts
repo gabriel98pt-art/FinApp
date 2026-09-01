@@ -306,7 +306,7 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         { id: "vd1", descricao: "Pneu", valor: 8000, data: "2026-09-12", categoria: "Manutenção" },
       ],
     });
-    expect(despesaRegistradaMes(despesas, [], v, "2026-09")).toBe(14000);
+    expect(despesaRegistradaMes(despesas, [], v, "2026-09", "2026-09")).toBe(14000);
   });
 
   test("'fat' e 'recon' ficam de fora, como em despesaRealizadaMes", () => {
@@ -328,7 +328,7 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         origem: "recon",
       },
     ];
-    expect(despesaRegistradaMes(despesas, [], veiculo(), "2026-09")).toBe(0);
+    expect(despesaRegistradaMes(despesas, [], veiculo(), "2026-09", "2026-09")).toBe(0);
   });
 
   // O caso do advogado: parcela referente a Agosto, paga só em Setembro. O
@@ -347,8 +347,8 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         parcelaMes: "2026-08",
       },
     ];
-    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-08")).toBe(0);
-    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-09")).toBe(10000);
+    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-08", "2026-09")).toBe(0);
+    expect(despesaRegistradaMes(espelho, [], veiculo(), "2026-09", "2026-09")).toBe(10000);
   });
 
   test("fixa geral já com espelho (paga depois de 01/09/2026): conta no mês real do pagamento", () => {
@@ -374,8 +374,8 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         fixaMes: "2026-08",
       },
     ];
-    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-08")).toBe(0);
-    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-09")).toBe(45000);
+    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-08", "2026-09")).toBe(0);
+    expect(despesaRegistradaMes(espelho, fixas, veiculo(), "2026-09", "2026-09")).toBe(45000);
   });
 
   // Dado de antes de 01/09/2026: `pagoPorMes` gravado sem lançamento nenhum
@@ -391,8 +391,8 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         pagoPorMes: { "2026-06": true },
       },
     ];
-    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06")).toBe(45000);
-    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-07")).toBe(0);
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06", "2026-09")).toBe(45000);
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-07", "2026-09")).toBe(0);
   });
 
   test("fixa geral não paga não conta nada — ao contrário de despesaRealizadaMes", () => {
@@ -403,7 +403,38 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
     // pagamento (cronograma); despesaRegistradaMes não — sem pagamento não
     // há dinheiro nenhum que tenha saído.
     expect(despesaRealizadaMes([], fixas, [], veiculo(), "2026-06", "2026-08")).toBe(45000);
-    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06")).toBe(0);
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-06", "2026-09")).toBe(0);
+  });
+
+  // O caso do Gabriel (02/09/2026): fixa em débito automático nunca grava
+  // `pagoPorMes` — `fixaEfetivamentePaga` calcula "paga" pelo dia de
+  // vencimento, sem ninguém nunca clicar em nada. Sem este caso, ela nunca
+  // entrava no fluxo de caixa, mesmo com o dinheiro já tendo saído sozinho.
+  test("fixa em débito automático conta pelo dia de vencimento, mesmo sem pagoPorMes", () => {
+    const fixas: DespesaFixa[] = [
+      {
+        id: "f1",
+        descricao: "Seguro Saúde",
+        valor: 12000,
+        categoria: "Saúde",
+        contaCartao: "AB Gold (C)",
+        autoDebit: true,
+        diaVencimento: 10,
+        pagoPorMes: {},
+      },
+    ];
+    // Mês corrente, antes do vencimento: ainda não conta.
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-09", "2026-09", "2026-09-05")).toBe(0);
+    // Mês corrente, depois do vencimento: conta.
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-09", "2026-09", "2026-09-15")).toBe(
+      12000,
+    );
+    // Mês já fechado: conta sempre, sem olhar o dia.
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-08", "2026-09", "2026-09-01")).toBe(
+      12000,
+    );
+    // Mês futuro: ainda não aconteceu, não conta.
+    expect(despesaRegistradaMes([], fixas, veiculo(), "2026-10", "2026-09", "2026-09-15")).toBe(0);
   });
 
   test("fixa do veículo segue a mesma regra, com o espelho em veiculo.despesas", () => {
@@ -419,7 +450,7 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         },
       ],
     });
-    expect(despesaRegistradaMes([], [], semEspelho, "2026-06")).toBe(4500);
+    expect(despesaRegistradaMes([], [], semEspelho, "2026-06", "2026-09")).toBe(4500);
 
     // com espelho (pago depois de 01/09/2026): conta na data real.
     const comEspelho = veiculo({
@@ -445,7 +476,7 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
         },
       ],
     });
-    expect(despesaRegistradaMes([], [], comEspelho, "2026-06")).toBe(0);
-    expect(despesaRegistradaMes([], [], comEspelho, "2026-07")).toBe(4500);
+    expect(despesaRegistradaMes([], [], comEspelho, "2026-06", "2026-09")).toBe(0);
+    expect(despesaRegistradaMes([], [], comEspelho, "2026-07", "2026-09")).toBe(4500);
   });
 });

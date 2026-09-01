@@ -9,7 +9,7 @@ import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosSt
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { rotuloMes } from "../utils/calculos";
+import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { despesaPorCategoriaRegistradaMes, paradasDonut } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
@@ -45,10 +45,20 @@ export default function DonutCategoriaCard() {
   //
   // Fluxo de caixa (01/09/2026), mesma regra dos KPIs "Despesas"/"Receitas"
   // ao lado — pela data real de cada lançamento, não pelo mês de vencimento
-  // do cronograma. Sem `mesReal`/`hoje`: cash-flow não tem "mês corrente
-  // ainda não fechado", só a data de cada coisa.
+  // do cronograma. `mesReal`/`hoje` sobrevivem só pro caso de fixa em débito
+  // automático (nunca tem lançamento-espelho — o selo dela é só leitura,
+  // ninguém clica em nada — então cai no dia de vencimento, com a mesma
+  // precisão de dia do resto do app; achado do Gabriel, 02/09/2026, um
+  // seguro pago sozinho no cartão sumia do donut).
   const mes = useMesVisivelStore((s) => s.mes);
-  const fatias = despesaPorCategoriaRegistradaMes(despesas, despesasFixas, veiculo, mes);
+  const fatias = despesaPorCategoriaRegistradaMes(
+    despesas,
+    despesasFixas,
+    veiculo,
+    mes,
+    mesAtual(),
+    hojeIso(),
+  );
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 

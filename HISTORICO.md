@@ -5,9 +5,18 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 503 mudanças registadas.
+Período coberto: 23/07/2026 a 02/09/2026 — 504 mudanças registadas.
 
 ---
+
+## 02/09/2026
+
+- Uma despesa fixa em débito automático (ex. um seguro que sai sozinho do
+  cartão) nunca aparecia no total nem no gráfico de categorias do Início,
+  mesmo já paga. A causa: ela nunca grava "paga" em lugar nenhum — o selo
+  "Pago" dela é calculado pelo dia de vencimento, ninguém clica em nada.
+  Corrigido: agora conta pelo mesmo dia de vencimento, com a mesma precisão
+  de dia que o resto do app já usa pra débito automático.
 
 ## 01/09/2026
 

@@ -90,9 +90,9 @@ export default function Inicio() {
   // a lista de dependências já é o sinal certo de "recalcular ou não".
   const resumo = useMemo(() => {
     const r = totalDoMes(receitasNosTotais(receitas), mes);
-    const d = despesaRegistradaMes(despesas, despesasFixas, veiculo, mes);
+    const d = despesaRegistradaMes(despesas, despesasFixas, veiculo, mes, mesReal, hoje);
     return { receitas: r, despesas: d, saldo: r - d };
-  }, [receitas, despesas, despesasFixas, veiculo, mes]);
+  }, [receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje]);
   // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
   // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
   // pagamento de fatura contava como despesa por cima da compra original e a

@@ -15,6 +15,7 @@ import type {
 } from "../types";
 import { despesasNosTotais, mesDe, mesesRecentes, receitasNosTotais, totalDoMes } from "./calculos";
 import { contribuicaoFixasMes } from "./despesasFixas";
+import { fixaEfetivamentePaga } from "./fatura";
 import { contribuicaoParcelasMes } from "./parcelas";
 import { totalCargasMes, totalVeiculoMes } from "./veiculo";
 
@@ -126,24 +127,35 @@ export function janelaResumoAnual(n: number, ate: YearMonth, mesReal: YearMonth)
   return mesesRecentes(n, ate).map((ym) => ({ ym, futuro: ym > mesReal }));
 }
 
-/** Despesas fixas pagas em `ym` que ainda não têm o lançamento-espelho de
- *  data real (origem 'fixa') — dado gravado antes de 01/09/2026, quando
- *  marcar como paga só gravava `pagoPorMes`, sem lançamento nenhum.
+/** Despesas fixas "pagas" em `ym` que ainda não têm o lançamento-espelho de
+ *  data real (origem 'fixa') — dois casos, os dois sem espelho de propósito:
  *
- *  Contam pelo valor cheio, no MÊS DE VENCIMENTO — mesma leitura que o app
- *  sempre deu a essas fixas, agora só isolada nesta função (que soma por
- *  data). Não é aproximação nova: é o comportamento de sempre, preservado
- *  pra quem pagou antes de o espelho existir. Uma fixa marcada paga DEPOIS
- *  desta mudança sempre tem espelho (`alternarPagoDespesaFixa`/
- *  `alternarPagoFixaVeiculo` criam-no na hora), então cai fora deste filtro e
- *  entra pela via normal, com a data real de quando saiu. */
+ *  1. Dado antigo: marcada paga antes de 01/09/2026, quando isso só gravava
+ *     `pagoPorMes`, sem lançamento nenhum.
+ *  2. Débito automático: `fixaEfetivamentePaga` calcula "paga" pelo dia de
+ *     vencimento (cartão + `autoDebit` + dia já passado) — SEM NUNCA gravar
+ *     `pagoPorMes`. `alternarPagoDespesaFixa` nem chega a ser chamada pra
+ *     essas (o selo delas é só leitura, sem botão) — não é "dado antigo",
+ *     é estrutural: uma fixa em débito automático nunca vai ter espelho,
+ *     porque ninguém nunca clica em nada pra ela. Sem este caso, ela NUNCA
+ *     entrava no fluxo de caixa (achado do Gabriel, 02/09/2026 — "Seguro
+ *     Saúde" pago sozinho no cartão sumia do donut do Início).
+ *
+ *  Os dois contam pelo valor cheio, no MÊS QUE `fixaEfetivamentePaga` disser
+ *  — vencimento, com a mesma precisão de dia do resto do app. Não é
+ *  aproximação nova: é o comportamento de sempre, preservado pra quem não
+ *  tem (ou nunca vai ter) um lançamento com data real. Uma fixa MARCADA À
+ *  MÃO depois desta mudança sempre ganha espelho, então cai fora deste
+ *  filtro e entra pela via normal, com a data real de quando saiu. */
 function fixasSemEspelhoNoMes(
   fixas: DespesaFixa[],
   comEspelho: { origem?: string; fixaId?: Id; fixaMes?: YearMonth }[],
   ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   return fixas
-    .filter((f) => f.pagoPorMes[ym] === true)
+    .filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))
     .filter(
       (f) => !comEspelho.some((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym),
     )
@@ -164,12 +176,19 @@ function fixasSemEspelhoNoMes(
  *
  *  Receita não precisa do par: `totalDoMes(receitasNosTotais(receitas), ym)`
  *  já soma por data desde sempre — não existe "receita fixa" agendada com o
- *  mesmo problema de cronograma que a despesa tem. */
+ *  mesmo problema de cronograma que a despesa tem.
+ *
+ *  `mesReal`/`hoje` só servem pro caso das fixas em débito automático (ver
+ *  `fixasSemEspelhoNoMes`) — não voltam a gatear nada mais aqui; despesas
+ *  correntes, parcelas e veículo continuam 100% por data real, sem exceção
+ *  de mês corrente/fechado. */
 export function despesaRegistradaMes(
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
 ): Cents {
   // 'fat' fica de fora sempre: a compra no cartão que formou a fatura já
   // teve a SUA própria data contada aqui; contar também o pagamento da
@@ -183,9 +202,9 @@ export function despesaRegistradaMes(
   const veiculoDespesasRegistradas = veiculo.despesas.filter(semDuplicar);
   return (
     totalDoMes(correntesRegistradas, ym) +
-    fixasSemEspelhoNoMes(despesasFixas, despesasCorrentes, ym) +
+    fixasSemEspelhoNoMes(despesasFixas, despesasCorrentes, ym, mesReal, hoje) +
     totalCargasMes(veiculo, ym) +
     totalDoMes(veiculoDespesasRegistradas, ym) +
-    fixasSemEspelhoNoMes(veiculo.despesasFixas, veiculo.despesas, ym)
+    fixasSemEspelhoNoMes(veiculo.despesasFixas, veiculo.despesas, ym, mesReal, hoje)
   );
 }
