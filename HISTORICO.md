@@ -11,6 +11,28 @@ Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
 
 ## 01/09/2026
 
+- A folha "Novo evento" do Calendário passou a ter a mesma cara das outras: o
+  valor deixou de ser mais um campo igual aos outros e virou o número grande do
+  topo ("Quanto? (opcional)"), como já acontece no botão "+" do rodapé, em
+  Cartões, em Despesas e no Veículo. Continua opcional — um evento pode ser só
+  um lembrete.
+- Na mesma folha, os campos "Título" e "Nota" viraram um só, chamado
+  "Descrição". Eram dois campos de texto seguidos a perguntar a mesma coisa, e
+  ninguém sabia em qual escrever. Eventos antigos que tenham nota continuam a
+  mostrá-la; só deixou de haver forma de escrever uma nova.
+- Os botões de criar de Calendário, Cartões e Despesas ficaram só com o "+".
+  São quatro: o evento do Calendário, a transferência de Cartões e os dois de
+  Despesas (aba Correntes e aba Fixas). O texto que estava no botão não se
+  perdeu — passou para o nome que o leitor de ecrã anuncia, por isso quem não
+  vê o ícone continua a ouvir "Adicionar transferência" e não "mais".
+  Continuam todos exatamente onde estavam, dentro de cada tela; nada foi para
+  o cabeçalho.
+- Nas despesas fixas, a marca "débito automático" deixou de ser escrita por
+  extenso a roxo e a negrito no fim da linha. Virou um ↻ pequeno encostado ao
+  "dia N", na cor apagada do resto da linha. Era o pedaço com mais destaque da
+  linha sendo o menos importante dela, e em telemóvel era ele que partia a
+  linha em duas. A explicação inteira continua lá para quem passa o rato por
+  cima ou usa leitor de ecrã.
 - Ontem a criação de uma conta ou cartão tinha mudado da tela de Cartões para
   Definições, e a gestão do que já existia (renomear, remover, dia da fatura)
   tinha ficado para trás. O Gabriel reconsiderou: hoje foi tudo junto. A linha

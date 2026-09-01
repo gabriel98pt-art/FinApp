@@ -9,7 +9,7 @@ Entrada mais recente no topo.
 
 ---
 
-## Sweep de padronização (01/09/2026) — parado no meio, falta retomar
+## Sweep de padronização (01/09/2026) — retomado; faltam 3 telas
 
 **Contexto**: dois agentes rodando em paralelo, cada um varrendo um grupo de
 telas atrás de dois padrões (item 4 do lote de UX/nav — "Quanto?" + Descrição
@@ -20,17 +20,35 @@ sessão compartilhado entre Principal/Gestor/Auxiliar no meio do trabalho.
 Despesas (Nova despesa fixa) e Veículo (despesa variável, despesa fixa,
 abastecimento) — os três com o padrão "Quanto?" + Descrição única.
 
-**Falta** (retomar depois do reset do limite, ~6h20 Lisboa):
+**Feito na retoma de 01/09** — Calendário, Cartões e Despesas fechadas
+(commits `309a3a3`, `71b2483`/`c6d2e78`, `0acab08`):
 
-- Padronizar formulário: Calendário (novo evento), Parcelas, Planejamento
-  (fundo/contribuição, "Definir teto" em `OrcamentoCard.tsx`), TVDE.
-- Botões "+ Adicionar X" virarem ícone (nenhuma tela mexida ainda): Calendário,
-  Cartões, Despesas (×2), Veículo (×4), Parcelas, Planejamento, TVDE — sempre
+- Calendário, folha "Novo evento": passou ao `CampoValorDestaque` ("Quanto?
+  (opcional)", porque aqui o valor pode mesmo faltar) e juntou "Título" +
+  "Nota" num "Descrição" só. O texto continua a gravar no campo `titulo` do
+  evento — é ele que aparece na grelha e nas listas; `descricao` fica só a
+  render o que já existia.
+- Botões só com "+": Calendário (evento), Cartões (transferência) e Despesas
+  (aba Correntes e aba Fixas). Usam o `soIcone` do componente `Botao`, criado
+  na mesma altura pela passagem do Veículo. Todos ficaram onde estavam, no
+  corpo da página.
+- "débito automático" da lista de Despesas Fixas: virou um `RotateCw` de 12px
+  encostado ao "dia N", cor herdada do detalhe, com a frase inteira em
+  `aria-label`/`title`. Não se usou o `Repeat` que a tela já importa de
+  propósito — esse quer dizer "repete todo mês", que é o que toda fixa faz.
+
+**Falta** (das telas que não eram deste lote):
+
+- Padronizar formulário: Parcelas, Planejamento (fundo/contribuição, "Definir
+  teto" em `OrcamentoCard.tsx`), TVDE.
+- Botões "+ Adicionar X" virarem ícone: Parcelas, Planejamento, TVDE — sempre
   dentro do corpo da página, nunca no cabeçalho (regra fixa, ver
   `feedback_finapp_nada_no_cabecalho`).
-- "débito automático" da lista de Despesas Fixas: rewrap pra ícone compacto
-  (sugestão do Gabriel: "↻" perto do dia, ou selo no ícone da categoria) —
-  nem começado.
+
+**Um detalhe a rever quando o Gabriel olhar**: o botão da aba Correntes de
+Despesas dizia só "Adicionar", e o `aria-label` ficou "Adicionar despesa" —
+"Adicionar" sozinho não diz o que se adiciona, e o próprio componente `Botao`
+tem essa regra escrita. É a única diferença face ao texto que estava no botão.
 
 ## Listas que ficaram SEM paginação (01/09/2026)
 
