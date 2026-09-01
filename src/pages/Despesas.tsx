@@ -6,7 +6,7 @@ import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
-import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import ListaLancamentos from "../components/ListaLancamentos";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -243,8 +243,8 @@ export default function Despesas() {
   // ---- caixa de despesa fixa (criar/editar na mesma folha — itens 2 e 7) ----
   const [dfAberta, setDfAberta] = useState(false);
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
+  // Campo de texto livre único (01/09/2026) — ver o comentário no formulário.
   const [dfDescricao, setDfDescricao] = useState("");
-  const [dfNota, setDfNota] = useState("");
   const [dfValor, setDfValor] = useState<Cents | null>(null);
   const [dfCategoria, setDfCategoria] = useState("");
   const [dfContaCartao, setDfContaCartao] = useState("");
@@ -256,7 +256,6 @@ export default function Despesas() {
   function abrirNovaFixa() {
     setDfEditandoId(null);
     setDfDescricao("");
-    setDfNota("");
     setDfValor(null);
     setDfCategoria(cfg.categoriasDespesa[0] ?? "");
     setDfContaCartao("");
@@ -269,8 +268,10 @@ export default function Despesas() {
 
   function abrirEdicaoFixa(f: DespesaFixa) {
     setDfEditandoId(f.id);
-    setDfDescricao(f.descricao);
-    setDfNota(f.nota ?? "");
+    // Fixa antiga com nome E nota: junta os dois no campo único, em vez de
+    // deixar a nota presa num campo que já não existe. Ao guardar, o registo
+    // migra sozinho para o formato de um campo só.
+    setDfDescricao([f.descricao, f.nota].filter(Boolean).join(" — "));
     setDfValor(f.valor);
     setDfCategoria(f.categoria);
     setDfContaCartao(f.contaCartao ?? "");
@@ -285,13 +286,16 @@ export default function Despesas() {
     e.preventDefault();
     const valor = dfValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
-    if (!dfDescricao.trim()) return mostrarToast("Nome obrigatório.");
+    if (!dfDescricao.trim()) return mostrarToast("Descrição obrigatória.");
     const dia = dfDia.trim() === "" ? undefined : Number(dfDia);
     if (dia !== undefined && (!Number.isInteger(dia) || dia < 1 || dia > 31))
       return mostrarToast("Dia do vencimento deve ser entre 1 e 31.");
     const dados = {
-      descricao: dfDescricao,
-      nota: dfNota.trim() || undefined,
+      descricao: dfDescricao.trim(),
+      // O campo único grava só em `descricao`. `undefined` tira a `nota` do
+      // registo antigo (grava-se com `set`, que descarta indefinidos) — o
+      // texto dela já veio junto no campo acima.
+      nota: undefined,
       valor,
       categoria: dfCategoria || cfg.categoriasDespesa[0] || "Outros",
       contaCartao: dfContaCartao || undefined,
@@ -623,29 +627,36 @@ export default function Despesas() {
         titulo={dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
       >
         <form className={styles.formFolha} onSubmit={salvarFixa}>
+          {/* Valor em destaque e em primeiro, como no Registro Rápido: o
+              "quanto por mês" é o que define uma fixa. Saiu da linha dupla que
+              partilhava com o dia do vencimento — o campo grande não cabe em
+              meia largura, e o dia é uma pergunta bem menor. */}
+          <CampoValorDestaque
+            rotulo="Quanto por mês?"
+            valor={dfValor}
+            aoMudar={setDfValor}
+            required
+          />
+          {/* Um só campo de texto livre (01/09/2026): eram "Nome" e "Descrição
+              (opcional)" seguidos, dois campos para a mesma coisa. */}
           <label className={styles.campo}>
-            Nome
-            <input value={dfDescricao} onChange={(e) => setDfDescricao(e.target.value)} required />
+            Descrição
+            <input
+              value={dfDescricao}
+              onChange={(e) => setDfDescricao(e.target.value)}
+              required
+              maxLength={120}
+            />
           </label>
           <label className={styles.campo}>
-            Descrição (opcional)
-            <input value={dfNota} onChange={(e) => setDfNota(e.target.value)} />
+            Dia do vencimento
+            <input
+              inputMode="numeric"
+              placeholder="1-31"
+              value={dfDia}
+              onChange={(e) => setDfDia(e.target.value)}
+            />
           </label>
-          <div className={styles.linhaDupla}>
-            <label className={styles.campo}>
-              Valor mensal
-              <CampoMoeda valor={dfValor} aoMudar={setDfValor} required />
-            </label>
-            <label className={styles.campo}>
-              Dia do vencimento
-              <input
-                inputMode="numeric"
-                placeholder="1-31"
-                value={dfDia}
-                onChange={(e) => setDfDia(e.target.value)}
-              />
-            </label>
-          </div>
           <SeletorCategoria
             valor={dfCategoria}
             opcoes={cfg.categoriasDespesa}

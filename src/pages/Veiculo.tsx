@@ -16,7 +16,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
-import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import KpiCard from "../components/KpiCard";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import RenomearFolha from "../components/RenomearFolha";
@@ -117,6 +117,17 @@ function detalheDespesa(d: DespesaVeiculo): string {
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/** Junta o que eram dois campos — Nome e Nota — num só texto de Descrição.
+ *
+ *  Os formulários desta tela passaram a ter um campo único de Descrição
+ *  (01/09), como o Registro Rápido já tinha. Um registo antigo pode ter as
+ *  duas partes gravadas: abrir só a primeira esconderia a segunda, e ao
+ *  salvar ela desapareceria sem ninguém ver. Juntas, ficam à vista e
+ *  editáveis. */
+function juntarDescricao(nome: string | undefined, nota: string | undefined): string {
+  return [nome, nota].filter(Boolean).join(" · ");
 }
 
 /** Item de lista com o menu único de ações (item 2 do lote de UX/nav de
@@ -542,7 +553,6 @@ export default function Veiculo() {
   const [dvConta, setDvConta] = useState("");
   const [dvData, setDvData] = useState(hojeIso());
   const [dvDescricao, setDvDescricao] = useState("");
-  const [dvNota, setDvNota] = useState("");
 
   // Mesmo caso da carga: criar despesa nova é sempre pelo registro rápido
   // global agora (item A2) — aqui fica só a edição de uma já existente.
@@ -551,8 +561,11 @@ export default function Veiculo() {
     setDvValor(d.valor);
     setDvConta(d.contaCartao ?? "");
     setDvData(d.data);
-    setDvDescricao(d.descricao ?? "");
-    setDvNota(d.nota ?? "");
+    // Campo único de Descrição (01/09), como no Registro Rápido: Nome e Nota
+    // eram dois campos a pedir a mesma coisa. Um registo antigo que tenha as
+    // duas partes abre com elas juntas no mesmo campo — nada se perde, e ao
+    // salvar a nota separada deixa de existir (ver `salvarDespesa`).
+    setDvDescricao(juntarDescricao(d.descricao, d.nota));
     setDvAberta(true);
   }
 
@@ -563,7 +576,7 @@ export default function Veiculo() {
     if (!dvEditandoId) return;
     const valor = dvValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
-    if (!dvDescricao.trim()) return mostrarToast("Nome obrigatório.");
+    if (!dvDescricao.trim()) return mostrarToast("Descrição obrigatória.");
     const dados_ = {
       data: dvData,
       valor,
@@ -573,7 +586,11 @@ export default function Veiculo() {
       categoria: "Veículo",
       descricao: dvDescricao.trim(),
       contaCartao: dvConta || undefined,
-      nota: dvNota.trim() || undefined,
+      // Campo único de Descrição (01/09): a nota já entrou no campo ao abrir
+      // (ver `abrirEdicaoDespesa`). `atualizar` grava com `set` sem os campos
+      // indefinidos, portanto isto APAGA a nota antiga em vez de a deixar
+      // guardada e invisível.
+      nota: undefined,
     };
     await agir(
       () => atualizarDespesaVeiculo(uid, { ...dados_, id: dvEditandoId }),
@@ -599,14 +616,12 @@ export default function Veiculo() {
   const [dfAberta, setDfAberta] = useState(false);
   const [dfEditandoId, setDfEditandoId] = useState<Id | null>(null);
   const [dfDescricao, setDfDescricao] = useState("");
-  const [dfNota, setDfNota] = useState("");
   const [dfValor, setDfValor] = useState<Cents | null>(null);
   const [dfDia, setDfDia] = useState("");
 
   function abrirNovaFixa() {
     setDfEditandoId(null);
     setDfDescricao("");
-    setDfNota("");
     setDfValor(null);
     setDfDia("");
     setDfAberta(true);
@@ -614,8 +629,8 @@ export default function Veiculo() {
 
   function abrirEdicaoFixa(f: DespesaFixa) {
     setDfEditandoId(f.id);
-    setDfDescricao(f.descricao);
-    setDfNota(f.nota ?? "");
+    // Campo único de Descrição (01/09) — mesma junção da despesa variável.
+    setDfDescricao(juntarDescricao(f.descricao, f.nota));
     setDfValor(f.valor);
     setDfDia(f.diaVencimento ? String(f.diaVencimento) : "");
     setDfAberta(true);
@@ -625,13 +640,15 @@ export default function Veiculo() {
     e.preventDefault();
     const valor = dfValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
-    if (!dfDescricao.trim()) return mostrarToast("Nome obrigatório.");
+    if (!dfDescricao.trim()) return mostrarToast("Descrição obrigatória.");
     const dia = dfDia.trim() === "" ? undefined : Number(dfDia);
     if (dia !== undefined && (!Number.isInteger(dia) || dia < 1 || dia > 31))
       return mostrarToast("Dia do vencimento deve ser entre 1 e 31.");
     const base = {
-      descricao: dfDescricao,
-      nota: dfNota.trim() || undefined,
+      descricao: dfDescricao.trim(),
+      // Campo único de Descrição (01/09): a nota já entrou nele ao abrir, e
+      // gravar `undefined` apaga a antiga — ver `salvarDespesa`.
+      nota: undefined,
       valor,
       // Ajuste F do lote de 30/08: categoria fixa — ver a mesma nota na
       // despesa variável, acima.
@@ -1029,20 +1046,6 @@ export default function Veiculo() {
               </button>
             </div>
           )}
-          <label className={styles.campo}>
-            {dimensao === "eletrico" ? "kWh" : "Litros"}
-            <input
-              inputMode="decimal"
-              value={dimensao === "eletrico" ? cgKwh : cgLitros}
-              onChange={(e) => {
-                setQuantidadeTocada(true);
-                if (dimensao === "eletrico") setCgKwh(e.target.value);
-                else setCgLitros(e.target.value);
-              }}
-              required
-            />
-          </label>
-          <SeletorData valor={cgData} aoMudar={setCgData} />
           <div
             className={styles.seletorTipo}
             role="radiogroup"
@@ -1065,28 +1068,51 @@ export default function Veiculo() {
               {dimensao === "eletrico" ? "€/kWh" : "€/litro"}
             </button>
           </div>
-          {modoCusto === "total" ? (
-            <label className={styles.campo}>
-              Custo total
-              <CampoMoeda
-                valor={cgCustoTotal}
-                aoMudar={(v) => {
-                  setCgCustoTotal(v);
-                  if (!quantidadeTocada) palpitarQuantidade(v, cgLocal);
-                }}
-                required
-              />
-            </label>
-          ) : (
-            <label className={styles.campo}>
-              {dimensao === "eletrico" ? "Preço por kWh" : "Preço por litro"}
-              <CampoMoeda
-                valor={dimensao === "eletrico" ? cgPrecoKwh : cgPrecoLitro}
-                aoMudar={dimensao === "eletrico" ? setCgPrecoKwh : setCgPrecoLitro}
-                required
-              />
-            </label>
-          )}
+          {/* Padrão "Quanto?" (01/09): o valor deixa de ser um campo igual aos
+              outros e passa a abrir o formulário, como no Registro Rápido —
+              mesmo componente, mesma ordem (valor primeiro, o resto depois).
+              O rótulo acompanha o modo escolhido acima, tal como lá. */}
+          <CampoValorDestaque
+            rotulo={
+              modoCusto === "total"
+                ? "Quanto?"
+                : dimensao === "eletrico"
+                  ? "Preço por kWh"
+                  : "Preço por litro"
+            }
+            valor={
+              modoCusto === "total"
+                ? cgCustoTotal
+                : dimensao === "eletrico"
+                  ? cgPrecoKwh
+                  : cgPrecoLitro
+            }
+            aoMudar={
+              modoCusto === "total"
+                ? (v) => {
+                    setCgCustoTotal(v);
+                    if (!quantidadeTocada) palpitarQuantidade(v, cgLocal);
+                  }
+                : dimensao === "eletrico"
+                  ? setCgPrecoKwh
+                  : setCgPrecoLitro
+            }
+            required
+          />
+          <label className={styles.campo}>
+            {dimensao === "eletrico" ? "kWh" : "Litros"}
+            <input
+              inputMode="decimal"
+              value={dimensao === "eletrico" ? cgKwh : cgLitros}
+              onChange={(e) => {
+                setQuantidadeTocada(true);
+                if (dimensao === "eletrico") setCgKwh(e.target.value);
+                else setCgLitros(e.target.value);
+              }}
+              required
+            />
+          </label>
+          <SeletorData valor={cgData} aoMudar={setCgData} />
           <SeletorLocal
             valor={cgLocal}
             opcoes={cfg.locaisCarregamento}
@@ -1126,10 +1152,7 @@ export default function Veiculo() {
           global (item A2) */}
       <BottomSheet aberta={dvAberta} aoFechar={() => setDvAberta(false)} titulo="Editar despesa">
         <form className={styles.formFolha} onSubmit={salvarDespesa}>
-          <label className={styles.campo}>
-            Valor
-            <CampoMoeda valor={dvValor} aoMudar={setDvValor} required />
-          </label>
+          <CampoValorDestaque valor={dvValor} aoMudar={setDvValor} required />
           <SeletorData valor={dvData} aoMudar={setDvData} />
           <Seletor
             rotulo="Conta/cartão"
@@ -1139,20 +1162,18 @@ export default function Veiculo() {
             aoMudar={setDvConta}
             rotuloVazio="Sem conta"
           />
-          {/* Ajuste F do lote de 30/08: sem categoria pra cair como título de
-              reserva, o nome passou a ser obrigatório. */}
+          {/* Campo único de Descrição (01/09): eram "Nome" e "Nota" seguidos,
+              dois campos para a mesma coisa (ver `juntarDescricao`). Ajuste F
+              do lote de 30/08 continua valendo — sem categoria pra cair como
+              título de reserva, o campo continua obrigatório. */}
           <label className={styles.campo}>
-            Nome
+            Descrição
             <input
               value={dvDescricao}
               onChange={(e) => setDvDescricao(e.target.value)}
               required
-              maxLength={80}
+              maxLength={120}
             />
-          </label>
-          <label className={styles.campo}>
-            Nota
-            <input value={dvNota} onChange={(e) => setDvNota(e.target.value)} maxLength={120} />
           </label>
           <Botao type="submit" variante="submeter">
             Salvar alterações
@@ -1170,29 +1191,35 @@ export default function Veiculo() {
         titulo={dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
       >
         <form className={styles.formFolha} onSubmit={salvarFixa}>
+          {/* Valor em destaque e em primeiro, como no Registro Rápido: saiu da
+              linha dupla que partilhava com o dia do vencimento — o campo
+              grande não cabe em meia largura, e o dia é uma pergunta menor. */}
+          <CampoValorDestaque
+            rotulo="Quanto por mês?"
+            valor={dfValor}
+            aoMudar={setDfValor}
+            required
+          />
+          {/* Campo único de Descrição (01/09) — mesma junção da despesa
+              variável, acima (ver `juntarDescricao`). */}
           <label className={styles.campo}>
-            Nome
-            <input value={dfDescricao} onChange={(e) => setDfDescricao(e.target.value)} required />
+            Descrição
+            <input
+              value={dfDescricao}
+              onChange={(e) => setDfDescricao(e.target.value)}
+              required
+              maxLength={120}
+            />
           </label>
           <label className={styles.campo}>
-            Descrição (opcional)
-            <input value={dfNota} onChange={(e) => setDfNota(e.target.value)} />
+            Dia do vencimento
+            <input
+              inputMode="numeric"
+              placeholder="1-31"
+              value={dfDia}
+              onChange={(e) => setDfDia(e.target.value)}
+            />
           </label>
-          <div className={styles.linhaDupla}>
-            <label className={styles.campo}>
-              Valor mensal
-              <CampoMoeda valor={dfValor} aoMudar={setDfValor} required />
-            </label>
-            <label className={styles.campo}>
-              Dia do vencimento
-              <input
-                inputMode="numeric"
-                placeholder="1-31"
-                value={dfDia}
-                onChange={(e) => setDfDia(e.target.value)}
-              />
-            </label>
-          </div>
           <Botao type="submit" variante="submeter">
             {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
           </Botao>

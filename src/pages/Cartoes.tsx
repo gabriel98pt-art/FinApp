@@ -4,6 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import Seletor from "../components/Seletor";
@@ -392,8 +393,11 @@ export default function Cartoes() {
   const [tfDe, setTfDe] = useState("");
   const [tfPara, setTfPara] = useState("");
   const [tfValor, setTfValor] = useState<Cents | null>(null);
+  // Um só campo de texto livre (01/09/2026): a folha tinha "Nome (opcional)"
+  // e "Descrição (opcional)" lado a lado, dois campos para a mesma coisa, e
+  // ninguém sabia em qual escrever. Segue o Registro Rápido, que já unificou
+  // Nome + Nota num "Descrição" único (item 4 do lote de UX/nav, 30/08).
   const [tfDescricao, setTfDescricao] = useState("");
-  const [tfNota, setTfNota] = useState("");
 
   // useMemo (achado da auditoria de Performance): a tela tem 9 useState de
   // formulário local (renomear, adicionar cartão, pagar fatura, transferência)
@@ -471,7 +475,6 @@ export default function Cartoes() {
     setTfPara("");
     setTfValor(null);
     setTfDescricao("");
-    setTfNota("");
     setTfAberta(true);
   }
 
@@ -481,8 +484,10 @@ export default function Cartoes() {
     setTfDe(t.de);
     setTfPara(t.para);
     setTfValor(t.valor);
-    setTfDescricao(t.descricao ?? "");
-    setTfNota(t.nota ?? "");
+    // Transferência antiga com os dois campos preenchidos: junta-os no campo
+    // único em vez de esconder a `nota` num campo que já não existe — assim
+    // ela continua editável, e o registo migra sozinho ao ser guardado.
+    setTfDescricao([t.descricao, t.nota].filter(Boolean).join(" — "));
     setTfAberta(true);
   }
 
@@ -497,8 +502,11 @@ export default function Cartoes() {
       de: tfDe,
       para: tfPara,
       valor,
-      descricao: tfDescricao || undefined,
-      nota: tfNota.trim() || undefined,
+      descricao: tfDescricao.trim() || undefined,
+      // O campo único grava só em `descricao`. `undefined` limpa a `nota` do
+      // registo antigo (o serviço grava com `set` e descarta indefinidos), o
+      // que é o que se quer: o texto dela já veio junto no campo acima.
+      nota: undefined,
     };
     try {
       if (tfEditandoId) {
@@ -905,10 +913,10 @@ export default function Cartoes() {
         titulo={tfEditandoId ? "Editar transferência" : "Nova transferência"}
       >
         <form className={styles.form} onSubmit={salvarTransferencia}>
-          <label className={styles.campo}>
-            Valor
-            <CampoMoeda valor={tfValor} aoMudar={setTfValor} required />
-          </label>
+          {/* Valor em destaque, e em primeiro: o mesmo padrão do Registro
+              Rápido (CampoValorDestaque) — quanto se move é a decisão que se
+              toma primeiro, o resto só descreve o movimento. */}
+          <CampoValorDestaque valor={tfValor} aoMudar={setTfValor} required />
           <SeletorData valor={tfData} aoMudar={setTfData} />
           <div className={styles.linhaDupla}>
             <Seletor
@@ -927,12 +935,12 @@ export default function Cartoes() {
             />
           </div>
           <label className={styles.campo}>
-            Nome (opcional)
-            <input value={tfDescricao} onChange={(e) => setTfDescricao(e.target.value)} />
-          </label>
-          <label className={styles.campo}>
             Descrição (opcional)
-            <input value={tfNota} onChange={(e) => setTfNota(e.target.value)} />
+            <input
+              value={tfDescricao}
+              onChange={(e) => setTfDescricao(e.target.value)}
+              maxLength={120}
+            />
           </label>
           <Botao type="submit" variante="submeter">
             {tfEditandoId ? "Salvar alterações" : "Registrar transferência"}
