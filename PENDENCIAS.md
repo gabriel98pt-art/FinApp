@@ -9,7 +9,7 @@ Entrada mais recente no topo.
 
 ---
 
-## Sweep de padronização (01/09/2026) — retomado; faltam 3 telas
+## Sweep de padronização (01/09/2026) — FECHADO
 
 **Contexto**: dois agentes rodando em paralelo, cada um varrendo um grupo de
 telas atrás de dois padrões (item 4 do lote de UX/nav — "Quanto?" + Descrição
@@ -37,13 +37,41 @@ abastecimento) — os três com o padrão "Quanto?" + Descrição única.
   `aria-label`/`title`. Não se usou o `Repeat` que a tela já importa de
   propósito — esse quer dizer "repete todo mês", que é o que toda fixa faz.
 
-**Falta** (das telas que não eram deste lote):
+**Feito na retoma de 01/09, segundo grupo** — Veículo, Parcelas, Planejamento
+e TVDE fechadas (commits `71b2483`, `305622e`, `443e616`, `e72bbc7`):
 
-- Padronizar formulário: Parcelas, Planejamento (fundo/contribuição, "Definir
-  teto" em `OrcamentoCard.tsx`), TVDE.
-- Botões "+ Adicionar X" virarem ícone: Parcelas, Planejamento, TVDE — sempre
-  dentro do corpo da página, nunca no cabeçalho (regra fixa, ver
-  `feedback_finapp_nada_no_cabecalho`).
+- Veículo: só faltavam os botões, e são quatro (abastecimento, despesa,
+  despesa fixa, quilometragem). Os formulários já tinham passado em `b5b4cf1`.
+- Parcelas: "Total (€)" virou `CampoValorDestaque` com rótulo "Quanto no
+  total?" e saiu da linha dupla que partilhava com o nº de parcelas (o campo
+  grande não cabe a meia largura). "Nome" + "Descrição (opcional)" viraram um
+  "Descrição" só, com a mesma junção por " · " do Veículo, e `nota` passa a
+  gravar `undefined` — o `set` do serviço apaga-a, portanto nada fica guardado
+  e invisível. Botão "+ Nova parcela" só com o ícone.
+- Planejamento: fundo ("Quanto quer juntar?"), contribuição ("Quanto?") e
+  "Definir teto" do `OrcamentoCard` ("Quanto por mês?"). No fundo, o campo de
+  texto continua a chamar-se **Nome** e não Descrição — é o nome próprio do
+  fundo, que titula o cartão na lista, e não havia um segundo campo de texto
+  para juntar a ele. No teto, a **categoria fica antes do valor** ao criar:
+  perguntar "quanto?" antes de saber de quê não se lê. Botões "+" em "Novo
+  fundo" e "Definir teto"; "Contribuir" ficou com texto, como pedido.
+- TVDE: no formulário de semana só o **faturamento** subiu para o campo
+  grande — os outros seis campos de dinheiro são descontos sobre ele e
+  continuam em linhas compactas (seis campos gigantes seguidos davam um
+  formulário sem centro). Na aba "Extras e definições", Segurança Social e
+  Despesas do TVDE passaram a ter o valor em cima e o resto (mês / descrição +
+  botão) na linha de baixo. Botão "+" na nova semana.
+- Ainda no TVDE: a descrição da despesa tinha só `placeholder` e o mês da
+  Seg. Social não tinha nome nenhum — ambos ganharam `aria-label`.
+
+**Duas decisões deste grupo, para o Gabriel confirmar se olhar**:
+
+1. O formulário de semana do TVDE **não** ficou todo em campos grandes, só o
+   faturamento (motivo acima). Se preferir todos iguais outra vez, é reverter
+   uma linha.
+2. O bloco da **Segurança Social** não estava na lista pedida, mas mudou na
+   mesma: fica encostado ao das Despesas do TVDE, no mesmo cartão, e deixar um
+   com valor grande e o outro com três caixinhas iguais ficava desalinhado.
 
 **Um detalhe a rever quando o Gabriel olhar**: o botão da aba Correntes de
 Despesas dizia só "Adicionar", e o `aria-label` ficou "Adicionar despesa" —

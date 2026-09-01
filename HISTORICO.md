@@ -5,12 +5,39 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 01/09/2026 — 493 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 499 mudanças registadas.
 
 ---
 
 ## 01/09/2026
 
+- Parcelas, Planejamento, Orçamento e TVDE passaram a ter a mesma cara das
+  outras telas: em cada folha, o dinheiro deixou de ser uma caixa pequena
+  igual às vizinhas e virou o número grande e centrado do topo. São seis
+  formulários — a nova parcela ("Quanto no total?"), o fundo de poupança
+  ("Quanto quer juntar?"), a contribuição para um fundo, o teto de uma
+  categoria ("Quanto por mês?"), a semana do TVDE (o faturamento) e as duas
+  entradas de valor da aba "Extras e definições" do TVDE.
+- Na nova parcela, os campos "Nome" e "Descrição (opcional)" viraram um só,
+  chamado "Descrição". Eram dois campos de texto seguidos a perguntar a mesma
+  coisa. Uma parcela antiga que tenha as duas partes escritas abre com as duas
+  juntas, separadas por "·", à vista e editáveis — nada se perde calado.
+- No formulário da semana do TVDE só o faturamento subiu para o campo grande.
+  Os outros seis (portagens, aluguel, recargas, extra, gorjetas) continuam em
+  linhas compactas de propósito: são descontos sobre o faturamento, e seis
+  campos gigantes seguidos davam um formulário sem centro nenhum.
+- Os botões de criar do Veículo, Parcelas, Planejamento, Orçamento e TVDE
+  ficaram só com o "+". São oito: os quatro do Veículo (abastecimento,
+  despesa, despesa fixa e quilometragem), "Nova parcela", "Novo fundo",
+  "Definir teto" e "Nova semana". O texto não se perdeu — passou para o nome
+  que o leitor de ecrã anuncia, por isso quem não vê o ícone continua a ouvir
+  "Adicionar abastecimento" e não "mais". Continuam todos exatamente onde
+  estavam, dentro de cada tela; nada foi para o cabeçalho.
+- O "Contribuir" de cada fundo ficou como estava, com texto: é ação de um
+  fundo que já existe, não um "criar" da tela.
+- Dois campos do TVDE que não tinham nome nenhum para leitor de ecrã (a
+  descrição da despesa, que só tinha texto de exemplo, e o mês da Segurança
+  Social) passaram a ter.
 - A folha "Novo evento" do Calendário passou a ter a mesma cara das outras: o
   valor deixou de ser mais um campo igual aos outros e virou o número grande do
   topo ("Quanto? (opcional)"), como já acontece no botão "+" do rodapé, em
