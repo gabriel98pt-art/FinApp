@@ -1,0 +1,37 @@
+/* Mesmo desenho do alternador Mês/Semana que Despesas e Veículo já
+   desenhavam à mão nos seus próprios módulos (`.linhaVisao`/`.alternadorVisao`
+   /`.visaoBotao`/`.visaoAtiva`). Aqui vive a versão partilhada — as duas
+   páginas antigas continuam com a cópia delas até serem migradas. */
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.alternador {
+  display: flex;
+  gap: 4px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 4px;
+}
+
+.opcao {
+  padding: 7px 14px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  color: var(--mut);
+}
+
+.opcao:hover {
+  color: var(--txt);
+}
+
+.ativa {
+  background: var(--s1);
+  color: var(--txt);
+  box-shadow: var(--sh-sm);
+}

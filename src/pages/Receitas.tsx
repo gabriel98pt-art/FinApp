@@ -1,7 +1,13 @@
+import { useState } from "react";
 import { TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
+import SeletorOrdem from "../components/SeletorOrdem";
+import SeletorSemana from "../components/SeletorSemana";
+import SeletorVisao from "../components/SeletorVisao";
+import { compararPorOrdem, type Ordem } from "../utils/ordem";
+import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import { removerReceita } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
@@ -13,9 +19,9 @@ import { useUiStore } from "../stores/uiStore";
 import {
   agruparPorChave,
   doMes,
+  hojeIso,
   mediaMensal,
   mesesRecentes,
-  ordenarPorDataDesc,
   receitasNosTotais,
   rotuloMes,
   rotuloVariacao,
@@ -30,6 +36,7 @@ export default function Receitas() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
+  const diaInicioSemana = useCfgStore((s) => s.cfg.diaInicioSemana);
   const itens = useReceitasStore((s) => s.itens);
   const carregado = useReceitasStore((s) => s.carregado);
   const erro = useReceitasStore((s) => s.erro);
@@ -52,11 +59,41 @@ export default function Receitas() {
   // Mês compartilhado com as outras telas (stores/mesVisivelStore.ts)
   const mes = useMesVisivelStore((s) => s.mes);
 
+  // Ordem da lista (item 14) e visão Mês/Semana (item 10) — o mesmo par que
+  // Despesas correntes já tinha. Nenhum dos dois persiste: sair da tela volta
+  // a "Mais recentes" e a "Mês".
+  const [ordem, setOrdem] = useState<Ordem>("recentes");
+  const [visao, setVisao] = useState<"mes" | "semana">("mes");
+
+  const hoje = hojeIso();
+  // Semanas do mês exibido; trocar de mês reposiciona na semana de hoje (ou
+  // na ponta mais perto dela, quando hoje está fora do mês — ver
+  // `indiceDaSemana`). Já nasce na semana de hoje: sem isto, a primeira vez
+  // que se troca para "Semana" abria sempre na primeira do mês.
+  const semanas = semanasDoMes(mes, diaInicioSemana);
+  const idxPadrao = indiceDaSemana(semanas, hoje);
+  const [semanaIdx, setSemanaIdx] = useState(idxPadrao);
+  const [mesDaSemana, setMesDaSemana] = useState(mes);
+  if (mesDaSemana !== mes) {
+    setMesDaSemana(mes);
+    setSemanaIdx(idxPadrao);
+  }
+  const semanaAtual = semanas[Math.min(semanaIdx, semanas.length - 1)];
+
   // KPIs e rodapé excluem o ajuste de reconciliação; a LISTA mostra tudo,
   // igual ao que Despesas faz com pagamento de fatura e espelho de parcela.
   const contadas = receitasNosTotais(itens);
-  const doMesExibido = doMes(itens, mes);
+  // O que a LISTA mostra: o mês inteiro, ou só a semana escolhida. Os KPIs
+  // continuam a ler `mes`/`contadas` — só o primeiro cartão acompanha a
+  // semana (ver `porSemana` abaixo), pela mesma razão de Despesas: uma
+  // semana é amostra pequena demais para "vs mês passado" e "Média".
+  const doPeriodo =
+    visao === "semana" && semanaAtual ? naSemana(itens, semanaAtual) : doMes(itens, mes);
   const totalMes = totalDoMes(contadas, mes);
+  // Com "Semana" escolhida, o primeiro KPI passa a falar da semana — o mesmo
+  // total que o rodapé da lista já mostra lá em baixo.
+  const porSemana = visao === "semana" && semanaAtual !== undefined;
+  const totalPeriodo = total(receitasNosTotais(doPeriodo));
 
   // "vs mês passado": a mesma soma, um mês atrás. `null` quando o mês anterior
   // fechou a zero — não há percentagem contra nada, e o cartão diz isso em
@@ -81,7 +118,16 @@ export default function Receitas() {
   return (
     <Pagina titulo="Receitas">
       <Kpis pagina="receitas">
-        <KpiCard rotulo="Total do mês" valor={formatMoney(totalMes, moeda)} tom="verde" />
+        {/* `chave` fixa: o rótulo muda de texto com a visão, mas a escolha de
+            "KPIs no mobile" (constants/kpis.ts) casa por esta chave — igual
+            ao cartão irmão em Despesas. */}
+        <KpiCard
+          rotulo={porSemana ? "Total da semana" : "Total do mês"}
+          chave="Total do mês"
+          valor={formatMoney(porSemana ? totalPeriodo : totalMes, moeda)}
+          sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
+          tom="verde"
+        />
         <KpiCard
           rotulo="Maior fonte"
           valor={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : "—"}
@@ -113,11 +159,20 @@ export default function Receitas() {
         />
       </Kpis>
 
+      <SeletorVisao valor={visao} aoMudar={setVisao}>
+        {visao === "semana" && (
+          <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+        )}
+      </SeletorVisao>
+
+      <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+
       <ListaLancamentos
-        /* key: trocar de mês remonta a lista e volta pra página 1 */
-        key={mes}
+        /* key: trocar de mês, de ordem ou de semana remonta a lista e volta
+           pra página 1 */
+        key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
         titulo="Lançamentos"
-        itens={ordenarPorDataDesc(doMesExibido).map((r) => ({
+        itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((r) => ({
           id: r.id,
           descricao: r.descricao,
           valor: r.valor,
@@ -129,9 +184,17 @@ export default function Receitas() {
         erro={erro}
         tom="verde"
         moeda={moeda}
-        rotuloTotal={`Total ${rotuloMes(mes)}`}
-        total={total(receitasNosTotais(doMesExibido))}
-        vazio={`Nenhuma receita em ${rotuloMes(mes)}`}
+        rotuloTotal={
+          porSemana && semanaAtual
+            ? `Total ${rotuloDaSemana(semanaAtual)}`
+            : `Total ${rotuloMes(mes)}`
+        }
+        total={totalPeriodo}
+        vazio={
+          porSemana && semanaAtual
+            ? `Nenhuma receita em ${rotuloDaSemana(semanaAtual)}`
+            : `Nenhuma receita em ${rotuloMes(mes)}`
+        }
         vazioSub="Toque em Adicionar para lançar a primeira."
         vazioIcone={TrendingUp}
         aoAdicionar={() => abrirRegistro("receita")}

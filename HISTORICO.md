@@ -5,7 +5,27 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 31/08/2026 — 483 mudanças registadas.
+Período coberto: 23/07/2026 a 01/09/2026 — 487 mudanças registadas.
+
+---
+
+## 01/09/2026
+
+- A tela de Receitas ganhou o mesmo sistema de organizar a lista que Despesas
+  já tinha há algum tempo: os botões "Mais recentes / Mais antigas / Maior
+  valor / Menor valor" logo acima dos lançamentos. Antes a lista vinha sempre
+  da mais recente para a mais antiga, sem escolha nenhuma.
+- Também ganhou o alternador "Mês / Semana". Com "Semana" escolhida, a lista
+  passa a mostrar só as receitas dos sete dias escolhidos, e as setas ao lado
+  andam de semana em semana. Abre sempre na semana de hoje, e trocar de mês
+  no cabeçalho volta a posicioná-la sozinha.
+- Nessa visão o primeiro cartão do topo acompanha: deixa de dizer "Total do
+  mês" e passa a dizer "Total da semana", com as datas por baixo. Os outros
+  três cartões continuam mensais de propósito — uma semana é pouca coisa para
+  responder a "vs mês passado" ou "média de 3 meses".
+- Por baixo, o par de botões "Mês / Semana" virou uma peça só, reaproveitável,
+  em vez de mais uma cópia do mesmo desenho. Despesas e Veículo continuam com
+  a versão antiga deles até serem passados para a nova numa mudança à parte.
 
 ---
 
