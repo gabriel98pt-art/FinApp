@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
-import { Plus, Repeat, Square, SquareCheck, TrendingDown } from "lucide-react";
+import { Plus, Repeat, RotateCw, Square, SquareCheck, TrendingDown } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
@@ -582,11 +582,21 @@ export default function Despesas() {
                             {f.nota ? ` · ${f.nota}` : ""}
                             {f.contaCartao ? ` · ${nomeAtualDoMetodo(cfg, f.contaCartao)}` : ""}
                             {f.diaVencimento ? ` · dia ${f.diaVencimento}` : ""}
+                            {/* Um ↻ colado ao "dia N", em vez das duas palavras
+                                por extenso que partiam a linha (01/09/2026). O
+                                RotateCw e não o Repeat de cima: o Repeat marca
+                                "isto repete-se todo mês", que é o que TODA fixa
+                                faz — aqui o que se diz é outra coisa, que esta
+                                se paga sozinha. */}
                             {f.autoDebit && (
-                              <>
-                                {" · "}
-                                <span className={styles.marcaAutoDebit}>débito automático</span>
-                              </>
+                              <span
+                                className={styles.marcaAutoDebit}
+                                role="img"
+                                aria-label="débito automático"
+                                title="Débito automático"
+                              >
+                                <RotateCw size={12} aria-hidden />
+                              </span>
                             )}
                           </span>
                         </span>

@@ -162,16 +162,26 @@
   cursor: default;
 }
 
-/* Marca o "débito automático" na linha de detalhe. O roxo é o mesmo que o
-   parcelamento usa para o campo homónimo — é o mesmo conceito para o usuário. */
-/* "débito automático" são duas palavras mas UMA etiqueta. Sem o `nowrap`, a
-   linha de detalhe da fixa partia-a a meio quando o espaço acabava a seguir a
-   "débito" ("Saúde · ActivoBank · dia 1 · débito" / "automático"), e o
-   "automático" ficava sozinho na linha de baixo com ar de sobra de texto. */
+/* Marca o "débito automático" na linha de detalhe.
+
+   Era a expressão escrita por extenso, a roxo e a negrito, no fim da linha:
+   "Saúde · ActivoBank · dia 1 · débito automático". Duas palavras compridas,
+   pintadas mais forte do que tudo o resto da linha — ou seja, o pedaço com
+   mais destaque era o menos importante —, e em ecrã estreito eram elas que
+   empurravam a linha para baixo. O `nowrap` só mudava o sítio da quebra: em
+   vez de partir "débito / automático", passava a linha inteira para baixo.
+
+   Agora é um ↻ pequeno encostado ao "dia N", na mesma cor apagada do resto do
+   detalhe: ocupa um caractere, não parte nada e não compete com o nome da
+   despesa. A frase inteira continua em `aria-label`/`title`, portanto quem usa
+   leitor de ecrã (ou passa o rato) ouve/lê "débito automático" como antes. */
 .marcaAutoDebit {
-  color: var(--pur);
-  font-weight: 700;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  /* Alinha o ícone com a base do texto ao lado — sem isto assenta na linha e
+     parece meio caractere acima do "dia 1". */
+  vertical-align: -0.15em;
 }
 
 /* Botão-marcação: mesmo desenho do `.marcacao` do Registro Rápido
