@@ -18,18 +18,14 @@ vi.mock("../services/faturaService", () => ({
   removerPagamentoFatura: vi.fn(async () => {}),
   reabrirFatura: vi.fn(async () => {}),
 }));
+// Criar/renomear/remover/adicionar método/dias de fatura saíram desta tela em
+// 01/09/2026 — vivem agora em Definições, e são testados lá
+// (`definicoes/FolhaContasCartoes.test.tsx`). Aqui ficam só os dois serviços
+// que Cartões continua a chamar.
 vi.mock("../services/cfgService", () => ({
-  adicionarCartao: vi.fn(async () => {}),
-  adicionarMetodo: vi.fn(async () => {}),
-  removerCartao: vi.fn(async () => {}),
-  renomearCartao: vi.fn(async () => {}),
-  definirDiaVencimentoFatura: vi.fn(async () => {}),
-  definirDiaFechamentoFatura: vi.fn(async () => {}),
   definirFaturaManual: vi.fn(async () => {}),
   definirSaldoInicial: vi.fn(async () => {}),
 }));
-
-const { adicionarMetodo } = await import("../services/cfgService");
 
 const CARTAO = "AB Gold (C)";
 const CONTA = "Conta Principal";
@@ -102,14 +98,24 @@ describe("Cartoes", () => {
 
   test("com conta: mostra o quadro dela", () => {
     render(<Cartoes />);
-    // O nome aparece duas vezes na página — no quadro da conta e na chip do
-    // painel de gerir contas lá em baixo. Aqui interessa o quadro, que é o
-    // botão que abre os detalhes. (Nada de `new RegExp(nome)`: os parênteses
-    // do nome virariam grupo de captura e deixavam de casar com o literal.)
+    // O quadro é o botão que abre os detalhes. (Nada de `new RegExp(nome)`: os
+    // parênteses do nome virariam grupo de captura e deixavam de casar com o
+    // literal.)
     const quadros = screen
       .getAllByRole("button")
       .filter((b) => b.textContent?.includes(CARTAO) && b.textContent?.includes("crédito"));
     expect(quadros).toHaveLength(1);
+  });
+
+  // 01/09/2026: a seção "Cartões e contas" (pílulas + menu "⋯" + dias de
+  // fatura) saiu daqui inteira para Definições. Esta tela ficou só com o que
+  // se LÊ — KPIs, quadros, faturas e transferências.
+  test("não gere mais contas: a seção e as ações dela saíram da tela", () => {
+    render(<Cartoes />);
+    expect(screen.queryByText("Cartões e contas")).toBeNull();
+    expect(screen.queryByRole("button", { name: `Ações de ${CARTAO}` })).toBeNull();
+    expect(screen.queryByLabelText(/Dia de fechamento da fatura/)).toBeNull();
+    expect(screen.queryByLabelText(/Dia de vencimento da fatura/)).toBeNull();
   });
 
   test("falha num domínio que alimenta os valores levanta o aviso", () => {
@@ -273,39 +279,6 @@ describe("Cartoes", () => {
     expect(
       screen.getByRole("heading", { name: "Transferências entre contas" }),
     ).toBeInTheDocument();
-  });
-
-  // Fase C2: uma instituição já migrada 1:1 pode ganhar um 2º método sem
-  // precisar de virar uma conta nova — o cartão de crédito que falta ao lado
-  // da conta de débito do mesmo banco.
-  describe("adicionar método a uma instituição existente", () => {
-    beforeEach(() => {
-      cfg = { ...CONFIG_PADRAO, ...comInstituicoes(instituicao(CARTAO, "credito")) };
-    });
-
-    // As ações da pílula vivem no menu "⋯" desde 31/08 (dois/três ícones
-    // colados nunca chegavam aos 44 pontos de largura de toque).
-    function abrirAdicionarMetodo() {
-      fireEvent.click(screen.getByRole("button", { name: `Ações de ${CARTAO}` }));
-      fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));
-    }
-
-    test("ação no menu do chip abre a folha com o nome da instituição, sem pedir nome", () => {
-      render(<Cartoes />);
-      abrirAdicionarMetodo();
-      expect(
-        screen.getByRole("heading", { name: `Adicionar método — ${CARTAO}` }),
-      ).toBeInTheDocument();
-    });
-
-    test("submeter chama adicionarMetodo com o id da instituição e o tipo escolhido", () => {
-      render(<Cartoes />);
-      abrirAdicionarMetodo();
-      // O tipo já nasce em "Crédito" (padrão do formulário) — não precisa de
-      // trocar nada para este teste, só confirmar.
-      fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));
-      expect(adicionarMetodo).toHaveBeenCalledWith("u1", cfg, CARTAO, "credit");
-    });
   });
 
   // Fase C4: ao abrir "Pagar", a origem sugerida passa a ser o débito da

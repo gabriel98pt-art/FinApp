@@ -157,85 +157,6 @@
   background: var(--s3);
 }
 
-/* Gestão de cartões/contas */
-.gerir {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.gerirTitulo {
-  font-weight: 700;
-  font-size: var(--fs-body);
-}
-
-.chips {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  display: flex;
-  /* Nomes mais longos ficaram mais comuns com a Fase C2 ("Banco X · Crédito")
-     — sem isto, um chip apertado no telemóvel quebrava o NOME a meio da
-     palavra em vez de empurrar o resto (badge/dias/ações) para a linha de
-     baixo como um bloco. */
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  background: var(--s2);
-  border-radius: var(--r-pill);
-  padding: 5px 5px 5px 12px;
-  /* Os 44px mínimos de toque em altura, para o botão de ações lá dentro se
-     poder esticar à pílula toda. */
-  min-height: 44px;
-  font-size: var(--fs-body);
-  font-weight: 600;
-}
-
-.chipNome {
-  white-space: nowrap;
-}
-
-.chipTipo {
-  color: var(--mut);
-  font-size: var(--fs-micro);
-}
-
-/* Botão "⋯" que abre o menu de ações da pílula (adicionar método, renomear,
-   remover). Substituiu os três ícones colados: 44x44 de toque, um alvo só. */
-.chipMenu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Estica à altura toda da pílula (44px, ver .chip) e garante 44 de largura. */
-  align-self: stretch;
-  min-width: 44px;
-  color: var(--mut);
-  border-radius: var(--r-pill);
-}
-
-.chipMenu:hover {
-  color: var(--txt);
-}
-
-/* Criar conta/cartão mudou-se para Definições (31/08/2026) — aqui fica só a
-   lista do que já existe (renomear/remover/dia de fatura, via o menu "⋯" de
-   cada pílula) e esta nota a dizer onde foi parar o "adicionar". */
-.gerirNota {
-  color: var(--mut);
-  font-size: var(--fs-body);
-}
-
 /* Sheets */
 .form {
   display: flex;
@@ -399,27 +320,6 @@
   flex-direction: column;
   gap: 12px;
   padding-top: 14px;
-}
-
-/* Dia de vencimento da fatura, dentro do chip do cartão: campo minúsculo, só
-   dois dígitos — é o dia do mês, não uma data. */
-.chipDia {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--fs-micro);
-  color: var(--mut);
-}
-
-.chipDia input {
-  width: 2.6em;
-  padding: 2px 4px;
-  border: 1px solid var(--brd);
-  border-radius: var(--r-xs);
-  background: var(--s1);
-  color: var(--txt);
-  font-size: var(--fs-micro);
-  text-align: center;
 }
 
 /* ---- Transferências entre contas ----

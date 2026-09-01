@@ -1,32 +1,14 @@
-import { useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import {
-  ArrowLeftRight,
-  CreditCard,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Trash2,
-  Wallet,
-  X,
-} from "lucide-react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { ArrowLeftRight, CreditCard, Pencil, Plus, Trash2, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
-import RenomearFolha from "../components/RenomearFolha";
 import Seletor from "../components/Seletor";
 import SeletorData from "../components/SeletorData";
-import {
-  adicionarMetodo,
-  definirFaturaManual,
-  definirSaldoInicial,
-  definirDiaFechamentoFatura,
-  definirDiaVencimentoFatura,
-  removerCartao,
-  renomearCartao,
-} from "../services/cfgService";
+import { definirFaturaManual, definirSaldoInicial } from "../services/cfgService";
 import { pagarFatura, removerPagamentoFatura, reabrirFatura } from "../services/faturaService";
 import {
   atualizarTransferencia,
@@ -53,7 +35,6 @@ import type {
   FaturaCalculada,
   Id,
   Parcela,
-  TipoCartao,
   Transferencia,
   YearMonth,
 } from "../types";
@@ -78,12 +59,7 @@ import {
   type ResumoConta,
 } from "../utils/contas";
 import { formatMoney } from "../utils/money";
-import {
-  debitoDaMesmaInstituicao,
-  localizarMetodo,
-  nomeAtualDoMetodo,
-} from "../utils/instituicoes";
-import { mensagemDeErroDados } from "../utils/erroDados";
+import { debitoDaMesmaInstituicao, nomeAtualDoMetodo } from "../utils/instituicoes";
 import styles from "./Cartoes.module.css";
 import Botao from "../components/Botao";
 
@@ -340,54 +316,6 @@ function LinhaTransferencia({
   );
 }
 
-/** Pílula de conta/cartão com o menu único de ações.
- *
- *  Antes tinha três ícones colados lá dentro (adicionar método, renomear,
- *  remover): mesmo esticados à altura toda da pílula, em LARGURA ficavam nos
- *  ~26 pontos, longe dos 44 mínimos de toque — e ícones pequenos lado a lado é
- *  onde o dedo mais erra de botão. Um só botão "⋯", com 44 de largura, abre as
- *  mesmas ações em texto. Ver PENDENCIAS.md.
- *
- *  `children` é o que fica visível na pílula ao lado do nome (o tipo, e os
- *  campos de dia de fecho/vencimento do cartão de crédito) — esses são campos
- *  de escrever, não ações, e continuam onde estavam. */
-function ChipComMenu({
-  nome,
-  acoes,
-  children,
-}: {
-  nome: string;
-  acoes: AcaoItem[];
-  children?: ReactNode;
-}) {
-  const [menuAberto, setMenuAberto] = useState(false);
-  const ancoraRef = useRef<HTMLButtonElement>(null);
-
-  return (
-    <li className={styles.chip}>
-      <span className={styles.chipNome}>{nome}</span>
-      {children}
-      <button
-        ref={ancoraRef}
-        type="button"
-        className={styles.chipMenu}
-        onClick={() => setMenuAberto(true)}
-        aria-haspopup="dialog"
-        aria-label={`Ações de ${nome}`}
-      >
-        <MoreHorizontal size={16} aria-hidden />
-      </button>
-      <MenuAcoesItem
-        aberta={menuAberto}
-        aoFechar={() => setMenuAberto(false)}
-        titulo={nome}
-        ancoraRef={ancoraRef}
-        acoes={acoes}
-      />
-    </li>
-  );
-}
-
 // A FaturaCalculada não carrega a lista de pagamentos — este helper devolve a
 // lista atual a partir da store, com a mesma compat de formato legado do cálculo.
 function calcularPagamentos(fatura: FaturaCalculada) {
@@ -453,12 +381,6 @@ export default function Cartoes() {
   // próprio dia não mexe nisto —, mas quem está a acertar pagamentos passados
   // consegue pôr a data certa em vez de os amontoar todos no dia de hoje.
   const [pagarData, setPagarData] = useState(hojeIso());
-  const [renomeando, setRenomeando] = useState<string | null>(null);
-  // Adicionar um 2º (ou 3º...) método à MESMA instituição (Fase C2) — guarda
-  // o id da instituição, não do método: não há método nenhum ainda até
-  // submeter. `null` fechado.
-  const [adicionandoMetodoA, setAdicionandoMetodoA] = useState<string | null>(null);
-  const [tipoNovoMetodo, setTipoNovoMetodo] = useState<TipoCartao>("credit");
 
   // ---- caixa de transferência (criar/editar) ----
   // Vive aqui, e não em Despesas, porque transferir é mover dinheiro ENTRE as
@@ -541,47 +463,6 @@ export default function Cartoes() {
   const saldoEmContas = resumos
     .filter((r) => r.tipo !== "credit")
     .reduce((s, r) => s + r.saldoAtual, 0);
-
-  async function submeterNovoMetodo(e: FormEvent) {
-    e.preventDefault();
-    if (!adicionandoMetodoA) return;
-    try {
-      await adicionarMetodo(uid, cfg, adicionandoMetodoA, tipoNovoMetodo);
-      mostrarToast(
-        `✓ ${tipoNovoMetodo === "credit" ? "Cartão de crédito" : "Conta de débito"} adicionado`,
-      );
-      setAdicionandoMetodoA(null);
-    } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
-    }
-  }
-
-  async function renomear(nomeNovo: string) {
-    if (!renomeando) return;
-    const alvo = renomeando;
-    try {
-      await renomearCartao(uid, cfg, alvo, nomeNovo);
-      setRenomeando(null);
-      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
-    } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
-    }
-  }
-
-  async function remover(nome: string) {
-    if (
-      !(await confirmar(
-        `Remover "${nomeDe(nome)}"? Os lançamentos que já a usam não mudam — para trocar o nome, use Renomear.`,
-      ))
-    )
-      return;
-    try {
-      await removerCartao(uid, cfg, nome);
-      mostrarToast(`"${nomeDe(nome)}" removido`);
-    } catch {
-      mostrarToast("Não foi possível remover.");
-    }
-  }
 
   function abrirNovaTransferencia() {
     setTfEditandoId(null);
@@ -758,7 +639,9 @@ export default function Cartoes() {
         <EstadoVazio
           Icone={CreditCard}
           mensagem="Nenhuma conta ou cartão"
-          sub="Adicione abaixo para acompanhar gastos e faturas."
+          // "Adicione abaixo" deixou de ser verdade em 01/09: a lista e o
+          // formulário saíram desta tela e a instrução tem de dizer para onde.
+          sub="Crie a primeira em Definições → Contas e cartões."
         />
       ) : (
         <div className={styles.grade}>
@@ -799,94 +682,6 @@ export default function Cartoes() {
           })}
         </div>
       )}
-
-      <div className={styles.gerir}>
-        <p className={styles.gerirTitulo}>Cartões e contas</p>
-        {cfg.contasCartoes.length > 0 && (
-          <ul className={styles.chips}>
-            {cfg.contasCartoes.map((c) => (
-              <ChipComMenu
-                key={c}
-                nome={nomeDe(c)}
-                acoes={[
-                  {
-                    rotulo: "Adicionar método",
-                    Icone: Wallet,
-                    onClick: () => {
-                      const achado = localizarMetodo(cfg, c);
-                      if (!achado) return;
-                      setTipoNovoMetodo("credit");
-                      setAdicionandoMetodoA(achado.instituicao.id);
-                    },
-                  },
-                  { rotulo: "Renomear", Icone: Pencil, onClick: () => setRenomeando(c) },
-                  {
-                    rotulo: "Remover",
-                    Icone: Trash2,
-                    onClick: () => void remover(c),
-                    tone: "perigo",
-                  },
-                ]}
-              >
-                <span className={styles.chipTipo}>
-                  {cfg.tipoCartao[c] === "credit" ? "crédito" : "débito"}
-                </span>
-                {/* Só o cartão de crédito tem fatura, e é o dia dela que
-                    manda também nas parcelas em débito automático. */}
-                {cfg.tipoCartao[c] === "credit" && (
-                  <>
-                    <label className={styles.chipDia}>
-                      fecha dia
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={cfg.diaFechamentoFatura?.[c] ?? ""}
-                        placeholder="fim do mês"
-                        aria-label={`Dia de fechamento da fatura de ${nomeDe(c)} — vazio é o último dia do mês`}
-                        onChange={(e) => {
-                          const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaFechamentoFatura(
-                            uid,
-                            cfg,
-                            c,
-                            Number.isFinite(n) ? n : null,
-                          )
-                            .then(() => mostrarToast("Dia de fechamento guardado"))
-                            .catch(() => mostrarToast("Não foi possível guardar."));
-                        }}
-                      />
-                    </label>
-                    <label className={styles.chipDia}>
-                      vence dia
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={cfg.diaVencimentoFatura?.[c] ?? ""}
-                        placeholder="—"
-                        aria-label={`Dia de vencimento da fatura de ${nomeDe(c)}`}
-                        onChange={(e) => {
-                          const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                          void definirDiaVencimentoFatura(
-                            uid,
-                            cfg,
-                            c,
-                            Number.isFinite(n) ? n : null,
-                          )
-                            .then(() => mostrarToast("Dia de vencimento guardado"))
-                            .catch(() => mostrarToast("Não foi possível guardar."));
-                        }}
-                      />
-                    </label>
-                  </>
-                )}
-              </ChipComMenu>
-            ))}
-          </ul>
-        )}
-        <p className={styles.gerirNota}>
-          Para adicionar uma conta ou cartão novo, vá em Definições → Nova conta ou cartão.
-        </p>
-      </div>
 
       <div className={styles.cabecalhoLista}>
         <h3 className={styles.tituloSecao}>Transferências entre contas</h3>
@@ -1098,50 +893,6 @@ export default function Cartoes() {
             </p>
             <Botao type="submit" variante="submeter">
               Salvar
-            </Botao>
-          </form>
-        )}
-      </BottomSheet>
-
-      {/* O aviso dizia "Lançamentos, parcelas, saldo inicial e faturas seguem
-          para o nome novo" — descrevia a cascata que reescrevia o nome dentro
-          de cada lançamento. Ela desapareceu: o que liga tudo passou a ser um
-          identificador que não muda, e por isso não há nada a "seguir" — o nome
-          novo vale de imediato em toda a parte, no que já estava lançado
-          também. */}
-      <RenomearFolha
-        aberta={renomeando !== null}
-        nomeAtual={renomeando ? nomeDe(renomeando) : null}
-        aoFechar={() => setRenomeando(null)}
-        aoConfirmar={(n) => void renomear(n)}
-        aviso="O nome novo aparece em tudo — no que já está lançado também."
-      />
-
-      {/* Adicionar um 2º método à mesma instituição (Fase C2) — não pede nome,
-          só o tipo: o nome é o da instituição, que `nomeAtualDoMetodo` já
-          desambigua pelo tipo assim que ela tem mais de um método. */}
-      <BottomSheet
-        aberta={adicionandoMetodoA !== null}
-        aoFechar={() => setAdicionandoMetodoA(null)}
-        titulo={
-          adicionandoMetodoA
-            ? `Adicionar método — ${cfg.instituicoes.find((i) => i.id === adicionandoMetodoA)?.nome ?? ""}`
-            : ""
-        }
-      >
-        {adicionandoMetodoA && (
-          <form className={styles.form} onSubmit={submeterNovoMetodo}>
-            <Seletor
-              variante="inline"
-              rotulo="Tipo"
-              nivel={0}
-              valor={tipoNovoMetodo}
-              opcoes={["credit", "debit"]}
-              rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
-              aoMudar={(t) => setTipoNovoMetodo(t as TipoCartao)}
-            />
-            <Botao type="submit" variante="submeter">
-              Adicionar método
             </Botao>
           </form>
         )}
