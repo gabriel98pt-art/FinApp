@@ -4,7 +4,7 @@ import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
-import CampoMoeda from "../components/CampoMoeda";
+import CampoValorDestaque from "../components/CampoValorDestaque";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
@@ -198,7 +198,6 @@ function FormParcela({
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const [descricao, setDescricao] = useState("");
-  const [nota, setNota] = useState("");
   const [totalTexto, setTotalTexto] = useState<Cents | null>(null);
   const [num, setNum] = useState("3");
   const [primeiroMes, setPrimeiroMes] = useState(mesAtual());
@@ -217,8 +216,11 @@ function FormParcela({
   const chave = editando?.id ?? "nova";
   if (aberta && semeadoPara !== chave) {
     setSemeadoPara(chave);
-    setDescricao(editando?.descricao ?? "");
-    setNota(editando?.nota ?? "");
+    // Campo único de Descrição (01/09), como no Registro Rápido e no Veículo:
+    // "Nome" e "Descrição (opcional)" eram dois campos para a mesma coisa. Uma
+    // parcela antiga pode ter as duas partes gravadas — juntas ficam à vista e
+    // editáveis, em vez de a segunda desaparecer calada ao salvar.
+    setDescricao([editando?.descricao, editando?.nota].filter(Boolean).join(" · "));
     setTotalTexto(editando ? editando.total : null);
     setNum(String(editando?.numParcelas ?? 3));
     setPrimeiroMes(editando?.primeiroMes ?? mesAtual());
@@ -241,8 +243,11 @@ function FormParcela({
     if (diaNum !== undefined && (!Number.isInteger(diaNum) || diaNum < 1 || diaNum > 31))
       return setErro("Dia do vencimento deve ser entre 1 e 31.");
     const dados = {
-      descricao,
-      nota: nota.trim() || undefined,
+      descricao: descricao.trim(),
+      // Campo único de Descrição (01/09): a nota antiga já entrou no campo ao
+      // abrir a folha, portanto apagá-la aqui não perde nada — deixá-la
+      // gravada é que a tornava invisível e impossível de editar.
+      nota: undefined,
       total,
       numParcelas,
       primeiroMes,
@@ -295,43 +300,46 @@ function FormParcela({
       titulo={editando ? "Editar parcela" : "Nova parcela"}
     >
       <form className={styles.form} onSubmit={salvar}>
+        {/* O total da compra é o centro do formulário, não "mais um campo" a
+            meia largura ao lado do nº de parcelas (item 4 do lote de UX/nav,
+            30/08). Saiu da linha dupla porque o campo grande não cabe em meia
+            largura. */}
+        <CampoValorDestaque
+          rotulo="Quanto no total?"
+          valor={totalTexto}
+          aoMudar={setTotalTexto}
+          required
+          // Cada mensagem de erro já descreve UM campo ("Valor total
+          // inválido.", "Nº de parcelas inválido.", "Dia do vencimento
+          // deve ser entre 1 e 31."), mas o estado não guarda QUAL foi —
+          // aria-describedby nos três, não aria-invalid (que exigiria
+          // saber exatamente qual, achado da auditoria de Acessibilidade,
+          // mesmo raciocínio do Login).
+          aria-describedby={erro !== null ? "erro-parcela" : undefined}
+        />
+        {/* Campo único de Descrição (01/09): eram "Nome" e "Descrição
+            (opcional)" seguidos, dois campos para a mesma coisa. */}
         <label className={styles.campo}>
-          Nome
-          <input value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
+          Descrição
+          <input
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            required
+            maxLength={120}
+          />
         </label>
         <label className={styles.campo}>
-          Descrição (opcional)
-          <input value={nota} onChange={(e) => setNota(e.target.value)} />
+          Nº parcelas
+          <input
+            type="number"
+            min={1}
+            max={120}
+            value={num}
+            onChange={(e) => setNum(e.target.value)}
+            required
+            aria-describedby={erro !== null ? "erro-parcela" : undefined}
+          />
         </label>
-        <div className={styles.linhaDupla}>
-          <label className={styles.campo}>
-            Total (€)
-            <CampoMoeda
-              valor={totalTexto}
-              aoMudar={setTotalTexto}
-              required
-              // Cada mensagem de erro já descreve UM campo ("Valor total
-              // inválido.", "Nº de parcelas inválido.", "Dia do vencimento
-              // deve ser entre 1 e 31."), mas o estado não guarda QUAL foi —
-              // aria-describedby nos três, não aria-invalid (que exigiria
-              // saber exatamente qual, achado da auditoria de Acessibilidade,
-              // mesmo raciocínio do Login).
-              aria-describedby={erro !== null ? "erro-parcela" : undefined}
-            />
-          </label>
-          <label className={styles.campo}>
-            Nº parcelas
-            <input
-              type="number"
-              min={1}
-              max={120}
-              value={num}
-              onChange={(e) => setNum(e.target.value)}
-              required
-              aria-describedby={erro !== null ? "erro-parcela" : undefined}
-            />
-          </label>
-        </div>
         <div className={styles.linhaDupla}>
           <label className={styles.campo}>
             Primeiro mês
@@ -535,8 +543,10 @@ export default function Parcelas() {
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
-          <Botao variante="texto" onClick={abrirNova}>
-            <Plus size={15} aria-hidden /> Nova parcela
+          {/* Só o "+" (01/09) — o título ao lado já diz "Compras parceladas".
+              O texto inteiro vive no aria-label. */}
+          <Botao variante="texto" soIcone aria-label="Nova parcela" onClick={abrirNova}>
+            <Plus size={16} aria-hidden />
           </Botao>
         </div>
       </div>
