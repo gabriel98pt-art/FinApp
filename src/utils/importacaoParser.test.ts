@@ -60,6 +60,27 @@ describe("parseExtratoCsv", () => {
     ]);
   });
 
+  // A linha "Total" fecha a tabela (ver comentário de parseExtratoCsv) — um
+  // extrato consolidado com várias tabelas empilhadas tem linhas de saldo e
+  // metadados ENTRE o "Total" de uma tabela e o cabeçalho da próxima. Sem
+  // esquecer o cabeçalho ao ver "Total", essas linhas eram lidas com as
+  // colunas da tabela anterior e viravam lançamentos fantasma.
+  test('esquece o cabeçalho ao ver "Total", pra não ler metadados da próxima conta como lançamento', () => {
+    const csv = [
+      "Data;Descrição;Valor",
+      "10/07/2026;Compra A;-10,00",
+      "Total;;150,00",
+      "01/08/2026;Saldo inicial conta USD;500,00",
+      "Data;Descrição;Valor",
+      "02/08/2026;Compra B;-20,00",
+    ].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toEqual([
+      { data: "2026-07-10", descricao: "Compra A", valor: -1000 },
+      { data: "2026-08-02", descricao: "Compra B", valor: -2000 },
+    ]);
+  });
+
   // RFC 4180: aspas duplicadas ("") dentro de um campo entre aspas são o
   // escape de uma aspa literal, não um fim de campo.
   test('mantém aspas internas escapadas ("") num campo entre aspas', () => {

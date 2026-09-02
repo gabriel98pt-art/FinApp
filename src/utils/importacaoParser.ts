@@ -189,7 +189,10 @@ export function parseExtratoCsv(texto: string): LinhaExtrato[] {
       continue;
     }
     if (!cabecalhoAtual) continue;
-    if (/^total\b/i.test(linha)) continue;
+    if (/^total\b/i.test(linha)) {
+      cabecalhoAtual = null;
+      continue;
+    }
 
     const { delim, colData, colDesc, colValor, colDebito, colCredito } = cabecalhoAtual;
     const cols = dividirLinhaCsv(linha, delim);
