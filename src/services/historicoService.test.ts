@@ -31,7 +31,7 @@ let veiculo: Record<"cargas" | "despesas" | "despesasFixas" | "quilometragem", u
   despesasFixas: [],
   quilometragem: [],
 };
-let cfg: unknown = { currency: "EUR" };
+let cfg: unknown = { currency: "EUR", instituicoes: [] };
 let tvde: unknown = { metaMensal: 0 };
 
 vi.mock("../stores/cfgStore", () => ({ useCfgStore: { getState: () => ({ cfg }) } }));
@@ -66,7 +66,7 @@ beforeEach(() => {
   despesasFixas = [];
   transferencias = [];
   veiculo = { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] };
-  cfg = { currency: "EUR" };
+  cfg = { currency: "EUR", instituicoes: [] };
   tvde = { metaMensal: 0 };
   atualizarNaRaiz.mockClear();
   refChamado.mockClear();
@@ -128,13 +128,49 @@ describe("capturarEstadoAtual", () => {
   });
 
   test("cfg e tvde entram como objeto direto, sem paraMapa — não são listas", () => {
-    cfg = { currency: "EUR", modoDiscreto: true };
+    cfg = { currency: "EUR", modoDiscreto: true, instituicoes: [] };
     tvde = { metaMensal: 150000 };
 
     const arvore = JSON.parse(capturarEstadoAtual());
 
-    expect(arvore.cfg).toEqual(cfg);
+    expect(arvore.cfg).toEqual({ ...cfg, instituicoes: {} });
     expect(arvore.tvde).toEqual(tvde);
+  });
+
+  test("cfg.instituicoes vira mapa por id, não lista — o RTDB reindexa uma lista por posição", () => {
+    // O bug que isto protege: duas instituições com 1 método cada, capturadas
+    // como lista, colidiam no id "0" ao voltar pro RTDB (cada `metodos` é uma
+    // lista própria, também reindexada) — Cartões mostrava duas contas iguais
+    // e zeradas depois de um Desfazer. `brutoDasInstituicoes` devolve o mesmo
+    // formato de mapa que cfgService já grava em toda escrita normal.
+    cfg = {
+      currency: "EUR",
+      instituicoes: [
+        {
+          id: "AB Gold (C)",
+          nome: "Banco Novo Gold",
+          metodos: [{ id: "AB Gold (C)", tipo: "credito", diaFechamentoFatura: 28 }],
+        },
+        {
+          id: "Conta Principal",
+          nome: "Conta Principal",
+          metodos: [{ id: "Conta Principal", tipo: "debito" }],
+        },
+      ],
+    };
+
+    const arvore = JSON.parse(capturarEstadoAtual());
+
+    expect(arvore.cfg.instituicoes).toEqual({
+      "AB Gold (C)": {
+        nome: "Banco Novo Gold",
+        metodos: { "AB Gold (C)": { tipo: "credito", diaFechamentoFatura: 28 } },
+      },
+      "Conta Principal": {
+        nome: "Conta Principal",
+        metodos: { "Conta Principal": { tipo: "debito" } },
+      },
+    });
   });
 });
 

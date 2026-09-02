@@ -29,6 +29,7 @@ import {
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useTvdeStore } from "../stores/tvdeStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
+import { brutoDasInstituicoes } from "../utils/instituicoes";
 
 const raiz = (uid: string) => `users/${uid}/fin_v5`;
 
@@ -44,6 +45,7 @@ function paraMapa<T extends { id: string }>(itens: T[]): Record<string, Omit<T, 
  *  origem, mas lendo das stores em memória em vez de um objeto global único. */
 export function capturarEstadoAtual(): string {
   const veiculo = useVeiculoStore.getState().dados;
+  const cfg = useCfgStore.getState().cfg;
   const arvore = {
     receitas: paraMapa(useReceitasStore.getState().itens),
     despesasCorrentes: paraMapa(useDespesasStore.getState().itens),
@@ -58,7 +60,14 @@ export function capturarEstadoAtual(): string {
     fundos: paraMapa(useFundosStore.getState().itens),
     despesasFixas: paraMapa(useDespesasFixasStore.getState().itens),
     transferencias: paraMapa(useTransferenciasStore.getState().itens),
-    cfg: useCfgStore.getState().cfg,
+    // `cfg.instituicoes` é uma LISTA em memória (normalizarConfig já a
+    // converteu do mapa por id que o RTDB guarda). Gravar a lista de volta
+    // tal e qual faria o RTDB reindexar por posição (0, 1...) em vez dos ids
+    // reais — dois cartões com 1 método cada colidiam no id "0" e a tela de
+    // Cartões mostrava duas contas iguais e zeradas. `brutoDasInstituicoes`
+    // devolve ao formato de mapa que o RTDB espera, como cfgService já faz
+    // em toda escrita normal.
+    cfg: { ...cfg, instituicoes: brutoDasInstituicoes(cfg.instituicoes) },
     tvde: useTvdeStore.getState().dados,
   };
   return JSON.stringify(arvore);

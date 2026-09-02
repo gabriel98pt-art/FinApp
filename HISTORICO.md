@@ -5,9 +5,21 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 02/09/2026 — 505 mudanças registadas.
+Período coberto: 23/07/2026 a 03/09/2026 — 506 mudanças registadas.
 
 ---
+
+## 03/09/2026
+
+- Corrigido um bug sério: ajustar o saldo de uma conta e depois clicar em
+  "Desfazer" (ou "Refazer") podia bagunçar a lista de contas/cartões —
+  duas contas apareciam com o mesmo nome e saldo zerado, como se uma
+  tivesse desaparecido. A causa: o "Desfazer" grava a lista de contas de
+  volta num formato que a base de dados não entende direito, e ela troca os
+  nomes das contas por números — duas contas com um cartão cada colidiam no
+  mesmo número. Os lançamentos, saldos e parcelas nunca foram afetados, só a
+  lista de nomes das contas. Corrigido na origem: "Desfazer"/"Refazer" agora
+  gravam a lista de contas no formato certo, sem essa confusão.
 
 ## 02/09/2026
 
