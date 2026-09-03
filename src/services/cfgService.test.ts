@@ -520,6 +520,20 @@ describe("removerCartao", () => {
     expect(m["instituicoes/Gold"]).toBeNull();
     expect(m.contasCartoes).toEqual([]);
   });
+
+  // Achado ao investigar um relato de "Banco Teste QA" sobrando em
+  // `faturaManual` numa conta real (03/09/2026): estes três também são
+  // chaveados pelo id da conta/cartão, mas não entravam na limpeza — uma
+  // conta criada e removida deixava saldo/fatura órfãos pra sempre.
+  test("limpa saldosIniciais/faturaManual/faturasPagas — também chaveados pelo id da conta", async () => {
+    const cfgAtual = migrada(instituicao("Gold", "credito"));
+    await s.removerCartao(UID, cfgAtual, "Gold");
+
+    const m = updates[0].mudancas;
+    expect(m["saldosIniciais/Gold"]).toBeNull();
+    expect(m["faturaManual/Gold"]).toBeNull();
+    expect(m["faturasPagas/Gold"]).toBeNull();
+  });
 });
 
 describe("dias de fatura", () => {

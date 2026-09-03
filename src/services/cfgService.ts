@@ -319,7 +319,14 @@ export async function renomearLocal(uid: string, cfg: ConfigConta, de: string, p
  *
  *  Os campos antigos são limpos na mesma escrita: se `instituicoes` ficar vazia
  *  (removeu-se a última), o RTDB não guarda o objeto vazio e a leitura seguinte
- *  volta a sintetizar a partir deles — a conta apagada ressuscitava. */
+ *  volta a sintetizar a partir deles — a conta apagada ressuscitava.
+ *
+ *  `saldosIniciais`/`faturaManual`/`faturasPagas` também são chaveados pelo
+ *  id da conta/cartão, mas viviam fora dessa limpeza — uma conta criada e
+ *  removida deixava esses três órfãos pra sempre (achado ao investigar um
+ *  relato de "Banco Teste QA" sobrando em `faturaManual` de uma conta real,
+ *  03/09/2026). Sem perigo pra quem já tem órfãos: o `null` só tem efeito se
+ *  a chave existir, e uma conta nova nunca reusa um id já usado. */
 export async function removerCartao(uid: string, cfg: ConfigConta, nome: string) {
   const achado = localizarMetodo(cfg, nome);
   const cirurgico: Record<string, unknown> = achado
@@ -333,6 +340,9 @@ export async function removerCartao(uid: string, cfg: ConfigConta, nome: string)
     [`tipoCartao/${nome}`]: null,
     [`diaVencimentoFatura/${nome}`]: null,
     [`diaFechamentoFatura/${nome}`]: null,
+    [`saldosIniciais/${nome}`]: null,
+    [`faturaManual/${nome}`]: null,
+    [`faturasPagas/${nome}`]: null,
     ...patchInstituicoes(cfg, semMetodo(cfg.instituicoes, nome), cirurgico),
   });
 }

@@ -5,12 +5,16 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/09/2026 — 508 mudanças registadas.
+Período coberto: 23/07/2026 a 03/09/2026 — 509 mudanças registadas.
 
 ---
 
 ## 03/09/2026
 
+- Remover uma conta/cartão em Definições deixava para trás o saldo inicial
+  e as faturas manuais dela, escondidos — se alguém criasse outra conta com
+  o mesmo nome no futuro, esses valores antigos podiam voltar a aparecer.
+  Corrigido: remover uma conta agora limpa esses dois junto.
 - Agora dá para colar (⌘V) um arquivo de backup copiado direto na tela de
   Definições → Dados → Backup, sem precisar abrir o seletor de arquivo — o
   mesmo que a tela de Importar extrato já permitia.
