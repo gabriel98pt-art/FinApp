@@ -133,7 +133,10 @@ describe("capturarEstadoAtual", () => {
 
     const arvore = JSON.parse(capturarEstadoAtual());
 
-    expect(arvore.cfg).toEqual({ ...(cfg as any), instituicoes: {} });
+    expect(arvore.cfg).toEqual({
+      ...(cfg as Record<string, unknown>),
+      instituicoes: {},
+    });
     expect(arvore.tvde).toEqual(tvde);
   });
 
