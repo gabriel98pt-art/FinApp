@@ -5,17 +5,12 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/09/2026 — 510 mudanças registadas.
+Período coberto: 23/07/2026 a 03/09/2026 — 509 mudanças registadas.
 
 ---
 
 ## 03/09/2026
 
-- Botões "Adicionar" que não diziam o que adicionavam agora dizem: em
-  Despesas correntes, Despesas do veículo, Locais de abastecimento, Contas e
-  cartões, Categorias de despesa, Fontes de receita e Receitas. A regra
-  (todo botão de criar tem que dizer o que cria) já existia pros botões só
-  com ícone; passou a valer pra todos.
 - Remover uma conta/cartão em Definições deixava para trás o saldo inicial
   e as faturas manuais dela, escondidos — se alguém criasse outra conta com
   o mesmo nome no futuro, esses valores antigos podiam voltar a aparecer.

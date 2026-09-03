@@ -53,10 +53,6 @@ export default function FolhaCategorias({
 }) {
   const [novo, setNovo] = useState("");
   const confirmar = useConfirmar();
-  // "Adicionar" sozinho não diz o que se adiciona (achado do sweep de
-  // padronização, 03/09/2026) — esta folha serve duas listas diferentes, daí
-  // o rótulo depender de qual.
-  const itemSingular = lista === "fontesReceita" ? "fonte de receita" : "categoria";
   // Categoria cujo ícone/cor está sendo escolhido agora (item 19).
   const [iconeDe, setIconeDe] = useState<string | null>(null);
   const [corDe, setCorDe] = useState<string | null>(null);
@@ -182,7 +178,7 @@ export default function FolhaCategorias({
           aria-label={`Adicionar em ${titulo}`}
         />
         <button type="submit" className={styles.botaoPequeno}>
-          Adicionar {itemSingular}
+          Adicionar
         </button>
       </form>
 

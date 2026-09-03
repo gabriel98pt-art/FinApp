@@ -73,25 +73,10 @@ e TVDE fechadas (commits `71b2483`, `305622e`, `443e616`, `e72bbc7`):
    mesma: fica encostado ao das Despesas do TVDE, no mesmo cartão, e deixar um
    com valor grande e o outro com três caixinhas iguais ficava desalinhado.
 
-**RESOLVIDO em 03/09/2026**: o Gabriel decidiu que todo botão de adicionar
-tem de dizer o que cria, sempre — não só o da aba Correntes de Despesas.
-Auditados todos os botões "Adicionar"/"+" do app; corrigidos os que ficavam
-ambíguos (bare "Adicionar", ou repetiam a mesma palavra que um botão irmão
-na mesma tela):
-
-- Despesas → Correntes: "Adicionar despesa" → "Adicionar despesa corrente"
-  (tinha a mesma palavra que "Adicionar despesa fixa" da aba ao lado).
-- Veículo → Despesas: "Adicionar despesa" → "Adicionar despesa do veículo"
-  (mesmo motivo, irmã de "Adicionar despesa fixa" do veículo).
-- Veículo → Locais de abastecimento: "Adicionar" → "Adicionar local".
-- Definições → Contas e cartões: "Adicionar" → "Adicionar conta ou cartão".
-- Definições → Categorias de despesa / Fontes de receita (mesmo componente,
-  duas listas): "Adicionar" → "Adicionar categoria" / "Adicionar fonte de
-  receita", dependendo de qual lista está aberta.
-- Receitas → "Adicionar" (do cartão "Lançamentos") → "Adicionar receita".
-
-Os que já diziam o que criavam (Calendário, Cartões, Parcelas, Veículo →
-abastecimento/fixa/km, Planejamento, TVDE) ficaram como estavam.
+**Um detalhe a rever quando o Gabriel olhar**: o botão da aba Correntes de
+Despesas dizia só "Adicionar", e o `aria-label` ficou "Adicionar despesa" —
+"Adicionar" sozinho não diz o que se adiciona, e o próprio componente `Botao`
+tem essa regra escrita. É a única diferença face ao texto que estava no botão.
 
 ## Listas que ficaram SEM paginação (01/09/2026)
 

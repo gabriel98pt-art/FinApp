@@ -483,7 +483,7 @@ export default function Despesas() {
                 soIcone
                 className={styles.botaoAdicionarTopo}
                 onClick={() => abrirRegistro("despesa")}
-                aria-label="Adicionar despesa corrente"
+                aria-label="Adicionar despesa"
               >
                 <Plus size={18} aria-hidden />
               </Botao>

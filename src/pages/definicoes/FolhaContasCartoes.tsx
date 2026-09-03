@@ -236,7 +236,7 @@ export default function FolhaContasCartoes({
             aoMudar={(t) => setTipo(t as TipoCartao)}
           />
           <button type="submit" className={styles.botaoPequeno}>
-            <Wallet size={14} aria-hidden /> Adicionar conta ou cartão
+            <Wallet size={14} aria-hidden /> Adicionar
           </button>
         </div>
       </form>

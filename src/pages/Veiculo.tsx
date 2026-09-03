@@ -821,7 +821,7 @@ export default function Veiculo() {
                   onChange={(e) => setNovoLocal(e.target.value)}
                 />
                 <button type="submit" className={styles.gerirBotao}>
-                  Adicionar local
+                  Adicionar
                 </button>
               </div>
             </form>
@@ -835,7 +835,7 @@ export default function Veiculo() {
               <Botao
                 variante="primaria"
                 soIcone
-                aria-label="Adicionar despesa do veículo"
+                aria-label="Adicionar despesa"
                 onClick={() => abrirRegistro("despesaVeiculo")}
               >
                 <Plus size={16} aria-hidden />

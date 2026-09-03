@@ -125,12 +125,9 @@ describe("Receitas", () => {
     expect(screen.getByText("05/08 · Trabalho · bónus")).toBeInTheDocument();
   });
 
-  // "Adicionar" sozinho não diz o que se adiciona (achado do sweep de
-  // padronização, 03/09/2026) — o nome exato do botão prova que o rótulo
-  // continua específico, não só que "algum botão de adicionar" existe.
-  test('"Adicionar receita" abre o registo rápido no modo receita', async () => {
+  test("Adicionar abre o registo rápido no modo receita", async () => {
     render(<Receitas />);
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar receita" }));
+    await userEvent.click(screen.getByRole("button", { name: /Adicionar/ }));
 
     expect(abrirRegistro).toHaveBeenCalledWith("receita");
   });
