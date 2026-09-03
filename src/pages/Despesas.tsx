@@ -20,7 +20,6 @@ import {
   atualizarDespesaFixa,
   criarDespesaFixa,
   removerDespesa,
-  removerDespesaFixa,
 } from "../services/lancamentosService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
@@ -324,12 +323,25 @@ export default function Despesas() {
     setDfAberta(false);
   }
 
+  // "Excluir" não apaga o registo: só encerra a fixa a partir de agora
+  // (`fim = mesAtual()`), reaproveitando o mesmo `fim` que `fixaAtivaNoMes`
+  // já respeita em todo o app (Metas, Orçamento, Início, Calendário...).
+  // Um apagar de verdade levava junto `pagoPorMes` e os meses já pagos —
+  // Gabriel queria cancelar dali pra frente sem perder o que já saiu da
+  // conta nos meses passados.
+  async function encerrarFixa(f: DespesaFixa) {
+    await agir(
+      () => atualizarDespesaFixa(uid, { ...f, fim: mesAtual() }),
+      "Despesa fixa encerrada — o histórico de meses pagos continua ali",
+    );
+  }
+
   async function excluirFixa() {
     const atual = despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
     if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
-    await agir(() => removerDespesaFixa(uid, atual.id), "Despesa fixa excluída");
+    await encerrarFixa(atual);
   }
 
   // Excluir direto do menu da linha (02/09/2026) — não depende da folha de
@@ -337,7 +349,7 @@ export default function Despesas() {
   // a servir o botão "Excluir" de DENTRO da folha).
   async function excluirFixaDaLista(f: DespesaFixa) {
     if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
-    await agir(() => removerDespesaFixa(uid, f.id), "Despesa fixa excluída");
+    await encerrarFixa(f);
   }
 
   return (

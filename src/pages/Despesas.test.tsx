@@ -14,17 +14,17 @@ import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente, DespesaFixa } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { KPIS_POR_PAGINA } from "../constants/kpis";
+import { mesAtual } from "../utils/calculos";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 const removerDespesa = vi.fn(async () => {});
 const alternarPagoDespesaFixa = vi.fn(async () => {});
-const removerDespesaFixa = vi.fn(async () => {});
+const atualizarDespesaFixa = vi.fn(async () => {});
 vi.mock("../services/lancamentosService", () => ({
   alternarPagoDespesaFixa: (...a: unknown[]) => alternarPagoDespesaFixa(...(a as [])),
-  atualizarDespesaFixa: vi.fn(async () => {}),
+  atualizarDespesaFixa: (...a: unknown[]) => atualizarDespesaFixa(...(a as [])),
   criarDespesaFixa: vi.fn(async () => {}),
   removerDespesa: (...a: unknown[]) => removerDespesa(...(a as [])),
-  removerDespesaFixa: (...a: unknown[]) => removerDespesaFixa(...(a as [])),
 }));
 
 const lista = <T,>(itens: T[] = []) => ({ itens, carregado: true, erro: false });
@@ -163,6 +163,25 @@ describe("menu de ações da linha de fixas (02/09/2026)", () => {
 
     expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
     expect(alternarPagoDespesaFixa).toHaveBeenCalledWith("u1", fixa(), "2026-08", true, []);
+  });
+
+  // Achado do Gabriel (03/09/2026): apagar uma fixa apagava o registo
+  // inteiro, levando junto o histórico de meses já pagos. "Excluir" passa a
+  // só encerrar a fixa a partir de hoje (`fim`), sem tocar em `pagoPorMes`.
+  test('"Excluir" encerra a fixa a partir de hoje em vez de apagar o registo', async () => {
+    fixas = lista([fixa({ pagoPorMes: { "2026-07": true, "2026-08": true } })]);
+    renderDespesas();
+    await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
+
+    await userEvent.click(screen.getByText("Netflix"));
+    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+
+    await waitFor(() =>
+      expect(atualizarDespesaFixa).toHaveBeenCalledWith("u1", {
+        ...fixa({ pagoPorMes: { "2026-07": true, "2026-08": true } }),
+        fim: mesAtual(),
+      }),
+    );
   });
 });
 

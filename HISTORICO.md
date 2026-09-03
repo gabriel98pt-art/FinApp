@@ -5,12 +5,18 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/09/2026 — 506 mudanças registadas.
+Período coberto: 23/07/2026 a 03/09/2026 — 507 mudanças registadas.
 
 ---
 
 ## 03/09/2026
 
+- Apagar uma despesa fixa (ex. uma assinatura) removia o registo inteiro,
+  levando junto o histórico dos meses já pagos — cancelar hoje fazia
+  desaparecer também o dinheiro que já tinha saído da conta em meses
+  passados. Agora "Excluir" só encerra a fixa a partir de hoje: os meses já
+  pagos continuam no histórico normalmente, só os meses futuros deixam de
+  aparecer.
 - Corrigido um bug sério: ajustar o saldo de uma conta e depois clicar em
   "Desfazer" (ou "Refazer") podia bagunçar a lista de contas/cartões —
   duas contas apareciam com o mesmo nome e saldo zerado, como se uma
