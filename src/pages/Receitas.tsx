@@ -172,6 +172,7 @@ export default function Receitas() {
            pra página 1 */
         key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
         titulo="Lançamentos"
+        rotuloAdicionar="Adicionar receita"
         itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((r) => ({
           id: r.id,
           descricao: r.descricao,

@@ -120,6 +120,7 @@ export default function ListaLancamentos({
   vazioIcone,
   moeda,
   aoAdicionar,
+  rotuloAdicionar = "Adicionar",
   aoEditar,
   aoExcluir,
   rotuloTotal = "Total",
@@ -138,6 +139,11 @@ export default function ListaLancamentos({
   vazioIcone: LucideIcon;
   moeda: Currency;
   aoAdicionar: () => void;
+  /** "Adicionar" sozinho não diz o que se adiciona (achado do sweep de
+   *  padronização, 03/09/2026) — quem passa `titulo` também devia passar
+   *  isto. Só tem default pra não obrigar toda chamada sem cabeçalho (onde o
+   *  botão nem aparece) a se importar com um texto que nunca é lido. */
+  rotuloAdicionar?: string;
   aoEditar: (id: Id) => void;
   /** Ação "Excluir" do menu único de ações (item 2 do lote de UX/nav). Quem
    *  chama decide se confirma antes — aqui só se propaga o id escolhido. */
@@ -172,7 +178,7 @@ export default function ListaLancamentos({
         <div className={styles.cabecalho}>
           <h3 className={styles.titulo}>{titulo}</h3>
           <Botao variante="texto" onClick={aoAdicionar}>
-            <Plus size={15} aria-hidden /> Adicionar
+            <Plus size={15} aria-hidden /> {rotuloAdicionar}
           </Botao>
         </div>
       )}

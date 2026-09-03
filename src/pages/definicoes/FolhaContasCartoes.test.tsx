@@ -53,7 +53,7 @@ describe("FolhaContasCartoes — criar", () => {
   test("cria com o tipo crédito por omissão", async () => {
     abrir();
     await userEvent.type(screen.getByLabelText("Nome da conta ou cartão"), "AB Gold");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar conta ou cartão" }));
     expect(adicionarCartao).toHaveBeenCalledWith("u1", CONFIG_PADRAO, "AB Gold", "credit");
   });
 
@@ -62,13 +62,13 @@ describe("FolhaContasCartoes — criar", () => {
     await userEvent.type(screen.getByLabelText("Nome da conta ou cartão"), "Conta Principal");
     await userEvent.click(screen.getByRole("button", { name: /Tipo/ }));
     await userEvent.click(screen.getByRole("button", { name: "Débito" }));
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar conta ou cartão" }));
     expect(adicionarCartao).toHaveBeenCalledWith("u1", CONFIG_PADRAO, "Conta Principal", "debit");
   });
 
   test("nome vazio não chama o serviço", async () => {
     abrir();
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar conta ou cartão" }));
     expect(adicionarCartao).not.toHaveBeenCalled();
   });
 
@@ -76,7 +76,7 @@ describe("FolhaContasCartoes — criar", () => {
     abrir();
     const campo = screen.getByLabelText("Nome da conta ou cartão");
     await userEvent.type(campo, "AB Gold");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar conta ou cartão" }));
     expect(campo).toHaveValue("");
   });
 });
