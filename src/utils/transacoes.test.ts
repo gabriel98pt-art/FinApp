@@ -166,6 +166,76 @@ describe("transacoesDoMes", () => {
     expect(t[0].valor).toBe(10000);
   });
 
+  it("não duplica a fixa: o espelho gerado ao marcá-la como paga fica de fora", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        despesasFixas: [
+          {
+            id: "f1",
+            descricao: "Renda",
+            valor: 50000,
+            categoria: "Casa",
+            diaVencimento: 5,
+            pagoPorMes: { "2026-07": true },
+          },
+        ],
+        despesasCorrentes: [
+          {
+            id: "d1",
+            descricao: "Renda",
+            valor: 50000,
+            data: "2026-07-10",
+            categoria: "Casa",
+            origem: "fixa",
+            fixaId: "f1",
+            fixaMes: "2026-07",
+          },
+        ],
+      },
+      "2026-07",
+    );
+    expect(t).toHaveLength(1);
+    expect(t[0].origem).toBe("fixa");
+    expect(t[0].valor).toBe(50000);
+  });
+
+  it("não duplica a fixa do veículo: o espelho gerado ao marcá-la como paga fica de fora", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...vazio.veiculo,
+          despesasFixas: [
+            {
+              id: "f1",
+              descricao: "Seguro",
+              valor: 12000,
+              categoria: "Veículo",
+              diaVencimento: 5,
+              pagoPorMes: { "2026-07": true },
+            },
+          ],
+          despesas: [
+            {
+              id: "d1",
+              data: "2026-07-10",
+              valor: 12000,
+              categoria: "Veículo",
+              origem: "fixa",
+              fixaId: "f1",
+              fixaMes: "2026-07",
+            },
+          ],
+        },
+      },
+      "2026-07",
+    );
+    expect(t).toHaveLength(1);
+    expect(t[0].origem).toBe("fixa");
+    expect(t[0].valor).toBe(12000);
+  });
+
   it("mantém o pagamento de fatura, que é saída real da conta", () => {
     const t = transacoesDoMes(
       {

@@ -1,10 +1,15 @@
 // Extrato geral do mês (item 22): um feed único com tudo que movimenta
 // dinheiro, vindo dos seis domínios que hoje vivem em telas separadas.
 //
-// Três decisões sobre o que conta:
+// Quatro decisões sobre o que conta:
 //   - despesa corrente com origem 'parc' fica de fora: ela é o lançamento
 //     gerado por uma parcela, e a parcela já entra no feed pelo seu próprio
 //     item (senão a compra apareceria duplicada no mês em que foi paga);
+//   - despesa corrente (ou despesa de veículo) com origem 'fixa' fica de
+//     fora pela mesma razão: é o espelho que `alternarPagoDespesaFixa`/
+//     `alternarPagoFixaVeiculo` grava ao marcar uma fixa como paga, e a fixa
+//     já entra no feed pelo seu próprio item (`todasFixas`, abaixo) — sem
+//     esta exclusão a mesma fixa paga à mão aparecia duas vezes no extrato;
 //   - pagamento de fatura (origem 'fat') FICA: é dinheiro saindo da conta de
 //     facto, e num extrato isso tem que aparecer, mesmo já tendo contado a
 //     compra original no mês dela;
@@ -143,7 +148,8 @@ export function transacoesDoMes(
   }
 
   for (const d of dados.despesasCorrentes) {
-    if (mesDe(d.data) !== ym || d.origem === "parc" || d.origem === "recon") continue;
+    if (mesDe(d.data) !== ym || d.origem === "parc" || d.origem === "recon" || d.origem === "fixa")
+      continue;
     itens.push({
       chave: `despesa-${d.id}`,
       refId: d.id,
@@ -268,7 +274,7 @@ export function transacoesDoMes(
   }
 
   for (const d of dados.veiculo.despesas) {
-    if (mesDe(d.data) !== ym) continue;
+    if (mesDe(d.data) !== ym || d.origem === "fixa") continue;
     itens.push({
       chave: `despesaVeiculo-${d.id}`,
       refId: d.id,
