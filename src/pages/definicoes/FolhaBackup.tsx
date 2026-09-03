@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Download, Upload } from "lucide-react";
 import BottomSheet from "../../components/BottomSheet";
 import { exportarBackup, importarBackup } from "../../services/backupService";
@@ -42,34 +42,60 @@ export default function FolhaBackup({
     }
   }
 
-  async function aoEscolherArquivo(e: ChangeEvent<HTMLInputElement>) {
+  const processarArquivo = useCallback(
+    async (arquivo: File) => {
+      if (
+        !(await confirmar(
+          "Importar backup? Isto SOBRESCREVE todos os dados atuais desta conta — a ação não pode ser desfeita.",
+        ))
+      )
+        return;
+      const leitor = new FileReader();
+      leitor.onload = async () => {
+        setImportando(true);
+        try {
+          await importarBackup(uid, String(leitor.result ?? ""));
+          mostrarToast("✓ Backup importado");
+        } catch (err) {
+          mostrarToast(mensagemDeErroDados(err, "Backup inválido."));
+        } finally {
+          setImportando(false);
+        }
+      };
+      leitor.readAsText(arquivo);
+    },
+    [uid, confirmar],
+  );
+
+  function aoEscolherArquivo(e: ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
     e.target.value = "";
-    if (!arquivo) return;
-    if (
-      !(await confirmar(
-        "Importar backup? Isto SOBRESCREVE todos os dados atuais desta conta — a ação não pode ser desfeita.",
-      ))
-    )
-      return;
-    const leitor = new FileReader();
-    leitor.onload = async () => {
-      setImportando(true);
-      try {
-        await importarBackup(uid, String(leitor.result ?? ""));
-        mostrarToast("✓ Backup importado");
-      } catch (err) {
-        mostrarToast(mensagemDeErroDados(err, "Backup inválido."));
-      } finally {
-        setImportando(false);
-      }
-    };
-    leitor.readAsText(arquivo);
+    if (arquivo) void processarArquivo(arquivo);
   }
+
+  // Colar o ficheiro copiado (ex. do Finder/Explorer) direto na folha, sem
+  // precisar abrir o seletor — pedido do Gabriel (03/09/2026). Ouve na
+  // `window`, não num campo específico: a folha não tem nenhum campo de
+  // texto onde clicar antes, ao contrário do "colar" de Importar extrato
+  // (que pousa no textarea do CSV). Só ouve enquanto a folha está aberta —
+  // `aberta` na dependência garante que o listener sai com ela.
+  useEffect(() => {
+    if (!aberta) return;
+    function aoColar(e: ClipboardEvent) {
+      const arquivo = e.clipboardData?.files?.[0];
+      if (!arquivo) return;
+      e.preventDefault();
+      void processarArquivo(arquivo);
+    }
+    window.addEventListener("paste", aoColar);
+    return () => window.removeEventListener("paste", aoColar);
+  }, [aberta, processarArquivo]);
 
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Backup">
-      <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um arquivo.</p>
+      <p className={styles.nota}>
+        Exporte todos os dados desta conta, ou restaure de um arquivo — escolhido ou colado com ⌘V.
+      </p>
       <div className={styles.linhaAdicionar}>
         <button className={styles.botaoPequeno} onClick={() => void exportar()}>
           <Download size={14} aria-hidden /> Exportar dados

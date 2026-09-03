@@ -5,12 +5,15 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/09/2026 — 507 mudanças registadas.
+Período coberto: 23/07/2026 a 03/09/2026 — 508 mudanças registadas.
 
 ---
 
 ## 03/09/2026
 
+- Agora dá para colar (⌘V) um arquivo de backup copiado direto na tela de
+  Definições → Dados → Backup, sem precisar abrir o seletor de arquivo — o
+  mesmo que a tela de Importar extrato já permitia.
 - Apagar uma despesa fixa (ex. uma assinatura) removia o registo inteiro,
   levando junto o histórico dos meses já pagos — cancelar hoje fazia
   desaparecer também o dinheiro que já tinha saído da conta em meses
