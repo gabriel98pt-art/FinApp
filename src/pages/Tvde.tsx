@@ -161,18 +161,7 @@ function FormSemana({
       titulo={n !== null ? `Semana ${n} · ${rotuloDaSemana(dados.cfg.inicioSemana1, n)}` : ""}
     >
       <form className={styles.form} onSubmit={salvar}>
-        {/* O faturamento é o número da semana — tudo o resto (portagens,
-            aluguel, recargas) é desconto sobre ele. Sai da lista de linhas e
-            abre o formulário no campo grande, como nas outras telas (item 4 do
-            lote de UX/nav, 30/08). Os outros seis continuam em linhas
-            compactas: são muitos, e seis campos gigantes seguidos davam um
-            formulário sem centro nenhum. */}
-        <CampoValorDestaque
-          rotulo="Faturamento"
-          valor={valores.fat ?? null}
-          aoMudar={(v) => setValores({ ...valores, fat: v })}
-        />
-        {CAMPOS_DINHEIRO.filter(([k]) => k !== "fat").map(([k, nome]) => (
+        {CAMPOS_DINHEIRO.map(([k, nome]) => (
           <label key={k} className={styles.campoLinha}>
             <span>
               {nome}
@@ -657,11 +646,6 @@ export default function Tvde() {
               <p className={styles.blocoNota}>
                 Lançar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
               </p>
-              {/* O valor sobe para o campo grande (item 4 do lote de UX/nav,
-                  30/08) e o mês fica na linha com o botão. Antes eram três
-                  caixas do mesmo tamanho lado a lado, e a do meio — a única
-                  que interessa guardar — não se distinguia das outras. */}
-              <CampoValorDestaque valor={segValor} aoMudar={setSegValor} required />
               <div className={styles.linhaDupla}>
                 <input
                   type="month"
@@ -669,6 +653,7 @@ export default function Tvde() {
                   value={segMes}
                   onChange={(e) => setSegMes(e.target.value)}
                 />
+                <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
                 <button type="submit" className={styles.botaoMini}>
                   Salvar
                 </button>

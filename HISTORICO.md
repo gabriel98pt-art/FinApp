@@ -5,9 +5,17 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/09/2026 — 509 mudanças registadas.
+Período coberto: 23/07/2026 a 04/09/2026 — 510 mudanças registadas.
 
 ---
+
+## 04/09/2026
+
+- TVDE: o formulário de semana voltou a ter os sete campos do mesmo
+  tamanho — o destaque que só o Faturamento tinha ganhado foi revertido.
+- TVDE: o card da Segurança Social voltou ao layout de antes (mês, valor e
+  "Salvar" lado a lado). "Despesas do TVDE" continua com o valor em
+  destaque — os dois não precisam mais ficar parecidos entre si.
 
 ## 03/09/2026
 

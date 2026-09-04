@@ -64,14 +64,14 @@ e TVDE fechadas (commits `71b2483`, `305622e`, `443e616`, `e72bbc7`):
 - Ainda no TVDE: a descrição da despesa tinha só `placeholder` e o mês da
   Seg. Social não tinha nome nenhum — ambos ganharam `aria-label`.
 
-**Duas decisões deste grupo, para o Gabriel confirmar se olhar**:
+**Duas decisões deste grupo — RESOLVIDAS em 04/09/2026**:
 
-1. O formulário de semana do TVDE **não** ficou todo em campos grandes, só o
-   faturamento (motivo acima). Se preferir todos iguais outra vez, é reverter
-   uma linha.
-2. O bloco da **Segurança Social** não estava na lista pedida, mas mudou na
-   mesma: fica encostado ao das Despesas do TVDE, no mesmo cartão, e deixar um
-   com valor grande e o outro com três caixinhas iguais ficava desalinhado.
+1. Formulário de semana do TVDE: o Gabriel confirmou a opção B — todos os
+   sete campos voltaram ao mesmo tamanho, o faturamento não se destaca mais.
+2. Bloco da Segurança Social: revertido pro layout de antes (mês, valor e
+   "Salvar" lado a lado, mesmo tamanho), sem ligação com "Despesas do TVDE"
+   — esse continua com o valor em destaque, por ser o que foi pedido de
+   verdade; os dois já não precisam ficar parecidos entre si.
 
 **Um detalhe a rever quando o Gabriel olhar**: o botão da aba Correntes de
 Despesas dizia só "Adicionar", e o `aria-label` ficou "Adicionar despesa" —
