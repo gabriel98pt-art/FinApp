@@ -173,9 +173,18 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(m.fechado).toBe(true);
   });
 
-  test("badge: qualquer mês que não seja o real está sempre fechado", () => {
+  test("badge: mês passado está sempre fechado", () => {
     const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-06", "2026-07", 1, 100000);
     expect(m.fechado).toBe(true);
+  });
+
+  test("badge: mês futuro NÃO é fechado — a meta ainda nem começou", () => {
+    // Bug real: comparar só `ym !== mesReal` tratava mês futuro igual a mês
+    // passado, e o card de Planejamento mostrava "Não atingido" (✗) pra um
+    // mês que a pessoa só está espreitando no seletor, sem nenhum lançamento
+    // ainda — ver SeletorMes, que não tem limite superior de navegação.
+    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-08", "2026-07", 1, 100000);
+    expect(m.fechado).toBe(false);
   });
 });
 

@@ -27,7 +27,9 @@ export interface MetaMensal {
   /** 0-100, sempre dentro dos limites mesmo com saldo negativo ou acima da meta. */
   pct: number;
   atingiu: boolean;
-  /** Mês diferente do real, ou último dia do mês corrente já em curso. */
+  /** Mês PASSADO (antes do real), ou o mês corrente já no último dia. Um mês
+   *  futuro não é "fechado": ainda não há veredicto a dar sobre uma meta que
+   *  nem começou. */
   fechado: boolean;
 }
 
@@ -67,7 +69,13 @@ export function calcularMetaMensal(
   const [ay, am] = ym.split("-").map(Number);
   const ultimoDiaDoMes = new Date(ay, am, 0).getDate();
   const isCorrente = ym === mesReal;
-  const fechado = !isCorrente || diaDeHoje >= ultimoDiaDoMes;
+  // `ym` é sempre "AAAA-MM" com zero à esquerda (ver `somarMeses`/`mesDoAno`),
+  // então a comparação lexicográfica vale como comparação cronológica — e é
+  // o que distingue "mês passado" (fechado) de "mês futuro" (ainda não
+  // começou, não fechado): comparar só com `!isCorrente` tratava os dois da
+  // mesma forma, e um mês futuro sem lançamento nenhum saía com o veredicto
+  // "Não atingido" antes mesmo de existir.
+  const fechado = ym < mesReal || (isCorrente && diaDeHoje >= ultimoDiaDoMes);
 
   return { receitas: rec, despesas: desp, saldo, meta, pct, atingiu: saldo >= meta, fechado };
 }
