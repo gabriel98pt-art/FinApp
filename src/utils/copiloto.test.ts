@@ -9,6 +9,7 @@ import {
   mediasPorCategoria,
   normalizarPergunta,
   responderPergunta,
+  RESPOSTA_PADRAO,
   totaisDoMes,
   type ContextoCopiloto,
 } from "./copiloto";
@@ -688,6 +689,20 @@ describe("copiloto: resumo anual", () => {
     const r = responderPergunta("resumo de 2026", c);
     expect(typeof r).toBe("string");
     expect(r.length).toBeGreaterThan(0);
+  });
+});
+
+describe("copiloto: despesas genérico", () => {
+  // Bug: \bgasto\b não batia no plural — "gastos" não tem "despes" nem
+  // "gastei" na frase, então caía direto na resposta padrão em vez de somar
+  // o que a app já sabe.
+  test("'gastos' no plural também bate no intent genérico", () => {
+    const r = responderPergunta(
+      "quais foram meus gastos em julho",
+      ctx({ despesas: [despesa({ valor: 5000 })] }),
+    );
+    expect(r).not.toBe(RESPOSTA_PADRAO);
+    expect(r).toMatch(/Gastou/);
   });
 });
 

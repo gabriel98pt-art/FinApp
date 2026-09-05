@@ -1082,8 +1082,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       `Recebeu ${b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency))} em ${ref.label}.`,
   },
   // despesas genérico
+  //
+  // Bug corrigido: \bgasto\b não bate no plural — "quais foram meus gastos em
+  // julho?" não tinha "despes" nem "gastei" na frase e caía sem responder,
+  // igual ao mesmo furo já corrigido para "meta"/"metas" no intent de
+  // poupança. `gastos?` aceita as duas formas sem abrir mão da fronteira de
+  // palavra.
   {
-    test: (q) => /despes|gastei|\bgasto\b/.test(q),
+    test: (q) => /despes|gastei|\bgastos?\b/.test(q),
     run: (_q, ref, ctx) =>
       `Gastou ${b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, ctx.cfg.currency))} em ${ref.label}.`,
   },
