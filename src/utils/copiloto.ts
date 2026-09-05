@@ -607,9 +607,25 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const p = ctx.parcelas.find((x) => x.descricao === nome);
       if (!p) return null;
       const abertos = mesesNaoPagos(p, ctx.mesReal);
-      if (!abertos.length) return `A parcela ${b(p.descricao)} já está totalmente paga.`;
+      if (!abertos.length)
+        return variar(ctx, {
+          direto: [`a parcela ${b(p.descricao)} já está totalmente paga.`],
+          acolhedor: [`boa notícia: a parcela ${b(p.descricao)} já está toda paga.`],
+        });
       const restante = abertos.reduce((s, m) => s + valorDaParcela(p, m), 0);
-      return `Faltam ${b(String(abertos.length))} parcela(s) de ${b(p.descricao)}, no total de ${b(formatMoney(restante, ctx.cfg.currency))}. Próxima em ${b(rotuloMes(abertos[0]))}.`;
+      const n = b(String(abertos.length));
+      const total = b(formatMoney(restante, ctx.cfg.currency));
+      const proxima = b(rotuloMes(abertos[0]));
+      return variar(ctx, {
+        direto: [
+          `faltam ${n} parcela(s) de ${b(p.descricao)}, no total de ${total}. Próxima em ${proxima}.`,
+          `${b(p.descricao)} ainda tem ${n} parcela(s) por pagar, ${total} ao todo — a próxima em ${proxima}.`,
+        ],
+        acolhedor: [
+          `ainda faltam ${n} parcela(s) de ${b(p.descricao)}, ${total} no total, com a próxima em ${proxima}.`,
+          `de ${b(p.descricao)} restam ${n} parcela(s), ${total} ao todo — a próxima vence em ${proxima}.`,
+        ],
+      });
     },
   },
   // parcelas agregado
@@ -624,9 +640,23 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           n++;
         }
       }
-      return n
-        ? `Tem ${b(String(n))} parcela(s) por pagar, no total de ${b(formatMoney(total, ctx.cfg.currency))}.`
-        : "Não há parcelas em aberto.";
+      if (!n)
+        return variar(ctx, {
+          direto: ["não há parcelas em aberto.", "nenhuma parcela por pagar de momento."],
+          acolhedor: ["não há parcelas em aberto — está tudo pago por aqui."],
+        });
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
+      const qtd = b(String(n));
+      return variar(ctx, {
+        direto: [
+          `tem ${qtd} parcela(s) por pagar, no total de ${dinheiro}.`,
+          `${qtd} parcela(s) em aberto, somando ${dinheiro}.`,
+        ],
+        acolhedor: [
+          `ainda tem ${qtd} parcela(s) por pagar, ${dinheiro} ao todo.`,
+          `restam ${qtd} parcela(s) em aberto, num total de ${dinheiro}.`,
+        ],
+      });
     },
   },
   // cartão específico
@@ -646,7 +676,17 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const nome = encontrarNaLista(q, nomes, 5)!;
       const cartao = ctx.cfg.contasCartoes[nomes.indexOf(nome)];
       const total = totalCartaoMes(ctx, cartao, ref.ym);
-      return `Gastou ${b(formatMoney(total, ctx.cfg.currency))} no cartão ${b(nome)} em ${ref.label}.`;
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `gastou ${dinheiro} no cartão ${b(nome)} em ${ref.label}.`,
+          `o cartão ${b(nome)} teve ${dinheiro} de despesas em ${ref.label}.`,
+        ],
+        acolhedor: [
+          `em ${ref.label}, o cartão ${b(nome)} teve ${dinheiro} de despesas.`,
+          `no cartão ${b(nome)} saíram ${dinheiro} em ${ref.label}.`,
+        ],
+      });
     },
   },
   // cartões agregado / mais usado
@@ -661,8 +701,21 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           total: totalCartaoMes(ctx, cartao, ref.ym),
         }))
         .sort((a, b2) => b2.total - a.total);
-      if (!linhas[0].total) return `Não há despesas em nenhum cartão em ${ref.label}.`;
-      return `O cartão mais usado em ${ref.label} foi ${b(linhas[0].nome)}, com ${b(formatMoney(linhas[0].total, ctx.cfg.currency))} em despesas.`;
+      if (!linhas[0].total)
+        return variar(ctx, {
+          direto: [`não há despesas em nenhum cartão em ${ref.label}.`],
+          acolhedor: [`não há despesas em nenhum cartão em ${ref.label} — nada a assinalar.`],
+        });
+      const dinheiro = b(formatMoney(linhas[0].total, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `o cartão mais usado em ${ref.label} foi ${b(linhas[0].nome)}, com ${dinheiro} em despesas.`,
+          `em ${ref.label}, quem mais gastou foi o cartão ${b(linhas[0].nome)}, com ${dinheiro}.`,
+        ],
+        acolhedor: [
+          `o cartão que mais usou em ${ref.label} foi ${b(linhas[0].nome)}, com ${dinheiro} em despesas.`,
+        ],
+      });
     },
   },
   // receita por fonte específica
@@ -673,9 +726,22 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const total = ctx.receitas
         .filter((r) => mesDe(r.data) === ref.ym && r.fonte === fonte)
         .reduce((s, r) => s + r.valor, 0);
-      return total > 0
-        ? `Recebeu ${b(formatMoney(total, ctx.cfg.currency))} de ${b(fonte)} em ${ref.label}.`
-        : `Não há receitas de ${b(fonte)} registadas em ${ref.label}.`;
+      if (total <= 0)
+        return variar(ctx, {
+          direto: [`não há receitas de ${b(fonte)} registadas em ${ref.label}.`],
+          acolhedor: [`ainda não há receitas de ${b(fonte)} registadas em ${ref.label}.`],
+        });
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `recebeu ${dinheiro} de ${b(fonte)} em ${ref.label}.`,
+          `${b(fonte)} rendeu ${dinheiro} em ${ref.label}.`,
+        ],
+        acolhedor: [
+          `em ${ref.label} entraram ${dinheiro} de ${b(fonte)}.`,
+          `recebeu ${dinheiro} de ${b(fonte)} durante ${ref.label}.`,
+        ],
+      });
     },
   },
   // fundo/sub-meta específico pelo nome ("falta muito para a viagem?")
@@ -704,15 +770,44 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
 
       const p = progressoFundo(fundo, ctx.mesReal);
       const moeda = ctx.cfg.currency;
-      const base = `O fundo ${b(fundo.nome)} está em ${b(formatMoney(fundo.atual, moeda))} de ${b(formatMoney(fundo.alvo, moeda))} (${p.pct}%).`;
+      const base = `o fundo ${b(fundo.nome)} está em ${b(formatMoney(fundo.atual, moeda))} de ${b(formatMoney(fundo.alvo, moeda))} (${p.pct}%).`;
 
-      if (p.concluido) return `${base} Já chegou ao alvo.`;
-      if (p.prazoVencido)
-        return `${base} Faltam ${b(formatMoney(p.falta, moeda))} e o prazo (${b(rotuloMes(mesDe(fundo.prazo!)))}) já passou.`;
+      if (p.concluido)
+        return variar(ctx, {
+          direto: [`${base} Já chegou ao alvo.`, `${base} Alvo atingido.`],
+          acolhedor: [`${base} Parabéns, já chegou ao alvo!`],
+        });
+
+      const falta = b(formatMoney(p.falta, moeda));
+      if (p.prazoVencido) {
+        const prazo = b(rotuloMes(mesDe(fundo.prazo!)));
+        return variar(ctx, {
+          direto: [`${base} Faltam ${falta} e o prazo (${prazo}) já passou.`],
+          acolhedor: [`${base} Ainda faltam ${falta}, mas o prazo (${prazo}) já passou.`],
+        });
+      }
       if (p.porMes === null || p.mesesRestantes === null)
-        return `${base} Faltam ${b(formatMoney(p.falta, moeda))}. Sem prazo definido, não dá para dizer quanto por mês.`;
+        return variar(ctx, {
+          direto: [
+            `${base} Faltam ${falta}. Sem prazo definido, não dá para dizer quanto por mês.`,
+          ],
+          acolhedor: [
+            `${base} Faltam ${falta}. Sem prazo definido, não há como calcular quanto por mês.`,
+          ],
+        });
 
-      return `${base} Faltam ${b(formatMoney(p.falta, moeda))}. Até ${b(rotuloMes(mesDe(fundo.prazo!)))} são ${b(String(p.mesesRestantes))} mês(es) — dá cerca de ${b(formatMoney(p.porMes, moeda))} por mês.`;
+      const prazo = b(rotuloMes(mesDe(fundo.prazo!)));
+      const meses = b(String(p.mesesRestantes));
+      const porMes = b(formatMoney(p.porMes, moeda));
+      return variar(ctx, {
+        direto: [
+          `${base} Faltam ${falta}. Até ${prazo} são ${meses} mês(es) — dá cerca de ${porMes} por mês.`,
+          `${base} Faltam ${falta}, com ${meses} mês(es) até ${prazo}: cerca de ${porMes} por mês.`,
+        ],
+        acolhedor: [
+          `${base} Faltam ${falta}. Separando cerca de ${porMes} por mês, dá para chegar a ${prazo}.`,
+        ],
+      });
     },
   },
   // categoria de despesa específica
@@ -762,28 +857,61 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // abaixo na lista — a ordem "mais específico → mais genérico" do topo do
   // ficheiro valia para a maioria dos intents, menos para estes três.
   {
-    test: (q) => /combust|gasolina|carregament|abasteci/.test(q),
+    test: (q) => /combust|gasolina|carregament|abasteci|encher o deposito/.test(q),
     run: (q, ref, ctx) => {
       if (q.includes("ultimo") || q.includes("ultima")) {
         const ordenadas = [...ctx.veiculo.cargas].sort((a, b2) => (a.data < b2.data ? 1 : -1));
-        if (!ordenadas.length) return "Ainda não há registos de combustível/carregamento.";
+        if (!ordenadas.length)
+          return variar(ctx, {
+            direto: ["ainda não há registos de combustível/carregamento."],
+            acolhedor: ["ainda não há nenhum registo de combustível/carregamento por aqui."],
+          });
         const c = ordenadas[0];
-        return `O último carregamento foi em ${b(dataCurta(c.data))}${c.local ? ` em ${b(c.local)}` : ""}, no valor de ${b(formatMoney(c.custo, ctx.cfg.currency))}.`;
+        const local = c.local ? ` em ${b(c.local)}` : "";
+        const dinheiro = b(formatMoney(c.custo, ctx.cfg.currency));
+        return variar(ctx, {
+          direto: [
+            `o último carregamento foi em ${b(dataCurta(c.data))}${local}, no valor de ${dinheiro}.`,
+          ],
+          acolhedor: [
+            `o último carregamento foi em ${b(dataCurta(c.data))}${local}, e custou ${dinheiro}.`,
+          ],
+        });
       }
       const total = totalCargasMes(ctx.veiculo, ref.ym);
-      return total > 0
-        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em combustível/carregamento em ${ref.label}.`
-        : `Não há gastos de combustível/carregamento registados em ${ref.label}.`;
+      if (total <= 0)
+        return variar(ctx, {
+          direto: [`não há gastos de combustível/carregamento registados em ${ref.label}.`],
+          acolhedor: [`não há gastos de combustível/carregamento em ${ref.label} — nada por aqui.`],
+        });
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `gastou ${dinheiro} em combustível/carregamento em ${ref.label}.`,
+          `combustível/carregamento levou ${dinheiro} em ${ref.label}.`,
+        ],
+        acolhedor: [`em ${ref.label} foram ${dinheiro} em combustível/carregamento.`],
+      });
     },
   },
   // manutenção / limpeza do veículo
   {
-    test: (q) => /manutenc|limpeza|lavagem/.test(q),
+    test: (q) => /manutenc|limpeza|lavagem|revisao/.test(q),
     run: (_q, ref, ctx) => {
       const total = totalDespesasVeiculoMes(ctx.veiculo, ref.ym);
-      return total > 0
-        ? `Gastou ${b(formatMoney(total, ctx.cfg.currency))} em manutenção/limpeza do veículo em ${ref.label}.`
-        : `Não há gastos de manutenção/limpeza registados em ${ref.label}.`;
+      if (total <= 0)
+        return variar(ctx, {
+          direto: [`não há gastos de manutenção/limpeza registados em ${ref.label}.`],
+          acolhedor: [`não há gastos de manutenção/limpeza em ${ref.label} — nada por aqui.`],
+        });
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [
+          `gastou ${dinheiro} em manutenção/limpeza do veículo em ${ref.label}.`,
+          `manutenção/limpeza do veículo levou ${dinheiro} em ${ref.label}.`,
+        ],
+        acolhedor: [`em ${ref.label} foram ${dinheiro} em manutenção/limpeza do veículo.`],
+      });
     },
   },
   // veículo genérico (soma tudo: cargas + despesas + fixas)
@@ -792,9 +920,24 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // `categoriasDoMes` — foi por isso que escapou à correção de 617d305 e
   // continuou a contar o seguro do dia 28 já no dia 3.
   {
-    test: (q) => /veiculo|\bcarro\b/.test(q),
-    run: (_q, ref, ctx) =>
-      `O total gasto com o veículo em ${ref.label} foi ${b(formatMoney(totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal, hojeDoContexto(ctx)), ctx.cfg.currency))} (combustível, manutenção e despesas fixas).`,
+    test: (q) => /veiculo|viatura|\bcarro\b/.test(q),
+    run: (_q, ref, ctx) => {
+      const dinheiro = b(
+        formatMoney(
+          totalVeiculoMes(ctx.veiculo, ref.ym, ctx.mesReal, hojeDoContexto(ctx)),
+          ctx.cfg.currency,
+        ),
+      );
+      return variar(ctx, {
+        direto: [
+          `o total gasto com o veículo em ${ref.label} foi ${dinheiro} (combustível, manutenção e despesas fixas).`,
+          `em ${ref.label}, o veículo custou ${dinheiro} ao todo (combustível, manutenção e despesas fixas).`,
+        ],
+        acolhedor: [
+          `o veículo custou ${dinheiro} em ${ref.label}, somando combustível, manutenção e fixas.`,
+        ],
+      });
+    },
   },
   // orçamento (categorias com teto configurado — seção 4.8)
   {
@@ -846,7 +989,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   },
   // pendências: parcelas do mês em aberto + faturas de cartão com restante
   {
-    test: (q) => q.includes("pendente"),
+    test: (q) => /pendente|em aberto|por pagar|por lancar/.test(q),
     run: (_q, ref, ctx) => {
       const parcelasPendentes = ctx.parcelas.filter((p) =>
         mesesNaoPagos(p, ctx.mesReal).includes(ref.ym),
@@ -859,14 +1002,24 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         .map((c) => calcularFatura(c, ref.ym, dados, ctx.cfg))
         .filter((f) => f.restante > 0);
       if (!parcelasPendentes.length && !faturasComRestante.length)
-        return `Não há pendentes em ${ref.label}.`;
+        return variar(ctx, {
+          direto: [`não há pendentes em ${ref.label}.`],
+          acolhedor: [`não há nada pendente em ${ref.label} — está tudo em dia.`],
+        });
       const partes: string[] = [];
       if (parcelasPendentes.length) partes.push(`${parcelasPendentes.length} parcela(s)`);
       if (faturasComRestante.length) {
         const totalFat = faturasComRestante.reduce((s, f) => s + f.restante, 0);
         partes.push(`fatura(s) em ${b(formatMoney(totalFat, ctx.cfg.currency))}`);
       }
-      return `Tem ${partes.join(" e ")} por pagar/lançar em ${ref.label}.`;
+      const lista = partes.join(" e ");
+      return variar(ctx, {
+        direto: [
+          `tem ${lista} por pagar/lançar em ${ref.label}.`,
+          `em ${ref.label}, ficam por pagar/lançar ${lista}.`,
+        ],
+        acolhedor: [`ainda tem ${lista} por pagar/lançar em ${ref.label}.`],
+      });
     },
   },
   // poupança / meta (+ projeção no ritmo atual)
@@ -878,12 +1031,23 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // dois"). `metas?` aceita as duas formas sem abrir mão da fronteira de
   // palavra (continua a não bater dentro de "metade", por exemplo).
   {
-    test: (q) => /poupanc|\bmetas?\b/.test(q),
+    test: (q) => /poupanc|economi|\bmetas?\b/.test(q),
     run: (q, ref, ctx) => {
       const t = totaisDoMes(ctx, ref.ym);
       const saldo = t.receitas - t.despesas;
       const meta = ctx.cfg.metaPoupanca;
-      let base = `A meta de poupança é ${b(formatMoney(meta, ctx.cfg.currency))}. Em ${ref.label} o saldo está em ${b(formatMoney(saldo, ctx.cfg.currency))} — ${saldo >= meta ? "acima" : "abaixo"} da meta.`;
+      const dinheiroMeta = b(formatMoney(meta, ctx.cfg.currency));
+      const dinheiroSaldo = b(formatMoney(saldo, ctx.cfg.currency));
+      const situacao = saldo >= meta ? "acima" : "abaixo";
+      let base = variar(ctx, {
+        direto: [
+          `a meta de poupança é ${dinheiroMeta}. Em ${ref.label} o saldo está em ${dinheiroSaldo} — ${situacao} da meta.`,
+          `em ${ref.label} o saldo está em ${dinheiroSaldo}, ${situacao} da meta de poupança de ${dinheiroMeta}.`,
+        ],
+        acolhedor: [
+          `a meta de poupança é ${dinheiroMeta}, e em ${ref.label} o saldo está em ${dinheiroSaldo} — ${situacao} da meta.`,
+        ],
+      });
       const projecao = /ritmo|projec|vou bater/.test(q) ? projecaoFimMes(ctx, ref.ym) : null;
       if (projecao !== null) {
         base += ` No ritmo actual, a projecção para o fim do mês é ${b(formatMoney(projecao, ctx.cfg.currency))} (${projecao >= meta ? "bate" : "não bate"} a meta).`;
@@ -965,37 +1129,61 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const { melhor, pior } = melhorPiorMes(ctx, ano);
       const deQual = ano === anoAtual ? "do ano" : `de ${ano}`;
       const semDados = ano === anoAtual ? "este ano" : `em ${ano}`;
-      if (q.includes("melhor"))
-        return melhor
-          ? `O melhor mês ${deQual} foi ${b(rotuloMes(melhor.ym))}, com saldo de ${b(formatMoney(melhor.saldo, ctx.cfg.currency))}.`
-          : `Ainda não há dados suficientes ${semDados}.`;
-      return pior
-        ? `O pior mês ${deQual} foi ${b(rotuloMes(pior.ym))}, com saldo de ${b(formatMoney(pior.saldo, ctx.cfg.currency))}.`
-        : `Ainda não há dados suficientes ${semDados}.`;
+      const semDadosMsg = () =>
+        variar(ctx, {
+          direto: [`ainda não há dados suficientes ${semDados}.`],
+          acolhedor: [`ainda não há dados suficientes ${semDados} para dizer isso.`],
+        });
+      if (q.includes("melhor")) {
+        if (!melhor) return semDadosMsg();
+        const dinheiro = b(formatMoney(melhor.saldo, ctx.cfg.currency));
+        const mes = b(rotuloMes(melhor.ym));
+        return variar(ctx, {
+          direto: [
+            `o melhor mês ${deQual} foi ${mes}, com saldo de ${dinheiro}.`,
+            `${mes} foi o melhor mês ${deQual}, com saldo de ${dinheiro}.`,
+          ],
+          acolhedor: [`o mês em que mais sobrou ${deQual} foi ${mes}, com saldo de ${dinheiro}.`],
+        });
+      }
+      if (!pior) return semDadosMsg();
+      const dinheiro = b(formatMoney(pior.saldo, ctx.cfg.currency));
+      const mes = b(rotuloMes(pior.ym));
+      return variar(ctx, {
+        direto: [
+          `o pior mês ${deQual} foi ${mes}, com saldo de ${dinheiro}.`,
+          `${mes} foi o pior mês ${deQual}, com saldo de ${dinheiro}.`,
+        ],
+        acolhedor: [`o mês mais apertado ${deQual} foi ${mes}, com saldo de ${dinheiro}.`],
+      });
     },
   },
   // calendário / próximos eventos (mesma janela de 7 dias da tela Calendário)
   {
-    test: (q) => /calendari|evento|agenda|proxim/.test(q),
+    test: (q) => /calendari|evento|agenda|proxim|compromiss/.test(q),
     run: (_q, _ref, ctx) => {
       const proximos = proximosEventos(ctx.eventos, hojeDoContexto(ctx), 7);
-      if (!proximos.length) return "Não há eventos agendados nos próximos 7 dias.";
-      return (
-        "Nos próximos 7 dias: " +
-        proximos
-          .slice(0, 5)
-          .map(
-            (e) =>
-              `${b(e.titulo)} em ${dataCurta(e.data)}${e.valor !== undefined ? ` (${formatMoney(e.valor, ctx.cfg.currency)})` : ""}`,
-          )
-          .join("; ") +
-        "."
-      );
+      if (!proximos.length)
+        return variar(ctx, {
+          direto: ["não há eventos agendados nos próximos 7 dias."],
+          acolhedor: ["não há nada agendado nos próximos 7 dias."],
+        });
+      const lista = proximos
+        .slice(0, 5)
+        .map(
+          (e) =>
+            `${b(e.titulo)} em ${dataCurta(e.data)}${e.valor !== undefined ? ` (${formatMoney(e.valor, ctx.cfg.currency)})` : ""}`,
+        )
+        .join("; ");
+      return variar(ctx, {
+        direto: [`nos próximos 7 dias: ${lista}.`, `o que vem nos próximos 7 dias: ${lista}.`],
+        acolhedor: [`para os próximos 7 dias, tem: ${lista}.`],
+      });
     },
   },
   // resumo do mês ou do ano
   {
-    test: (q) => /resumo|resume|como foi|como estou/.test(q),
+    test: (q) => /resumo|resume|balanco|como foi|como estou|como esta indo/.test(q),
     run: (_q, ref, ctx) => {
       if (ref.isYear && ref.year !== undefined) {
         let rec = 0;
@@ -1007,7 +1195,18 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           rec += t.receitas;
           desp += t.despesas;
         }
-        return `Em ${ref.year} recebeu ${b(formatMoney(rec, ctx.cfg.currency))} e gastou ${b(formatMoney(desp, ctx.cfg.currency))} — saldo de ${b(formatMoney(rec - desp, ctx.cfg.currency))}.`;
+        const recD = b(formatMoney(rec, ctx.cfg.currency));
+        const despD = b(formatMoney(desp, ctx.cfg.currency));
+        const saldoD = b(formatMoney(rec - desp, ctx.cfg.currency));
+        return variar(ctx, {
+          direto: [
+            `em ${ref.year} recebeu ${recD} e gastou ${despD} — saldo de ${saldoD}.`,
+            `${ref.year}: ${recD} de entradas, ${despD} de saídas, saldo de ${saldoD}.`,
+          ],
+          acolhedor: [
+            `em ${ref.year} entraram ${recD} e saíram ${despD}, deixando um saldo de ${saldoD}.`,
+          ],
+        });
       }
       const t = totaisDoMes(ctx, ref.ym);
       const ct = categoriasDoMes(ctx, ref.ym);
@@ -1057,7 +1256,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           rec += t.receitas;
           desp += t.despesas;
         }
-        return `O saldo de ${ref.year} é ${b(formatMoney(rec - desp, ctx.cfg.currency))}.`;
+        const dinheiro = b(formatMoney(rec - desp, ctx.cfg.currency));
+        return variar(ctx, {
+          direto: [
+            `o saldo de ${ref.year} é ${dinheiro}.`,
+            `${ref.year} fechou com ${dinheiro} de saldo.`,
+          ],
+          acolhedor: [`o seu saldo em ${ref.year} está em ${dinheiro}.`],
+        });
       }
       const t = totaisDoMes(ctx, ref.ym);
       const valor = b(formatMoney(t.receitas - t.despesas, ctx.cfg.currency));
@@ -1077,9 +1283,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   },
   // receitas genérico
   {
-    test: (q) => /receita|recebi|entrou|ganhei/.test(q),
-    run: (_q, ref, ctx) =>
-      `Recebeu ${b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency))} em ${ref.label}.`,
+    test: (q) => /receita|recebi|entrou|ganhei|\bganho\b|salario|ordenado|rendimento/.test(q),
+    run: (_q, ref, ctx) => {
+      const dinheiro = b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [`recebeu ${dinheiro} em ${ref.label}.`, `entraram ${dinheiro} em ${ref.label}.`],
+        acolhedor: [`em ${ref.label} entraram ${dinheiro}.`],
+      });
+    },
   },
   // despesas genérico
   //
@@ -1089,9 +1300,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // poupança. `gastos?` aceita as duas formas sem abrir mão da fronteira de
   // palavra.
   {
-    test: (q) => /despes|gastei|\bgastos?\b/.test(q),
-    run: (_q, ref, ctx) =>
-      `Gastou ${b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, ctx.cfg.currency))} em ${ref.label}.`,
+    test: (q) => /despes|gastei|\bgastos?\b|\bsaiu\b|\bsaida\b|torrei/.test(q),
+    run: (_q, ref, ctx) => {
+      const dinheiro = b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, ctx.cfg.currency));
+      return variar(ctx, {
+        direto: [`gastou ${dinheiro} em ${ref.label}.`, `saíram ${dinheiro} em ${ref.label}.`],
+        acolhedor: [`em ${ref.label} saíram ${dinheiro}.`],
+      });
+    },
   },
 ];
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { ConfigConta, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
+import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import {
   categoriasAcimaDaMedia,
@@ -706,6 +706,59 @@ describe("copiloto: despesas genérico", () => {
   });
 });
 
+describe("copiloto: mais sinônimos reconhecidos", () => {
+  // Trabalho de ampliar a "quantidade de perguntas": cada frase abaixo é uma
+  // forma de perguntar a mesma coisa que antes não tinha sinônimo nenhum e
+  // caía na resposta padrão (ou, na app, disparava a camada 2 à toa).
+  const cDados = ctx({
+    despesas: [despesa({ valor: 5000 })],
+    receitas: [receita({ valor: 20000 })],
+  });
+
+  test.each(["quanto saiu esse mes", "quanto torrei esse mes", "qual foi minha saida esse mes"])(
+    "%s bate no intent de despesas",
+    (q) => {
+      expect(responderPergunta(q, cDados)).not.toBe(RESPOSTA_PADRAO);
+    },
+  );
+
+  test.each([
+    "qual meu salario",
+    "qual meu rendimento",
+    "quanto foi meu ganho",
+    "qual meu ordenado",
+  ])("%s bate no intent de receitas", (q) => {
+    expect(responderPergunta(q, cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+
+  test("'economizar' bate no intent de poupança", () => {
+    expect(responderPergunta("quanto devo economizar", cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+
+  test("'balanço' bate no intent de resumo", () => {
+    expect(responderPergunta("qual o balanco do mes", cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+
+  test.each(["o que tenho em aberto", "o que tenho por pagar"])(
+    "%s bate no intent de pendências",
+    (q) => {
+      expect(responderPergunta(q, cDados)).not.toBe(RESPOSTA_PADRAO);
+    },
+  );
+
+  test("'compromissos' bate no intent de calendário", () => {
+    expect(responderPergunta("quais meus compromissos", cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+
+  test("'viatura' bate no intent de veículo", () => {
+    expect(responderPergunta("quanto gastei com a viatura", cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+
+  test("'revisão' bate no intent de manutenção", () => {
+    expect(responderPergunta("quanto foi a revisao do carro", cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
+});
+
 describe("copiloto: pergunta que não bate em nada", () => {
   test("cai na resposta padrão em vez de ficar em branco", () => {
     const r = responderPergunta("qual a capital de portugal", ctx());
@@ -885,6 +938,65 @@ describe("variação de fraseado", () => {
     expect(v("resumo do mes", 0)).not.toBe(v("resumo do mes", 1));
     expect(v("estou dentro do orcamento?", 0)).not.toBe(v("estou dentro do orcamento?", 1));
     expect(v("quanto gastei em alimentacao?", 0)).not.toBe(v("quanto gastei em alimentacao?", 1));
+  });
+
+  // Antes desta rodada de trabalho, a maior parte dos intents só tinha UMA
+  // frase fixa — a resposta ficava sempre igual, palavra por palavra, e a
+  // única coisa que rodava era o próprio "variante" recebido, sem efeito
+  // nenhum no texto. Cada intent abaixo passou a ter pelo menos duas
+  // variações; este teste é o que garante que continuam variando de verdade
+  // (e não regride para uma frase fixa numa próxima alteração).
+  test("intents que antes eram fixos agora também variam", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 120000,
+      numParcelas: 12,
+      primeiroMes: "2026-06",
+      pagoPorMes: {},
+    };
+    const fundo: Fundo = {
+      id: "f1",
+      nome: "Viagem",
+      atual: 10000,
+      alvo: 50000,
+      prazo: "2026-12",
+    };
+    const cfg = cfgCom({
+      contasCartoes: ["AB (D)"],
+      tipoCartao: { "AB (D)": "debit" },
+      fontesReceita: ["Freelance"],
+    });
+    const base = ctx({
+      cfg,
+      parcelas: [parcela],
+      fundos: [fundo],
+      despesas: [despesa({ contaCartao: "AB (D)" })],
+      receitas: [receita({ fonte: "Freelance", valor: 30000 })],
+      veiculo: {
+        cargas: [{ id: "c1", data: "2026-07-05", custo: 5000, litros: 30, local: "Posto" }],
+        despesas: [{ id: "d1", data: "2026-07-05", categoria: "Manutenção", valor: 8000 }],
+        despesasFixas: [],
+        quilometragem: [],
+      },
+    });
+    const v = (q: string, variante: number) => responderPergunta(q, { ...base, variante });
+
+    expect(v("quanto falta pagar da tv nova", 0)).not.toBe(v("quanto falta pagar da tv nova", 1));
+    expect(v("quanto tenho de parcelas", 0)).not.toBe(v("quanto tenho de parcelas", 1));
+    expect(v("quanto gastei nos cartoes", 0)).not.toBe(v("quanto gastei nos cartoes", 1));
+    expect(v("quanto recebi de freelance", 0)).not.toBe(v("quanto recebi de freelance", 1));
+    expect(v("falta muito para a viagem", 0)).not.toBe(v("falta muito para a viagem", 1));
+    expect(v("quanto gastei de combustivel", 0)).not.toBe(v("quanto gastei de combustivel", 1));
+    expect(v("quanto gastei de manutencao", 0)).not.toBe(v("quanto gastei de manutencao", 1));
+    expect(v("quanto gastei com o carro", 0)).not.toBe(v("quanto gastei com o carro", 1));
+    expect(v("tenho algo pendente", 0)).not.toBe(v("tenho algo pendente", 1));
+    expect(v("qual minha poupanca", 0)).not.toBe(v("qual minha poupanca", 1));
+    expect(v("qual foi o melhor mes", 0)).not.toBe(v("qual foi o melhor mes", 1));
+    expect(v("resumo de 2025", 0)).not.toBe(v("resumo de 2025", 1));
+    expect(v("saldo de 2025", 0)).not.toBe(v("saldo de 2025", 1));
+    expect(v("quanto recebi este mes", 0)).not.toBe(v("quanto recebi este mes", 1));
+    expect(v("quais foram meus gastos", 0)).not.toBe(v("quais foram meus gastos", 1));
   });
 });
 
