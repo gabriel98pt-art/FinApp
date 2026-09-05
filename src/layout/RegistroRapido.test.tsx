@@ -293,7 +293,10 @@ describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
 
     await waitFor(() => expect(criarCarga).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    const [, dados] = criarCarga.mock.calls[0] as [unknown, { custo: number; kwh: number }];
+    const [, dados] = criarCarga.mock.calls[0] as unknown as [
+      unknown,
+      { custo: number; kwh: number },
+    ];
     expect(dados.custo).toBe(0);
     expect(dados.kwh).toBe(40);
   });

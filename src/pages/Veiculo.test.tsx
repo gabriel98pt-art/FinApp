@@ -252,7 +252,10 @@ describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
 
     await waitFor(() => expect(atualizarCarga).toHaveBeenCalledTimes(1));
-    const [, dados_] = atualizarCarga.mock.calls[0] as [unknown, { custo: number }];
+    const [, dados_] = atualizarCarga.mock.calls[0] as unknown as [
+      unknown,
+      { custo: number },
+    ];
     expect(dados_.custo).toBe(0);
   });
 });
