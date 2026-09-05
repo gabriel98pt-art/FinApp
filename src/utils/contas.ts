@@ -102,8 +102,15 @@ export function resumoDaConta(
   hoje?: IsoDate,
 ): ResumoConta {
   const receitasMesLista = dados.receitas.filter((r) => r.conta === conta && mesDe(r.data) === mes);
+  // `origem !== "fixa"` tira o lançamento-espelho que marcar uma fixa como
+  // paga grava em despesasCorrentes (alternarPagoDespesaFixa/
+  // alternarPagoFixaVeiculo) — ele existe só para o Início saber a DATA real
+  // do pagamento, e o valor da fixa já entra aqui por `fixasGerais`/
+  // `fixasVeiculo` (competência) e por `fixasPagas` (caixa, abaixo). Sem esta
+  // exclusão a mesma fixa paga à mão contava em dobro, igual ao bug já
+  // corrigido para os totais gerais em `transacoes.ts`/`veiculo.ts`.
   const correntesMes = dados.despesasCorrentes.filter(
-    (d) => d.contaCartao === conta && mesDe(d.data) === mes,
+    (d) => d.contaCartao === conta && mesDe(d.data) === mes && d.origem !== "fixa",
   );
   const fixasGerais = fixasDoMes(dados.despesasFixas, conta, mes);
   const fixasVeiculo = fixasDoMes(dados.despesasFixasVeiculo, conta, mes);
@@ -113,7 +120,7 @@ export function resumoDaConta(
     (c) => c.contaCartao === conta && mesDe(c.data) === mes,
   );
   const veiculoMes = (dados.despesasVeiculo ?? []).filter(
-    (d) => d.contaCartao === conta && mesDe(d.data) === mes,
+    (d) => d.contaCartao === conta && mesDe(d.data) === mes && d.origem !== "fixa",
   );
 
   const gastoMes =
@@ -138,19 +145,23 @@ export function resumoDaConta(
   // para o mês que o usuário está a navegar em `mes` — senão o saldo mudava
   // consoante a tela exibida, em vez de ser sempre o mesmo dinheiro na conta.
   const mesReferenciaPagas = hoje ? mesDe(hoje) : mes;
+  // Mesma exclusão de `correntesMes`/`veiculoMes` acima: o espelho de fixa
+  // (origem 'fixa') já está representado aqui por `fixasPagas`, que soma o
+  // valor da fixa pelos meses efetivamente pagos — contar o espelho também
+  // subtraía a mesma fixa duas vezes do saldo.
   const saldoAtual =
     (cfg.saldosIniciais?.[conta] ?? 0) +
     dados.receitas.filter((r) => r.conta === conta).reduce((s, r) => s + r.valor, 0) +
     dados.transferencias.filter((t) => t.para === conta).reduce((s, t) => s + t.valor, 0) -
     dados.despesasCorrentes
-      .filter((d) => d.contaCartao === conta)
+      .filter((d) => d.contaCartao === conta && d.origem !== "fixa")
       .reduce((s, d) => s + d.valor, 0) -
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
     fixasPagas(dados.despesasFixas, conta, mesReferenciaPagas, hoje) -
     fixasPagas(dados.despesasFixasVeiculo, conta, mesReferenciaPagas, hoje) -
     (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
     (dados.despesasVeiculo ?? [])
-      .filter((d) => d.contaCartao === conta)
+      .filter((d) => d.contaCartao === conta && d.origem !== "fixa")
       .reduce((s, d) => s + d.valor, 0);
 
   return {

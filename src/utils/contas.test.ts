@@ -169,6 +169,76 @@ describe("saldo por caixa com fixa em débito automático", () => {
   });
 });
 
+describe("espelho de fixa paga não conta em dobro (origem 'fixa')", () => {
+  // Marcar uma fixa como paga grava DUAS coisas atomicamente (ver
+  // alternarPagoDespesaFixa/alternarPagoFixaVeiculo): `pagoPorMes` E um
+  // lançamento-espelho em despesasCorrentes/despesasVeiculo com o mesmo
+  // valor, a mesma conta e `origem: "fixa"` — só para o Início saber a data
+  // real do pagamento. O valor da fixa já entra no resumo da conta por
+  // `fixasDoMes` (competência) e `fixasPagas` (caixa); somar o espelho
+  // também contava a mesma renda duas vezes.
+  const comEspelho: DadosContas = {
+    ...dados,
+    despesasCorrentes: [
+      ...dados.despesasCorrentes,
+      {
+        id: "espelho-f1",
+        descricao: "Renda",
+        valor: 50000,
+        categoria: "Casa",
+        contaCartao: "Conta",
+        data: "2026-07-05",
+        origem: "fixa",
+      },
+    ],
+  };
+
+  it("gastoMes ignora o espelho — o valor da fixa já entra por competência", () => {
+    const semEspelho = resumoDaConta("Conta", dados, cfg, "2026-07");
+    const comoEspelho = resumoDaConta("Conta", comEspelho, cfg, "2026-07");
+    expect(comoEspelho.gastoMes).toBe(semEspelho.gastoMes);
+  });
+
+  it("saldoAtual ignora o espelho — o valor da fixa já sai por fixasPagas", () => {
+    const semEspelho = resumoDaConta("Conta", dados, cfg, "2026-07");
+    const comoEspelho = resumoDaConta("Conta", comEspelho, cfg, "2026-07");
+    expect(comoEspelho.saldoAtual).toBe(semEspelho.saldoAtual);
+  });
+
+  it("mesma exclusão para o espelho de fixa do veículo", () => {
+    const base: DadosContas = {
+      ...dados,
+      despesasFixasVeiculo: [
+        {
+          id: "fv1",
+          descricao: "Seguro",
+          valor: 20000,
+          categoria: "Veículo",
+          contaCartao: "Conta",
+          pagoPorMes: { "2026-07": true },
+        },
+      ],
+    };
+    const comEspelhoVeiculo: DadosContas = {
+      ...base,
+      despesasVeiculo: [
+        {
+          id: "espelho-fv1",
+          data: "2026-07-05",
+          valor: 20000,
+          categoria: "Veículo",
+          contaCartao: "Conta",
+          origem: "fixa",
+        },
+      ],
+    };
+    const semEspelho = resumoDaConta("Conta", base, cfg, "2026-07");
+    const comoEspelho = resumoDaConta("Conta", comEspelhoVeiculo, cfg, "2026-07");
+    expect(comoEspelho.gastoMes).toBe(semEspelho.gastoMes);
+    expect(comoEspelho.saldoAtual).toBe(semEspelho.saldoAtual);
+  });
+});
+
 describe("resumosDasContas", () => {
   it("devolve um resumo por conta configurada, na mesma ordem", () => {
     expect(resumosDasContas(dados, cfg, "2026-07").map((r) => r.conta)).toEqual(["Conta", "Gold"]);
