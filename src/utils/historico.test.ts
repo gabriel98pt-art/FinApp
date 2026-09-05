@@ -154,8 +154,7 @@ describe("podeDesfazer / podeRefazer — habilitação dos botões", () => {
     expect(podeRefazer(h)).toBe(false);
 
     h = empilhar(h, "s0");
-    // 1 entrada já é um estado válido pra desfazer (volta ao vazio) — bug
-    // off-by-one corrigido aqui (era `indice > 0`, virou `indice >= 0`).
+    // 1 entrada fresca já é um estado válido pra desfazer (volta ao vazio).
     expect(podeDesfazer(h)).toBe(true);
     h = empilhar(h, "s1");
     expect(podeDesfazer(h)).toBe(true);
@@ -164,5 +163,23 @@ describe("podeDesfazer / podeRefazer — habilitação dos botões", () => {
     const r = desfazer(h, "vivo");
     h = r.h;
     expect(podeRefazer(h)).toBe(true);
+  });
+
+  test("depois de desfazer até ao início da história, o botão Desfazer desabilita", () => {
+    let h: HistoricoStack = pilhaVazia();
+    h = empilhar(h, "s0");
+    h = empilhar(h, "s1");
+
+    let r = desfazer(h, "vivo");
+    h = r.h;
+    expect(podeDesfazer(h)).toBe(true); // ainda dá pra voltar a "s0"
+
+    r = desfazer(h, "vivo");
+    h = r.h;
+    expect(r.estado).toBe("s0");
+    // Já não há mais nada antes de "s0" — um novo clique em "Desfazer" seria
+    // um no-op (ver o teste "undo não faz nada quando já está no início da
+    // pilha" acima). O botão tem de refletir isso, não continuar habilitado.
+    expect(podeDesfazer(h)).toBe(false);
   });
 });

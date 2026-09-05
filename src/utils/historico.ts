@@ -65,8 +65,16 @@ export function refazer(h: HistoricoStack): ResultadoHistorico {
   return { h: { pilha: h.pilha, indice }, estado: h.pilha[indice] };
 }
 
+/** Índice 0 não quer sempre dizer "ainda dá para desfazer": com uma única
+ *  entrada fresca (pilha ainda não recebeu o estado ao vivo de nenhum
+ *  `desfazer`), sim — é o caso `indice === pilha.length - 1` de `desfazer`,
+ *  que captura o ao vivo e ainda decrementa. Mas depois de já ter descido até
+ *  aqui por undos anteriores (pilha maior que 1), índice 0 é o início da
+ *  história: `desfazer` devolve `estado: null` sem mudar nada. Devolver
+ *  `true` nesse segundo caso deixava o botão "Desfazer" sempre clicável,
+ *  mesmo já sem mais nada para desfazer. */
 export function podeDesfazer(h: HistoricoStack): boolean {
-  return h.indice >= 0;
+  return h.indice > 0 || (h.indice === 0 && h.pilha.length === 1);
 }
 
 export function podeRefazer(h: HistoricoStack): boolean {
