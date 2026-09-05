@@ -15,9 +15,10 @@ import { lista } from "../testes/dobras";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 const removerCarga = vi.hoisted(() => vi.fn(async () => {}));
+const atualizarCarga = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("../services/veiculoService", () => ({
   alternarPagoFixaVeiculo: vi.fn(async () => {}),
-  atualizarCarga: vi.fn(async () => {}),
+  atualizarCarga,
   atualizarDespesaVeiculo: vi.fn(async () => {}),
   atualizarFixaVeiculo: vi.fn(async () => {}),
   atualizarKm: vi.fn(async () => {}),
@@ -84,6 +85,7 @@ beforeEach(() => {
   cfg = CONFIG_PADRAO;
   atualizarConfig.mockClear();
   removerCarga.mockClear();
+  atualizarCarga.mockClear();
   removerItemLista.mockClear();
 });
 
@@ -219,6 +221,39 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
 
     await waitFor(() => expect(removerCarga).toHaveBeenCalledWith("u1", "c1"));
+  });
+});
+
+// Achado do Gabriel (05/09/2026): um carregador grátis é um abastecimento de
+// verdade, só sem custo — a edição não pode barrar o custo total zero, nem o
+// registo novo (coberto em RegistroRapido.test.tsx).
+describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
+  test("editar pra custo total 0 chama atualizarCarga com custo 0", async () => {
+    dados = {
+      cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    await userEvent.click(screen.getByText("Galp"));
+    await userEvent.click(await screen.findByRole("button", { name: "Editar" }));
+
+    // CampoMoeda não é um input comum: cada tecla empurra um dígito pela
+    // direita, e Backspace tira o último — não há "selecionar tudo e apagar"
+    // (userEvent.clear não serve aqui). 600 (€ 6,00) precisa de 3 Backspace
+    // pra esvaziar (600 → 60 → 6 → vazio) antes do "0" entrar sozinho.
+    const campoValor = screen.getByLabelText(/Quanto/i);
+    await userEvent.type(campoValor, "{Backspace}{Backspace}{Backspace}0");
+    await waitFor(() => expect(campoValor).toHaveValue("0,00"));
+
+    await userEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() => expect(atualizarCarga).toHaveBeenCalledTimes(1));
+    const [, dados_] = atualizarCarga.mock.calls[0] as [unknown, { custo: number }];
+    expect(dados_.custo).toBe(0);
   });
 });
 

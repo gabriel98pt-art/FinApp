@@ -364,7 +364,10 @@ export default function RegistroRapido() {
         ? precoKwh
         : precoLitro
       : valorTexto;
-    if (valor === null || valor <= 0) {
+    // Só a carga aceita valor zero: um carregador grátis (posto público, no
+    // trabalho) é um abastecimento de verdade, só que sem custo — Despesas,
+    // Receitas e Parcelas continuam a exigir valor maior que zero.
+    if (valor === null || valor < 0 || (valor === 0 && tipo !== "carga")) {
       setErro(
         ehCargaPorUnidade
           ? `Preço/${dimensao === "eletrico" ? "kWh" : "litro"} inválido.`

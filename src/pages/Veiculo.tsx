@@ -388,12 +388,14 @@ export default function Veiculo() {
       let precoKwh: number;
       if (modoCusto === "total") {
         const c = cgCustoTotal;
-        if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
+        // Carga aceita valor zero: um carregador grátis é um abastecimento de
+        // verdade, só sem custo (mesma regra do Registro Rápido).
+        if (c === null || c < 0) return mostrarToast("Custo total inválido.");
         custo = c;
         precoKwh = Math.round(c / kwh);
       } else {
         const p = cgPrecoKwh;
-        if (p === null || p <= 0) return mostrarToast("Preço/kWh inválido.");
+        if (p === null || p < 0) return mostrarToast("Preço/kWh inválido.");
         precoKwh = p;
         custo = Math.round(kwh * p);
       }
@@ -404,12 +406,12 @@ export default function Veiculo() {
       let precoLitro: number;
       if (modoCusto === "total") {
         const c = cgCustoTotal;
-        if (c === null || c <= 0) return mostrarToast("Custo total inválido.");
+        if (c === null || c < 0) return mostrarToast("Custo total inválido.");
         custo = c;
         precoLitro = Math.round(c / litros);
       } else {
         const p = cgPrecoLitro;
-        if (p === null || p <= 0) return mostrarToast("Preço/litro inválido.");
+        if (p === null || p < 0) return mostrarToast("Preço/litro inválido.");
         precoLitro = p;
         custo = Math.round(litros * p);
       }

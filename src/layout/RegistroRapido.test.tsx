@@ -272,6 +272,33 @@ describe("abastecimento — campos conforme o tipo de veículo (item B1)", () =>
   });
 });
 
+// Achado do Gabriel (05/09/2026): carregou o carro de graça (posto público,
+// no trabalho) e não conseguia salvar — a validação de "Quanto?" exigia
+// maior que zero pra qualquer tipo, carga incluída. Só a carga aceita zero
+// agora: um carregador grátis é um abastecimento de verdade, só sem custo.
+describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
+  beforeEach(() => {
+    estadoUi = { ...estadoUi, registroTipo: "carga" as never };
+    cfg = { ...CONFIG_PADRAO, locaisCarregamento: ["Trabalho"], tipoVeiculo: "eletrico" };
+  });
+
+  test("custo total 0 salva a carga, não pede confirmação de erro", async () => {
+    render(<RegistroRapido />);
+
+    await userEvent.click(screen.getByRole("radio", { name: "Trabalho" }));
+    await userEvent.type(screen.getByLabelText("kWh"), "40");
+    // "Quanto?" no modo custo total, por omissão.
+    await userEvent.type(screen.getByLabelText(/Quanto/i), "0");
+    await userEvent.click(screen.getByRole("button", { name: /Salvar|Adicionar/i }));
+
+    await waitFor(() => expect(criarCarga).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    const [, dados] = criarCarga.mock.calls[0] as [unknown, { custo: number; kwh: number }];
+    expect(dados.custo).toBe(0);
+    expect(dados.kwh).toBe(40);
+  });
+});
+
 describe("erro de validação — achado da auditoria de Acessibilidade", () => {
   test("valor zero associa o campo de valor ao erro via aria-describedby", async () => {
     render(<RegistroRapido />);

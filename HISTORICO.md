@@ -5,9 +5,17 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 04/09/2026 — 510 mudanças registadas.
+Período coberto: 23/07/2026 a 05/09/2026 — 511 mudanças registadas.
 
 ---
+
+## 05/09/2026
+
+- Não dava para registar um abastecimento grátis (carregador público, no
+  trabalho) — o app recusava qualquer recarga com custo € 0,00, tratando
+  como se o valor estivesse em branco. Agora abastecimento aceita custo
+  zero (criar e editar); despesas, receitas e parcelas continuam a exigir
+  valor maior que zero, de propósito.
 
 ## 04/09/2026
 
