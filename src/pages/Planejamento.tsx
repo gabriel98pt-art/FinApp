@@ -26,7 +26,14 @@ import {
 import { mostrarToast } from "../stores/toastStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { diasDoMes, hojeIso, mesAtual, mesesRecentes, rotuloMes } from "../utils/calculos";
+import {
+  diasDoMes,
+  diasEntre,
+  hojeIso,
+  mesAtual,
+  mesesRecentes,
+  rotuloMes,
+} from "../utils/calculos";
 import { calcularMetaMensal, poupancaMeses, totalFundos } from "../utils/metas";
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
@@ -382,11 +389,7 @@ export default function Planejamento() {
 
                   let diasRestantes: number | null = null;
                   if (f.prazo) {
-                    diasRestantes = Math.ceil(
-                      (new Date(f.prazo + "T00:00:00").getTime() -
-                        new Date(hoje + "T00:00:00").getTime()) /
-                        86400000,
-                    );
+                    diasRestantes = diasEntre(hoje, f.prazo);
                   }
                   let projecao: string | null = null;
                   if (diasRestantes !== null && diasRestantes > 0 && falta > 0) {
