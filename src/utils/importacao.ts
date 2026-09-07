@@ -16,7 +16,7 @@ import type {
   StatusDuplicata,
   TipoClassificado,
 } from "../types";
-import { mesDe } from "./calculos";
+import { diasEntre, mesDe } from "./calculos";
 import { formatCents } from "./money";
 import { valorDaParcela } from "./parcelas";
 
@@ -612,9 +612,13 @@ export function verificarDuplicata(
     const mesmoSinal = ex.valor > 0 === txIsCredit;
     if (mesmoSinal === sinalOposto) continue;
 
-    const txD = new Date(tx.data + "T00:00:00").getTime();
-    const exD = new Date(ex.data + "T00:00:00").getTime();
-    const dd = Math.abs((txD - exD) / 86400000);
+    // `diasEntre` compara ao meio-dia UTC, não meia-noite local — sem isso, um
+    // par de datas que cruza a virada de horário de verão/inverno (dia de 23h
+    // ou 25h) dava uma diferença fracionária (ex. 1,96 em vez de 2 dias), que
+    // podia empurrar o par pra fora da janela de 14 dias ou pro balde de score
+    // errado por um triz (mesmo bug já corrigido em Planejamento.tsx, aqui na
+    // deduplicação da importação).
+    const dd = Math.abs(diasEntre(ex.data, tx.data));
     if (dd > 14) continue;
 
     const motivos = [`Valor idêntico (${formatCents(abs)})`];
