@@ -44,13 +44,16 @@ export async function responderComIA(
 ): Promise<string> {
   // Sem sessão não há onde contar a cota, e sem contar não se chama.
   if (!uid) return MENSAGEM_IA_INDISPONIVEL;
-  if (!(await consumirCotaIA(uid, hoje))) return MENSAGEM_IA_INDISPONIVEL;
 
-  // `api/copiloto-ia.ts` agora exige um ID token válido — sem ele, ou com
-  // sessão a expirar entre o clique e o pedido, o servidor recusa com 401 e
-  // a pessoa vê a mesma mensagem única de sempre.
+  // `api/copiloto-ia.ts` exige um ID token válido — sem ele, ou com sessão a
+  // expirar entre o clique e o pedido, o servidor recusaria com 401 de
+  // qualquer forma. Verificado ANTES de consumir a cota: sem token o pedido
+  // nem sai daqui, e gastar uma das 20 perguntas do dia para chegar a essa
+  // conclusão tirava-a de quem só teve o azar da sessão expirar no meio.
   const token = await auth.currentUser?.getIdToken().catch(() => null);
   if (!token) return MENSAGEM_IA_INDISPONIVEL;
+
+  if (!(await consumirCotaIA(uid, hoje))) return MENSAGEM_IA_INDISPONIVEL;
 
   // A camada 1 assume "direto" por omissão porque é o fraseado histórico dela.
   // Aqui o padrão é outro: quem chega à camada 2 fez uma pergunta que a app

@@ -124,6 +124,17 @@ describe("responderComIA — quando não responde", () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  test("sem token do Firebase, nem gasta a cota do dia", async () => {
+    // Bug corrigido: a cota era consumida ANTES de se saber se havia token —
+    // uma sessão a expirar no momento errado gastava uma das 20 perguntas do
+    // dia sem nunca sequer chegar a pedir nada à IA.
+    tokenAtual = undefined;
+
+    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+
+    expect(consumirCotaIA).not.toHaveBeenCalled();
+  });
+
   test("todos os motivos dão exactamente o mesmo texto", async () => {
     // Quem pergunta não tem de aprender a diferença entre "cota" e "erro de
     // API": em qualquer dos casos só há uma coisa a fazer, tentar mais tarde.
