@@ -52,7 +52,12 @@ function mesclarComDefaults(persistido: unknown, atual: unknown): unknown {
     return Array.isArray(persistido) ? persistido : atual;
   }
   if (!ehObjetoSimples(atual)) {
-    return persistido !== undefined ? persistido : atual;
+    // Mesma exigência de tipo dos ramos de array/objeto acima — um campo
+    // primitivo (string/number/boolean) que aparece no persistido com o tipo
+    // errado (ex.: schema mudou um campo de string para boolean) cai no
+    // default, em vez de entrar como está e violar o tipo que o resto do
+    // código assume dali em diante.
+    return typeof persistido === typeof atual ? persistido : atual;
   }
   if (!ehObjetoSimples(persistido)) return atual;
   const combinado: Record<string, unknown> = { ...atual };

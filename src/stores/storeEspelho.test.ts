@@ -176,6 +176,25 @@ describe("criarStoreEspelho — rehidratação de um espelho mais antigo", () =>
     });
   });
 
+  test("campo primitivo persistido com o tipo errado (número, não string) cai no default", async () => {
+    // Mesma família dos bugs de cima, mas num campo primitivo: um schema que
+    // mudou o tipo de um campo (ou um espelho corrompido) pode deixar
+    // `moeda` como número no persistido. Sem checar o tipo aqui, esse valor
+    // passava direto e quebrava quem espera sempre uma string.
+    mockLocalStorage.setItem(CHAVE, JSON.stringify({ state: { cfg: { moeda: 123 } }, version: 0 }));
+    const { criarStoreEspelho } = await import("./storeEspelho");
+
+    const useStore = criarStoreEspelho<{
+      cfg: { moeda: string };
+      carregado: boolean;
+      erro: boolean;
+    }>(CHAVE, { cfg: { moeda: "BRL" }, carregado: false, erro: false });
+
+    await useStore.persist.rehydrate();
+
+    expect(useStore.getState().cfg.moeda).toBe("BRL");
+  });
+
   test("nada persistido ainda: fica no estado inicial, sem lançar", async () => {
     const { criarStoreEspelho } = await import("./storeEspelho");
 
