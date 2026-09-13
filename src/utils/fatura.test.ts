@@ -267,6 +267,17 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500);
   });
 
+  test("ajuste de reconciliação bancária (origem recon) não entra na fatura", () => {
+    // Mesma regra de despesasNosTotais/receitasNosTotais (utils/calculos.ts):
+    // um ajuste de saldo não é uma compra nem um crédito real do cartão.
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasCorrentes: [dc({ valor: 1500 }), dc({ valor: 500000, origem: "recon" })],
+      receitas: [credito({ valor: 300 }), credito({ valor: 500000, origem: "recon" })],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500 - 300);
+  });
+
   test("carga elétrica paga no cartão entra no devido do ciclo", () => {
     const dados: DadosFatura = { ...vazio, cargas: [carga({ custo: 2500 })] };
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(2500);

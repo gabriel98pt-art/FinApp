@@ -174,10 +174,12 @@ function debitoAutomaticoParcelas(cartao: string, ciclo: YearMonth, parcelas: Pa
 
 /** Valor devido automático da fatura (seção 4.1): fixas + fixas do veículo +
  *  correntes do cartão no ciclo (EXCLUINDO origem 'fat' — o pagamento da
- *  própria fatura nunca conta) + parcelas em débito automático +
+ *  própria fatura nunca conta — e 'recon', o ajuste de reconciliação
+ *  bancária, que não é despesa real) + parcelas em débito automático +
  *  transferências de saída contra o cartão + cargas e despesas do veículo
  *  pagas nesse cartão no ciclo, MENOS os créditos lançados no cartão nesse
- *  ciclo (cashback, estornos — ver `receitas` em DadosFatura). */
+ *  ciclo (cashback, estornos — ver `receitas` em DadosFatura; também exclui
+ *  'recon' pelo mesmo motivo). */
 export function calcularFaturaAutomatica(
   cartao: string,
   mesFatura: YearMonth,
@@ -199,7 +201,8 @@ export function calcularFaturaAutomatica(
       (d) =>
         d.contaCartao === cartao &&
         mesDoCiclo(d.data, diaFechamento) === ciclo &&
-        d.origem !== "fat",
+        d.origem !== "fat" &&
+        d.origem !== "recon",
     )
     .reduce((s, d) => s + d.valor, 0);
   const parcelas = debitoAutomaticoParcelas(cartao, ciclo, dados.parcelas);
@@ -223,7 +226,10 @@ export function calcularFaturaAutomatica(
   // esconderia dinheiro que é do usuário. Quem mostra o valor a pagar usa
   // `restante`, que já tem o Math.max(0, …).
   const creditos = (dados.receitas ?? [])
-    .filter((r) => r.conta === cartao && mesDoCiclo(r.data, diaFechamento) === ciclo)
+    .filter(
+      (r) =>
+        r.conta === cartao && mesDoCiclo(r.data, diaFechamento) === ciclo && r.origem !== "recon",
+    )
     .reduce((s, r) => s + r.valor, 0);
   return fixas + fixasVeiculo + correntes + parcelas + transferencias + cargas + veiculo - creditos;
 }
