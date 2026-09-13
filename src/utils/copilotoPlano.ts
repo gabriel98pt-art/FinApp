@@ -282,10 +282,16 @@ export function gerarPlano(snapshot: FinanceSnapshot): Plano {
 
   // 2. Orçamentos estourados — o mais estourado primeiro.
   for (const o of snapshot.orcamento.filter((x) => x.estourou).slice(0, 2)) {
+    // `pctUsado` já vem arredondado (statusOrcamentoMes); um estouro pequeno
+    // (ex.: teto 1000, gasto 1004 → 100%) arredondava para o mesmo número que
+    // "no teto", e `pctUsado - 100` dava 0 — "já passou o teto... em 0%",
+    // contradizendo a própria frase que o precede. Quem chegou até aqui já
+    // passou de `x.estourou`, então o excesso nunca é 0 de verdade.
+    const excessoPct = Math.max(1, o.pctUsado - 100);
     passos.push({
       id: `orcamento-${o.categoria}`,
       titulo: `Travar ${o.categoria} até ao fim do mês`,
-      porque: `Já passou o teto de ${o.categoria} em ${o.pctUsado - 100}%.`,
+      porque: `Já passou o teto de ${o.categoria} em ${excessoPct}%.`,
       prioridade: 2,
       dados: [
         { rotulo: "Teto do mês", valor: o.teto },

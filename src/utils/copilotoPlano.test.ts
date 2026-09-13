@@ -340,6 +340,23 @@ describe("gerarPlano", () => {
     expect(iFundo).toBeGreaterThan(iOrcamento);
   });
 
+  test('estouro pequeno não vira "em 0%" — pctUsado arredondado não pode esconder o excesso', () => {
+    // Teto 1000, gasto 1004: 1004/1000 = 100,4% arredonda para 100, e
+    // 100 - 100 = 0 — "já passou o teto em 0%" contradiz o próprio passo
+    // (que só existe porque a categoria ESTOUROU).
+    const s = buildFinanceSnapshot(
+      ctx({
+        cfg: cfgCom({ orcamentos: { Alimentação: 1000 } }),
+        despesas: [despesa("2026-07-03", 1004)],
+      }),
+    );
+    const plano = gerarPlano(s);
+
+    const passo = plano.passos.find((p) => p.id === "orcamento-Alimentação");
+    expect(passo?.porque).not.toContain("em 0%");
+    expect(passo?.porque).toContain("em 1%");
+  });
+
   test("conta sem nada a apontar diz isso, em vez de inventar um problema", () => {
     const plano = gerarPlano(buildFinanceSnapshot(ctx()));
 
