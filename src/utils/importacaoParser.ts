@@ -197,16 +197,19 @@ export function parseExtratoCsv(texto: string): LinhaExtrato[] {
     const { delim, colData, colDesc, colValor, colDebito, colCredito } = cabecalhoAtual;
     const cols = dividirLinhaCsv(linha, delim);
     if (cols.length < 2) continue;
-    const data = interpretarData(colData >= 0 ? cols[colData] : "");
+    // Uma linha pode ter menos colunas que o cabeçalho quando o exportador
+    // omite a(s) vírgula(s) final(is) de campo(s) vazio(s) — sem o `?? ""`,
+    // cols[colX] vinha `undefined` e derrubava o import inteiro com exceção.
+    const data = interpretarData(colData >= 0 ? (cols[colData] ?? "") : "");
     if (!data) continue;
-    const descricao = (colDesc >= 0 ? cols[colDesc] : "").replace(/^"|"$/g, "").trim();
+    const descricao = (colDesc >= 0 ? (cols[colDesc] ?? "") : "").replace(/^"|"$/g, "").trim();
 
     let valor: number | null;
     if (colValor >= 0) {
-      valor = parseMoney(cols[colValor]);
+      valor = parseMoney(cols[colValor] ?? "");
     } else {
-      const debito = colDebito >= 0 ? (parseMoney(cols[colDebito]) ?? 0) : 0;
-      const credito = colCredito >= 0 ? (parseMoney(cols[colCredito]) ?? 0) : 0;
+      const debito = colDebito >= 0 ? (parseMoney(cols[colDebito] ?? "") ?? 0) : 0;
+      const credito = colCredito >= 0 ? (parseMoney(cols[colCredito] ?? "") ?? 0) : 0;
       valor = credito > 0 ? credito : -Math.abs(debito);
     }
     if (valor === null || valor === 0) continue;

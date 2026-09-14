@@ -30,6 +30,18 @@ describe("parseExtratoCsv", () => {
     expect(linhas[1].valor).toBe(185000);
   });
 
+  test("linha com menos colunas que o cabeçalho (última coluna vazia sem vírgula final) não quebra o import", () => {
+    const csv = [
+      "Date,Description,Debit,Credit",
+      "2026-07-10,Farmacia,20.00",
+      "2026-07-11,Salario,,1850.00",
+    ].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0].valor).toBe(-2000);
+    expect(linhas[1].valor).toBe(185000);
+  });
+
   test("ignora linhas sem data ou com valor zero", () => {
     const csv = ["Data;Descrição;Valor", "sem-data;Algo;10,00", "10/07/2026;Nada;0,00"].join("\n");
     expect(parseExtratoCsv(csv)).toHaveLength(0);
