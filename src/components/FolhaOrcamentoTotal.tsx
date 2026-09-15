@@ -54,7 +54,11 @@ export default function FolhaOrcamentoTotal({
   }
 
   const somaTetos = status.reduce((s, c) => s + c.teto, 0);
-  const porAlocar = (valor ?? 0) - somaTetos;
+  // `null` distingue "total ainda não definido" de "total é zero": os tetos já
+  // podem existir sem que o total geral tenha sido definido, e tratar isso como
+  // 0 fazia a folha abrir já a dizer "Passou do total" antes de a pessoa
+  // escrever qualquer valor — uma afirmação falsa sobre um total que nem existe.
+  const porAlocar = valor === null ? null : valor - somaTetos;
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -112,9 +116,19 @@ export default function FolhaOrcamentoTotal({
           {/* Negativo mostra-se: os tetos somados passarem do total é uma
               contradição do próprio plano, e escondê-la deixava a pessoa a
               repartir dinheiro que já não existe. */}
-          <p className={`${styles.linhaTotal} ${porAlocar < 0 ? styles.estourado : ""}`}>
-            <span>{porAlocar < 0 ? "Passou do total em" : "Restante para alocar"}</span>
-            <span className={styles.teto}>{formatMoney(Math.abs(porAlocar), moeda)}</span>
+          <p
+            className={`${styles.linhaTotal} ${porAlocar !== null && porAlocar < 0 ? styles.estourado : ""}`}
+          >
+            <span>
+              {porAlocar === null
+                ? "Restante para alocar"
+                : porAlocar < 0
+                  ? "Passou do total em"
+                  : "Restante para alocar"}
+            </span>
+            <span className={styles.teto}>
+              {porAlocar === null ? "—" : formatMoney(Math.abs(porAlocar), moeda)}
+            </span>
           </p>
         </div>
       </div>
