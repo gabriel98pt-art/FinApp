@@ -573,6 +573,33 @@ describe("copiloto: cartões", () => {
     expect(r).toContain("AB Gold (C)");
   });
 
+  // Bug: mesmo furo já corrigido para "categoria de despesa específica"
+  // (reembolso é despesa de valor NEGATIVO, ver utils/reembolsos.ts), mas
+  // esquecido aqui — o cartão específico não tinha o mesmo travão. Um
+  // reembolso lançado no mesmo cartão que cobre ou ultrapassa as despesas do
+  // mês deixava `totalCartaoMes` negativo, e a resposta dizia "gastou
+  // -€ 20,00 no cartão X", a mesma frase sem sentido que a categoria já
+  // tinha corrigido.
+  test("cartão específico com reembolso maior que a despesa não diz 'gastou -X'", () => {
+    const r = responderPergunta(
+      "quanto gastei no cartao AB Gold este mes",
+      ctx({
+        cfg,
+        despesas: [
+          despesa({ contaCartao: "AB Gold (C)", valor: 3000 }),
+          despesa({
+            contaCartao: "AB Gold (C)",
+            valor: -5000,
+            descricao: "Reembolso",
+            origem: "reemb",
+          }),
+        ],
+      }),
+    );
+    expect(r).not.toContain("-");
+    expect(r).toMatch(/não há despesas/i);
+  });
+
   test("cartões agregado conta um cartão só com fixa/parcela, sem despesa corrente", () => {
     const fixa: DespesaFixa = {
       id: "f1",

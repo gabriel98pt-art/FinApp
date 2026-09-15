@@ -676,6 +676,16 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const nome = encontrarNaLista(q, nomes, 5)!;
       const cartao = ctx.cfg.contasCartoes[nomes.indexOf(nome)];
       const total = totalCartaoMes(ctx, cartao, ref.ym);
+      // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO no mesmo
+      // cartão (ver utils/reembolsos.ts). Quando ele cobre ou ultrapassa as
+      // despesas do mês nesse cartão, `total` fica negativo, e a resposta
+      // dizia "gastou -€ 20,00 no cartão X" — o mesmo sem-sentido que o
+      // intent de categoria específica já corrige acima (`val <= 0`).
+      if (total <= 0)
+        return variar(ctx, {
+          direto: [`não há despesas no cartão ${b(nome)} em ${ref.label}.`],
+          acolhedor: [`não há despesas no cartão ${b(nome)} em ${ref.label} — nada a assinalar.`],
+        });
       const dinheiro = b(formatMoney(total, ctx.cfg.currency));
       return variar(ctx, {
         direto: [
