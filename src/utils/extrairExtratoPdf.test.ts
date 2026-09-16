@@ -148,6 +148,27 @@ describe("extrairActivoBank", () => {
     expect(linhas.map((l) => l.descricao)).toEqual(["COMPRA X"]);
     expect(linhas.map((l) => l.valor)).toEqual([-2000]);
   });
+
+  // SALDO INICIAL 0,00 é um valor válido (conta nova, ou zerada no início do
+  // período) — não pode ser tratado como "não encontrado" e descartar a
+  // primeira linha, que aqui tem o sinal perfeitamente determinável.
+  test("SALDO INICIAL a 0,00 não é tratado como 'não encontrado'", () => {
+    const linhas = extrairActivoBank([
+      [
+        item("SALDO INICIAL", 46, 500),
+        item("0.00", 528, 500),
+        ...movimento({
+          y: 396,
+          dataLanc: "3.02",
+          descricao: "SALARIO",
+          montante: "500.00",
+          saldo: "500.00",
+        }),
+      ],
+    ]);
+    expect(linhas.map((l) => l.descricao)).toEqual(["SALARIO"]);
+    expect(linhas.map((l) => l.valor)).toEqual([50000]);
+  });
 });
 
 describe("extrairWise", () => {

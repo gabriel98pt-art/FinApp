@@ -147,7 +147,7 @@ export function extrairActivoBank(paginas: ItemTexto[][]): LinhaExtrato[] {
     for (const item of itens) {
       if (item.transform[4] < X_SALDO || Math.abs(item.transform[5] - y) > 8) continue;
       const v = valorActivoBank(item.str.trim());
-      if (!Number.isNaN(v) && v > 0) {
+      if (!Number.isNaN(v)) {
         saldoAnterior = v;
         break;
       }
