@@ -711,7 +711,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           total: totalCartaoMes(ctx, cartao, ref.ym),
         }))
         .sort((a, b2) => b2.total - a.total);
-      if (!linhas[0].total)
+      // Bug corrigido: mesmo furo já corrigido no intent de cartão específico
+      // (`total <= 0`, ver a nota logo acima) — `!linhas[0].total` só apanha
+      // exactamente zero. Com um reembolso a deixar TODOS os cartões com
+      // total negativo ou zero no mês, o maior deles (o menos negativo) ainda
+      // passava por aqui e a resposta dizia "o cartão mais usado foi X, com
+      // -€ 5,00 em despesas" — o mesmo sem-sentido, só que na variante mais
+      // rara em que nenhum cartão sozinho fica positivo.
+      if (linhas[0].total <= 0)
         return variar(ctx, {
           direto: [`não há despesas em nenhum cartão em ${ref.label}.`],
           acolhedor: [`não há despesas em nenhum cartão em ${ref.label} — nada a assinalar.`],

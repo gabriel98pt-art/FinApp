@@ -600,6 +600,32 @@ describe("copiloto: cartões", () => {
     expect(r).toMatch(/não há despesas/i);
   });
 
+  // Bug: mesma classe do já corrigido para "cartão específico" acima, só que
+  // na variante mais rara em que TODOS os cartões ficam com total negativo ou
+  // zero no mês (reembolso maior que a despesa em cada um deles) — o maior
+  // deles (o menos negativo) ainda passava pelo `!linhas[0].total`, que só
+  // apanha exactamente zero, e a resposta dizia "o cartão mais usado foi X,
+  // com -€ X,XX em despesas".
+  test("cartões agregado com todos os cartões negativos não diz 'mais usado' com valor negativo", () => {
+    const r = responderPergunta(
+      "quanto gastei nos cartoes este mes",
+      ctx({
+        cfg,
+        despesas: [
+          despesa({ contaCartao: "AB Gold (C)", valor: 3000 }),
+          despesa({
+            contaCartao: "AB Gold (C)",
+            valor: -5000,
+            descricao: "Reembolso",
+            origem: "reemb",
+          }),
+        ],
+      }),
+    );
+    expect(r).not.toContain("-");
+    expect(r).toMatch(/não há despesas/i);
+  });
+
   test("cartões agregado conta um cartão só com fixa/parcela, sem despesa corrente", () => {
     const fixa: DespesaFixa = {
       id: "f1",
