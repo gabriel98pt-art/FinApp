@@ -757,6 +757,30 @@ describe("copiloto: despesas genérico", () => {
     expect(r).not.toBe(RESPOSTA_PADRAO);
     expect(r).toMatch(/Gastou/);
   });
+
+  // Bug: um reembolso é uma despesa de valor NEGATIVO (utils/reembolsos.ts).
+  // Quando os reembolsos do mês ultrapassam as despesas, o total do mês fica
+  // negativo e a resposta dizia "gastou -€ 30,00 em julho 2026" — a mesma
+  // frase sem sentido já corrigida nos intents de categoria e de cartão.
+  test("reembolso maior que a despesa deixa o total negativo — não diz 'gastou -X'", () => {
+    const resp = responderPergunta(
+      "quanto gastei esse mes?",
+      ctx({
+        despesas: [
+          {
+            id: "d1",
+            descricao: "Farmácia",
+            valor: -3000,
+            data: "2026-07-05",
+            categoria: "Saúde",
+            origem: "reemb",
+          } as DespesaCorrente,
+        ],
+      }),
+    );
+    expect(resp).not.toContain("-");
+    expect(resp).toMatch(/não há despesas/i);
+  });
 });
 
 describe("copiloto: mais sinônimos reconhecidos", () => {

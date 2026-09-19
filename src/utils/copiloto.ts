@@ -1319,7 +1319,21 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   {
     test: (q) => /despes|gastei|\bgastos?\b|\bsaiu\b|\bsaida\b|torrei/.test(q),
     run: (_q, ref, ctx) => {
-      const dinheiro = b(formatMoney(totaisDoMes(ctx, ref.ym).despesas, ctx.cfg.currency));
+      const total = totaisDoMes(ctx, ref.ym).despesas;
+      // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO (ver
+      // utils/reembolsos.ts). Quando os reembolsos do mês ultrapassam as
+      // despesas, `total` fica negativo e a resposta dizia "gastou -€ X,XX" —
+      // o mesmo sem-sentido já corrigido nos intents de categoria e cartão
+      // (ver as notas mais acima), esquecido aqui no intent mais genérico de
+      // todos. Só o negativo cai neste caminho: um total exactamente zero
+      // continua a responder "€ 0,00", que já era o comportamento certo (e
+      // testado) antes desta correção.
+      if (total < 0)
+        return variar(ctx, {
+          direto: [`não há despesas registadas em ${ref.label}.`],
+          acolhedor: [`não há despesas registadas em ${ref.label} — nada a assinalar.`],
+        });
+      const dinheiro = b(formatMoney(total, ctx.cfg.currency));
       return variar(ctx, {
         direto: [`gastou ${dinheiro} em ${ref.label}.`, `saíram ${dinheiro} em ${ref.label}.`],
         acolhedor: [`em ${ref.label} saíram ${dinheiro}.`],
