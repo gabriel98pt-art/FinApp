@@ -25,7 +25,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { Cents, Currency, Parcela, YearMonth } from "../types";
-import { mesAtual, rotuloMes } from "../utils/calculos";
+import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
@@ -492,7 +492,7 @@ export default function Parcelas() {
   // TODAS as compras parceladas, de todos os meses — o que ainda falta pagar
   // no total, não só neste mês.
   const totalDoMes = totalParcelasNoMes(parcelas, mesRef);
-  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual());
+  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual(), hojeIso());
   const faltaPagar = totalDoMes - pagoEsteMes;
   const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
   // "Total do mês" soma TODAS as parcelas cujo plano cobre o mês exibido —

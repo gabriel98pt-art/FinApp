@@ -68,10 +68,22 @@ export function totalParcelasNoMes(parcelas: Parcela[], ym: YearMonth): Cents {
 
 /** Do total de `ym` (ver `totalParcelasNoMes`), quanto já está resolvido —
  *  mesma regra de `estaEfetivamentePaga`, que conta também o débito automático
- *  já lançado no cartão, mesmo antes de a fatura vencer. */
-export function pagoNoMes(parcelas: Parcela[], ym: YearMonth, mesReferencia: YearMonth): Cents {
+ *  já lançado no cartão, mesmo antes de a fatura vencer.
+ *
+ *  Com `hoje`, o mês de `mesReferencia` ganha precisão de DIA, mesma razão de
+ *  `estaEfetivamentePaga`/`totalParcelasGeral`: sem isto, uma parcela em
+ *  débito automático que vence dia 27 já contava como paga no dia 1,
+ *  inchando "Pago este mês" e zerando "Falta pagar" antes da hora. */
+export function pagoNoMes(
+  parcelas: Parcela[],
+  ym: YearMonth,
+  mesReferencia: YearMonth,
+  hoje?: IsoDate,
+): Cents {
   return parcelas
-    .filter((p) => mesesDaParcela(p).includes(ym) && estaEfetivamentePaga(p, ym, mesReferencia))
+    .filter(
+      (p) => mesesDaParcela(p).includes(ym) && estaEfetivamentePaga(p, ym, mesReferencia, hoje),
+    )
     .reduce((s, p) => s + valorDaParcela(p, ym), 0);
 }
 

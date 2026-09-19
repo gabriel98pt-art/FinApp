@@ -197,6 +197,22 @@ describe("totalParcelasNoMes / pagoNoMes — os KPIs da tela Parcelas", () => {
     expect(pagoNoMes([p], "2026-08", "2026-07")).toBe(0);
   });
 
+  // O bug: sem `hoje`, o mês corrente contava sempre como já pago, mesmo antes
+  // do dia de vencimento — mesma precisão de dia que estaEfetivamentePaga e
+  // totalParcelasGeral já tinham, mas que faltava chegar até este KPI.
+  test("com `hoje`, o mês corrente só conta como pago depois do dia de vencimento", () => {
+    const p = parcela({
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 27,
+      pagoPorMes: {},
+    });
+    // ainda não venceu
+    expect(pagoNoMes([p], "2026-07", "2026-07", "2026-07-08")).toBe(0);
+    // já venceu
+    expect(pagoNoMes([p], "2026-07", "2026-07", "2026-07-27")).toBe(1866);
+  });
+
   test("ajuste manual do mês vale nas duas", () => {
     const p = parcela({ overridePorMes: { "2026-07": 2000 }, pagoPorMes: { "2026-07": true } });
     expect(totalParcelasNoMes([p], "2026-07")).toBe(2000);
