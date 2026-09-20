@@ -8,7 +8,7 @@
 // parcela ao KPI correspondente — e as duas de valor da parcela distinguem a
 // compra cara-por-mês da compra apenas grande no total.
 
-import type { Cents, Parcela, YearMonth } from "../types";
+import type { Cents, IsoDate, Parcela, YearMonth } from "../types";
 import { compararPorOrdem, ORDENS, ROTULOS_ORDEM, type LinhaOrdem, type Ordem } from "./ordem";
 import {
   debitoMensalDaParcela,
@@ -61,6 +61,10 @@ export function compararParcelas(
   /** Dia de vencimento da fatura por cartão (cfg.diaVencimentoFatura) — só
    *  para desempatar "Próximo vencimento" dentro do mesmo mês (ver abaixo). */
   diaVencimentoFatura?: Record<string, Cents>,
+  /** Dia de hoje — repassado às funções de parcelas.ts pra dar precisão de
+   *  DIA ao mês corrente (ver `mesesNaoPagos`); sem ele, uma parcela em
+   *  débito automático conta como resolvida no dia 1 de `mesReferencia`. */
+  hoje?: IsoDate,
 ): (a: Parcela, b: Parcela) => number {
   if (ordem === "proximoVencimento") {
     // Mais cedo primeiro. Parcela sem mês em aberto (quitada) vai pro fim.
@@ -71,8 +75,8 @@ export function compararParcelas(
     // da tela já mostra); sem dia dos dois, empate; sem dia só de um, esse
     // vai depois — não dá pra dizer que vence "antes" de quem tem dia certo.
     return (a, b) => {
-      const ma = proximoMesEmAberto(a, mesReferencia);
-      const mb = proximoMesEmAberto(b, mesReferencia);
+      const ma = proximoMesEmAberto(a, mesReferencia, hoje);
+      const mb = proximoMesEmAberto(b, mesReferencia, hoje);
       if (ma === undefined && mb === undefined) return 0;
       if (ma === undefined) return 1;
       if (mb === undefined) return -1;
@@ -87,7 +91,7 @@ export function compararParcelas(
   }
   if (ordem === "valorRestante") {
     // Maior primeiro — quitada tem restante 0 e cai naturalmente pro fim.
-    return (a, b) => valorQuitacao(b, mesReferencia) - valorQuitacao(a, mesReferencia);
+    return (a, b) => valorQuitacao(b, mesReferencia, hoje) - valorQuitacao(a, mesReferencia, hoje);
   }
   // As duas ordens genéricas de valor olham o total da compra, que mistura a
   // compra grande paga em muitas vezes com a pequena paga em duas. Estas duas
@@ -97,11 +101,11 @@ export function compararParcelas(
   // em aberto (ver `parcelasVisiveis`).
   if (ordem === "maiorValorParcela") {
     return (a, b) =>
-      debitoMensalDaParcela(b, mesReferencia) - debitoMensalDaParcela(a, mesReferencia);
+      debitoMensalDaParcela(b, mesReferencia, hoje) - debitoMensalDaParcela(a, mesReferencia, hoje);
   }
   if (ordem === "menorValorParcela") {
     return (a, b) =>
-      debitoMensalDaParcela(a, mesReferencia) - debitoMensalDaParcela(b, mesReferencia);
+      debitoMensalDaParcela(a, mesReferencia, hoje) - debitoMensalDaParcela(b, mesReferencia, hoje);
   }
   const generico = compararPorOrdem<{ data: string; valor: number }>(ordem);
   return (a, b) =>
@@ -122,12 +126,13 @@ export function parcelasVisiveis(
   filtroQuitadas: FiltroQuitadas = "todas",
   mesReferencia?: YearMonth,
   diaVencimentoFatura?: Record<string, Cents>,
+  hoje?: IsoDate,
 ): Parcela[] {
-  const comparar = compararParcelas(ordem, mesReferencia, diaVencimentoFatura);
+  const comparar = compararParcelas(ordem, mesReferencia, diaVencimentoFatura, hoje);
   const ordenar = (lista: Parcela[]) => [...lista].sort(comparar);
   if (filtroQuitadas === "apenas")
-    return ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)));
-  const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p, mesReferencia)));
+    return ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia, hoje)));
+  const ativas = ordenar(parcelas.filter((p) => !parcelaQuitada(p, mesReferencia, hoje)));
   if (filtroQuitadas === "ocultar") return ativas;
-  return [...ativas, ...ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia)))];
+  return [...ativas, ...ordenar(parcelas.filter((p) => parcelaQuitada(p, mesReferencia, hoje)))];
 }

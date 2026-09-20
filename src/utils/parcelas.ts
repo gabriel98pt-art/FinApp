@@ -166,19 +166,34 @@ export function diaVencimentoEfetivo(
   return p.diaVencimento;
 }
 
-export function mesesNaoPagos(p: Parcela, mesReferencia?: YearMonth): YearMonth[] {
-  return mesesDaParcela(p).filter((m) => !estaEfetivamentePaga(p, m, mesReferencia));
+/** Com `hoje`, o mês de `mesReferencia` ganha precisão de DIA (repassado a
+ *  `estaEfetivamentePaga`) — mesma razão de `pagoNoMes`/`totalParcelasGeral`:
+ *  sem isto, uma parcela em débito automático que vence dia 27 já contava
+ *  como paga no dia 1 de `mesReferencia`, então "quitada" (e tudo que depende
+ *  desta função — `proximoMesEmAberto`, `valorQuitacao`, `parcelaQuitada`,
+ *  `progressoDaParcela`) dava a parcela por resolvida antes de o dinheiro
+ *  sair de facto do cartão. */
+export function mesesNaoPagos(p: Parcela, mesReferencia?: YearMonth, hoje?: IsoDate): YearMonth[] {
+  return mesesDaParcela(p).filter((m) => !estaEfetivamentePaga(p, m, mesReferencia, hoje));
 }
 
 /** Mês da próxima parcela em aberto, ou `undefined` se já está quitada. */
-export function proximoMesEmAberto(p: Parcela, mesReferencia?: YearMonth): YearMonth | undefined {
-  return mesesNaoPagos(p, mesReferencia)[0];
+export function proximoMesEmAberto(
+  p: Parcela,
+  mesReferencia?: YearMonth,
+  hoje?: IsoDate,
+): YearMonth | undefined {
+  return mesesNaoPagos(p, mesReferencia, hoje)[0];
 }
 
 /** Quanto esta parcela pesa no débito do próximo mês em aberto — 0 quando já
  *  está quitada. É a contribuição de cada parcela ao KPI "Débito mensal". */
-export function debitoMensalDaParcela(p: Parcela, mesReferencia?: YearMonth): Cents {
-  const proximo = proximoMesEmAberto(p, mesReferencia);
+export function debitoMensalDaParcela(
+  p: Parcela,
+  mesReferencia?: YearMonth,
+  hoje?: IsoDate,
+): Cents {
+  const proximo = proximoMesEmAberto(p, mesReferencia, hoje);
   return proximo === undefined ? 0 : valorDaParcela(p, proximo);
 }
 
@@ -195,21 +210,22 @@ export function totalDaCompra(
 }
 
 /** Soma das parcelas em aberto — o valor de uma quitação antecipada. */
-export function valorQuitacao(p: Parcela, mesReferencia?: YearMonth): Cents {
-  return mesesNaoPagos(p, mesReferencia).reduce((s, m) => s + valorDaParcela(p, m), 0);
+export function valorQuitacao(p: Parcela, mesReferencia?: YearMonth, hoje?: IsoDate): Cents {
+  return mesesNaoPagos(p, mesReferencia, hoje).reduce((s, m) => s + valorDaParcela(p, m), 0);
 }
 
 export function progressoDaParcela(
   p: Parcela,
   mesReferencia?: YearMonth,
+  hoje?: IsoDate,
 ): { pagas: number; total: number } {
   const meses = mesesDaParcela(p);
   return {
-    pagas: meses.filter((m) => estaEfetivamentePaga(p, m, mesReferencia)).length,
+    pagas: meses.filter((m) => estaEfetivamentePaga(p, m, mesReferencia, hoje)).length,
     total: meses.length,
   };
 }
 
-export function parcelaQuitada(p: Parcela, mesReferencia?: YearMonth): boolean {
-  return mesesNaoPagos(p, mesReferencia).length === 0;
+export function parcelaQuitada(p: Parcela, mesReferencia?: YearMonth, hoje?: IsoDate): boolean {
+  return mesesNaoPagos(p, mesReferencia, hoje).length === 0;
 }

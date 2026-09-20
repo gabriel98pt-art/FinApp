@@ -352,6 +352,48 @@ describe("parcela paga por cartão em débito automático", () => {
   test("no último mês a parcela fica quitada sozinha", () => {
     expect(parcelaQuitada(noCartao, "2026-10")).toBe(true);
   });
+
+  // O bug: sem `hoje`, o mês de referência contava sempre como já resolvido,
+  // mesmo antes do dia de vencimento — mesma precisão de dia que
+  // `estaEfetivamentePaga`/`pagoNoMes` já tinham, mas que faltava chegar a
+  // `mesesNaoPagos` e a tudo que depende dela (`parcelaQuitada`,
+  // `progressoDaParcela`, `valorQuitacao`, `proximoMesEmAberto`,
+  // `debitoMensalDaParcela`) — exatamente o que fazia a tela Parcelas marcar
+  // uma compra como quitada (e sumir para a aba "Quitadas") antes de o
+  // dinheiro sair de facto do cartão.
+  describe("com `hoje`, o mês corrente só conta como resolvido depois do dia de vencimento", () => {
+    const ultimaParcelaEsteMes: Parcela = {
+      id: "p2",
+      descricao: "Sofá",
+      total: 60000,
+      numParcelas: 3,
+      primeiroMes: "2026-05",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      pagoPorMes: {},
+      diaVencimento: 27,
+    };
+
+    test("ainda não venceu: a parcela de julho continua em aberto", () => {
+      expect(mesesNaoPagos(ultimaParcelaEsteMes, "2026-07", "2026-07-08")).toEqual(["2026-07"]);
+      expect(parcelaQuitada(ultimaParcelaEsteMes, "2026-07", "2026-07-08")).toBe(false);
+      expect(progressoDaParcela(ultimaParcelaEsteMes, "2026-07", "2026-07-08")).toEqual({
+        pagas: 2,
+        total: 3,
+      });
+      expect(valorQuitacao(ultimaParcelaEsteMes, "2026-07", "2026-07-08")).toBe(20000);
+    });
+
+    test("já venceu: a parcela de julho passa a resolvida", () => {
+      expect(mesesNaoPagos(ultimaParcelaEsteMes, "2026-07", "2026-07-27")).toEqual([]);
+      expect(parcelaQuitada(ultimaParcelaEsteMes, "2026-07", "2026-07-27")).toBe(true);
+      expect(valorQuitacao(ultimaParcelaEsteMes, "2026-07", "2026-07-27")).toBe(0);
+    });
+
+    test("sem `hoje`, comportamento de sempre: mês corrente conta inteiro", () => {
+      expect(parcelaQuitada(ultimaParcelaEsteMes, "2026-07")).toBe(true);
+    });
+  });
 });
 
 describe("diaVencimentoEfetivo", () => {

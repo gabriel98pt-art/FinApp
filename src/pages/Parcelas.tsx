@@ -24,7 +24,7 @@ import { useCfgStore } from "../stores/cfgStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { Cents, Currency, Parcela, YearMonth } from "../types";
+import type { Cents, Currency, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
@@ -48,6 +48,7 @@ function LinhaParcela({
   aoEditar,
   aoExcluir,
   mesRef,
+  hoje,
   diaVencimentoFatura,
   nomeDoCartao,
 }: {
@@ -58,6 +59,10 @@ function LinhaParcela({
    *  cuida da confirmação, igual ao mesmo padrão de ListaLancamentos. */
   aoExcluir: (p: Parcela) => void;
   mesRef: YearMonth;
+  /** Dia de hoje — dá precisão de DIA ao `mesRef` corrente para uma parcela em
+   *  débito automático (ver `parcelaQuitada`): sem ela, a parcela contava como
+   *  quitada já no dia 1 do mês, antes de o cartão ter cobrado de facto. */
+  hoje: IsoDate;
   diaVencimentoFatura: Record<string, number> | undefined;
   /** O que a parcela guarda é o id do cartão, que nunca muda; o nome de hoje
    *  vem daqui, para uma parcela antiga não ficar presa a um nome antigo. */
@@ -67,9 +72,9 @@ function LinhaParcela({
   const confirmar = useConfirmar();
   const [menuAberto, setMenuAberto] = useState(false);
   const ancoraRef = useRef<HTMLButtonElement>(null);
-  const quitada = parcelaQuitada(p, mesRef);
-  const { pagas, total } = progressoDaParcela(p, mesRef);
-  const abertos = mesesNaoPagos(p, mesRef);
+  const quitada = parcelaQuitada(p, mesRef, hoje);
+  const { pagas, total } = progressoDaParcela(p, mesRef, hoje);
+  const abertos = mesesNaoPagos(p, mesRef, hoje);
   // Paga por cartão em débito automático, a parcela vence com a FATURA.
   const diaVenc = diaVencimentoEfetivo(p, diaVencimentoFatura);
   const proximo = abertos[0];
@@ -86,7 +91,7 @@ function LinhaParcela({
   async function pagarTudo() {
     // O mesmo `mesRef` da linha acima e do que o serviço grava: o número que
     // se confirma aqui tem de ser o que sai da conta.
-    const totalQuit = valorQuitacao(p, mesRef);
+    const totalQuit = valorQuitacao(p, mesRef, hoje);
     // O botão irmão paga UM mês; este paga a compra inteira e cria uma
     // despesa só, sem volta. A confirmação é o único sítio onde essa
     // diferença cabe por extenso.
@@ -168,7 +173,7 @@ function LinhaParcela({
         {!quitada && proximo !== undefined && (
           <span className={styles.proxima}>
             {formatMoney(valorDaParcela(p, proximo), moeda)} de{" "}
-            {formatMoney(valorQuitacao(p, mesRef), moeda)} em {rotuloMes(proximo)}
+            {formatMoney(valorQuitacao(p, mesRef, hoje), moeda)} em {rotuloMes(proximo)}
           </span>
         )}
       </button>
@@ -415,6 +420,7 @@ export default function Parcelas() {
   const cfg = useCfgStore((s) => s.cfg);
   const moeda = cfg.currency;
   const mesRef = useMesVisivelStore((s) => s.mes);
+  const hoje = hojeIso();
   const parcelas = useParcelasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
   const erro = useParcelasStore((s) => s.erro);
@@ -482,19 +488,23 @@ export default function Parcelas() {
     }
   }
 
-  // Tudo o que conta parcelas em aberto olha para o mês do header, e não para
-  // "hoje": muda-se o mês em cima e os números acompanham. É também esse mês
-  // que diz até onde uma parcela em débito automático já está resolvida.
-  const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef));
-  const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef));
+  // Tudo o que conta parcelas em aberto olha para o MÊS do header, e não para
+  // o mês de "hoje": muda-se o mês em cima e os números acompanham. É também
+  // esse mês que diz até onde uma parcela em débito automático já está
+  // resolvida — mas o DIA de hoje ainda entra (parâmetro `hoje` abaixo),
+  // porque dentro do mês do header em curso uma parcela vencendo dia 27 não
+  // pode contar como quitada logo no dia 1, antes de o cartão cobrar de
+  // facto (mesmo bug já corrigido em `pagoNoMes`/`faltaPagar`, abaixo).
+  const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef, hoje));
+  const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef, hoje));
   // "Total do mês" e "Falta pagar" são a mesma conta partida em dois, os dois
   // olhando só para o mês exibido. "Restante" já é outra coisa: a dívida de
   // TODAS as compras parceladas, de todos os meses — o que ainda falta pagar
   // no total, não só neste mês.
   const totalDoMes = totalParcelasNoMes(parcelas, mesRef);
-  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual(), hojeIso());
+  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual(), hoje);
   const faltaPagar = totalDoMes - pagoEsteMes;
-  const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef), 0);
+  const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef, hoje), 0);
   // "Total do mês" soma TODAS as parcelas cujo plano cobre o mês exibido —
   // inclusive as já quitadas, que a lista principal não mostra (vivem na folha
   // "Quitadas", fechada por padrão). Sem dizer isto, o KPI mostrava € 300,00 e
@@ -510,6 +520,7 @@ export default function Parcelas() {
     "ocultar",
     mesRef,
     cfg.diaVencimentoFatura,
+    hoje,
   );
   const quitadasVisiveis = parcelasVisiveis(
     parcelas,
@@ -517,6 +528,7 @@ export default function Parcelas() {
     "apenas",
     mesRef,
     cfg.diaVencimentoFatura,
+    hoje,
   );
 
   return (
@@ -573,6 +585,7 @@ export default function Parcelas() {
               aoEditar={abrirEdicao}
               aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
+              hoje={hoje}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
             />
@@ -608,6 +621,7 @@ export default function Parcelas() {
               }}
               aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
+              hoje={hoje}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
             />
