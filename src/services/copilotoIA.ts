@@ -10,7 +10,6 @@
 import type { ContextoCopiloto } from "../utils/copiloto";
 import { escaparHtml } from "../utils/copiloto";
 import { montarResumoParaIA } from "../utils/copilotoResumo";
-import { consumirCotaIA } from "./iaUsoService";
 import { auth } from "./firebase";
 
 /** A ÚNICA mensagem de insucesso da camada 2.
@@ -40,21 +39,29 @@ export async function responderComIA(
   pergunta: string,
   ctx: ContextoCopiloto,
   uid: string | undefined,
-  hoje: string,
 ): Promise<string> {
-  // Sem sessão não há onde contar a cota, e sem contar não se chama.
+  // Sem sessão não há como autenticar o pedido ao servidor.
   if (!uid) return MENSAGEM_IA_INDISPONIVEL;
 
   // `api/copiloto-ia.ts` exige um ID token válido — sem ele, ou com sessão a
   // expirar entre o clique e o pedido, o servidor recusaria com 401 de
-  // qualquer forma. Verificado ANTES de consumir a cota: sem token o pedido
-  // nem sai daqui, e gastar uma das 20 perguntas do dia para chegar a essa
-  // conclusão tirava-a de quem só teve o azar da sessão expirar no meio.
+  // qualquer forma.
   const token = await auth.currentUser?.getIdToken().catch(() => null);
   if (!token) return MENSAGEM_IA_INDISPONIVEL;
 
-  if (!(await consumirCotaIA(uid, hoje))) return MENSAGEM_IA_INDISPONIVEL;
-
+  // Bug corrigido: esta função também descontava uma pergunta da cota diária
+  // aqui, do lado do cliente (`consumirCotaIA`, `iaUsoService.ts`), ANTES de
+  // chamar `api/copiloto-ia.ts` — que, desde a auditoria de Segurança, já
+  // desconta a MESMA pergunta do MESMO nó do RTDB (`consumirCotaServidor`,
+  // mesmo caminho `users/{uid}/fin_v5/iaUso/{dia}`). Toda pergunta feita pela
+  // app em uso normal (não a contornar o cliente) descontava a cota DUAS
+  // vezes, e o limite documentado/configurado de 20 perguntas por dia
+  // (`LIMITE_DIARIO_IA`, duplicado nos dois ficheiros) na prática parava em
+  // 10. `iaUsoService.ts` deixou de ser chamado daqui — e, sem mais nenhum
+  // lugar a chamá-lo, foi removido (ver histórico do commit): o servidor já é
+  // quem fecha a cota, com o mesmo travão de concorrência (ETag/if-match) que
+  // o cliente tinha, e é ele quem também apanha quem contorna o cliente.
+  //
   // A camada 1 assume "direto" por omissão porque é o fraseado histórico dela.
   // Aqui o padrão é outro: quem chega à camada 2 fez uma pergunta que a app
   // não soube responder, e nesse momento um tom acolhedor cai melhor do que um

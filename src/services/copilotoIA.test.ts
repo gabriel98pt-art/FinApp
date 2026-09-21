@@ -1,23 +1,23 @@
 // Camada 2 do Copiloto. O que se testa aqui é sobretudo o que ela NÃO pode
-// fazer: partir o Copiloto quando o serviço externo falha, gastar cota sem
-// contar, deixar passar HTML gerado, ou distinguir motivos de insucesso a
-// quem pergunta.
+// fazer: partir o Copiloto quando o serviço externo falha, deixar passar
+// HTML gerado, ou distinguir motivos de insucesso a quem pergunta.
+//
+// A cota diária de perguntas (20/dia) deixou de ser contada aqui — era
+// (`iaUsoService.ts`, removido) e descontava a MESMA pergunta que
+// `api/copiloto-ia.ts` já desconta do lado do servidor, no mesmo nó do RTDB;
+// toda pergunta em uso normal gastava a cota duas vezes. Este ficheiro só
+// distingue "sem sessão"/"sem token" (que nem chegam a chamar a API) de
+// "a API recusou" (cota esgotada e qualquer outro insucesso do servidor
+// tratados da mesma forma — ver "erro da API vira a mesma mensagem" abaixo).
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "../utils/copiloto";
 
-let cotaDisponivel = true;
-let uidsQueConsumiram: string[] = [];
 /** `undefined` simula sessão sem token válido (ex. expirou entre o clique e
  *  o pedido) — api/copiloto-ia.ts agora exige esse token, então sem ele a
  *  chamada nem deve sair. */
 let tokenAtual: string | undefined = "token-falso";
-
-const consumirCotaIA = vi.fn(async (uid: string) => {
-  uidsQueConsumiram.push(uid);
-  return cotaDisponivel;
-});
 
 vi.mock("./firebase", () => ({
   db: {},
@@ -27,7 +27,6 @@ vi.mock("./firebase", () => ({
     },
   },
 }));
-vi.mock("./iaUsoService", () => ({ consumirCotaIA, LIMITE_DIARIO_IA: 20 }));
 
 const s = await import("./copilotoIA");
 
@@ -61,38 +60,29 @@ function respondeCom(dados: unknown, ok = true) {
 }
 
 beforeEach(() => {
-  cotaDisponivel = true;
-  uidsQueConsumiram = [];
   tokenAtual = "token-falso";
-  consumirCotaIA.mockClear();
   respondeCom({ resposta: "Aqui vai a resposta." });
 });
 
 describe("responderComIA — quando não responde", () => {
   test("sem sessão nem tenta chamar a API", async () => {
-    expect(await s.responderComIA("e agora?", ctx(), undefined, "2026-07-15")).toBe(
-      s.MENSAGEM_IA_INDISPONIVEL,
-    );
+    expect(await s.responderComIA("e agora?", ctx(), undefined)).toBe(s.MENSAGEM_IA_INDISPONIVEL);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
-  test("cota do dia esgotada nem chega a chamar a API", async () => {
-    cotaDisponivel = false;
+  test("cota do dia esgotada (429 do servidor) vira a mesma mensagem", async () => {
+    // A cota é decidida só pelo servidor (`api/copiloto-ia.ts`), que devolve
+    // 429 quando esgotada — ver a nota no topo do ficheiro sobre porque
+    // deixou de haver um contador também aqui do lado do cliente.
+    respondeCom({ erro: "cota" }, false);
 
-    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
-      s.MENSAGEM_IA_INDISPONIVEL,
-    );
-    // O ponto de contar ANTES de chamar é este: não se gasta uma chamada paga
-    // para descobrir que não havia direito a ela.
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(await s.responderComIA("e agora?", ctx(), "u1")).toBe(s.MENSAGEM_IA_INDISPONIVEL);
   });
 
   test("erro da API vira a mesma mensagem", async () => {
     respondeCom({ erro: "indisponivel" }, false);
 
-    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
-      s.MENSAGEM_IA_INDISPONIVEL,
-    );
+    expect(await s.responderComIA("e agora?", ctx(), "u1")).toBe(s.MENSAGEM_IA_INDISPONIVEL);
   });
 
   test("rede em baixo não rebenta o Copiloto", async () => {
@@ -100,7 +90,7 @@ describe("responderComIA — quando não responde", () => {
       throw new Error("sem rede");
     }) as unknown as typeof fetch;
 
-    await expect(s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).resolves.toBe(
+    await expect(s.responderComIA("e agora?", ctx(), "u1")).resolves.toBe(
       s.MENSAGEM_IA_INDISPONIVEL,
     );
   });
@@ -108,9 +98,7 @@ describe("responderComIA — quando não responde", () => {
   test("resposta vazia conta como não ter respondido", async () => {
     respondeCom({ resposta: "   " });
 
-    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
-      s.MENSAGEM_IA_INDISPONIVEL,
-    );
+    expect(await s.responderComIA("e agora?", ctx(), "u1")).toBe(s.MENSAGEM_IA_INDISPONIVEL);
   });
 
   test("sem token do Firebase (sessão a expirar entre o clique e o pedido) nem chama a API", async () => {
@@ -118,34 +106,20 @@ describe("responderComIA — quando não responde", () => {
     // um ID token válido — o cliente tem de ter um pra sequer tentar.
     tokenAtual = undefined;
 
-    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
-      s.MENSAGEM_IA_INDISPONIVEL,
-    );
+    expect(await s.responderComIA("e agora?", ctx(), "u1")).toBe(s.MENSAGEM_IA_INDISPONIVEL);
     expect(globalThis.fetch).not.toHaveBeenCalled();
-  });
-
-  test("sem token do Firebase, nem gasta a cota do dia", async () => {
-    // Bug corrigido: a cota era consumida ANTES de se saber se havia token —
-    // uma sessão a expirar no momento errado gastava uma das 20 perguntas do
-    // dia sem nunca sequer chegar a pedir nada à IA.
-    tokenAtual = undefined;
-
-    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
-
-    expect(consumirCotaIA).not.toHaveBeenCalled();
   });
 
   test("todos os motivos dão exactamente o mesmo texto", async () => {
     // Quem pergunta não tem de aprender a diferença entre "cota" e "erro de
     // API": em qualquer dos casos só há uma coisa a fazer, tentar mais tarde.
-    const semSessao = await s.responderComIA("x", ctx(), undefined, "2026-07-15");
+    const semSessao = await s.responderComIA("x", ctx(), undefined);
 
-    cotaDisponivel = false;
-    const semCota = await s.responderComIA("x", ctx(), "u1", "2026-07-15");
+    respondeCom({ erro: "cota" }, false);
+    const semCota = await s.responderComIA("x", ctx(), "u1");
 
-    cotaDisponivel = true;
     respondeCom({}, false);
-    const comErro = await s.responderComIA("x", ctx(), "u1", "2026-07-15");
+    const comErro = await s.responderComIA("x", ctx(), "u1");
 
     expect(new Set([semSessao, semCota, comErro]).size).toBe(1);
     expect(semSessao).not.toMatch(/api|cota|erro|limite/i);
@@ -154,26 +128,18 @@ describe("responderComIA — quando não responde", () => {
 
 describe("responderComIA — quando responde", () => {
   test("devolve o texto do modelo", async () => {
-    expect(await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15")).toBe(
-      "Aqui vai a resposta.",
-    );
+    expect(await s.responderComIA("e agora?", ctx(), "u1")).toBe("Aqui vai a resposta.");
   });
 
   test("escapa HTML — texto gerado não emite marcação", async () => {
     respondeCom({ resposta: "<img src=x onerror=alert(1)> olá" });
 
-    const r = await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+    const r = await s.responderComIA("e agora?", ctx(), "u1");
 
     // A resposta é injectada com dangerouslySetInnerHTML. Um modelo pode ser
     // levado a escrever isto por dados que a própria pessoa escreveu.
     expect(r).not.toContain("<img");
     expect(r).toContain("&lt;img");
-  });
-
-  test("consome a cota da conta certa", async () => {
-    await s.responderComIA("e agora?", ctx(), "u42", "2026-07-15");
-
-    expect(uidsQueConsumiram).toEqual(["u42"]);
   });
 });
 
@@ -197,7 +163,7 @@ describe("o que sai da app", () => {
         },
       ],
     });
-    await s.responderComIA("e agora?", c, "u1", "2026-07-15");
+    await s.responderComIA("e agora?", c, "u1");
     const corpo = corpoEnviado();
 
     expect(corpo.pergunta).toBe("e agora?");
@@ -212,7 +178,7 @@ describe("o que sai da app", () => {
   });
 
   test("manda o ID token do Firebase no cabeçalho Authorization", async () => {
-    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+    await s.responderComIA("e agora?", ctx(), "u1");
 
     const chamada = vi.mocked(globalThis.fetch).mock.calls[0];
     const cabecalhos = (chamada[1] as RequestInit).headers as Record<string, string>;
@@ -220,14 +186,14 @@ describe("o que sai da app", () => {
   });
 
   test("o tom por omissão da camada 2 é acolhedor, não o directo da camada 1", async () => {
-    await s.responderComIA("e agora?", ctx(), "u1", "2026-07-15");
+    await s.responderComIA("e agora?", ctx(), "u1");
 
     expect(corpoEnviado().tom).toBe("acolhedor");
   });
 
   test("mas respeita quem escolheu 'direto' de propósito", async () => {
     const c = ctx({ cfg: { ...CONFIG_PADRAO, copiloto: { tom: "direto" } } });
-    await s.responderComIA("e agora?", c, "u1", "2026-07-15");
+    await s.responderComIA("e agora?", c, "u1");
 
     expect(corpoEnviado().tom).toBe("direto");
   });

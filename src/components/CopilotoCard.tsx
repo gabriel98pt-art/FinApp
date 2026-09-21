@@ -138,7 +138,7 @@ export default function CopilotoCard() {
     // a isso" deixou de chegar sozinho ao ecrã.
     setAPensar(true);
     setResposta(null);
-    const daIA = await responderComIA(q, ctx, sessao?.uid, hoje);
+    const daIA = await responderComIA(q, ctx, sessao?.uid);
     if (pedidoAtual.current !== pedido) return;
     setAPensar(false);
     setResposta(daIA);

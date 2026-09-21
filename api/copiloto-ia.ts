@@ -25,13 +25,23 @@
 // COTA NO SERVIDOR (o "próximo passo" que ficara pendente): uma conta real,
 // autenticada, ainda podia chamar este endpoint à mão (fora da app) além do
 // seu próprio limite de 20/dia — o contador só existia no cliente
-// (`iaUsoService.ts`), e nada impedia um pedido feito diretamente com um
-// token válido de pular por cima dele. `consumirCotaServidor` fecha isto
-// reescrevendo o mesmo nó do RTDB que o cliente já usa
+// (`iaUsoService.ts`, entretanto removido, ver nota abaixo), e nada impedia
+// um pedido feito diretamente com um token válido de pular por cima dele.
+// `consumirCotaServidor` fecha isto escrevendo no RTDB
 // (`users/{uid}/fin_v5/iaUso/{dia}`), autenticado com o PRÓPRIO ID token já
 // verificado acima — as Security Rules (`database.rules.json`) só deixam
 // `auth.uid === uid` mexer nesse nó, então isto também dispensa
 // firebase-admin.
+//
+// Bug corrigido: por algum tempo depois disto, o cliente (`copilotoIA.ts`)
+// CONTINUOU a descontar a mesma pergunta do MESMO nó, do lado dele
+// (`iaUsoService.ts`), antes sequer de chamar este endpoint — que por sua vez
+// desconta outra vez aqui. Toda pergunta feita em uso normal da app (sem
+// ninguém a contornar o cliente) descontava a cota DUAS vezes, e o limite de
+// 20/dia na prática parava em 10. `iaUsoService.ts` foi removido: esta função
+// passou a ser o ÚNICO lugar que desconta a cota — o cliente só lê a
+// resposta (200 com a resposta, ou não-200, incluindo o 429 daqui, que vira
+// a mesma mensagem única de sempre).
 
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
@@ -43,10 +53,9 @@ const FIREBASE_PROJECT_ID = "finapp1-20d00";
  *  razão do FIREBASE_PROJECT_ID acima. */
 const DATABASE_URL = "https://finapp1-20d00-default-rtdb.europe-west1.firebasedatabase.app";
 
-/** O mesmo LIMITE_DIARIO_IA de `src/services/iaUsoService.ts`, duplicado pela
- *  mesma razão. Os dois têm de andar a par: o cliente já recusa perguntar
- *  depois deste número, e este ficheiro é só o fecho para quem contorna o
- *  cliente. */
+/** Quantas perguntas por conta, por dia. Único lugar que aplica este número
+ *  (ver a nota "Bug corrigido" acima) — o cliente já não tem cópia própria
+ *  dele nem do contador. */
 const LIMITE_DIARIO_IA = 20;
 
 /** Tenta consumir uma pergunta da cota diária do UID, escrevendo direto no
@@ -61,10 +70,10 @@ const LIMITE_DIARIO_IA = 20;
  *  porque o SDK do Firebase não corre neste ambiente serverless.
  *
  *  O dia usado é o de HOJE em UTC — não necessariamente o mesmo dia local de
- *  quem pergunta perto da meia-noite. Sem problema: o cliente já é quem
- *  decide o dia que conta para a pessoa (`iaUsoService.ts`); este é só o
- *  travão do servidor, e continua a limitar a mesma conta ao mesmo número de
- *  perguntas por dia, só que talvez não exactamente às 00h00 dela.
+ *  quem pergunta perto da meia-noite. Sem problema: isto só decide ONDE cai a
+ *  fronteira das 20 perguntas, não SE alguém tem direito a elas — quem
+ *  pergunta perto da meia-noite local continua limitado ao mesmo número por
+ *  dia, só que talvez não exactamente à meia-noite dela.
  *
  *  Devolve `false` em qualquer caso de insucesso — cota esgotada, leitura ou
  *  escrita do RTDB a falhar, ou três tentativas seguidas a perder a corrida

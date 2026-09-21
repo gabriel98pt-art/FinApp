@@ -575,8 +575,8 @@ export interface FrasesPorTom {
  *  do RTDB sem validação de campo (ver `normalizarConfig`), era sempre
  *  "direto" ou "acolhedor". Um valor gravado à mão ou por uma versão antiga
  *  do campo tornava `frases[tom]` `undefined`, e o `.length` a seguir
- *  rebentava — a mesma classe de dado corrompido que `iaUsoService.ts` já
- *  trata com `typeof atual === "number" ? atual : 0`. */
+ *  rebentava — a mesma classe de dado corrompido que `api/copiloto-ia.ts` já
+ *  trata com `typeof valor === "number" ? valor : 0`. */
 function variar(ctx: ContextoCopiloto, frases: FrasesPorTom): string {
   const tom = ctx.cfg.copiloto?.tom ?? "direto";
   const lista = frases[tom]?.length ? frases[tom] : frases.direto;

@@ -6,10 +6,10 @@
 //
 // A restauração é um `update()` por domínio (receitas, despesasCorrentes,
 // veiculo, cfg...), NÃO um `set()` na raiz — achado da auditoria de
-// Arquitetura + Testes/QA: `iaUsoService.ts` grava a cota diária de IA em
-// `fin_v5/iaUso/{dia}`, um domínio que não tem store própria e por isso
-// NUNCA entra em `capturarEstadoAtual()` (não há de onde lê-lo sem ir à
-// rede). Um `set()` na raiz apaga qualquer domínio ausente do objeto
+// Arquitetura + Testes/QA: `api/copiloto-ia.ts` (servidor) grava a cota
+// diária de IA em `fin_v5/iaUso/{dia}`, um domínio que não tem store própria
+// e por isso NUNCA entra em `capturarEstadoAtual()` (não há de onde lê-lo sem
+// ir à rede). Um `set()` na raiz apaga qualquer domínio ausente do objeto
 // capturado — a cota de IA zerava a cada desfazer/refazer, em silêncio. Com
 // `update()`, cada chave de `arvore` é um filho direto de `fin_v5` que é
 // substituído inteiro; qualquer OUTRO filho (iaUso hoje, o que vier depois)
