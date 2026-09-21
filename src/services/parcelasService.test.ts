@@ -244,6 +244,29 @@ describe("quitarParcela", () => {
       await s.quitarParcela(UID, parcela);
       expect(lancamentoCriado().valor).toBe(comRef);
     });
+
+    // O bug: `quitarParcela` chamava `mesesNaoPagos`/`valorQuitacao` sem
+    // `hoje`, então o mês de referência contava sempre como já resolvido,
+    // mesmo antes do dia de vencimento — a mesma precisão de dia que já tinha
+    // sido corrigida em utils/parcelas.ts (commit 2d6ba40) para o resto da
+    // tela, mas que não chegava a este ponto de escrita: `LinhaParcela` já
+    // mostrava "abertos"/"totalQuit" COM `hoje` (mês corrente ainda em
+    // aberto), e ao confirmar a quitação gravava um valor menor do que o
+    // exibido, sem marcar o mês corrente como pago — que voltava a ser
+    // cobrado quando a fatura daquele ciclo fosse paga.
+    const comVencimento: Parcela = { ...auto, diaVencimento: 20 };
+
+    test("com `hoje` antes do vencimento, o mês corrente entra na quitação", async () => {
+      await s.quitarParcela(UID, comVencimento, "2026-08", "2026-08-08");
+      expect(lancamentoCriado().valor).toBe(60000); // agosto a janeiro: 6 meses
+      expect(updates[0].mudancas["parcelas/p1/pagoPorMes/2026-08"]).toBe(true);
+    });
+
+    test("com `hoje` depois do vencimento, o mês corrente já saiu do cartão", async () => {
+      await s.quitarParcela(UID, comVencimento, "2026-08", "2026-08-20");
+      expect(lancamentoCriado().valor).toBe(50000); // setembro a janeiro: 5 meses
+      expect(updates[0].mudancas["parcelas/p1/pagoPorMes/2026-08"]).toBeUndefined();
+    });
   });
 });
 

@@ -102,7 +102,7 @@ function LinhaParcela({
     )
       return;
     await agir(
-      () => quitarParcela(uid, p, mesRef),
+      () => quitarParcela(uid, p, mesRef, hoje),
       `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
     );
   }

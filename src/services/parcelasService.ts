@@ -5,7 +5,7 @@ import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { criarParcela as criarParcelaBase, semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
-import type { DespesaCorrente, Parcela, YearMonth } from "../types";
+import type { DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual } from "../utils/calculos";
 import { mesesDaParcela, mesesNaoPagos, valorDaParcela, valorQuitacao } from "../utils/parcelas";
 
@@ -66,12 +66,26 @@ export async function estornarMesParcela(
  *  quitação de uma parcela em DÉBITO AUTOMÁTICO de cobrar segunda vez os meses
  *  que já saíram pela fatura do cartão: sem ele, `mesesNaoPagos` conta todos os
  *  meses sem marcação manual — e uma parcela em débito automático nunca é
- *  marcada à mão, porque o botão "Pagar mês" nem lhe aparece. */
-export async function quitarParcela(uid: string, p: Parcela, mesReferencia = mesAtual()) {
-  const abertos = mesesNaoPagos(p, mesReferencia);
+ *  marcada à mão, porque o botão "Pagar mês" nem lhe aparece.
+ *
+ *  `hoje`, repassado a `mesesNaoPagos`/`valorQuitacao`, dá precisão de DIA ao
+ *  mês de referência (ver `estaEfetivamentePaga`): sem ele, o mês corrente de
+ *  uma parcela em débito automático contava como já resolvido desde o dia 1,
+ *  antes de o cartão ter cobrado de facto. `LinhaParcela` (Parcelas.tsx) já
+ *  calcula `abertos`/`totalQuit` COM `hoje` para mostrar ao usuário — sem
+ *  passá-lo aqui também, a quitação gravava um valor menor do que o
+ *  confirmado na tela e o mês corrente nunca era marcado pago, voltando a ser
+ *  cobrado de novo quando a fatura daquele ciclo fosse paga. */
+export async function quitarParcela(
+  uid: string,
+  p: Parcela,
+  mesReferencia = mesAtual(),
+  hoje?: IsoDate,
+) {
+  const abertos = mesesNaoPagos(p, mesReferencia, hoje);
   if (abertos.length === 0) return;
   snapshotHistorico();
-  const total = valorQuitacao(p, mesReferencia);
+  const total = valorQuitacao(p, mesReferencia, hoje);
   const lancamento: Omit<DespesaCorrente, "id"> = {
     descricao: `${p.descricao} (quitação)`,
     valor: total,
