@@ -35,7 +35,6 @@ import {
   criarKm,
   removerCarga,
   removerDespesaVeiculo,
-  removerFixaVeiculo,
   removerKm,
 } from "../services/veiculoService";
 import { adicionarItemLista, removerItemLista, renomearLocal } from "../services/cfgService";
@@ -615,17 +614,29 @@ export default function Veiculo() {
     setDfAberta(false);
   }
 
+  // "Excluir" não apaga o registo: só encerra a fixa a partir de agora
+  // (`fim = mesAtual()`), mesmo tratamento que `Despesas.tsx` já dá às fixas
+  // gerais (ver 19a5e5e) — remover o registo inteiro levava junto
+  // `pagoPorMes`, apagando do histórico dinheiro que já tinha saído da conta
+  // em meses passados.
+  async function encerrarFixa(f: DespesaFixa) {
+    await agir(
+      () => atualizarFixaVeiculo(uid, { ...f, fim: mesAtual() }),
+      "Despesa fixa encerrada — o histórico de meses pagos continua ali",
+    );
+  }
+
   async function excluirFixa() {
     const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
     if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
     setDfAberta(false);
-    await agir(() => removerFixaVeiculo(uid, atual.id), "Despesa fixa excluída");
+    await encerrarFixa(atual);
   }
 
   async function excluirFixaDaLista(f: DespesaFixa) {
     if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
-    await agir(() => removerFixaVeiculo(uid, f.id), "Despesa fixa excluída");
+    await encerrarFixa(f);
   }
 
   return (
