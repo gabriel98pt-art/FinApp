@@ -967,6 +967,50 @@ describe("resumo enriquecido com a comparação", () => {
 
     expect(resp).not.toMatch(/acima da média/);
   });
+
+  // Bug: um reembolso é uma despesa de valor NEGATIVO na mesma categoria (ver
+  // utils/reembolsos.ts). Quando ele cobre ou ultrapassa as despesas do mês,
+  // o resumo dizia "gastou -€ 30,00" e "Maior categoria: Saúde (-€ 30,00)" —
+  // o mesmo sem-sentido já corrigido nos intents de categoria, cartão e
+  // despesas genérico, mas esquecido aqui.
+  test("reembolso maior que a despesa não faz o resumo dizer 'gastou -X' nem apontar categoria negativa", () => {
+    const despesas: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Farmácia",
+        valor: -3000,
+        data: "2026-07-05",
+        categoria: "Saúde",
+        origem: "reemb",
+      },
+    ];
+    const receitas: Receita[] = [
+      { id: "r1", descricao: "Salário", valor: 200000, data: "2026-07-01", fonte: "Trabalho" },
+    ];
+    const resp = responderPergunta("resumo do mes", ctx({ despesas, receitas }));
+
+    expect(resp).not.toContain("-€");
+    expect(resp).not.toMatch(/Maior categoria/);
+    expect(resp).toContain("0,00");
+    // O saldo continua correcto: o reembolso ainda soma a favor da conta.
+    expect(resp).toContain("2.030,00");
+  });
+
+  test("resumo de um ano com reembolso maior que as despesas não diz 'gastou -X'", () => {
+    const despesas: DespesaCorrente[] = [
+      {
+        id: "d1",
+        descricao: "Farmácia",
+        valor: -3000,
+        data: "2026-07-05",
+        categoria: "Saúde",
+        origem: "reemb",
+      },
+    ];
+    const resp = responderPergunta("resumo de 2026", ctx({ despesas }));
+
+    expect(resp).not.toContain("-€");
+  });
 });
 
 describe("variação de fraseado", () => {

@@ -1213,7 +1213,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
           desp += t.despesas;
         }
         const recD = b(formatMoney(rec, ctx.cfg.currency));
-        const despD = b(formatMoney(desp, ctx.cfg.currency));
+        // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO (ver
+        // utils/reembolsos.ts). Quando os reembolsos do ano ultrapassam as
+        // despesas, `desp` fica negativo e a resposta dizia "gastou -€ X,XX"
+        // — o mesmo sem-sentido já corrigido no intent de despesas genérico
+        // (ver a nota mais abaixo), esquecido aqui no resumo. O saldo continua
+        // a usar `desp` sem arredondar a zero: o reembolso ainda deve somar ao
+        // saldo, só não faz sentido chamá-lo de "despesa".
+        const despD = b(formatMoney(Math.max(0, desp), ctx.cfg.currency));
         const saldoD = b(formatMoney(rec - desp, ctx.cfg.currency));
         return variar(ctx, {
           direto: [
@@ -1231,7 +1238,10 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       const maior = chaves.length ? chaves.reduce((a, c) => (ct[c] > ct[a] ? c : a)) : null;
       const moeda = ctx.cfg.currency;
       const rec = b(formatMoney(t.receitas, moeda));
-      const desp = b(formatMoney(t.despesas, moeda));
+      // Bug corrigido: mesmo furo do ramo anual acima — um reembolso deixa
+      // `t.despesas` negativo e a frase dizia "gastou -€ X,XX", já corrigido
+      // no intent de despesas genérico mas esquecido aqui no resumo.
+      const desp = b(formatMoney(Math.max(0, t.despesas), moeda));
       const saldo = b(formatMoney(t.receitas - t.despesas, moeda));
 
       let msg = variar(ctx, {
@@ -1247,7 +1257,16 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
         ],
       });
 
-      if (maior) msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], moeda)}).`;
+      // Bug corrigido: `if (maior)` só checava se havia alguma categoria, não
+      // se o seu total era positivo. Um reembolso (despesa de valor NEGATIVO,
+      // ver utils/reembolsos.ts) que deixasse a categoria com mais movimento
+      // no mês com total negativo ainda "ganhava" o reduce (o menos negativo
+      // de todos) e a frase dizia "Maior categoria: X (-€ Y,YY)" — mesmo
+      // sem-sentido já corrigido nos intents de categoria e cartão. Sem
+      // nenhuma categoria com gasto líquido positivo, não há "maior
+      // categoria" nenhuma para anunciar.
+      if (maior && ct[maior] > 0)
+        msg += ` Maior categoria: ${b(maior)} (${formatMoney(ct[maior], moeda)}).`;
 
       // A comparação com os meses anteriores é o que separa "gastaste X" de
       // "isto está acima do teu costume" — só entra quando há uma diferença
