@@ -106,10 +106,10 @@ export function construirExistentes(
       { id: t.id, data: t.data, valor: t.valor, descricao, origem: "transferencia" as const },
     ];
   });
-  // Despesa fixa paga não tem lançamento espelho — o "pago" é só uma marca no
-  // mês —, mas o dinheiro saiu à mesma e aparece no extrato. A data sai do dia
-  // de vencimento; a folga de dias entre o vencimento e o débito real já está
-  // coberta pela janela da comparação.
+  // A data de comparação sai do dia de vencimento, não do lançamento-espelho
+  // (que tem a DATA REAL do pagamento, não a de vencimento) — a folga de dias
+  // entre o vencimento e o débito real já está coberta pela janela da
+  // comparação.
   //
   // Sem `diaVencimento` não há data nenhuma para comparar, e um dia inventado
   // tanto podia aproximar como afastar da linha certa: essa fica de fora. O
@@ -321,7 +321,11 @@ export async function confirmarImportacao(
  *
  *  Despesa fixa é o caso à parte: apagá-la deitaria fora a recorrência toda.
  *  Ali desmarca-se o mês que bateu, que é o que corresponde ao dinheiro
- *  repetido.
+ *  repetido — e, desde que marcar uma fixa como paga passou a gravar um
+ *  lançamento-espelho (origem 'fixa', ver `alternarPagoDespesaFixa`), esse
+ *  espelho tem de ir junto: sem apagá-lo aqui, ele ficava órfão — invisível
+ *  no extrato (que filtra origem 'fixa'), mas ainda somado no fluxo de caixa
+ *  do Início, dobrando o valor da fixa nesse mês.
  *
  *  A mesma chave nunca é apagada duas vezes: uma transferência aparece na
  *  lista de comparação com os dois sinais, e o mesmo registo pode bater em
@@ -330,6 +334,7 @@ export async function apagarExistentes(
   uid: string,
   existentes: ExistenteParaDedup[],
   despesasFixas: DespesaFixa[],
+  despesas: DespesaCorrente[],
 ) {
   const feitos = new Set<string>();
   for (const ex of existentes) {
@@ -359,6 +364,11 @@ export async function apagarExistentes(
           ...fixa,
           pagoPorMes: { ...fixa.pagoPorMes, [ex.mes]: false },
         });
+        for (const espelho of despesas.filter(
+          (d) => d.origem === "fixa" && d.fixaId === fixa.id && d.fixaMes === ex.mes,
+        )) {
+          await removerDespesa(uid, espelho.id);
+        }
         break;
       }
     }

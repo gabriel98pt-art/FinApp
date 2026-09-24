@@ -394,7 +394,7 @@ export default function Importar() {
       // confirmarImportacao, então isto também roda suprimido, senão cada
       // duplicata apagada empilhava o seu próprio passo de "Desfazer".
       if (apagar.length) {
-        await comHistoricoSuprimido(() => apagarExistentes(uid, apagar, despesasFixas));
+        await comHistoricoSuprimido(() => apagarExistentes(uid, apagar, despesasFixas, despesas));
       }
       mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
       // Não limpa `linhas`/`texto` aqui: se o usuário confirmou sem querer e

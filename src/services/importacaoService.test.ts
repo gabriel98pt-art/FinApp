@@ -1003,6 +1003,7 @@ describe("apagar o registo antigo que o usuário marcou", () => {
       "u1",
       [ex(), ex({ id: "r1", origem: "receita" }), ex({ id: "c1", origem: "carga" })],
       [],
+      [],
     );
     expect(removerDespesa).toHaveBeenCalledWith("u1", "x1");
     expect(removerReceita).toHaveBeenCalledWith("u1", "r1");
@@ -1018,7 +1019,12 @@ describe("apagar o registo antigo que o usuário marcou", () => {
       diaVencimento: 8,
       pagoPorMes: { "2026-07": true, "2026-06": true },
     };
-    await apagarExistentes("u1", [ex({ id: "f1", origem: "despesaFixa", mes: "2026-07" })], [fixa]);
+    await apagarExistentes(
+      "u1",
+      [ex({ id: "f1", origem: "despesaFixa", mes: "2026-07" })],
+      [fixa],
+      [],
+    );
     expect(atualizarDespesaFixa).toHaveBeenCalledWith("u1", {
       ...fixa,
       // Junho continua pago; a despesa recorrente continua a existir.
@@ -1026,15 +1032,53 @@ describe("apagar o registo antigo que o usuário marcou", () => {
     });
   });
 
+  // Marcar a fixa como paga grava um lançamento-espelho com a data real
+  // (origem 'fixa', ver alternarPagoDespesaFixa) — sem apagá-lo aqui, ele
+  // ficava órfão e a fixa contava em dobro no fluxo de caixa do Início.
+  test("despesa fixa: o lançamento-espelho do mês também é apagado", async () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Renda",
+      valor: 65000,
+      categoria: "Casa",
+      diaVencimento: 8,
+      pagoPorMes: { "2026-07": true, "2026-06": true },
+    };
+    const espelhoDeJulho: DespesaCorrente = {
+      id: "e-jul",
+      descricao: "Renda",
+      valor: 65000,
+      data: "2026-07-09",
+      categoria: "Casa",
+      origem: "fixa",
+      fixaId: "f1",
+      fixaMes: "2026-07",
+    };
+    const espelhoDeJunho: DespesaCorrente = {
+      ...espelhoDeJulho,
+      id: "e-jun",
+      data: "2026-06-08",
+      fixaMes: "2026-06",
+    };
+    await apagarExistentes(
+      "u1",
+      [ex({ id: "f1", origem: "despesaFixa", mes: "2026-07" })],
+      [fixa],
+      [espelhoDeJulho, espelhoDeJunho],
+    );
+    expect(removerDespesa).toHaveBeenCalledWith("u1", "e-jul");
+    expect(removerDespesa).not.toHaveBeenCalledWith("u1", "e-jun");
+  });
+
   test("o mesmo registo marcado duas vezes só é apagado uma", async () => {
     // Acontece de verdade: uma transferência entra na comparação com os dois
     // sinais, e pode bater em duas linhas do mesmo extrato.
-    await apagarExistentes("u1", [ex(), ex(), ex({ valor: 4590 })], []);
+    await apagarExistentes("u1", [ex(), ex(), ex({ valor: 4590 })], [], []);
     expect(removerDespesa).toHaveBeenCalledTimes(1);
   });
 
   test("sem nada marcado não se apaga nada", async () => {
-    await apagarExistentes("u1", [], []);
+    await apagarExistentes("u1", [], [], []);
     expect(removerDespesa).not.toHaveBeenCalled();
     expect(atualizarDespesaFixa).not.toHaveBeenCalled();
   });
