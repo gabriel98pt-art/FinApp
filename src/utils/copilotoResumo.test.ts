@@ -60,6 +60,25 @@ describe("montarResumoParaIA", () => {
     expect(r.mes).toMatch(/julho/i);
   });
 
+  // Bug: um reembolso é uma despesa de valor NEGATIVO (ver
+  // utils/reembolsos.ts). Quando ele ultrapassa as despesas do mês, o total
+  // fica negativo e o resumo mandava "despesas: -€ X,XX" para a IA, que citava
+  // o número tal como veio — o mesmo sem-sentido já corrigido em todos os
+  // intents equivalentes de utils/copiloto.ts, esquecido aqui.
+  test("reembolso maior que as despesas não manda 'despesas' negativas para a IA", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        receitas: [receita(100000)],
+        despesas: [despesa(20000, "Casa"), despesa(-50000, "Casa", "2026-07-10", "Reembolso")],
+      }),
+    );
+
+    expect(r.despesas).toBe("€ 0,00");
+    // O saldo continua a contar o reembolso de verdade: não é "despesa", mas
+    // ainda é dinheiro que sobra.
+    expect(r.saldo).toBe("€ 1.300,00");
+  });
+
   test("NÃO leva conta, cartão nem id de nenhum lançamento", () => {
     const cru = JSON.stringify(
       montarResumoParaIA(ctx({ receitas: [receita(200000)], despesas: [despesa(50000, "Casa")] })),
@@ -236,6 +255,31 @@ describe("montarResumoParaIA — números derivados", () => {
 
     expect(r.projecaoFimMes).toBeNull();
     expect(r.mediaDiaria).toBe("€ 0,00");
+  });
+
+  test("reembolso maior que as despesas não manda 'mediaDiaria' negativa para a IA", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [despesa(20000, "Casa"), despesa(-50000, "Casa", "2026-07-10", "Reembolso")],
+        diaDeHoje: 10,
+      }),
+    );
+
+    expect(r.mediaDiaria).toBe("€ 0,00");
+  });
+
+  test("mesma correção na despesa do mês anterior, dentro de comparacaoMesAnterior", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [
+          despesa(20000, "Casa"),
+          despesa(20000, "Casa", "2026-06-05"),
+          despesa(-50000, "Casa", "2026-06-10", "Reembolso"),
+        ],
+      }),
+    );
+
+    expect(r.comparacaoMesAnterior.despesas).toBe("€ 0,00");
   });
 
   test("compara com o mês anterior e leva a variação já com sinal", () => {

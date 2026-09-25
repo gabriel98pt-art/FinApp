@@ -129,7 +129,18 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
   return {
     mes: rotuloMes(ym),
     receitas: formatMoney(t.receitas, moeda),
-    despesas: formatMoney(t.despesas, moeda),
+    // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO (ver
+    // utils/reembolsos.ts). Quando os reembolsos do mês ultrapassam as
+    // despesas, `t.despesas` fica negativo e o resumo mandava para a IA
+    // "despesas: -€ X,XX" — o mesmo sem-sentido já corrigido em todos os
+    // intents equivalentes de utils/copiloto.ts (categoria, cartão, resumo,
+    // despesas genérico), esquecido aqui na camada que alimenta a IA. Sem o
+    // Math.max, a IA cita o texto "gastou -€ X,XX" tal como lhe foi dado — a
+    // regra do prompt é "cita os valores tal como estão", então o número
+    // errado tem de ser corrigido AQUI, não na resposta gerada. `saldo`
+    // continua a usar o `t.despesas` cru: o reembolso ainda tem de entrar no
+    // saldo, só não faz sentido chamá-lo de "despesa".
+    despesas: formatMoney(Math.max(0, t.despesas), moeda),
     saldo: formatMoney(t.receitas - t.despesas, moeda),
     categorias: Object.entries(cats)
       .sort((a, b) => b[1] - a[1])
@@ -158,15 +169,20 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
     // € Infinity por dia" não é resposta nenhuma. E só faz sentido para o mês
     // REAL — dividir a despesa de um mês visível já fechado pelo dia de hoje
     // misturaria dois meses diferentes numa "média" que não é de nada.
+    // Mesma correção: dividir um `t.despesas` negativo dava "gasta -€ X por
+    // dia", tão sem sentido quanto o total negativo de que este número deriva.
     mediaDiaria: formatMoney(
-      ym === ctx.mesReal && ctx.diaDeHoje > 0 ? Math.round(t.despesas / ctx.diaDeHoje) : 0,
+      ym === ctx.mesReal && ctx.diaDeHoje > 0
+        ? Math.round(Math.max(0, t.despesas) / ctx.diaDeHoje)
+        : 0,
       moeda,
     ),
     projecaoFimMes: projecao === null ? null : formatMoney(projecao, moeda),
     comparacaoMesAnterior: {
       mes: rotuloMes(anterior),
       receitas: formatMoney(tAnterior.receitas, moeda),
-      despesas: formatMoney(tAnterior.despesas, moeda),
+      // Mesma correção do mês corrente, aplicada ao mês anterior.
+      despesas: formatMoney(Math.max(0, tAnterior.despesas), moeda),
       variacaoReceitas: varReceitas === null ? null : rotuloVariacao(varReceitas),
       variacaoDespesas: varDespesas === null ? null : rotuloVariacao(varDespesas),
     },
