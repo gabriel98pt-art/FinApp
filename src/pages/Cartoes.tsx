@@ -446,9 +446,16 @@ export default function Cartoes() {
     () => cartoesCredito.map((c) => calcularFatura(c, mesSeguinte, dados, cfg)),
     [cartoesCredito, mesSeguinte, dados, cfg],
   );
+  // `hoje` precisa estar nas deps do useMemo: é ele que dá precisão de dia à
+  // fixa em débito automático dentro de `resumoDaConta` (ver `fixasPagas`).
+  // Chamar `hojeIso()` só dentro do factory (sem listar) não recalculava o
+  // saldo quando a data virava sem nenhuma das outras deps mudar — o mesmo
+  // saldo de ontem ficava exibido até `dadosContas`/`cfg`/`mes` mudarem por
+  // outro motivo.
+  const hoje = hojeIso();
   const resumos = useMemo(
-    () => resumosDasContas(dadosContas, cfg, mes, hojeIso()),
-    [dadosContas, cfg, mes],
+    () => resumosDasContas(dadosContas, cfg, mes, hoje),
+    [dadosContas, cfg, mes, hoje],
   );
   const resumoAberto = resumos.find((r) => r.conta === contaAberta) ?? null;
   const faturaAberta =
