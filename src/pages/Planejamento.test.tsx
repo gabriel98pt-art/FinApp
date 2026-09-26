@@ -15,7 +15,7 @@
 // deles tem de começar por garantir que está na aba certa.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { DespesaCorrente, Fundo, Receita } from "../types";
@@ -420,5 +420,47 @@ describe("aba Metas", () => {
 
     expect(screen.getByRole("heading", { name: "Últimos 12 meses" })).toBeInTheDocument();
     expect(screen.queryByText("Resumo Anual")).not.toBeInTheDocument();
+  });
+
+  test("duplo toque em Contribuir não dispara duas escritas — botão trava durante o envio", async () => {
+    // Bug: contribuirFundo soma `valor` ao `fundo.atual` já carregado no
+    // fecho do formulário (leitura-e-escrita não atómica). Sem travar o
+    // botão enquanto a primeira chamada está pendente, um duplo toque (rede
+    // lenta, toque acidental) disparava as duas ANTES de qualquer resposta:
+    // as duas partiam do mesmo `atual` antigo e a segunda escrita apagava a
+    // contribuição da primeira, sem erro nem aviso.
+    fundos = lista([fundo()]);
+    const { contribuirFundo } = await import("../services/fundosService");
+    let resolver!: () => void;
+    vi.mocked(contribuirFundo).mockImplementationOnce(
+      () =>
+        new Promise<void>((r) => {
+          resolver = r;
+        }),
+    );
+
+    await montarNasMetas();
+    // A linha do fundo tem o seu próprio botão "Contribuir" (abre a folha);
+    // dentro dela, o botão de submeter usa o mesmo texto — por isso as
+    // buscas seguintes ficam presas à `dialog`, nunca ao ecrã inteiro.
+    await userEvent.click(screen.getByRole("button", { name: "Contribuir" }));
+    const folha = screen.getByRole("dialog", { name: /Contribuir — Viagem/ });
+    const campoValor = within(folha).getByLabelText(/Quanto/i);
+    await userEvent.type(campoValor, "5000");
+    await waitFor(() => expect(campoValor).toHaveValue("50,00"));
+
+    const botaoSubmeter = within(folha).getByRole("button", { name: /Contribuir|Aguarde/ });
+    await userEvent.click(botaoSubmeter);
+    expect(botaoSubmeter).toBeDisabled();
+
+    // Enquanto a primeira chamada não resolve, um segundo toque não deve
+    // disparar outra escrita — o botão desabilitado já barra o clique real,
+    // mas o guard em `submeterContribuicao` é a rede de segurança.
+    await userEvent.click(botaoSubmeter);
+    expect(contribuirFundo).toHaveBeenCalledTimes(1);
+
+    resolver();
+    await waitFor(() => expect(botaoSubmeter).not.toBeDisabled());
+    expect(contribuirFundo).toHaveBeenCalledTimes(1);
   });
 });

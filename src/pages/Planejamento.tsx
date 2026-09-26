@@ -158,6 +158,7 @@ export default function Planejamento() {
   const [prazo, setPrazo] = useState("");
   const [contribuindo, setContribuindo] = useState<string | null>(null);
   const [contribValor, setContribValor] = useState<Cents | null>(null);
+  const [contribuindoEnviando, setContribuindoEnviando] = useState(false);
 
   /** Cada abertura recomeça em branco — o mesmo que "Contribuir" aqui ao lado
    *  já fazia com o valor. Sem isto, escrever "Viagem ao Japão", fechar a folha
@@ -190,10 +191,17 @@ export default function Planejamento() {
 
   async function submeterContribuicao(e: FormEvent) {
     e.preventDefault();
+    if (contribuindoEnviando) return;
     const fundo = fundos.find((f) => f.id === contribuindo);
     if (!fundo) return;
     const valor = contribValor;
     if (valor === null || valor <= 0) return mostrarToast("Valor inválido.");
+    // contribuirFundo soma `valor` ao `fundo.atual` já carregado neste fecho —
+    // sem esta trava, um duplo toque (rede lenta, toque acidental) dispara duas
+    // submissões antes da primeira `await` resolver; ambas partem do mesmo
+    // `atual` antigo e a segunda escrita apaga a primeira contribuição, sem
+    // erro nem aviso.
+    setContribuindoEnviando(true);
     try {
       await contribuirFundo(uid, fundo, valor);
       mostrarToast(`✓ ${formatMoney(valor, moeda)} adicionado(s) a ${fundo.nome}`);
@@ -201,6 +209,8 @@ export default function Planejamento() {
       setContribValor(null);
     } catch {
       mostrarToast("Não foi possível contribuir.");
+    } finally {
+      setContribuindoEnviando(false);
     }
   }
 
@@ -508,9 +518,14 @@ export default function Planejamento() {
         <form className={styles.form} onSubmit={submeterContribuicao}>
           {/* Único campo da folha — com mais razão ainda deve ser o campo
               grande, e não um rótulo "Valor" em corpo de texto. */}
-          <CampoValorDestaque valor={contribValor} aoMudar={setContribValor} required />
-          <button type="submit" className={styles.salvar}>
-            Contribuir
+          <CampoValorDestaque
+            valor={contribValor}
+            aoMudar={setContribValor}
+            required
+            disabled={contribuindoEnviando}
+          />
+          <button type="submit" className={styles.salvar} disabled={contribuindoEnviando}>
+            {contribuindoEnviando ? "Aguarde…" : "Contribuir"}
           </button>
         </form>
       </BottomSheet>
