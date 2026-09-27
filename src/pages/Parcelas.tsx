@@ -21,10 +21,11 @@ import { adicionarItemLista, removerItemLista } from "../services/cfgService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { useCfgStore } from "../stores/cfgStore";
+import { useDespesasStore } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
-import type { Cents, Currency, IsoDate, Parcela, YearMonth } from "../types";
+import type { Cents, Currency, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
@@ -194,10 +195,14 @@ function FormParcela({
   aberta,
   aoFechar,
   editando,
+  despesas,
 }: {
   aberta: boolean;
   aoFechar: () => void;
   editando: Parcela | null;
+  /** Para soltar o vínculo dos lançamentos já pagos ao excluir — ver
+   *  `excluirParcela`. */
+  despesas: DespesaCorrente[];
 }) {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -286,7 +291,7 @@ function FormParcela({
     )
       return;
     try {
-      await excluirParcela(uid, editando);
+      await excluirParcela(uid, editando, despesas);
       mostrarToast("Parcela excluída");
       setSemeadoPara(null);
       aoFechar();
@@ -422,6 +427,7 @@ export default function Parcelas() {
   const mesRef = useMesVisivelStore((s) => s.mes);
   const hoje = hojeIso();
   const parcelas = useParcelasStore((s) => s.itens);
+  const despesas = useDespesasStore((s) => s.itens);
   const carregado = useParcelasStore((s) => s.carregado);
   const erro = useParcelasStore((s) => s.erro);
   const [folhaAberta, setFolhaAberta] = useState(false);
@@ -481,7 +487,7 @@ export default function Parcelas() {
     )
       return;
     try {
-      await excluirParcela(uid, p);
+      await excluirParcela(uid, p, despesas);
       mostrarToast("Parcela excluída");
     } catch {
       mostrarToast("Não foi possível excluir. Tente de novo.");
@@ -674,6 +680,7 @@ export default function Parcelas() {
         aberta={folhaAberta}
         aoFechar={() => setFolhaAberta(false)}
         editando={editando}
+        despesas={despesas}
       />
     </Pagina>
   );

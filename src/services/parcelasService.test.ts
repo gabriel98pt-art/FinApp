@@ -271,15 +271,46 @@ describe("quitarParcela", () => {
 });
 
 describe("excluirParcela", () => {
-  test("apaga a parcela e deixa os lançamentos já pagos — é dinheiro que saiu", async () => {
-    dados[`${RAIZ}/despesasCorrentes/d1`] = { descricao: "Portátil" };
-    await s.excluirParcela(UID, parcela);
+  const espelhoPago: DespesaCorrente = {
+    id: "d1",
+    descricao: "Portátil",
+    valor: 10000,
+    data: "2026-08-05",
+    categoria: "Tecnologia",
+    origem: "parc",
+    parcelaId: "p1",
+    parcelaMes: "2026-08",
+  };
+  // De outra parcela — não pode ser tocado.
+  const espelhoDeOutraParcela: DespesaCorrente = { ...espelhoPago, id: "d2", parcelaId: "p9" };
+
+  test("apaga a parcela e solta o vínculo dos lançamentos já pagos, que ficam como despesas normais", async () => {
+    dados[`${RAIZ}/despesasCorrentes/d1`] = espelhoPago;
+    dados[`${RAIZ}/despesasCorrentes/d2`] = espelhoDeOutraParcela;
+    await s.excluirParcela(UID, parcela, [espelhoPago, espelhoDeOutraParcela]);
+    expect(updates[0].mudancas).toEqual({
+      "parcelas/p1": null,
+      "despesasCorrentes/d1/origem": null,
+      "despesasCorrentes/d1/parcelaId": null,
+      "despesasCorrentes/d1/parcelaMes": null,
+    });
+    // Sem isto, `transacoesDoMes` e `despesaRealizadaMes` (que excluem
+    // origem "parc" esperando que a parcela ainda exista para mostrá-lo)
+    // fariam esse dinheiro real desaparecer do extrato e dos totais de meses
+    // já fechados — o lançamento continuava gravado, mas nunca mais contava
+    // nem aparecia em lugar nenhum.
+    //
+    // Espelho de outra parcela não é tocado.
+    expect(updates[0].mudancas["despesasCorrentes/d2/origem"]).toBeUndefined();
+  });
+
+  test("sem lançamentos vinculados, só apaga a parcela", async () => {
+    await s.excluirParcela(UID, parcela, []);
     expect(updates[0].mudancas).toEqual({ "parcelas/p1": null });
-    expect(dados[`${RAIZ}/despesasCorrentes/d1`]).toBeDefined();
   });
 
   test("passa pelo histórico", async () => {
-    await s.excluirParcela(UID, parcela);
+    await s.excluirParcela(UID, parcela, []);
     expect(snapshot).toHaveBeenCalledTimes(1);
   });
 });

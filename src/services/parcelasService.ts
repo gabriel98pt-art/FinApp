@@ -105,8 +105,28 @@ export async function quitarParcela(
 }
 
 /** Exclui a parcela. Os lançamentos já pagos ficam — são dinheiro real que
- *  saiu e continuam visíveis como despesas normais. */
-export async function excluirParcela(uid: string, p: Parcela) {
+ *  saiu — mas só continuam visíveis como despesas normais porque esta função
+ *  também solta o vínculo deles com a parcela (origem/parcelaId/parcelaMes).
+ *
+ *  Sem isto, cada lançamento continuava com `origem: "parc"`, apontando para
+ *  uma parcela que deixou de existir: `transacoesDoMes` (utils/transacoes.ts)
+ *  exclui esse origem do lado da despesa de propósito, porque espera vê-lo
+ *  pelo lado da parcela — e essa exclusão só faz sentido enquanto a parcela
+ *  ainda está lá para renderizá-lo. `despesaRealizadaMes`/
+ *  `despesasNosTotais` fazem a mesma exclusão pela mesma razão. Excluída a
+ *  parcela, o lançamento ficava órfão: sumia do extrato de Transações e do
+ *  total de meses já fechados, como se aquele dinheiro nunca tivesse saído —
+ *  mesmo com o texto de confirmação prometendo "os meses já pagos continuam
+ *  no histórico de despesas". */
+export async function excluirParcela(uid: string, p: Parcela, despesas: DespesaCorrente[]) {
   snapshotHistorico();
-  await update(ref(db, raiz(uid)), { [`parcelas/${p.id}`]: null });
+  const atualizacoes: Record<string, unknown> = { [`parcelas/${p.id}`]: null };
+  despesas
+    .filter((d) => d.origem === "parc" && d.parcelaId === p.id)
+    .forEach((d) => {
+      atualizacoes[`despesasCorrentes/${d.id}/origem`] = null;
+      atualizacoes[`despesasCorrentes/${d.id}/parcelaId`] = null;
+      atualizacoes[`despesasCorrentes/${d.id}/parcelaMes`] = null;
+    });
+  await update(ref(db, raiz(uid)), atualizacoes);
 }
