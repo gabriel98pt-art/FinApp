@@ -101,7 +101,14 @@ export function resumoDaConta(
    *  corrente (ver `fixasPagas`). Sem ela, o mês corrente conta inteiro. */
   hoje?: IsoDate,
 ): ResumoConta {
-  const receitasMesLista = dados.receitas.filter((r) => r.conta === conta && mesDe(r.data) === mes);
+  // `origem !== "recon"` tira o ajuste de reconciliação bancária: ele só
+  // corrige o saldo em caixa para bater com o extrato do banco (por isso
+  // continua a entrar em `saldoAtual`, abaixo), não é receita/despesa real do
+  // mês — mesma exclusão de `receitasNosTotais`/`despesasNosTotais`
+  // (utils/calculos.ts) e de `transacoes.ts`/`fatura.ts`.
+  const receitasMesLista = dados.receitas.filter(
+    (r) => r.conta === conta && mesDe(r.data) === mes && r.origem !== "recon",
+  );
   // `origem !== "fixa"` tira o lançamento-espelho que marcar uma fixa como
   // paga grava em despesasCorrentes (alternarPagoDespesaFixa/
   // alternarPagoFixaVeiculo) — ele existe só para o Início saber a DATA real
@@ -110,7 +117,11 @@ export function resumoDaConta(
   // exclusão a mesma fixa paga à mão contava em dobro, igual ao bug já
   // corrigido para os totais gerais em `transacoes.ts`/`veiculo.ts`.
   const correntesMes = dados.despesasCorrentes.filter(
-    (d) => d.contaCartao === conta && mesDe(d.data) === mes && d.origem !== "fixa",
+    (d) =>
+      d.contaCartao === conta &&
+      mesDe(d.data) === mes &&
+      d.origem !== "fixa" &&
+      d.origem !== "recon",
   );
   const fixasGerais = fixasDoMes(dados.despesasFixas, conta, mes);
   const fixasVeiculo = fixasDoMes(dados.despesasFixasVeiculo, conta, mes);
@@ -120,7 +131,11 @@ export function resumoDaConta(
     (c) => c.contaCartao === conta && mesDe(c.data) === mes,
   );
   const veiculoMes = (dados.despesasVeiculo ?? []).filter(
-    (d) => d.contaCartao === conta && mesDe(d.data) === mes && d.origem !== "fixa",
+    (d) =>
+      d.contaCartao === conta &&
+      mesDe(d.data) === mes &&
+      d.origem !== "fixa" &&
+      d.origem !== "recon",
   );
 
   const gastoMes =

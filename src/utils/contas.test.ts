@@ -96,6 +96,50 @@ describe("resumoDaConta", () => {
   });
 });
 
+describe("ajuste de reconciliação (origem 'recon')", () => {
+  const dadosComRecon: DadosContas = {
+    ...dados,
+    receitas: [
+      ...dados.receitas,
+      {
+        id: "r-recon",
+        descricao: "Ajuste",
+        valor: 500000,
+        data: "2026-07-15",
+        fonte: "Ajuste",
+        conta: "Conta",
+        origem: "recon",
+      },
+    ],
+    despesasCorrentes: [
+      ...dados.despesasCorrentes,
+      {
+        id: "d-recon",
+        descricao: "Ajuste",
+        valor: 300000,
+        data: "2026-07-16",
+        categoria: "Ajuste",
+        contaCartao: "Conta",
+        origem: "recon",
+      },
+    ],
+  };
+
+  it("fica fora do gasto/receita do mês (competência), mas continua no saldo (caixa)", () => {
+    const semRecon = resumoDaConta("Conta", dados, cfg, "2026-07");
+    const comRecon = resumoDaConta("Conta", dadosComRecon, cfg, "2026-07");
+
+    // gastoMes/receitasMes/despesasMes ignoram o ajuste de reconciliação,
+    // igual ao resto do app (despesasNosTotais/receitasNosTotais).
+    expect(comRecon.gastoMes).toBe(semRecon.gastoMes);
+    expect(comRecon.despesasMes).toBe(semRecon.despesasMes);
+    expect(comRecon.receitasMes).toBe(semRecon.receitasMes);
+
+    // saldoAtual é caixa: o ajuste tem de entrar, é para isso que existe.
+    expect(comRecon.saldoAtual).toBe(semRecon.saldoAtual + 500000 - 300000);
+  });
+});
+
 describe("saldo por caixa com fixa em débito automático", () => {
   // Fixa de renda que sai sozinha da conta desde março, sem ninguém marcar
   // `pagoPorMes` — é a promessa do débito automático.
