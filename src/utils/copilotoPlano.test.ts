@@ -288,6 +288,36 @@ describe("gerarPlano", () => {
     expect(plano.passos.some((p) => p.titulo.includes("Viagem"))).toBe(true);
   });
 
+  test("dois fundos urgentes não somam ações acima da margem disponível", () => {
+    // Cada fundo pede 25.000/mês e cabe, sozinho, nos 40.000 de folga — mas
+    // os dois juntos pedem 50.000, mais do que existe. Sem descontar a
+    // margem já usada pelo fundo mais urgente, o segundo também virava ação
+    // executável, sugerindo separar dinheiro que já tinha sido prometido ao
+    // primeiro.
+    const s = buildFinanceSnapshot(
+      ctx({
+        cfg: cfgCom({ saldosIniciais: { Conta: 40000 } }),
+        fundos: [
+          fundo({ prazo: "2026-12-31" }), // mesesRestantes 6, porMes 25.000
+          fundo({ id: "f2", nome: "Carro", alvo: 100000, atual: 0, prazo: "2026-10-31" }), // mesesRestantes 4, porMes 25.000
+        ],
+      }),
+    );
+    const plano = gerarPlano(s);
+
+    const somaAcoes = plano.passos
+      .filter((p) => p.acao)
+      .reduce((total, p) => total + p.acao!.valor, 0);
+    expect(somaAcoes).toBeLessThanOrEqual(Math.max(0, plano.margem));
+
+    // O mais urgente (Carro, prazo mais próximo) ganha a ação; o outro fica
+    // sem, porque a margem já foi toda reservada.
+    const passoCarro = plano.passos.find((p) => p.id === "fundo-f2");
+    const passoViagem = plano.passos.find((p) => p.id === "fundo-f1");
+    expect(passoCarro?.acao).toBeDefined();
+    expect(passoViagem?.acao).toBeUndefined();
+  });
+
   test("com folga suficiente, a contribuição vira ação executável", () => {
     const s = buildFinanceSnapshot(
       ctx({

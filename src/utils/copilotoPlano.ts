@@ -327,11 +327,21 @@ export function gerarPlano(snapshot: FinanceSnapshot): Plano {
     .filter((f) => !f.concluido && f.porMes !== null && f.porMes > 0)
     .sort((a, b) => (a.mesesRestantes ?? 0) - (b.mesesRestantes ?? 0));
 
+  // Bug corrigido: cada fundo comparava o seu `valor` sugerido contra a
+  // MESMA `margem` total, sem descontar o que os fundos anteriores (mais
+  // urgentes, já que `fundosComPrazo` vem ordenado por `mesesRestantes`) já
+  // tinham reservado dela. Com dois fundos que cabiam cada um sozinho na
+  // margem mas não os dois juntos, o plano marcava as DUAS contribuições
+  // como ação executável — exactamente o "sugerir separar dinheiro que não
+  // existe" que o comentário abaixo diz que isto não pode fazer. Agora a
+  // margem é consumida à medida que cada fundo (o mais urgente primeiro)
+  // ganha uma ação.
+  let margemRestante = Math.max(0, margem);
   for (const f of fundosComPrazo.slice(0, 2)) {
     const valor = f.porMes!;
     // Só sugere mexer em dinheiro que existe. Sugerir separar o que não há
     // seria a app a dar um conselho que ela própria sabe ser impossível.
-    const cabeNaMargem = valor <= Math.max(0, margem);
+    const cabeNaMargem = valor <= margemRestante;
     passos.push({
       id: `fundo-${f.fundo.id}`,
       titulo: cabeNaMargem
@@ -345,12 +355,13 @@ export function gerarPlano(snapshot: FinanceSnapshot): Plano {
         { rotulo: "Já guardado", valor: f.fundo.atual },
         { rotulo: "Alvo", valor: f.fundo.alvo },
         { rotulo: "Sugerido este mês", valor },
-        { rotulo: "Folga disponível", valor: Math.max(0, margem) },
+        { rotulo: "Folga disponível", valor: margemRestante },
       ],
       acao: cabeNaMargem
         ? { tipo: "contribuirFundo", fundoId: f.fundo.id, nomeFundo: f.fundo.nome, valor }
         : undefined,
     });
+    if (cabeNaMargem) margemRestante -= valor;
   }
 
   // 5. Nada a apontar é uma resposta legítima — melhor do que inventar um
