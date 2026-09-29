@@ -52,6 +52,16 @@ describe("parseExtratoCsv", () => {
     expect(parseExtratoCsv("Data;Descrição;Valor")).toEqual([]);
   });
 
+  // Sem `;` nem `,` na linha (ex.: colado do Excel/Sheets, que usa tab como
+  // separador de clipboard), o delimitador tem de continuar tab — a conta
+  // `pontoVirgula >= virgula` com os dois em 0 promovia `;` por engano.
+  test("delimitador tab puro (colado do Excel, sem ; nem ,)", () => {
+    const csv = ["Data\tDescrição\tValor", "10/07/2026\tMercado\t-45,90"].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0]).toEqual({ data: "2026-07-10", descricao: "Mercado", valor: -4590 });
+  });
+
   // Extrato "consolidado" da Revolut: dezenas de linhas de metadados e saldos
   // antes do cabeçalho real da tabela de transações, coluna de valor chamada
   // "Dinheiro a entrar/sair" em vez de "Valor" — nenhum dos dois batia antes.

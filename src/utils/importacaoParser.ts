@@ -108,7 +108,7 @@ function detectarDelim(linha: string): string {
   let delim = "\t";
   const pontoVirgula = (linha.match(/;/g) || []).length;
   const virgula = (linha.match(/,/g) || []).length;
-  if (pontoVirgula >= virgula) delim = ";";
+  if (pontoVirgula > 0 && pontoVirgula >= virgula) delim = ";";
   else if (virgula > 1) delim = ",";
   return delim;
 }
