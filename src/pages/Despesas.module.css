@@ -223,6 +223,11 @@
   padding-bottom: 4px;
 }
 
+.detalheCartaoParcela {
+  color: var(--mut);
+  font-size: var(--fs-label);
+}
+
 .excluir {
   color: var(--red);
   font-size: var(--fs-body);

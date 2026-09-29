@@ -8,7 +8,7 @@
 // comportamento que ninguém vê a não ser que navegue por teclado.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DespesaCorrente, DespesaFixa } from "../types";
@@ -20,8 +20,10 @@ vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 const removerDespesa = vi.fn(async () => {});
 const alternarPagoDespesaFixa = vi.fn(async () => {});
 const atualizarDespesaFixa = vi.fn(async () => {});
+const atualizarDespesa = vi.fn(async () => {});
 vi.mock("../services/lancamentosService", () => ({
   alternarPagoDespesaFixa: (...a: unknown[]) => alternarPagoDespesaFixa(...(a as [])),
+  atualizarDespesa: (...a: unknown[]) => atualizarDespesa(...(a as [])),
   atualizarDespesaFixa: (...a: unknown[]) => atualizarDespesaFixa(...(a as [])),
   criarDespesaFixa: vi.fn(async () => {}),
   removerDespesa: (...a: unknown[]) => removerDespesa(...(a as [])),
@@ -180,6 +182,69 @@ describe("menu de ações da linha de fixas (02/09/2026)", () => {
       expect(atualizarDespesaFixa).toHaveBeenCalledWith("u1", {
         ...fixa({ pagoPorMes: { "2026-07": true, "2026-08": true } }),
         fim: mesAtual(),
+      }),
+    );
+  });
+});
+
+// Pedido do Gabriel (29/09/2026): pagar uma parcela pontualmente com um
+// cartão diferente do de sempre. Único campo que se abre para edição num
+// lançamento de parcela — valor/data/descrição continuam travados.
+describe("editar lançamento de parcela — trocar só o cartão", () => {
+  const pagamentoParcela = (extra: Partial<DespesaCorrente> = {}): DespesaCorrente =>
+    ({
+      id: "p1",
+      descricao: "Sofá",
+      valor: 5000,
+      data: "2026-08-03",
+      categoria: "Casa",
+      origem: "parc",
+      parcelaId: "par1",
+      parcelaMes: "2026-08",
+      nota: "3ª de 10",
+      contaCartao: "cartao-antigo",
+      ...extra,
+    }) as DespesaCorrente;
+
+  beforeEach(() => atualizarDespesa.mockClear());
+
+  test('"Editar" abre a caixa de trocar cartão, não o aviso antigo nem a folha de Despesas', async () => {
+    despesas = lista([pagamentoParcela()]);
+    renderDespesas();
+
+    await userEvent.click(screen.getByText("Sofá"));
+    await userEvent.click(await screen.findByRole("button", { name: "Editar" }));
+
+    const caixa = screen.getByRole("dialog", { name: "Cartão deste pagamento" });
+    expect(within(caixa).getByText(/3ª de 10/)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Editar lançamento" })).not.toBeInTheDocument();
+  });
+
+  test("salvar sem mexer preserva o resto do lançamento intacto", async () => {
+    despesas = lista([pagamentoParcela()]);
+    renderDespesas();
+
+    await userEvent.click(screen.getByText("Sofá"));
+    await userEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(atualizarDespesa).toHaveBeenCalledWith("u1", pagamentoParcela()));
+  });
+
+  test("trocar pra Sem cartão grava contaCartao vazio, sem tocar em parcelaId/parcelaMes", async () => {
+    despesas = lista([pagamentoParcela()]);
+    renderDespesas();
+
+    await userEvent.click(screen.getByText("Sofá"));
+    await userEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Cartão/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Sem cartão" }));
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() =>
+      expect(atualizarDespesa).toHaveBeenCalledWith("u1", {
+        ...pagamentoParcela(),
+        contaCartao: undefined,
       }),
     );
   });

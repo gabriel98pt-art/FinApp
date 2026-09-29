@@ -17,6 +17,7 @@ import { compararPorOrdem, type Ordem } from "../utils/ordem";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
   alternarPagoDespesaFixa,
+  atualizarDespesa,
   atualizarDespesaFixa,
   criarDespesaFixa,
   removerDespesa,
@@ -87,6 +88,11 @@ export default function Despesas() {
   const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
+
+  // Caixa "Cartão deste pagamento" — a única edição permitida num lançamento
+  // de parcela (ver `editar` abaixo).
+  const [cartaoParcelaId, setCartaoParcelaId] = useState<Id | null>(null);
+  const [cartaoParcelaValor, setCartaoParcelaValor] = useState("");
 
   // Chegar de Transações "Abrir em Despesas → Fixas" (item 4.6) já abre na
   // aba certa — a rota manda o destino pelo state da navegação, porque a aba
@@ -214,11 +220,32 @@ export default function Despesas() {
       mostrarToast("Pagamento de fatura — gerencie na tela Cartões.");
       return;
     }
+    // Valor, data e descrição de um pagamento de parcela ficam travados (têm
+    // de bater com o cronograma da parcela), mas o cartão é só de onde saiu o
+    // dinheiro NAQUELE mês — não tem risco de desalinhar nada, então é o único
+    // campo que se abre aqui, em vez de mandar tudo pra tela Parcelas.
     if (item?.origem === "parc") {
-      mostrarToast("Lançamento de parcela — gerencie na tela Parcelas.");
+      setCartaoParcelaId(id);
+      setCartaoParcelaValor(item.contaCartao ?? "");
       return;
     }
     abrirRegistro("despesa", id);
+  }
+
+  const despesaCartaoParcela = itens.find((d) => d.id === cartaoParcelaId);
+
+  async function salvarCartaoParcela(e: FormEvent) {
+    e.preventDefault();
+    if (!uid || !despesaCartaoParcela) return;
+    await agir(
+      () =>
+        atualizarDespesa(uid, {
+          ...despesaCartaoParcela,
+          contaCartao: cartaoParcelaValor || undefined,
+        }),
+      "Cartão atualizado",
+    );
+    setCartaoParcelaId(null);
   }
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único, ao lado de
@@ -748,6 +775,37 @@ export default function Despesas() {
             </button>
           )}
         </form>
+      </BottomSheet>
+
+      {/* Único campo editável de um pagamento de parcela: o cartão. Valor,
+          data e descrição continuam travados (ver `editar` acima) — mudar
+          isso aqui não desalinha o cronograma da parcela, só diz de onde
+          saiu o dinheiro naquele mês específico. */}
+      <BottomSheet
+        aberta={cartaoParcelaId !== null}
+        aoFechar={() => setCartaoParcelaId(null)}
+        titulo="Cartão deste pagamento"
+      >
+        {despesaCartaoParcela && (
+          <form className={styles.formFolha} onSubmit={salvarCartaoParcela}>
+            <p className={styles.detalheCartaoParcela}>
+              {despesaCartaoParcela.descricao}
+              {despesaCartaoParcela.nota ? ` · ${despesaCartaoParcela.nota}` : ""} ·{" "}
+              {formatMoney(despesaCartaoParcela.valor, moeda)}
+            </p>
+            <Seletor
+              rotulo="Cartão"
+              valor={cartaoParcelaValor}
+              opcoes={cfg.contasCartoes}
+              aoMudar={setCartaoParcelaValor}
+              rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
+              rotuloVazio="Sem cartão"
+            />
+            <Botao type="submit" variante="submeter">
+              Salvar
+            </Botao>
+          </form>
+        )}
       </BottomSheet>
     </Pagina>
   );

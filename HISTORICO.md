@@ -5,9 +5,18 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 05/09/2026 — 511 mudanças registadas.
+Período coberto: 23/07/2026 a 29/09/2026 — 512 mudanças registadas.
 
 ---
+
+## 29/09/2026
+
+- Pagar uma parcela com um cartão diferente do habitual, só naquele mês,
+  agora dá para registar direto: em Despesas, tocar no lançamento da
+  parcela já paga e escolher "Editar" abre uma caixa só com o campo
+  Cartão (valor, data e descrição continuam travados, do jeito que já
+  eram). Antes, tocar em "Editar" nesses lançamentos só mostrava um aviso
+  mandando ir à tela Parcelas, sem opção nenhuma ali dentro.
 
 ## 05/09/2026
 
