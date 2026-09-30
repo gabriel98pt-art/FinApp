@@ -11,6 +11,7 @@ import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import type { DadosVeiculo, DespesaFixa } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { KPIS_POR_PAGINA } from "../constants/kpis";
 import { lista } from "../testes/dobras";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
@@ -99,6 +100,22 @@ describe("Veiculo", () => {
   test("tem as cinco abas", () => {
     renderVeiculo();
     expect(screen.getAllByRole("tab")).toHaveLength(5);
+  });
+
+  test("os quatro cartões, com os rótulos que Definições espera", () => {
+    // Mesma amarra de Despesas/Receitas/Transações: a escolha de "KPIs no
+    // mobile" casa por texto com o `rotulo` do KpiCard, e divergir daqui não
+    // rebenta nada — só faz a página cair calada nos dois primeiros cartões
+    // sempre que a escolha salva envolver o rótulo que diverge (ver
+    // constants/kpis.ts e components/Pagina.tsx). "Abastecimentos" e
+    // "Despesas" também nomeiam abas, por isso usa-se getAllByText.
+    renderVeiculo();
+
+    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "veiculo")!.rotulos;
+    expect(esperados).toHaveLength(4);
+    for (const rotulo of esperados) {
+      expect(screen.getAllByText(rotulo).length).toBeGreaterThan(0);
+    }
   });
 
   test("cada aba vazia mostra o EstadoVazio dela, com o seu próprio texto", async () => {

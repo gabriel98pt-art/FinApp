@@ -61,7 +61,7 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
   {
     id: "veiculo",
     titulo: "Veículo",
-    rotulos: ["Gasto do mês", "Carregamentos", "Despesas", "Km no mês"],
+    rotulos: ["Gasto do mês", "Abastecimentos", "Despesas", "Km no mês"],
   },
   {
     id: "parcelas",
