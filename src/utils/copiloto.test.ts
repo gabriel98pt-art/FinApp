@@ -600,6 +600,53 @@ describe("copiloto: cartões", () => {
     expect(r).toMatch(/não há despesas/i);
   });
 
+  // Bug corrigido: uma fixa do VEÍCULO paga à mão (alternarPagoFixaVeiculo,
+  // services/veiculoService.ts) grava um lançamento-espelho em
+  // veiculo/despesas, com a mesma conta/cartão, só para o extrato saber a
+  // data real do pagamento (mesmo papel do espelho 'fixa' das despesas
+  // fixas gerais). `totalCartaoMes` já somava o valor da fixa pelo laço de
+  // despesasFixas E, sem filtrar o espelho, somava-o outra vez ao percorrer
+  // ctx.veiculo.despesas cru — uma fixa do veículo de 20,00 paga por cartão
+  // contava como 40,00 no total desse cartão.
+  test("cartão específico não duplica fixa do veículo paga (lançamento-espelho)", () => {
+    const fixaVeiculo: DespesaFixa = {
+      id: "fv1",
+      descricao: "Seguro",
+      valor: 2000,
+      categoria: "Seguro",
+      contaCartao: "AB Gold (C)",
+      autoDebit: false,
+      diaVencimento: 5,
+      pagoPorMes: { "2026-07": true },
+    };
+    const r = responderPergunta(
+      "quanto gastei no cartao AB Gold este mes",
+      ctx({
+        cfg,
+        veiculo: {
+          cargas: [],
+          despesas: [
+            {
+              id: "mirror1",
+              descricao: "Seguro",
+              valor: 2000,
+              data: "2026-07-05",
+              categoria: "Seguro",
+              contaCartao: "AB Gold (C)",
+              origem: "fixa",
+              fixaId: "fv1",
+              fixaMes: "2026-07",
+            },
+          ],
+          despesasFixas: [fixaVeiculo],
+          quilometragem: [],
+        },
+      }),
+    );
+    expect(r).toContain("20,00");
+    expect(r).not.toContain("40,00");
+  });
+
   // Bug: mesma classe do já corrigido para "cartão específico" acima, só que
   // na variante mais rara em que TODOS os cartões ficam com total negativo ou
   // zero no mês (reembolso maior que a despesa em cada um deles) — o maior

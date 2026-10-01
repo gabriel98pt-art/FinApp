@@ -24,7 +24,15 @@ import type {
   Transferencia,
   YearMonth,
 } from "../types";
-import { doMes, mesDe, mesesRecentes, rotuloMes, somarMeses, totalDoMes } from "./calculos";
+import {
+  despesasNosTotais,
+  doMes,
+  mesDe,
+  mesesRecentes,
+  rotuloMes,
+  somarMeses,
+  totalDoMes,
+} from "./calculos";
 import { proximosEventos } from "./calendario";
 import {
   calcularFatura,
@@ -517,7 +525,15 @@ function totalCartaoMes(ctx: ContextoCopiloto, cartao: string, ym: YearMonth): C
   total += ctx.veiculo.cargas
     .filter((c) => c.contaCartao === cartao && mesDe(c.data) === ym)
     .reduce((s, c) => s + c.custo, 0);
-  total += ctx.veiculo.despesas
+  // despesasNosTotais, não ctx.veiculo.despesas cru: uma fixa do veículo paga
+  // à mão (alternarPagoFixaVeiculo, services/veiculoService.ts) grava um
+  // lançamento-espelho em veiculo/despesas com a MESMA conta/cartão (origem
+  // 'fixa') só para o extrato saber a data real — o valor dela já entra pelo
+  // laço de despesasFixas logo acima. Sem este filtro (o mesmo que
+  // totalDespesasVeiculoMes, utils/veiculo.ts, já aplica), o espelho somava
+  // outra vez aqui e uma fixa do veículo paga por cartão nesse mês contava em
+  // dobro no total desse cartão.
+  total += despesasNosTotais(ctx.veiculo.despesas)
     .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ym)
     .reduce((s, d) => s + d.valor, 0);
 
