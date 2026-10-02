@@ -506,8 +506,22 @@ const nomesDosCartoes = (ctx: ContextoCopiloto): string[] =>
 
 function totalCartaoMes(ctx: ContextoCopiloto, cartao: string, ym: YearMonth): Cents {
   const hoje = hojeDoContexto(ctx);
+  // Fora 'fixa' e 'parc': os lançamentos-espelho que `alternarPagoDespesaFixa`
+  // (services/lancamentosService.ts) e `pagarMesParcela`/`quitarParcelaDeUmaVez`
+  // (services/parcelasService.ts) gravam em despesasCorrentes com a MESMA
+  // conta/cartão, só para o extrato saber a data real do pagamento — o valor
+  // de cada um já entra pelos laços de despesasFixas/parcelas logo abaixo
+  // (mesma razão do filtro já aplicado a ctx.veiculo.despesas mais adiante).
+  // Sem isto, uma fixa geral ou uma parcela paga à mão por este cartão
+  // contava em dobro no total dele.
   let total = ctx.despesas
-    .filter((d) => d.contaCartao === cartao && mesDe(d.data) === ym)
+    .filter(
+      (d) =>
+        d.contaCartao === cartao &&
+        mesDe(d.data) === ym &&
+        d.origem !== "fixa" &&
+        d.origem !== "parc",
+    )
     .reduce((s, d) => s + d.valor, 0);
 
   for (const f of [...ctx.despesasFixas, ...ctx.veiculo.despesasFixas]) {

@@ -647,6 +647,81 @@ describe("copiloto: cartões", () => {
     expect(r).not.toContain("40,00");
   });
 
+  // Mesma classe de bug do teste acima, mas na despesa fixa GERAL (não do
+  // veículo): `alternarPagoDespesaFixa` (services/lancamentosService.ts) grava
+  // o mesmo tipo de lançamento-espelho (origem 'fixa') em despesasCorrentes
+  // quando a fixa é marcada paga à mão — e `totalCartaoMes` soma o laço de
+  // despesasFixas E, sem filtrar esse espelho, soma-o outra vez ao percorrer
+  // ctx.despesas cru.
+  test("cartão específico não duplica fixa geral paga (lançamento-espelho)", () => {
+    const fixa: DespesaFixa = {
+      id: "f1",
+      descricao: "Seguro Saúde",
+      valor: 2000,
+      categoria: "Saúde",
+      contaCartao: "AB Gold (C)",
+      autoDebit: false,
+      diaVencimento: 5,
+      pagoPorMes: { "2026-07": true },
+    };
+    const r = responderPergunta(
+      "quanto gastei no cartao AB Gold este mes",
+      ctx({
+        cfg,
+        despesasFixas: [fixa],
+        despesas: [
+          despesa({
+            descricao: "Seguro Saúde",
+            valor: 2000,
+            contaCartao: "AB Gold (C)",
+            origem: "fixa",
+            fixaId: "f1",
+            fixaMes: "2026-07",
+          }),
+        ],
+      }),
+    );
+    expect(r).toContain("20,00");
+    expect(r).not.toContain("40,00");
+  });
+
+  // Mesma classe ainda, agora na PARCELA paga à mão (não em débito
+  // automático): `pagarMesParcela` (services/parcelasService.ts) grava o
+  // lançamento-espelho (origem 'parc') com o `contaCartao` do cartão pago —
+  // e `totalCartaoMes` soma o laço de parcelas (`valorDaParcela`) E, sem
+  // filtrar o espelho, soma-o outra vez ao percorrer ctx.despesas cru.
+  test("cartão específico não duplica parcela paga à mão (lançamento-espelho)", () => {
+    const parcelaPaga: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 15000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: false,
+      pagoPorMes: { "2026-07": true },
+    };
+    const r = responderPergunta(
+      "quanto gastei no cartao AB Gold este mes",
+      ctx({
+        cfg,
+        parcelas: [parcelaPaga],
+        despesas: [
+          despesa({
+            descricao: "TV Nova",
+            valor: 5000,
+            contaCartao: "AB Gold (C)",
+            origem: "parc",
+            parcelaId: "p1",
+            parcelaMes: "2026-07",
+          }),
+        ],
+      }),
+    );
+    expect(r).toContain("50,00");
+    expect(r).not.toContain("100,00");
+  });
+
   // Bug: mesma classe do já corrigido para "cartão específico" acima, só que
   // na variante mais rara em que TODOS os cartões ficam com total negativo ou
   // zero no mês (reembolso maior que a despesa em cada um deles) — o maior
