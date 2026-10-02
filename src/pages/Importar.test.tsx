@@ -67,6 +67,9 @@ vi.mock("../stores/authStore", () => ({
 }));
 vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => true) }));
 
+const mostrarToast = vi.hoisted(() => vi.fn());
+vi.mock("../stores/toastStore", () => ({ mostrarToast }));
+
 const Importar = (await import("./Importar")).default;
 
 /** Constrói a linha com a própria `analisarLinha` em vez de a inventar à mão.
@@ -94,6 +97,8 @@ beforeEach(() => {
   importadoEm = null;
   setLinhas.mockClear();
   setImportadoEm.mockClear();
+  setTexto.mockClear();
+  mostrarToast.mockClear();
   extrairExtratoPdf.mockReset();
 });
 
@@ -208,6 +213,57 @@ describe("Importar", () => {
 
       expect(screen.getByRole("tablist")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Confirmar importação/ })).toBeInTheDocument();
+    });
+  });
+
+  // O ⌘V/onPaste da caixa só serve a quem tem teclado. No iPhone não há ⌘V, e
+  // o menu "Colar" do iOS nem aparece quando o que está copiado é um ficheiro:
+  // o botão abaixo é o único caminho que resta nesses casos.
+  describe("botão Colar", () => {
+    const comClipboard = (impl: Partial<Clipboard>) => {
+      Object.defineProperty(navigator, "clipboard", {
+        value: impl,
+        configurable: true,
+        writable: true,
+      });
+    };
+
+    test("texto copiado entra na caixa pelo botão", async () => {
+      linhas = null;
+      comClipboard({ readText: vi.fn(async () => "10/07/2026;Mercado;-45,90") });
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: /Colar/ }));
+
+      await waitFor(() => expect(setTexto).toHaveBeenCalledWith("10/07/2026;Mercado;-45,90"));
+    });
+
+    test("área de transferência sem texto (PDF copiado) aponta para Carregar arquivo", async () => {
+      linhas = null;
+      comClipboard({ readText: vi.fn(async () => "") });
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: /Colar/ }));
+
+      await waitFor(() => expect(mostrarToast).toHaveBeenCalledWith(expect.stringMatching(/PDF/)));
+      expect(setTexto).not.toHaveBeenCalled();
+    });
+
+    test("permissão negada não deixa a tela sem explicação", async () => {
+      linhas = null;
+      comClipboard({
+        readText: vi.fn(async () => {
+          throw new Error("NotAllowedError");
+        }),
+      });
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: /Colar/ }));
+
+      await waitFor(() =>
+        expect(mostrarToast).toHaveBeenCalledWith(expect.stringMatching(/Carregar arquivo/)),
+      );
+      expect(setTexto).not.toHaveBeenCalled();
     });
   });
 });

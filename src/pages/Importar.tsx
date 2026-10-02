@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Upload } from "lucide-react";
+import { ClipboardPaste, Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
 import Seletor from "../components/Seletor";
 import BottomSheet from "../components/BottomSheet";
@@ -344,6 +344,33 @@ export default function Importar() {
     processarArquivo(arquivo);
   }
 
+  /** Botão "Colar", que existe por causa do iPhone. O ⌘V/onPaste acima só
+   *  funciona com teclado: no telemóvel não há ⌘V, e o menu "Colar" do iOS só
+   *  aparece se o que está copiado for TEXTO — quem copiou o PDF do extrato
+   *  toca na caixa e não lhe aparece opção nenhuma. Este botão lê a área de
+   *  transferência por API, que é o único caminho que o iOS dá a uma página
+   *  web (mostra o seu próprio pedido de permissão ao primeiro toque). */
+  async function colarDoClipboard() {
+    if (!navigator.clipboard?.readText) {
+      mostrarToast("Este navegador não deixa colar por botão — usa Carregar arquivo.");
+      return;
+    }
+    try {
+      const lido = await navigator.clipboard.readText();
+      if (!lido.trim()) {
+        // Caso típico no iPhone: o que está copiado é o ficheiro em si (PDF),
+        // não texto. A área de transferência existe, mas vem vazia de texto.
+        mostrarToast("Nada de texto copiado. Se for um PDF, usa Carregar arquivo.");
+        return;
+      }
+      setTexto(lido);
+      mostrarToast("Texto colado — confere e toca em Analisar.");
+    } catch {
+      // Permissão negada, ou fora de HTTPS.
+      mostrarToast("Não deu para ler o que está copiado — usa Carregar arquivo.");
+    }
+  }
+
   function atualizarLinha(id: number, mudancas: Partial<LinhaAnalisada>) {
     setLinhas((atual) => atual?.map((l) => (l.id === id ? { ...l, ...mudancas } : l)) ?? null);
   }
@@ -495,8 +522,9 @@ export default function Importar() {
           </p>
           <p id="importar-entrada-sub" className={styles.entradaSub}>
             PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
-            descrição e valor — exportado do banco ou colado direto de uma folha de cálculo. O
-            ficheiro também pode ser arrastado para aqui, ou colado com ⌘V.
+            descrição e valor — exportado do banco ou colado direto de uma folha de cálculo. Um PDF
+            abre-se pelo botão <strong>Carregar arquivo</strong> (no computador também se arrasta
+            para aqui); texto copiado entra pelo botão <strong>Colar</strong>.
           </p>
           <textarea
             className={styles.textarea}
@@ -515,6 +543,9 @@ export default function Importar() {
             >
               Analisar
             </button>
+            <button className={styles.botao} onClick={colarDoClipboard} disabled={lendoPdf}>
+              <ClipboardPaste size={15} aria-hidden /> Colar
+            </button>
             <button
               className={styles.botao}
               onClick={() => arquivoRef.current?.click()}
@@ -525,7 +556,10 @@ export default function Importar() {
             <input
               ref={arquivoRef}
               type="file"
-              accept=".csv,.txt,.pdf"
+              // Extensão sozinha não basta no iOS: o seletor de Ficheiros
+              // cinzenta o CSV e o PDF e não há nada para escolher. Os tipos
+              // MIME ao lado são o que o iPhone realmente lê.
+              accept=".csv,.txt,.pdf,text/csv,text/plain,application/pdf"
               className={styles.arquivoOculto}
               onChange={aoCarregarArquivo}
             />

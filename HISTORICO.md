@@ -5,9 +5,23 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 29/09/2026 — 512 mudanças registadas.
+Período coberto: 23/07/2026 a 02/10/2026 — 515 mudanças registadas.
 
 ---
+
+## 02/10/2026
+
+- Não dava para colar o extrato no iPhone. Tocar na caixa de texto não
+  oferecia "Colar": no telemóvel não existe ⌘V (que era o único jeito que a
+  tela aceitava), e quando o que estava copiado era o PDF do extrato, o
+  próprio iPhone nem mostra a opção de colar. A tela ganhou um botão
+  "Colar" ao lado de "Carregar arquivo", que lê o que está copiado e põe na
+  caixa — se não for texto, avisa para usar o botão de carregar o ficheiro.
+- Pelo mesmo motivo, a explicação da tela deixou de falar em ⌘V (que só
+  existe no computador) e passa a dizer qual botão serve para quê.
+- Escolher o PDF ou o CSV pelo botão "Carregar arquivo" também podia
+  aparecer a cinzento no iPhone, sem deixar escolher nada — o app dizia que
+  tipos aceitava de uma forma que o iPhone não entende. Corrigido.
 
 ## 29/09/2026
 
