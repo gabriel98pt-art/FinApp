@@ -73,6 +73,21 @@ describe("interpretarReferencia", () => {
     expect(interpretarReferencia("saldo de marco de 2025", "2026-07").ym).toBe("2025-03");
   });
 
+  test("'dez' e 'mar' como palavra comum não viram mês — só por extenso", () => {
+    // "dez" é o número 10, não uma abreviatura de dezembro aqui — sem isto,
+    // esta pergunta sobre uma janela de dias caía em dezembro do ano passado.
+    expect(interpretarReferencia("quanto gastei nos ultimos dez dias", "2026-07").ym).toBe(
+      "2026-07",
+    );
+    // "mar" é o mar, não março.
+    expect(interpretarReferencia("quanto gastei no restaurante perto do mar", "2026-07").ym).toBe(
+      "2026-07",
+    );
+    // Por extenso continuam a funcionar como qualquer outro mês.
+    expect(interpretarReferencia("quanto gastei em dezembro", "2026-07").ym).toBe("2025-12");
+    expect(interpretarReferencia("quanto gastei em marco", "2026-07").ym).toBe("2026-03");
+  });
+
   test("nome de mês com 'ano passado' usa o ano anterior, não o corrente", () => {
     // Sem o ano ficar explícito, "julho" sozinho em julho/2026 seria o mês
     // atual — é o "ano passado" que tem de virar o ano para trás.

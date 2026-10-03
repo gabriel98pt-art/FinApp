@@ -162,9 +162,20 @@ const MESES_COMPLETOS = [
   "dezembro",
 ];
 
+/** Abreviaturas que colidem com uma palavra comum do português e por isso NÃO
+ *  contam como mês: "mar" (o mar, não março) e "dez" (dez = 10, não
+ *  dezembro). Bug corrigido: "quanto gastei nos últimos dez dias?" — uma
+ *  pergunta sobre uma JANELA DE DIAS, sem nenhuma intenção de falar de mês —
+ *  batia em `indiceDoMes("dez")` e a pergunta era respondida sobre dezembro
+ *  do ano passado, calado, sem o "dez" ali ser mês nenhum. "mar" tem o mesmo
+ *  problema ("...perto do mar"). As outras abreviaturas (jan, fev, abr...)
+ *  não têm esse homônimo comum em português e continuam a valer. Quem quiser
+ *  mesmo março ou dezembro continua a poder escrever o nome completo. */
+const ABREV_AMBIGUAS = new Set(["mar", "dez"]);
+
 function indiceDoMes(palavra: string): number {
   let i = MESES_ABREV.indexOf(palavra);
-  if (i > -1) return i;
+  if (i > -1 && !ABREV_AMBIGUAS.has(palavra)) return i;
   i = MESES_COMPLETOS.indexOf(palavra);
   return i;
 }
