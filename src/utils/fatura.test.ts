@@ -278,6 +278,65 @@ describe("calcularFaturaAutomatica (seção 4.1)", () => {
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500 - 300);
   });
 
+  // Bug corrigido: uma despesa fixa vinculada ao cartão (sem autoDebit) já
+  // entra sempre por `fixas`/`fixasVeiculo`, pague-se à mão ou não — é por
+  // isso que o valor dela conta mesmo sem marcação nenhuma. Marcar essa fixa
+  // como paga grava um lançamento-espelho (origem 'fixa') com a MESMA
+  // conta/cartão, só para o extrato saber a data real do pagamento; sem
+  // excluir esse espelho aqui, ele somava outra vez e a fatura saía em dobro
+  // — mesma classe de bug já corrigida no Copiloto (utils/copiloto.ts,
+  // totalCartaoMes), que faltava nesta função, a que a tela de Cartões usa
+  // de verdade.
+  test("fixa geral paga à mão no ciclo não duplica no devido (lançamento-espelho)", () => {
+    const fixaGeral: DespesaFixa = {
+      id: "fg1",
+      descricao: "Netflix",
+      valor: 1500,
+      categoria: "Assinaturas",
+      contaCartao: CARTAO,
+      pagoPorMes: { "2026-06": true },
+    };
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasFixas: [fixaGeral],
+      despesasCorrentes: [
+        dc({
+          valor: 1500,
+          origem: "fixa",
+          descricao: "Netflix",
+          fixaId: "fg1",
+          fixaMes: "2026-06",
+        }),
+      ],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(1500);
+  });
+
+  test("fixa do veículo paga à mão no ciclo não duplica no devido (lançamento-espelho)", () => {
+    const fixaVeiculo: DespesaFixa = {
+      id: "fv1",
+      descricao: "Seguro",
+      valor: 4500,
+      categoria: "Veículo",
+      contaCartao: CARTAO,
+      pagoPorMes: { "2026-06": true },
+    };
+    const dados: DadosFatura = {
+      ...vazio,
+      despesasFixasVeiculo: [fixaVeiculo],
+      despesasVeiculo: [
+        dv({
+          valor: 4500,
+          origem: "fixa",
+          categoria: "Veículo",
+          fixaId: "fv1",
+          fixaMes: "2026-06",
+        }),
+      ],
+    };
+    expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(4500);
+  });
+
   test("carga elétrica paga no cartão entra no devido do ciclo", () => {
     const dados: DadosFatura = { ...vazio, cargas: [carga({ custo: 2500 })] };
     expect(calcularFaturaAutomatica(CARTAO, "2026-07", dados)).toBe(2500);

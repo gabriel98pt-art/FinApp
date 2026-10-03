@@ -174,12 +174,25 @@ function debitoAutomaticoParcelas(cartao: string, ciclo: YearMonth, parcelas: Pa
 
 /** Valor devido automático da fatura (seção 4.1): fixas + fixas do veículo +
  *  correntes do cartão no ciclo (EXCLUINDO origem 'fat' — o pagamento da
- *  própria fatura nunca conta — e 'recon', o ajuste de reconciliação
- *  bancária, que não é despesa real) + parcelas em débito automático +
- *  transferências de saída contra o cartão + cargas e despesas do veículo
- *  pagas nesse cartão no ciclo, MENOS os créditos lançados no cartão nesse
- *  ciclo (cashback, estornos — ver `receitas` em DadosFatura; também exclui
- *  'recon' pelo mesmo motivo). */
+ *  própria fatura nunca conta —, 'recon', o ajuste de reconciliação
+ *  bancária, que não é despesa real, e 'fixa') + parcelas em débito
+ *  automático + transferências de saída contra o cartão + cargas e despesas
+ *  do veículo pagas nesse cartão no ciclo, MENOS os créditos lançados no
+ *  cartão nesse ciclo (cashback, estornos — ver `receitas` em DadosFatura;
+ *  também exclui 'recon' pelo mesmo motivo).
+ *
+ *  Exclusão de 'fixa' (bug corrigido): uma despesa fixa (geral ou do
+ *  veículo) vinculada ao cartão mas SEM autoDebit entra sempre por `fixas`/
+ *  `fixasVeiculo` acima, pague-se à mão ou não — é o que faz o valor dela
+ *  contar mesmo sem marcação. Marcar essa fixa como paga
+ *  (`alternarPagoDespesaFixa`/`alternarPagoFixaVeiculo`) grava um
+ *  lançamento-espelho com a MESMA conta/cartão, só para o extrato saber a
+ *  data real do pagamento — sem esta exclusão, `correntes`/`veiculo` abaixo
+ *  somavam esse espelho outra vez, e a fatura exibida em Cartões (e o
+ *  vencimento do Calendário/sino) ficava em dobro do valor real sempre que
+ *  havia uma fixa dessas paga à mão no ciclo. Mesma classe de bug já
+ *  corrigida para o Copiloto em `totalCartaoMes` (utils/copiloto.ts);
+ *  faltava aqui, na função que a tela de Cartões usa de verdade. */
 export function calcularFaturaAutomatica(
   cartao: string,
   mesFatura: YearMonth,
@@ -202,7 +215,8 @@ export function calcularFaturaAutomatica(
         d.contaCartao === cartao &&
         mesDoCiclo(d.data, diaFechamento) === ciclo &&
         d.origem !== "fat" &&
-        d.origem !== "recon",
+        d.origem !== "recon" &&
+        d.origem !== "fixa",
     )
     .reduce((s, d) => s + d.valor, 0);
   const parcelas = debitoAutomaticoParcelas(cartao, ciclo, dados.parcelas);
@@ -213,7 +227,12 @@ export function calcularFaturaAutomatica(
     .filter((c) => c.contaCartao === cartao && mesDoCiclo(c.data, diaFechamento) === ciclo)
     .reduce((s, c) => s + c.custo, 0);
   const veiculo = (dados.despesasVeiculo ?? [])
-    .filter((d) => d.contaCartao === cartao && mesDoCiclo(d.data, diaFechamento) === ciclo)
+    .filter(
+      (d) =>
+        d.contaCartao === cartao &&
+        mesDoCiclo(d.data, diaFechamento) === ciclo &&
+        d.origem !== "fixa",
+    )
     .reduce((s, d) => s + d.valor, 0);
   // Créditos do ciclo, SUBTRAÍDOS. Um cashback ou o estorno de uma comissão
   // aparecem no extrato do cartão como crédito e a fatura do banco já vem

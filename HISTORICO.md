@@ -5,9 +5,22 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 02/10/2026 — 515 mudanças registadas.
+Período coberto: 23/07/2026 a 03/10/2026 — 516 mudanças registadas.
 
 ---
+
+## 03/10/2026
+
+- A fatura de um cartão de crédito mostrava o dobro do valor certo sempre
+  que havia uma despesa fixa (geral ou do veículo) ligada a esse cartão e
+  marcada como paga à mão no mês da fatura — ex. uma assinatura de 15€
+  aparecia como 30€ na tela Cartões, no vencimento do Calendário e no aviso
+  do sino. O valor da fixa já contava uma vez por estar ligada ao cartão;
+  marcar como "paga" criava um segundo registo (só para guardar a data real
+  do pagamento) que a conta da fatura somava de novo, sem querer. Esse
+  mesmo problema já tinha sido corrigido duas vezes esta semana, mas só na
+  resposta do Copiloto — faltava corrigir na conta de verdade, a que a tela
+  Cartões usa. Corrigido.
 
 ## 02/10/2026
 
