@@ -62,6 +62,21 @@ describe("parseExtratoCsv", () => {
     expect(linhas[0]).toEqual({ data: "2026-07-10", descricao: "Mercado", valor: -4590 });
   });
 
+  // "Data Valor" contém "valor" como substring — o mesmo layout que
+  // extrairExtratoPdf.ts já documenta pro ActivoBank (DATA LANÇ. / DATA
+  // VALOR / DESCRITIVO / DÉBITO ou CRÉDITO / SALDO). Sem excluir a coluna de
+  // data já achada, a busca pela coluna de VALOR achava "Data Valor" antes de
+  // chegar a "Valor", lia uma data em vez de um número e descartava o
+  // extrato inteiro (parseMoney de "11/07/2026" não é um valor válido).
+  test('não confunde a coluna "Valor" com "Data Valor"', () => {
+    const csv = [
+      "Data Movimento;Data Valor;Descritivo;Valor;Saldo",
+      "10/07/2026;11/07/2026;Mercado Continente;-45,90;1000,00",
+    ].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toEqual([{ data: "2026-07-10", descricao: "Mercado Continente", valor: -4590 }]);
+  });
+
   // Extrato "consolidado" da Revolut: dezenas de linhas de metadados e saldos
   // antes do cabeçalho real da tabela de transações, coluna de valor chamada
   // "Dinheiro a entrar/sair" em vez de "Valor" — nenhum dos dois batia antes.

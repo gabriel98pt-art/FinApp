@@ -34,10 +34,10 @@ function dividirLinhaCsv(linha: string, delim: string): string[] {
   return res;
 }
 
-function acharColuna(cabecalho: string[], candidatos: string[]): number {
+function acharColuna(cabecalho: string[], candidatos: string[], excluir?: Set<number>): number {
   for (const cand of candidatos) {
     for (let i = 0; i < cabecalho.length; i++) {
-      if (cabecalho[i].includes(cand)) return i;
+      if (!excluir?.has(i) && cabecalho[i].includes(cand)) return i;
     }
   }
   return -1;
@@ -131,7 +131,8 @@ function acharCabecalho(linha: string): CabecalhoAchado | null {
   const cabecalho = dividirLinhaCsv(linha, delim).map((h) =>
     h.toLowerCase().replace(/['"]/g, "").replace(/\s+/g, " ").trim(),
   );
-  const colData = acharColuna(cabecalho, ["data movimento", "data valor", "data", "date", "datum"]);
+  const candidatosData = ["data movimento", "data valor", "data", "date", "datum"];
+  const colData = acharColuna(cabecalho, candidatosData);
   const colDesc = acharColuna(cabecalho, [
     "descrição",
     "descricao",
@@ -142,20 +143,43 @@ function acharCabecalho(linha: string): CabecalhoAchado | null {
     "narrativa",
     "obs",
   ]);
-  const colValor = acharColuna(cabecalho, [
-    "valor",
-    "value",
-    "amount",
-    "montante",
-    "importância",
-    "importancia",
-    // Revolut chama a coluna de valor "Dinheiro a entrar/sair" (extrato
-    // consolidado), não "valor" — sem isto a coluna nunca era achada.
-    "dinheiro a entrar/sair",
-    "dinheiro a entrar",
-  ]);
-  const colDebito = acharColuna(cabecalho, ["débito", "debito", "debit", "saída", "saida"]);
-  const colCredito = acharColuna(cabecalho, ["crédito", "credito", "credit", "entrada"]);
+  // Exclui TODAS as colunas que batem como data, não só a escolhida como
+  // `colData`: "data valor" contém "valor" como substring, e um cabeçalho com
+  // "Data Movimento;Data Valor;Descritivo;Valor;Saldo" (o mesmo layout que
+  // extrairExtratoPdf.ts já documenta pro ActivoBank) escolhe "Data
+  // Movimento" como `colData`, mas "Data Valor" continuava disponível pra
+  // busca da coluna de VALOR — que não é número nenhum, então parseMoney
+  // falhava e nenhuma linha do extrato entrava.
+  const indicesData = new Set(
+    cabecalho.flatMap((h, i) => (candidatosData.some((c) => h.includes(c)) ? [i] : [])),
+  );
+  const excluirData = indicesData.size > 0 ? indicesData : undefined;
+  const colValor = acharColuna(
+    cabecalho,
+    [
+      "valor",
+      "value",
+      "amount",
+      "montante",
+      "importância",
+      "importancia",
+      // Revolut chama a coluna de valor "Dinheiro a entrar/sair" (extrato
+      // consolidado), não "valor" — sem isto a coluna nunca era achada.
+      "dinheiro a entrar/sair",
+      "dinheiro a entrar",
+    ],
+    excluirData,
+  );
+  const colDebito = acharColuna(
+    cabecalho,
+    ["débito", "debito", "debit", "saída", "saida"],
+    excluirData,
+  );
+  const colCredito = acharColuna(
+    cabecalho,
+    ["crédito", "credito", "credit", "entrada"],
+    excluirData,
+  );
   if (colData < 0 || (colValor < 0 && colDebito < 0 && colCredito < 0)) return null;
   return { delim, colData, colDesc, colValor, colDebito, colCredito };
 }
