@@ -36,6 +36,12 @@ vi.mock("firebase/database", () => ({
     delete dados[r.caminho];
   },
   update: async () => {},
+  runTransaction: async (r: { caminho: string }, atualizar: (atual: unknown) => unknown) => {
+    const novo = atualizar(dados[r.caminho] ?? null);
+    sets.push({ caminho: r.caminho, valor: novo });
+    dados[r.caminho] = novo;
+    return { committed: true, snapshot: { val: () => novo } };
+  },
   onValue: (
     _r: unknown,
     cb: (snap: { val: () => unknown }) => void,
@@ -136,6 +142,12 @@ describe("removerFundo", () => {
 describe("contribuirFundo", () => {
   const fundo: Fundo = { id: "f1", nome: "Viagem", atual: 5000, alvo: 200000 };
 
+  beforeEach(() => {
+    // A transação lê o valor atual do servidor, não `fundo.atual` do
+    // argumento — simula o que já está guardado em `dados`.
+    dados[`${RAIZ}/f1/atual`] = fundo.atual;
+  });
+
   test("SOMA ao que já lá estava, em vez de substituir", async () => {
     await s.contribuirFundo(UID, fundo, 2500);
     // 50,00 + 25,00 = 75,00. Se isto passasse a gravar só o valor novo, a
@@ -158,5 +170,15 @@ describe("contribuirFundo", () => {
   test("guarda um ponto no histórico antes de escrever", async () => {
     await s.contribuirFundo(UID, fundo, 100);
     expect(snapshot).toHaveBeenCalledTimes(1);
+  });
+
+  test("duas contribuições quase simultâneas, a partir do mesmo snapshot antigo, não se apagam", async () => {
+    // Duas abas (ou Planejamento e o Copiloto) carregam o mesmo `fundo` com
+    // `atual: 5000` e contribuem quase ao mesmo tempo. Com um `set` simples
+    // baseado nesse snapshot, a segunda escrita (5000 + 3000) apagaria a
+    // primeira (5000 + 2500). A transação soma sobre o valor já gravado no
+    // servidor, então as duas contribuições devem sobreviver.
+    await Promise.all([s.contribuirFundo(UID, fundo, 2500), s.contribuirFundo(UID, fundo, 3000)]);
+    expect(dados[`${RAIZ}/f1/atual`]).toBe(10500);
   });
 });
