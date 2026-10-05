@@ -632,6 +632,16 @@ function variar(ctx: ContextoCopiloto, frases: FrasesPorTom): string {
 const PALAVRAS_DE_META =
   /fundo|meta|falta|chegar|juntar|poupar|guardar|atingir|objetivo|objectivo|cofrinho/;
 
+/** Frases que revelam que a pergunta é sobre dinheiro que ENTROU, e não sobre
+ *  o que já se gastou — mesmo papel de `PALAVRAS_DE_META`, mas para desempatar
+ *  uma fonte de receita e uma categoria de despesa com o mesmo nome.
+ *
+ *  Existe porque os nomes de omissão colidem de verdade: `FONTES_RECEITA_PADRAO`
+ *  e `CATEGORIAS_DESPESA_PADRAO` (constants/categorias.ts) têm as duas "Outros"
+ *  — toda conta nova já nasce com essa colisão, não é preciso configurar nada à
+ *  mão para reproduzir. */
+const PALAVRAS_DE_RECEITA = /receita|recebi|entrou|ganhei|\bganho\b|salario|ordenado|rendimento/;
+
 export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // parcela específica (por nome)
   {
@@ -777,8 +787,25 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // receita por fonte específica
+  //
+  // Bug corrigido: uma fonte de receita e uma categoria de despesa podem
+  // chamar-se igual — "Outros" vem assim por omissão nas duas listas
+  // (FONTES_RECEITA_PADRAO e CATEGORIAS_DESPESA_PADRAO, constants/categorias.ts),
+  // então toda conta nova já nasce com a colisão. Sem este travão, "quanto
+  // gastei em outros este mês?" batia aqui (antes do intent de categoria, mais
+  // abaixo na lista) e respondia "recebeu € X de Outros" — uma pergunta
+  // claramente sobre despesa respondida como receita. Mesmo travão que já
+  // existe para fundo vs. categoria (ver `PALAVRAS_DE_META` acima): com uma
+  // palavra de receita na frase, ou sem nenhuma categoria de despesa com o
+  // mesmo nome, continua a ser este intent; caindo nos dois ao mesmo tempo
+  // (nome ambíguo, frase sem pista), a categoria de despesa decide.
   {
-    test: (q, ctx) => !!encontrarNaLista(q, ctx.cfg.fontesReceita, 5),
+    test: (q, ctx) => {
+      const fonte = encontrarNaLista(q, ctx.cfg.fontesReceita, 5);
+      if (!fonte) return false;
+      if (PALAVRAS_DE_RECEITA.test(q)) return true;
+      return !encontrarNaLista(q, ctx.cfg.categoriasDespesa);
+    },
     run: (q, ref, ctx) => {
       const fonte = encontrarNaLista(q, ctx.cfg.fontesReceita, 5)!;
       const total = ctx.receitas
@@ -1360,7 +1387,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   },
   // receitas genérico
   {
-    test: (q) => /receita|recebi|entrou|ganhei|\bganho\b|salario|ordenado|rendimento/.test(q),
+    test: (q) => PALAVRAS_DE_RECEITA.test(q),
     run: (_q, ref, ctx) => {
       const dinheiro = b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency));
       return variar(ctx, {

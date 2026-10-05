@@ -323,6 +323,52 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).not.toContain("total gasto com o veículo");
   });
 
+  // Bug corrigido: uma fonte de receita e uma categoria de despesa podem
+  // chamar-se igual — "Outros" vem assim por omissão nas duas listas
+  // (FONTES_RECEITA_PADRAO e CATEGORIAS_DESPESA_PADRAO), então toda conta
+  // nova já nasce com a colisão, sem precisar de nenhuma configuração à mão.
+  // O intent de "receita por fonte específica" vinha ANTES do de categoria na
+  // lista e não tinha nenhum travão: "quanto gastei em outros este mês?"
+  // batia nele mesmo assim e respondia "recebeu € X de Outros" — uma pergunta
+  // claramente sobre despesa (o verbo "gastei") respondida como receita.
+  test("fonte de receita e categoria de despesa com o mesmo nome ('Outros') não se confundem", () => {
+    const base = ctx({
+      despesas: [
+        { id: "d1", descricao: "Diversos", valor: 5000, data: "2026-07-05", categoria: "Outros" },
+      ],
+      receitas: [
+        { id: "r1", descricao: "Avulso", valor: 100, data: "2026-07-05", fonte: "Outros" },
+      ],
+    });
+
+    const sobreDespesa = responderPergunta("quanto gastei em outros esse mês?", base);
+    expect(sobreDespesa).toMatch(/gastou/i);
+    expect(sobreDespesa).toContain("50,00");
+
+    const sobreReceita = responderPergunta("quanto recebi de outros esse mês?", base);
+    expect(sobreReceita).toMatch(/recebeu/i);
+    expect(sobreReceita).toContain("1,00");
+  });
+
+  // Sem nenhum verbo que desempate ("gastei" vs. "recebi"), a categoria de
+  // despesa decide — mesma regra que já existe para fundo vs. categoria
+  // (PALAVRAS_DE_META): sem pista nenhuma na frase, o intent mais genérico
+  // (categoria) ganha.
+  test("'Outros' sem verbo nenhum cai na categoria de despesa, não na fonte de receita", () => {
+    const resp = responderPergunta(
+      "e sobre outros, como está esse mês?",
+      ctx({
+        despesas: [
+          { id: "d1", descricao: "Diversos", valor: 5000, data: "2026-07-05", categoria: "Outros" },
+        ],
+        receitas: [
+          { id: "r1", descricao: "Avulso", valor: 100, data: "2026-07-05", fonte: "Outros" },
+        ],
+      }),
+    );
+    expect(resp).toMatch(/gastou/i);
+  });
+
   test("parcelas agregado não conta o mês em débito automático já saído pelo cartão", () => {
     const parcela: Parcela = {
       id: "p1",
