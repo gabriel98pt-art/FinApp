@@ -867,7 +867,19 @@ export function analisarLinha(tx: LinhaExtrato, id: number, ctx: ContextoAnalise
     duplicata,
     decisao,
     acao,
-    categoriaEscolhida: classificacao.categoria ?? "Outros",
+    // Categoria que a classificação não reconheceu começa VAZIA — a revisão
+    // mostra "Sem categoria". O "Outros" que a classificação devolve no
+    // fallback (ou quando a regra sugere uma categoria que a conta não tem, e
+    // "Outros" também não está nas categorias dela) não é escolha nenhuma: a
+    // revisão mostrava-o como se fosse. Ao gravar nada muda — o serviço grava
+    // categoria vazia como "Outros", exatamente como antes.
+    categoriaEscolhida:
+      classificacao.motivo === "sem correspondência" ||
+      (classificacao.tipo === "despesa" &&
+        classificacao.categoria === "Outros" &&
+        !ctx.categoriasConfiguradas.includes("Outros"))
+        ? ""
+        : (classificacao.categoria ?? ""),
     tipoEscolhido: classificacao.tipo === "receita" ? "receita" : "despesa",
     destino: carga.ehCarga
       ? "carga"

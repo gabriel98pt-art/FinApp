@@ -23,6 +23,8 @@ export default function Seletor({
   desativado = false,
   variante = "campo",
   className,
+  invalido = false,
+  descritoPor,
 }: {
   /** Título da folha e nome acessível do gatilho. */
   rotulo: string;
@@ -44,6 +46,11 @@ export default function Seletor({
    *  rótulo visível (quem embute já mostra o nome ao lado). */
   variante?: "campo" | "inline";
   className?: string;
+  /** Campo com erro: marca o gatilho como inválido (a borda fica a cargo de
+   *  quem embute — ver a revisão da importação). */
+  invalido?: boolean;
+  /** Id do texto de erro/ajuda logo abaixo do campo. */
+  descritoPor?: string;
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
@@ -146,6 +153,8 @@ export default function Seletor({
         // não servia porque substituiria o valor em vez de o prefixar.
         aria-labelledby={variante === "campo" ? `${rotuloId} ${gatilhoId}` : undefined}
         aria-label={variante === "inline" ? rotulo : undefined}
+        aria-invalid={invalido || undefined}
+        aria-describedby={descritoPor}
       >
         {valor ? (
           <>

@@ -132,10 +132,16 @@
 
 .resumo {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   font-size: var(--fs-body);
   color: var(--mut);
+}
+
+.resumo > .linkBotao {
+  flex: none;
+  margin-top: 8px;
 }
 
 .linkBotao {
@@ -153,12 +159,6 @@
   content: "";
   position: absolute;
   inset: -11px -6px;
-}
-
-.resumoMarcadas {
-  color: var(--txt);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 .acoesLote {
@@ -227,94 +227,103 @@
   font-size: var(--fs-label);
 }
 
-/* O padding vertical (desfeito pela margem) dá espaço ao alvo de toque
-   alargado de cada aba, abaixo: com `overflow-x: auto` o contentor corta
-   também na vertical, e o alvo ficava aparado à altura da pílula. */
-.filtros {
+/* Grupos da revisão (Atenção, Duplicatas, Prontos), um por cima do outro. */
+.grupos {
   display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 6px 2px;
-  margin: -6px -2px;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
 }
 
-.filtros::-webkit-scrollbar {
-  display: none;
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.filtroBotao {
+.grupoCabecalho {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  color: var(--mut);
-  font-size: var(--fs-label);
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 4px 2px;
+  font-size: var(--fs-body);
   font-weight: 700;
-  border-radius: var(--r-pill);
-  padding: 6px 12px;
+  color: var(--txt);
 }
 
-/* A pílula mede ~30px; o toque apanha a faixa à volta dela até ~42px, sem
-   mexer no desenho nem invadir a aba do lado (para no `gap`). */
-.filtroBotao::after {
-  content: "";
-  position: absolute;
-  inset: -6px -2px;
-}
-
-.filtroIcone {
+.grupoSeta {
   flex: none;
+  color: var(--mut);
+  transition: transform 0.15s ease;
 }
 
-.filtroContagem {
+.grupoSetaFechada {
+  transform: rotate(-90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grupoSeta {
+    transition: none;
+  }
+}
+
+.grupoContagem {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--mut);
   font-variant-numeric: tabular-nums;
 }
 
-/* Selecionada não é só cor: a pílula passa de contorno a cheia — salto de
-   forma e de luminância, legível também a quem não distingue o azul. O peso
-   do texto fica igual nas duas de propósito: mudá-lo mudava a largura, e a
-   fila inteira saltava a cada seta. */
-.filtroAtivo {
-  background: var(--blu);
-  color: var(--bg);
-  border-color: var(--blu);
+.listaVazia {
+  color: var(--mut);
+  font-size: var(--fs-body);
+  padding: 12px 2px;
 }
 
+/* A lista de cada grupo é um só cartão; as linhas são faixas dentro dele,
+   separadas por um fio — sem um cartão por linha, que era o que fazia a
+   revisão de um extrato de 40 linhas ocupar dez ecrãs. */
 .lista {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.linha {
-  display: flex;
-  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   background: var(--s1);
   border: 1px solid var(--brd);
   border-radius: var(--r-card);
   box-shadow: var(--sh-card);
-  padding: 12px 14px;
+  overflow: hidden;
 }
 
-/* A etiqueta só embrulha a caixinha de marcar — sem texto ao lado, o alvo era
-   os 18px do próprio quadradinho, e é o controlo MAIS importante desta tela
-   (é ele que decide se a linha do extrato entra ou não). Cresce por padding e
-   volta ao sítio por margem negativa: a caixa fica exatamente onde estava, o
-   toque é que passa a apanhar a faixa do cartão à volta dela — 42px de
-   largura, contra 18. Em altura a etiqueta já se esticava ao cartão inteiro
-   (o `.linha` é flex sem `align-items`, logo `stretch`), portanto essa metade
-   já estava resolvida. Só invade espaço do próprio cartão, nunca o do
-   vizinho: à direita para no `gap` de 10px que a separa do texto. */
+.listaItem + .listaItem {
+  border-top: 1px solid var(--brd);
+}
+
+/* Linha compacta (~52px): caixa de marcar, e o resto da linha é o botão que
+   a seleciona. */
+.linha {
+  display: flex;
+  align-items: stretch;
+  min-height: 52px;
+}
+
+/* Linha escolhida: fundo no tom de acento e um filete à esquerda — salto de
+   forma, não só de cor. */
+.linhaSelecionada {
+  background: color-mix(in srgb, var(--blu) 10%, var(--s1));
+  box-shadow: inset 3px 0 0 var(--blu);
+}
+
+/* A etiqueta só embrulha a caixinha de marcar: o alvo de toque é a faixa à
+   volta dela, na altura toda da linha — é o controlo que decide se a linha
+   do extrato entra ou não. */
 .linhaAcao {
   display: flex;
-  align-items: flex-start;
-  padding: 2px 10px 0 14px;
-  margin-left: -14px;
-  margin-right: -10px;
+  align-items: center;
+  padding: 0 8px 0 14px;
+  cursor: pointer;
 }
 
 .linhaAcao input {
@@ -322,72 +331,96 @@
   height: 18px;
 }
 
-.linhaCorpo {
+.linhaBotao {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 14px 8px 4px;
+  text-align: left;
+  color: var(--txt);
 }
 
-/* Primeiro degrau da linha: nome e valor, os dois no tamanho de título e
-   sempre na mesma linha — também no telemóvel, onde o nome encolhe (o campo
-   corta-se sozinho) e o valor nunca quebra. */
+.linhaBotao:hover {
+  background: color-mix(in srgb, var(--txt) 4%, transparent);
+}
+
+.linhaBotao:focus-visible {
+  outline: 2px solid var(--blu);
+  outline-offset: -2px;
+}
+
+/* Nome, data e valor sempre na mesma linha: o nome corta-se, o valor nunca
+   quebra. */
 .linhaTopo {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-}
-
-/* Campo editável que se lê como texto: sem moldura em repouso, para a linha
-   continuar a parecer uma lista e não um formulário. A moldura aparece ao
-   passar o rato ou ao focar, que é quando importa saber que dá para escrever. */
-.linhaDesc {
-  font-weight: 700;
-  font-size: var(--fs-title);
   min-width: 0;
+}
+
+.linhaDescricao {
   flex: 1;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  padding: 2px 4px;
-  margin: -2px -4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: var(--fs-body);
 }
 
-.linhaDesc:hover {
-  border-color: var(--brd);
+/* Linha que fica de fora: recua, mas continua legível — pode voltar a ser
+   marcada a qualquer momento. */
+.linhaDeFora .linhaDescricao,
+.linhaDeFora .valorPositivo,
+.linhaDeFora .valorNegativo {
+  opacity: 0.6;
 }
 
-.linhaDesc:focus {
-  border-color: var(--blu);
-  background: var(--s2);
-}
-
-.linhaNota {
-  width: 100%;
-  color: var(--mut);
+.linhaData {
+  flex: none;
   font-size: var(--fs-label);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  padding: 2px 4px;
-  margin: 2px -4px 0;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
 }
 
-.linhaNota:hover {
-  border-color: var(--brd);
+/* Segunda linha, miúda: o que falta. Vermelho trava a importação; amarelo é
+   só aviso. */
+.pendencias,
+.pendenciaDup {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.linhaNota:focus {
-  color: var(--txt);
-  border-color: var(--blu);
-  background: var(--s2);
+.pendenciaErro {
+  color: var(--red);
+}
+
+.pendenciaErro,
+.pendenciaAviso {
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.pendenciaAviso {
+  /* O texto de selo de aviso em vez do --ylw cru: é o tom medido para texto
+     miúdo (ver tokens.css). */
+  color: var(--selo-pendente-txt);
+}
+
+.pendenciaDup {
+  color: var(--mut);
+  font-weight: 500;
 }
 
 .valorPositivo {
   color: var(--grn);
-  font-size: var(--fs-title);
+  font-size: var(--fs-body);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -395,43 +428,10 @@
 
 .valorNegativo {
   color: var(--red);
-  font-size: var(--fs-title);
+  font-size: var(--fs-body);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-/* Segundo degrau: data e selo, em legenda. */
-.linhaMeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: var(--fs-label);
-  color: var(--mut);
-  margin-top: -2px;
-}
-
-.linhaData {
-  font-variant-numeric: tabular-nums;
-}
-
-/* Terceiro degrau: os seletores do que se pode corrigir. Texto um passo
-   abaixo do nome (o gatilho do Seletor vem em corpo, o mesmo peso que o nome
-   tinha), mas a altura de toque de 36px do gatilho fica como está. */
-.linhaCampos {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  font-size: var(--fs-label);
-  color: var(--mut);
-}
-
-/* `[aria-haspopup]` só apanha o gatilho do Seletor, e o atributo a mais é
-   o que dá a especificidade para passar à frente de `.inline .gatilho`. */
-.linhaCampos button[aria-haspopup] {
-  font-size: var(--fs-label);
 }
 
 .badge {
@@ -477,29 +477,10 @@
   background: var(--selo-alerta-bg);
 }
 
-.motivoDup {
-  color: var(--ylw);
-  font-size: var(--fs-label);
-}
-
-/* Falta um dado que só o usuário tem (kWh, local) — trava a confirmação, por
-   isso vermelho e não o amarelo do aviso de duplicata. */
-.faltaCarga {
-  color: var(--red);
-  font-size: var(--fs-label);
-  font-weight: 600;
-}
-
 .campoKwh {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
-
-/* Falta um dado, mas não trava nada: fica no tom de aviso, não no de erro. */
-.notaCarga {
-  color: var(--mut);
-  font-size: var(--fs-label);
 }
 
 /* Campo dos kWh: cabe na mesma linha dos seletores, largura só para "132,5". */
@@ -528,22 +509,6 @@
 
 .confirmar:disabled {
   opacity: 0.5;
-}
-
-/* Só o botão da página flutua acima da barra de navegação. O sticky vivia
-   em `.confirmar`, que é partilhado com o "Importar agora" da folha de
-   resumo: lá dentro o contentor de scroll é a própria folha, e os ~110px de
-   `bottom` (medidos para a barra da página) empurravam o botão para cima,
-   por cima da lista do resumo. */
-.confirmarFlutuante {
-  position: sticky;
-  bottom: calc(var(--alt-barra-nav) + 47px);
-}
-
-@media (min-width: 768px) {
-  .confirmarFlutuante {
-    position: static;
-  }
 }
 
 /* Resumo antes de gravar: o total grande, a divisão por decisão em lista de
@@ -677,25 +642,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A caixa ocupa a largura toda, por baixo das duas colunas. */
-.revisaoApagar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  /* A etiqueta inteira (caixa + texto) é o alvo, mas tinha só a altura de uma
-     linha de texto miúdo — ~20px. Marca-se aqui o que vai ser APAGADO, é o
-     último sítio onde se quer um toque impreciso. */
-  min-height: 44px;
-  gap: 8px;
-  font-size: var(--fs-label);
-  color: var(--txt);
-}
-
-.revisaoApagar input {
-  width: 17px;
-  height: 17px;
-}
-
 /* A outra ponta da mesma transferência, já registada. Tom de informação e não
    de alerta: nada está errado, é só o mesmo dinheiro visto do outro lado. */
 .outraPonta {
@@ -736,4 +682,407 @@
 
 .outraPontaDetalhes dd {
   margin: 0;
+}
+
+/* ——— Resumo do topo: segmentos que também filtram ——— */
+
+.segmentos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.segmentosBotoes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+.segmentoItem {
+  display: inline-flex;
+  align-items: center;
+}
+
+.segmentoSep {
+  color: var(--mut);
+  padding: 0 2px;
+}
+
+.segmento {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-body);
+  color: var(--mut);
+  white-space: nowrap;
+}
+
+.segmento:hover:not(:disabled) {
+  background: var(--s2);
+}
+
+.segmento:disabled {
+  opacity: 0.45;
+}
+
+/* Escolhido: contorno e fundo de acento — forma, não só cor. */
+.segmentoAtivo {
+  color: var(--txt);
+  border-color: var(--blu);
+  background: color-mix(in srgb, var(--blu) 14%, var(--s1));
+}
+
+.segmentoNumero {
+  color: var(--txt);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.segmentoPonto {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+}
+
+/* Barra fina com a proporção de cada estado. */
+.segmentosBarra {
+  display: flex;
+  gap: 2px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.segmentosBarra span {
+  min-width: 4px;
+}
+
+.segAtencao {
+  background: var(--red);
+}
+
+.segDuplicata {
+  background: var(--ylw);
+}
+
+.segNovo {
+  background: var(--mut);
+}
+
+.segPronto {
+  background: var(--blu);
+}
+
+/* ——— Mestre-detalhe (desktop largo) ——— */
+
+/* A lista fica com ~40% (nunca menos de 340px) e o editor ocupa o resto da
+   largura: a revisão usa a tela toda, em vez de uma coluna estreita. */
+.mestreDetalhe {
+  display: grid;
+  grid-template-columns: minmax(340px, 40%) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* O editor acompanha o scroll da lista: fica à vista enquanto se percorrem as
+   linhas. */
+.painelEditor {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
+  padding: 16px;
+}
+
+.painelVazio {
+  color: var(--mut);
+  font-size: var(--fs-body);
+}
+
+/* ——— Editor de uma linha ——— */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* No telemóvel o editor abre por baixo da linha, dentro do mesmo cartão. */
+.listaItem > .editor {
+  padding: 12px 14px 16px;
+  background: color-mix(in srgb, var(--blu) 5%, var(--s1));
+  border-top: 1px dashed var(--brd);
+}
+
+.editorCabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.editorMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: var(--fs-label);
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.editorCampos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.campoLargo {
+  grid-column: 1 / -1;
+}
+
+.campoRotulo {
+  font-size: var(--fs-label);
+  font-weight: 700;
+  color: var(--mut);
+}
+
+/* O seletor compacto ganha a largura do campo. `> div` e o `[aria-haspopup]`
+   dão a especificidade para passar à frente de `.inline` / `.inline .gatilho`
+   do Seletor. */
+.campo > div {
+  width: 100%;
+}
+
+.campo button[aria-haspopup] {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.campoTexto {
+  width: 100%;
+  min-height: 40px;
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  color: var(--txt);
+  font-size: var(--fs-body);
+}
+
+.campoTexto:focus {
+  outline: 2px solid var(--blu);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.campoTexto::placeholder {
+  color: var(--mut);
+}
+
+/* Erro no próprio campo: a borda acende e a mensagem fica logo abaixo. */
+.campoErro button[aria-haspopup],
+.campoErro input {
+  border-color: var(--red);
+}
+
+.campoAviso button[aria-haspopup],
+.campoAviso input {
+  border-color: var(--ylw);
+}
+
+.campoMsgErro,
+.campoMsgAviso {
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.campoMsgErro {
+  color: var(--red);
+}
+
+.campoMsgAviso {
+  color: var(--selo-pendente-txt);
+}
+
+/* ——— Rodapé fixo da revisão ——— */
+
+/* Acima da barra de navegação no telemóvel (a mesma folga que o botão de
+   confirmar já tinha); no desktop, colado ao fundo da janela. */
+.rodape {
+  position: sticky;
+  bottom: calc(var(--alt-barra-nav) + 47px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh);
+  padding: 10px 10px 10px 16px;
+}
+
+@media (min-width: 768px) {
+  .rodape {
+    bottom: 16px;
+  }
+}
+
+.rodapeTexto {
+  font-size: var(--fs-body);
+  color: var(--mut);
+  min-width: 0;
+}
+
+.rodapeNumero {
+  color: var(--txt);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rodapeBloqueio {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.rodape .confirmar {
+  flex: none;
+  white-space: nowrap;
+  padding: 10px 18px;
+}
+
+/* ——— Confirmação ——— */
+
+/* Registos já existentes que vão ser excluídos: separado do "fica de fora",
+   no tom de perigo — é a única coisa desta folha que apaga dados. */
+.resumoFinalApagar {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--red);
+  background: var(--tint-red-10);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+}
+
+.folhaAcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folhaAcoes .botao {
+  justify-content: center;
+}
+
+/* ——— Duplicatas: excluir o existente é secundário e pede confirmação ——— */
+
+.revisaoExcluir {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  border-top: 1px solid var(--brd);
+  padding-top: 8px;
+}
+
+.revisaoExcluirAviso {
+  color: var(--red);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.linkPerigo {
+  position: relative;
+  color: var(--red);
+  font-weight: 700;
+  font-size: var(--fs-label);
+}
+
+.linkPerigo::after {
+  content: "";
+  position: absolute;
+  inset: -11px -6px;
+}
+
+.revisaoConfirmar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--tint-red-10);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+  font-size: var(--fs-label);
+  color: var(--txt);
+}
+
+.revisaoConfirmarAcoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.botaoPerigo {
+  background: var(--red);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  border-radius: var(--r-sm);
+  padding: 9px 14px;
+}
+
+/* ——— Sucesso ——— */
+
+.importadoFaixa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ——— Entrada ——— */
+
+.entradaColar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Onde soltar o ficheiro: discreto, só uma moldura tracejada. */
+.entradaSoltar {
+  border: 1px dashed var(--brd);
+  border-radius: var(--r-sm);
+  padding: 14px;
+  text-align: center;
+  color: var(--mut);
+  font-size: var(--fs-label);
+}
+
+.entradaArrastando .entradaSoltar {
+  border-color: var(--blu);
+  color: var(--blu);
 }

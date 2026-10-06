@@ -1,9 +1,12 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ClipboardPaste, Loader2, Upload } from "lucide-react";
 import styles from "../Importar.module.css";
 
-/** Caixa de entrada do extrato (colar texto, arrastar/colar ficheiro ou
- *  carregar pelo botão). Só apresentação: toda a lógica vem de `useImportacao`. */
+/** Estado vazio da importação: escolher o extrato. "Carregar arquivo" é o
+ *  caminho principal (PDF ou CSV do banco); "Colar texto" é o secundário e só
+ *  abre a caixa de texto quando escolhido. No computador, a caixa inteira
+ *  também aceita o ficheiro arrastado (e colado). Só apresentação: toda a
+ *  lógica vem de `useImportacao`. */
 export default function ImportacaoEntrada({
   texto,
   setTexto,
@@ -32,6 +35,9 @@ export default function ImportacaoEntrada({
   onAnalisar: () => void;
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
+  // Com texto já no rascunho (trocou de aba e voltou), a caixa abre sozinha.
+  const [colando, setColando] = useState(false);
+  const caixaAberta = colando || texto.trim() !== "";
 
   return (
     <div
@@ -48,44 +54,17 @@ export default function ImportacaoEntrada({
       // de "ainda a processar" no meio do caminho.
       aria-busy={lendoPdf}
     >
-      {/* Três degraus, por esta ordem: o que fazer (título), como (uma frase)
-          e o que é suportado (linha miúda de formatos, por baixo dos botões —
-          é consulta, não instrução). */}
       <p id="importar-entrada-titulo" className={styles.entradaTitulo}>
         Colar ou carregar extrato
       </p>
       <p id="importar-entrada-sub" className={styles.entradaSub}>
-        Um PDF abre-se pelo botão <strong>Carregar arquivo</strong> (no computador também se arrasta
-        para aqui); texto copiado entra pelo botão <strong>Colar</strong>.
+        O PDF ou CSV do banco entra por <strong>Carregar arquivo</strong>. Texto copiado de uma
+        folha de cálculo entra por <strong>Colar texto</strong>.
       </p>
-      <textarea
-        className={styles.textarea}
-        placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        rows={8}
-        aria-labelledby="importar-entrada-titulo"
-        aria-describedby="importar-entrada-sub importar-entrada-formatos"
-      />
+
       <div className={styles.entradaAcoes}>
         <button
           className={styles.botaoPrimario}
-          onClick={onAnalisar}
-          disabled={!texto.trim() || lendoPdf}
-        >
-          Analisar
-        </button>
-        {semMouse ? (
-          <button className={styles.botao} onClick={onColarClipboard} disabled={lendoPdf}>
-            <ClipboardPaste size={15} aria-hidden /> Colar
-          </button>
-        ) : (
-          <button className={styles.linkBotao} onClick={onColarClipboard} disabled={lendoPdf}>
-            Colar
-          </button>
-        )}
-        <button
-          className={styles.botao}
           onClick={() => arquivoRef.current?.click()}
           disabled={lendoPdf}
         >
@@ -96,6 +75,11 @@ export default function ImportacaoEntrada({
           )}{" "}
           {lendoPdf ? "Lendo…" : "Carregar arquivo"}
         </button>
+        {!caixaAberta && (
+          <button className={styles.botao} onClick={() => setColando(true)} disabled={lendoPdf}>
+            Colar texto
+          </button>
+        )}
         <input
           ref={arquivoRef}
           type="file"
@@ -107,6 +91,49 @@ export default function ImportacaoEntrada({
           onChange={aoCarregarArquivo}
         />
       </div>
+
+      {caixaAberta && (
+        <div className={styles.entradaColar}>
+          <textarea
+            className={styles.textarea}
+            placeholder={"Data;Descrição;Valor\n10/07/2026;Mercado Continente;-45,90"}
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            rows={8}
+            aria-labelledby="importar-entrada-titulo"
+            aria-describedby="importar-entrada-sub importar-entrada-formatos"
+            // Quem escolheu "Colar texto" vai escrever/colar já.
+            autoFocus={colando && !texto}
+          />
+          <div className={styles.entradaAcoes}>
+            <button
+              className={styles.botaoPrimario}
+              onClick={onAnalisar}
+              disabled={!texto.trim() || lendoPdf}
+            >
+              Analisar
+            </button>
+            {/* O botão "Colar" existe por causa do iPhone (ver
+                `colarDoClipboard`): em destaque sem rato, discreto com ele. */}
+            {semMouse ? (
+              <button className={styles.botao} onClick={onColarClipboard} disabled={lendoPdf}>
+                <ClipboardPaste size={15} aria-hidden /> Colar
+              </button>
+            ) : (
+              <button className={styles.linkBotao} onClick={onColarClipboard} disabled={lendoPdf}>
+                Colar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Área de arrastar, discreta: só onde há rato para arrastar. */}
+      {!semMouse && (
+        <p className={styles.entradaSoltar} aria-hidden>
+          ou arraste o arquivo para aqui
+        </p>
+      )}
       <p id="importar-entrada-formatos" className={styles.entradaFormatos}>
         PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
         descrição e valor — exportado do banco ou colado direto de uma folha de cálculo.

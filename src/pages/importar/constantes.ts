@@ -10,6 +10,7 @@ import type {
   LinhaAnalisada,
   OrigemExistente,
 } from "../../types";
+import type { StatusLinha } from "./agrupamento";
 import styles from "../Importar.module.css";
 
 export const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
@@ -75,21 +76,38 @@ export function rotuloDestino(destino: DestinoLinha): string {
  *  erra o lado — um estorno do supermercado que bate numa regra de despesa —
  *  a revisão é a última oportunidade de corrigir: depois de gravado, o tipo
  *  não se muda (são coleções separadas). */
-export const TIPOS: LinhaAnalisada["tipoEscolhido"][] = ["despesa", "receita"];
 export const ROTULO_TIPO: Record<LinhaAnalisada["tipoEscolhido"], string> = {
   despesa: "Despesa",
   receita: "Receita",
 };
 
-export type FiltroImportacao = DecisaoLinha | "todas";
+/** Filtro da lista: os segmentos do resumo do topo ("N revisar · N
+ *  duplicatas · …"). "todas" é nenhum segmento escolhido. */
+export type FiltroImportacao = StatusLinha | "todas";
 
-export const FILTROS: { id: FiltroImportacao; rotulo: string }[] = [
-  { id: "todas", rotulo: "Todas" },
-  { id: "auto_classificada", rotulo: "Auto-classificadas" },
-  { id: "nova", rotulo: "Novas" },
-  { id: "duplicata_provavel", rotulo: "Prováveis duplicatas" },
-  { id: "revisao", rotulo: "Revisão" },
-];
+/** O "Tipo" do editor da linha junta num só campo o lado do lançamento
+ *  (despesa/receita) e o destino (recarga, transferência, fatura). Os destinos
+ *  continuam os mesmos de sempre — "Lançamento simples" aparece como Despesa
+ *  ou Receita, que é o que ele de facto é. */
+export type TipoLinha = "despesa" | "receita" | Exclude<DestinoLinha, "lancamento">;
+
+export function tipoDaLinha(l: LinhaAnalisada): TipoLinha {
+  return l.destino === "lancamento" ? l.tipoEscolhido : l.destino;
+}
+
+/** O lado natural do sinal vem primeiro: despesa numa saída, receita numa
+ *  entrada. O outro lado continua disponível (um estorno). */
+export function tiposPossiveis(valor: number): TipoLinha[] {
+  const destinos = valor < 0 ? DESTINOS_SAIDA : DESTINOS_ENTRADA;
+  return destinos.flatMap((d): TipoLinha[] =>
+    d === "lancamento" ? (valor < 0 ? ["despesa", "receita"] : ["receita", "despesa"]) : [d],
+  );
+}
+
+export function rotuloTipoLinha(t: TipoLinha): string {
+  if (t === "despesa" || t === "receita") return ROTULO_TIPO[t];
+  return rotuloDestino(t);
+}
 
 /** Meses possíveis para a fatura paga nesta linha: o mês da linha, dois antes
  *  e um depois. Cobre o pagamento adiantado e o atrasado sem obrigar a

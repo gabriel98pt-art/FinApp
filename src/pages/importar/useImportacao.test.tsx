@@ -246,3 +246,71 @@ describe("arquivo CSV com erro (#10)", () => {
     await vi.waitFor(() => expect(result.current.linhas).toHaveLength(3));
   });
 });
+
+describe("pendências que travam = `incompletas` (a contagem do botão não mente)", () => {
+  test("linha a linha, a pendência vermelha é exatamente o que trava a gravação", async () => {
+    const { pendenciasDaLinha } = await import("./agrupamento");
+    const { result } = renderHook(() => useImportacao());
+    act(() =>
+      result.current.setTexto(
+        [
+          "Data;Descrição;Valor",
+          ...Array.from({ length: 8 }, (_, i) => `1${i}/07/2026;Linha ${i};-${i + 1}0,00`),
+        ].join("\n"),
+      ),
+    );
+    act(() => result.current.analisarTexto());
+    const mudar = (id: number, m: Parameters<typeof result.current.atualizarLinha>[1]) =>
+      act(() => result.current.atualizarLinha(id, m));
+    mudar(0, { destino: "carga", localCarga: "" });
+    mudar(1, { destino: "carga", localCarga: "Ionity", kwhCarga: "" });
+    mudar(2, { destino: "transferencia_cartao", contaOrigem: "", contaDestino: "" });
+    mudar(3, { destino: "transferencia_cartao", contaOrigem: "A", contaDestino: "A" });
+    mudar(4, { destino: "pagamento_fatura", fatCartaoEscolhido: "" });
+    mudar(5, { destino: "pagamento_fatura", fatCartaoEscolhido: "Visa", contaOrigem: "" });
+    mudar(6, { destino: "carga", localCarga: "", acao: "skip" });
+
+    const incompletas = new Set(result.current.incompletas.map((l) => l.id));
+    for (const l of result.current.linhas!) {
+      const trava = pendenciasDaLinha(l, CONFIG_PADRAO.contasCartoes.length > 0).some(
+        (p) => p.bloqueia,
+      );
+      expect(trava, `linha ${l.id}`).toBe(incompletas.has(l.id));
+    }
+    expect(incompletas).toEqual(new Set([0, 2, 3, 4, 5]));
+  });
+});
+
+describe("folha de duplicatas antes de gravar", () => {
+  test("`confirmar` nunca grava duplicatas sem a folha delas ter sido vista", async () => {
+    const { result } = renderHook(() => useImportacao());
+    analisarCsv(result);
+    act(() =>
+      result.current.atualizarLinha(0, {
+        decisao: "duplicata_provavel",
+        duplicata: {
+          status: "exact_duplicate",
+          confianca: "high",
+          score: 100,
+          motivos: ["mesmo valor"],
+          correspondencia: {
+            id: "x",
+            data: "2026-07-10",
+            valor: -4590,
+            descricao: "Mercado",
+            origem: "despesa",
+          },
+        },
+      }),
+    );
+    await act(() => result.current.confirmar());
+    expect(confirmarImportacao).not.toHaveBeenCalled();
+    expect(result.current.revisaoDup).toHaveLength(1);
+
+    act(() => result.current.importarMesmoAssim());
+    expect(result.current.resumoAberto).toBe(true);
+    confirmarImportacao.mockResolvedValue(3);
+    await act(() => result.current.confirmar());
+    expect(confirmarImportacao).toHaveBeenCalledTimes(1);
+  });
+});

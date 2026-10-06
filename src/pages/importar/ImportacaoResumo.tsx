@@ -1,29 +1,31 @@
+import type { LinhaAnalisada } from "../../types";
+import { contarStatus } from "./agrupamento";
+import type { FiltroImportacao } from "./constantes";
+import ImportacaoFiltros from "./ImportacaoFiltros";
 import styles from "../Importar.module.css";
 
-/** Barra "N linha(s) · N marcada(s) para importar" + "Novo extrato".
- *
- *  A contagem é uma região `status` (aria-live educado): marcar ou desmarcar
- *  uma linha, ou usar uma ação em massa, muda-a — e quem usa leitor de tela
- *  ouve o novo total sem ter de voltar aqui para o ler. Fica em destaque
- *  quando há alguma linha marcada, por ser o número que o botão de confirmar
- *  vai gravar. */
+/** Topo da revisão: o resumo por estado (que também filtra a lista) e
+ *  "Novo extrato". */
 export default function ImportacaoResumo({
-  totalLinhas,
-  totalImportar,
+  linhas,
+  temContas,
+  filtro,
+  setFiltro,
   onNovoExtrato,
 }: {
-  totalLinhas: number;
-  totalImportar: number;
+  linhas: LinhaAnalisada[];
+  temContas: boolean;
+  filtro: FiltroImportacao;
+  setFiltro: (filtro: FiltroImportacao) => void;
   onNovoExtrato: () => void;
 }) {
   return (
     <div className={styles.resumo}>
-      <span role="status" aria-live="polite" aria-atomic="true">
-        {totalLinhas} linha(s) ·{" "}
-        <span className={totalImportar > 0 ? styles.resumoMarcadas : undefined}>
-          {totalImportar} marcada(s) para importar
-        </span>
-      </span>
+      <ImportacaoFiltros
+        contagem={contarStatus(linhas, temContas)}
+        filtro={filtro}
+        setFiltro={setFiltro}
+      />
       <button className={styles.linkBotao} onClick={onNovoExtrato}>
         Novo extrato
       </button>

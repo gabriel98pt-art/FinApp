@@ -5,12 +5,35 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 06/10/2026 — 525 mudanças registadas.
+Período coberto: 23/07/2026 a 06/10/2026 — 526 mudanças registadas.
 
 ---
 
 ## 06/10/2026
 
+- A revisão da tela Importar extrato foi reorganizada. Primeiro escolhe-se o
+  extrato ("Carregar arquivo", ou "Colar texto", que só abre a caixa de texto
+  quando é escolhido). Depois as linhas aparecem agrupadas pelo que precisam:
+  "Atenção" (falta conta, falta kWh, sem categoria…) aberto, "Duplicatas" e
+  "Prontos" fechados. No topo, "N revisar · N duplicatas · N novos · N
+  prontos" mostra o resumo e também serve de filtro. Cada linha ficou
+  compacta (nome, data, valor) com o que falta escrito por baixo, em
+  vermelho quando impede de importar e em amarelo quando é só aviso. No
+  computador, a lista fica à esquerda e a linha escolhida abre num painel à
+  direita, a usar a largura toda; no telemóvel a linha abre por baixo dela,
+  uma de cada vez. Os campos têm nome fixo ("Tipo", "Conta ou cartão",
+  "Categoria"/"Fonte") e o erro aparece no próprio campo. Uma linha sem
+  categoria mostra "Sem categoria" em vez de "Outros" (ao gravar continua a
+  entrar como "Outros", como antes). Numa duplicata aberta vê-se o "Novo no
+  extrato" ao lado do "Já registado". Em baixo, uma barra fixa diz quantos
+  entram e quantos ficam de fora, com o botão "Importar N" — o número é
+  exatamente o que vai ser gravado, e o botão trava (dizendo quantas linhas
+  faltam completar) enquanto houver algo por preencher. Apagar um lançamento
+  já registado deixou de ser uma caixinha marcada com um toque: agora é um
+  botão à parte, "Excluir o existente…", que pede confirmação própria; e a
+  confirmação final mostra separado o que fica de fora (não é importado) e o
+  que vai ser excluído. Depois de importar, a faixa de sucesso tem um botão
+  "Desfazer".
 - Rodada de correções na tela de Importar extrato. No resumo antes de
   gravar, o botão "Importar agora" subia por cima da lista do resumo — agora
   fica no fim, onde deve. O aviso "importado" passou a dizer quantos

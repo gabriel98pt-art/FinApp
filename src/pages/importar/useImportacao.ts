@@ -127,8 +127,16 @@ export function useImportacao() {
    *  passam pela folha de revisão antes de qualquer gravação. */
   const [revisaoDup, setRevisaoDup] = useState<LinhaAnalisada[] | null>(null);
   /** Ids das linhas cujo registo antigo o usuário mandou apagar. Desligado por
-   *  omissão: apagar é sempre escolha dele, nunca automático. */
+   *  omissão: apagar é sempre escolha dele, nunca automático — e só entra
+   *  aqui depois do passo de confirmação próprio da folha de duplicatas. */
   const [marcadasParaApagar, setMarcadasParaApagar] = useState<Set<number>>(new Set());
+  /** As duplicatas desta tentativa de importar já passaram pela folha delas.
+   *  Garante que nada é gravado sem a folha ter sido vista — mesmo que
+   *  `confirmar` seja chamado por outro caminho. */
+  const [duplicatasRevistas, setDuplicatasRevistas] = useState(false);
+  /** Folha de confirmação ("N entram · M ficam de fora"), o último passo
+   *  antes de gravar. */
+  const [resumoAberto, setResumoAberto] = useState(false);
   /** Linhas cujo aviso "outra ponta da transferência" está expandido, mostrando
    *  data/valor/onde está do registo que bateu — fechado por omissão, pra não
    *  poluir a lista quando não interessa. */
@@ -139,8 +147,11 @@ export function useImportacao() {
   // `alternarOutraPonta`, mais abaixo) vão como props para cada
   // `LinhaImportacao`, que é `memo`: precisam de manter a mesma identidade
   // entre renders, senão editar uma linha re-renderizava a lista inteira.
+  // "Outros" só aparece se for mesmo uma categoria da conta: antes era
+  // acrescentado aqui à força, e servia de "ainda não escolhida". Categoria
+  // por escolher agora é vazia e mostra-se "Sem categoria" (ver `analisarLinha`).
   const opcoesCategoria = useMemo(
-    () => [...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"])],
+    () => [...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência"])],
     [categoriasConfiguradas],
   );
   // Receita não tem categoria, tem FONTE — outro conceito e outro campo. A
@@ -148,7 +159,7 @@ export function useImportacao() {
   // classificar um salário.
   const fontesReceita = cfg.fontesReceita;
   const opcoesFonte = useMemo(
-    () => [...new Set([...fontesReceita, "Transferência", "Outros"])],
+    () => [...new Set([...fontesReceita, "Transferência"])],
     [fontesReceita],
   );
   // Só cartões de crédito têm fatura para pagar.
@@ -435,6 +446,9 @@ export function useImportacao() {
       // "importado" — antes ela mostrava `linhas.length`, puladas incluídas.
       marcarImportado(n, useHistoricoStore.getState().pilha.indice);
       setRevisaoDup(null);
+      setResumoAberto(false);
+      setDuplicatasRevistas(false);
+      setMarcadasParaApagar(new Set());
     } catch {
       mostrarToast("Não foi possível importar. Tente de novo.");
     } finally {
@@ -442,50 +456,134 @@ export function useImportacao() {
     }
   }
 
-  async function confirmar() {
-    if (!linhas) return;
-    if (!uid) {
-      // Sem sessão não há onde gravar — antes saía calado e o botão parecia
-      // não fazer nada.
-      mostrarToast("Sessão não carregada. Tente de novo.");
-      return;
-    }
-    const aImportar = linhas.filter((l) => l.acao === "import");
-    if (aImportar.length === 0) {
-      mostrarToast("Nenhuma linha marcada para importar.");
-      return;
-    }
-    if (incompletas.length > 0) {
-      mostrarToast(`${incompletas.length} linha(s) por completar.`);
-      return;
-    }
-    // Alguma das que vão entrar já se parece com algo que existe? Nesse caso
-    // mostra-se o que bateu antes de gravar. A maioria das importações não
-    // passa por aqui e segue direta, como sempre seguiu.
-    const suspeitas = aImportar.filter(
+  /** As linhas que vão entrar e se parecem com algo já registado — as mesmas
+   *  que sempre passaram pela folha de duplicatas antes de gravar. */
+  function suspeitasDe(aImportar: LinhaAnalisada[]) {
+    return aImportar.filter(
       (l) =>
         (l.decisao === "duplicata_provavel" || l.decisao === "revisao") &&
         l.duplicata.correspondencia,
     );
+  }
+
+  /** As mesmas verificações de sempre antes de gravar. `null` quando não há
+   *  nada a fazer (o motivo já foi dito em toast). */
+  function verificarAntesDeGravar(): LinhaAnalisada[] | null {
+    if (!linhas) return null;
+    if (!uid) {
+      // Sem sessão não há onde gravar — antes saía calado e o botão parecia
+      // não fazer nada.
+      mostrarToast("Sessão não carregada. Tente de novo.");
+      return null;
+    }
+    const aImportar = linhas.filter((l) => l.acao === "import");
+    if (aImportar.length === 0) {
+      mostrarToast("Nenhuma linha marcada para importar.");
+      return null;
+    }
+    if (incompletas.length > 0) {
+      mostrarToast(`${incompletas.length} linha(s) por completar.`);
+      return null;
+    }
+    return aImportar;
+  }
+
+  /** Abre a folha de duplicatas para estas suspeitas. Cada vez começa sem
+   *  nada marcado para apagar: apagar é sempre uma escolha feita ali, à
+   *  vista da comparação, com confirmação própria. */
+  function abrirRevisaoDup(suspeitas: LinhaAnalisada[]) {
+    setResumoAberto(false);
+    setMarcadasParaApagar(new Set());
+    setDuplicatasRevistas(false);
+    setRevisaoDup(suspeitas);
+  }
+
+  /** Botão principal do rodapé ("Importar N"). Alguma das que vão entrar já
+   *  se parece com algo que existe? Então passa primeiro pela folha de
+   *  duplicatas e só depois pela confirmação — é aí que se mostra também
+   *  quantos registos antigos vão ser apagados. A maioria das importações não
+   *  tem duplicatas e vai direta à confirmação. */
+  function abrirConfirmacao() {
+    const aImportar = verificarAntesDeGravar();
+    if (!aImportar) return;
+    const suspeitas = suspeitasDe(aImportar);
     if (suspeitas.length > 0) {
-      setMarcadasParaApagar(new Set());
-      setRevisaoDup(suspeitas);
+      abrirRevisaoDup(suspeitas);
       return;
     }
-    await gravar(aImportar, []);
+    setResumoAberto(true);
   }
 
-  /** "Importar mesmo assim", na folha de revisão de duplicatas: grava tudo o
-   *  que está marcado e apaga só os registos antigos escolhidos ali. */
+  /** "Importar mesmo assim", na folha de duplicatas: mantém os dois
+   *  registos (salvo os que foram confirmados para apagar) e segue para a
+   *  confirmação. Ainda não grava nada. */
   function importarMesmoAssim() {
-    const aImportar = linhas?.filter((l) => l.acao === "import") ?? [];
-    const apagar = (revisaoDup ?? [])
-      .filter((l) => marcadasParaApagar.has(l.id))
-      .map((l) => l.duplicata.correspondencia!);
-    void gravar(aImportar, apagar);
+    setRevisaoDup(null);
+    setDuplicatasRevistas(true);
+    setResumoAberto(true);
   }
 
-  const visiveis = linhas?.filter((l) => filtro === "todas" || l.decisao === filtro) ?? [];
+  /** "Voltar à revisão": fecha a confirmação sem gravar. Da próxima vez as
+   *  duplicatas passam outra vez pela folha delas. */
+  function fecharResumo() {
+    setResumoAberto(false);
+    setDuplicatasRevistas(false);
+  }
+
+  /** Os registos já existentes que vão ser apagados ao gravar: só os que o
+   *  usuário confirmou na folha de duplicatas, e só de linhas que continuam
+   *  marcadas para importar. */
+  const existentesAApagar: ExistenteParaDedup[] =
+    linhas
+      ?.filter(
+        (l) => l.acao === "import" && marcadasParaApagar.has(l.id) && l.duplicata.correspondencia,
+      )
+      .map((l) => l.duplicata.correspondencia!) ?? [];
+
+  /** O botão final da confirmação: grava. Se houver duplicatas que ainda não
+   *  passaram pela folha delas, abre-a em vez de gravar — nada entra sem essa
+   *  folha ter sido vista, como sempre foi. */
+  async function confirmar() {
+    const aImportar = verificarAntesDeGravar();
+    if (!aImportar) return;
+    const suspeitas = suspeitasDe(aImportar);
+    if (!duplicatasRevistas && suspeitas.length > 0) {
+      abrirRevisaoDup(suspeitas);
+      return;
+    }
+    await gravar(aImportar, existentesAApagar);
+  }
+
+  /** Desfazer direto da faixa de sucesso. Só aparece enquanto o passo da
+   *  importação for o último da pilha de undo: o "Desfazer" do app desfaz
+   *  sempre o passo mais recente, e se houve outra ação depois era ela que
+   *  voltava atrás, não a importação. */
+  //
+  // "Último da pilha" = o índice ainda aponta para o snapshot da importação e
+  // nada foi empilhado depois dele (o estado ao vivo é o pós-importação).
+  const podeDesfazer =
+    mostrandoImportado &&
+    indiceAoImportar !== null &&
+    indiceAoImportar >= 0 &&
+    indiceAoImportar === tamanhoPilha - 1 &&
+    indiceHistoricoAtual === indiceAoImportar;
+
+  async function desfazerImportacao() {
+    const antes = useHistoricoStore.getState().pilha;
+    await useHistoricoStore.getState().desfazer();
+    // Desfez mesmo (a pilha andou): a revisão volta a ficar editável, com as
+    // marcações de antes. É explícito aqui porque, logo a seguir a UM
+    // desfazer, o índice da pilha volta a ser igual a `indiceAoImportar`
+    // (o desfazer empilha o estado ao vivo antes de descer) e `foiDesfeito`
+    // não o apanha sozinho (o caso do "Desfazer" do menu Mais fica como está).
+    if (useHistoricoStore.getState().pilha !== antes) setImportadoEm(null);
+  }
+
+  // Quantas linhas entram ao gravar: `confirmarImportacao` grava todas as
+  // marcadas "import", sem exceção (as recargas/transferências/faturas
+  // incompletas não são descartadas, travam a gravação inteira — e por isso
+  // `incompletas`, abaixo, trava o botão antes). Este número é portanto
+  // exatamente o que entra, sempre que o botão está ativo.
   const totalImportar = linhas?.filter((l) => l.acao === "import").length ?? 0;
   // Recarga marcada para importar a que ainda falta o que só o usuário sabe:
   // trava a confirmação e fica assinalada na própria linha. Despesa/receita
@@ -536,7 +634,6 @@ export function useImportacao() {
     marcarTodas,
     marcarContaParaTodas,
     // Linhas
-    visiveis,
     totalImportar,
     incompletas,
     opcoesCategoria,
@@ -547,11 +644,18 @@ export function useImportacao() {
     alternarOutraPonta,
     // Confirmação e revisão de duplicatas
     enviando,
+    abrirConfirmacao,
+    resumoAberto,
+    fecharResumo,
     confirmar,
     revisaoDup,
     marcadasParaApagar,
     marcarParaApagar,
+    existentesAApagar,
     fecharRevisaoDup,
     importarMesmoAssim,
+    // Sucesso
+    podeDesfazer,
+    desfazerImportacao: () => void desfazerImportacao(),
   };
 }

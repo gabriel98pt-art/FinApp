@@ -944,3 +944,31 @@ describe("aplicarContaATodas", () => {
     expect(original.contaEscolhida).toBe("");
   });
 });
+
+describe("categoria por escolher começa vazia ('Sem categoria' na revisão)", () => {
+  const ctx = {
+    parcelas: [],
+    existentes: [],
+    locaisCarregamento: [],
+    cargasHistorico: [],
+    despesasHistorico: [],
+    receitasHistorico: [],
+  };
+
+  test("sem correspondência: a classificação diz 'Outros', mas a escolha fica vazia", () => {
+    const r = analisarLinha({ data: "2026-07-10", descricao: "ZZZ999 QWERTY", valor: -1000 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: ["Outros", "Saúde"],
+    });
+    expect(r.classificacao.categoria).toBe("Outros");
+    expect(r.categoriaEscolhida).toBe("");
+  });
+
+  test("categoria reconhecida continua escolhida", () => {
+    const r = analisarLinha({ data: "2026-07-10", descricao: "Farmácia Local", valor: -1000 }, 0, {
+      ...ctx,
+      categoriasConfiguradas: ["Saúde"],
+    });
+    expect(r.categoriaEscolhida).toBe("Saúde");
+  });
+});
