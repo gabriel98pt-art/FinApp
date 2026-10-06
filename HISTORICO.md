@@ -5,12 +5,24 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 06/10/2026 — 520 mudanças registadas.
+Período coberto: 23/07/2026 a 06/10/2026 — 522 mudanças registadas.
 
 ---
 
 ## 06/10/2026
 
+- Restaurar um backup apagava os dados atuais da conta sem guardar cópia
+  nenhuma — se o arquivo escolhido fosse o errado, não havia volta. Agora,
+  antes de substituir qualquer coisa, o app guarda automaticamente uma cópia
+  de segurança dos dados atuais na própria conta; se essa cópia não puder ser
+  guardada, a restauração é cancelada e nada é tocado. (O botão para usar essa
+  cópia e desfazer a restauração ainda vai chegar numa próxima etapa.)
+- A folha de Backup pedia "tem certeza?" antes mesmo de abrir o arquivo. Agora
+  o arquivo é verificado logo que entra: se tiver algum problema, aparece o
+  motivo exato (ex. versão desconhecida, uma parte dos dados no formato
+  errado); se estiver tudo certo, aparece um resumo — data do backup, quantos
+  lançamentos, contas e categorias — com os botões "Restaurar backup" e
+  "Cancelar".
 - Importar extrato deixava confirmar despesas e receitas sem nenhuma conta
   ou cartão marcado, em silêncio — só recarga do carro, transferência entre
   cartões e pagamento de fatura travavam a confirmação quando faltava algo.

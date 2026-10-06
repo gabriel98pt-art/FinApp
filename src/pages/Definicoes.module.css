@@ -333,6 +333,52 @@
   font-size: var(--fs-body);
 }
 
+/* Motivo da recusa de um arquivo de backup — dentro da própria zona, logo
+   abaixo do botão, para a pessoa ver o PORQUÊ sem procurar um toast que já
+   sumiu. Vermelho de perigo, como em .sair. */
+.erroBackup {
+  color: var(--red);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+/* Resumo do arquivo já validado, no lugar da zona de arrastar, antes do botão
+   final de restaurar. Mesma caixa (margens, raio) da .dropzoneBackup, mas com
+   borda contínua: aqui já há um arquivo escolhido, não um convite a soltar. */
+.resumoBackup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 8px 0;
+  padding: 16px;
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+}
+
+.resumoBackupTitulo {
+  font-size: var(--fs-body);
+  font-weight: 700;
+  color: var(--txt);
+}
+
+.resumoBackupDetalhe {
+  font-size: var(--fs-body);
+  color: var(--txt);
+}
+
+.resumoBackupAviso {
+  font-size: var(--fs-label);
+  color: var(--mut);
+}
+
+.resumoBackupAcoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
 /* Escolha dos 2 KPIs por página no mobile (item 8) */
 .grupoKpis {
   padding: 2px 8px 6px;
