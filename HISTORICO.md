@@ -5,9 +5,20 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 03/10/2026 — 516 mudanças registadas.
+Período coberto: 23/07/2026 a 06/10/2026 — 517 mudanças registadas.
 
 ---
+
+## 06/10/2026
+
+- Importar extrato deixava confirmar despesas e receitas sem nenhuma conta
+  ou cartão marcado, em silêncio — só recarga do carro, transferência entre
+  cartões e pagamento de fatura travavam a confirmação quando faltava algo.
+  Dezenas de lançamentos entravam de uma vez sem cartão nenhum, sem aviso
+  nenhum. Agora, havendo pelo menos uma conta cadastrada, falta a conta de
+  uma despesa/receita também trava o botão "Confirmar importação" e mostra
+  o aviso na própria linha — sem conta nenhuma cadastrada ainda, continua
+  sem travar (não há o que escolher).
 
 ## 03/10/2026
 

@@ -469,14 +469,20 @@ export default function Importar() {
   const visiveis = linhas?.filter((l) => filtro === "todas" || l.decisao === filtro) ?? [];
   const totalImportar = linhas?.filter((l) => l.acao === "import").length ?? 0;
   // Recarga marcada para importar a que ainda falta o que só o usuário sabe:
-  // trava a confirmação e fica assinalada na própria linha.
+  // trava a confirmação e fica assinalada na própria linha. Despesa/receita
+  // ("lancamento") entra na mesma trava quando há conta cadastrada e nenhuma
+  // foi escolhida — achado do Gabriel (06/10/2026): a tela deixava confirmar
+  // dezenas de linhas sem cartão nenhum, em silêncio (só o `aviso` abaixo da
+  // própria confirmarImportacao avisava, tarde demais). Sem conta nenhuma
+  // cadastrada ainda, não há o que escolher — não trava.
   const incompletas =
     linhas?.filter(
       (l) =>
         l.acao === "import" &&
         ((l.destino === "carga" && dadosDaCarga(l) === null) ||
           (l.destino === "transferencia_cartao" && dadosDaTransferencia(l) === null) ||
-          (l.destino === "pagamento_fatura" && pagamentoDaLinha(l) === null)),
+          (l.destino === "pagamento_fatura" && pagamentoDaLinha(l) === null) ||
+          (l.destino === "lancamento" && cfg.contasCartoes.length > 0 && !l.contaEscolhida.trim())),
     ) ?? [];
 
   return (
@@ -848,9 +854,11 @@ export default function Importar() {
                         />
                         {/* De que conta ou cartão saiu/entrou este
                                 dinheiro. Sendo cartão de crédito, é isto que
-                                faz o lançamento contar pra fatura dele — sem
-                                escolher nada aqui, fica de fora de qualquer
-                                fatura, como sempre foi. */}
+                                faz o lançamento contar pra fatura dele. Havendo
+                                conta cadastrada, deixar em branco trava a
+                                confirmação (ver `incompletas` acima) — antes
+                                passava calado e a linha ficava para sempre sem
+                                cartão nenhum. */}
                         <Seletor
                           variante="inline"
                           rotulo={`Conta ou cartão de ${l.descricao}`}
@@ -877,6 +885,12 @@ export default function Importar() {
                       <p className={styles.notaCarga}>
                         Sem kWh — entra assim e completa-se depois no Veículo.
                       </p>
+                    )}
+                  {l.acao === "import" &&
+                    l.destino === "lancamento" &&
+                    cfg.contasCartoes.length > 0 &&
+                    !l.contaEscolhida.trim() && (
+                      <p className={styles.faltaCarga}>Escolha a conta ou cartão desta linha.</p>
                     )}
                   {l.acao === "import" &&
                     l.destino === "pagamento_fatura" &&

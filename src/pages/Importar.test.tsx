@@ -58,9 +58,9 @@ vi.mock("../stores/parcelasStore", () => ({
 vi.mock("../stores/veiculoStore", () => ({
   useVeiculoStore: (s: (e: unknown) => unknown) => s(veiculoVazio()),
 }));
+let cfg = CONFIG_PADRAO;
 vi.mock("../stores/cfgStore", () => ({
-  useCfgStore: (s: (e: unknown) => unknown) =>
-    s({ cfg: CONFIG_PADRAO, carregado: true, erro: false }),
+  useCfgStore: (s: (e: unknown) => unknown) => s({ cfg, carregado: true, erro: false }),
 }));
 vi.mock("../stores/authStore", () => ({
   useAuthStore: (s: (e: unknown) => unknown) => s({ sessao: { uid: "u1" } }),
@@ -95,6 +95,7 @@ const linha = (extra: Partial<LinhaExtrato> = {}): LinhaAnalisada =>
 beforeEach(() => {
   linhas = [];
   importadoEm = null;
+  cfg = CONFIG_PADRAO;
   setLinhas.mockClear();
   setImportadoEm.mockClear();
   setTexto.mockClear();
@@ -264,6 +265,38 @@ describe("Importar", () => {
         expect(mostrarToast).toHaveBeenCalledWith(expect.stringMatching(/Carregar arquivo/)),
       );
       expect(setTexto).not.toHaveBeenCalled();
+    });
+  });
+
+  // Achado do Gabriel (06/10/2026): despesa/receita importada sem conta
+  // passava calada — só recarga/transferência/fatura travavam a confirmação.
+  // Dezenas de linhas entravam sem cartão nenhum, sem nenhum aviso.
+  describe("despesa/receita sem conta trava a confirmação", () => {
+    test("com contas cadastradas, linha sem conta desativa 'Confirmar importação' e mostra o aviso", () => {
+      cfg = { ...CONFIG_PADRAO, contasCartoes: ["Revolut", "ActivoBank"] };
+      linhas = [linha()];
+      render(<Importar />);
+
+      expect(screen.getByText("Escolha a conta ou cartão desta linha.")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Confirmar importação/ })).toBeDisabled();
+    });
+
+    test("escolhendo a conta, o aviso some e o botão reativa", () => {
+      cfg = { ...CONFIG_PADRAO, contasCartoes: ["Revolut", "ActivoBank"] };
+      linhas = [{ ...linha(), contaEscolhida: "Revolut" }];
+      render(<Importar />);
+
+      expect(screen.queryByText("Escolha a conta ou cartão desta linha.")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Confirmar importação/ })).not.toBeDisabled();
+    });
+
+    test("sem nenhuma conta cadastrada, não trava — não há o que escolher", () => {
+      cfg = { ...CONFIG_PADRAO, contasCartoes: [] };
+      linhas = [linha()];
+      render(<Importar />);
+
+      expect(screen.queryByText("Escolha a conta ou cartão desta linha.")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Confirmar importação/ })).not.toBeDisabled();
     });
   });
 });
