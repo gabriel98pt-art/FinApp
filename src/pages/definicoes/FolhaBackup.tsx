@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { Download, Upload } from "lucide-react";
 import BottomSheet from "../../components/BottomSheet";
 import { exportarBackup, importarBackup } from "../../services/backupService";
@@ -24,6 +24,7 @@ export default function FolhaBackup({
 }) {
   const arquivoRef = useRef<HTMLInputElement>(null);
   const [importando, setImportando] = useState(false);
+  const [arrastando, setArrastando] = useState(false);
   const confirmar = useConfirmar();
 
   async function exportar() {
@@ -73,12 +74,37 @@ export default function FolhaBackup({
     if (arquivo) void processarArquivo(arquivo);
   }
 
+  /** Só se acende para ficheiros: arrastar texto ou uma seleção dentro da
+   *  página não é o gesto que nos interessa (ver mesma função em Importar.tsx). */
+  function temFicheiro(dt: DataTransfer | null) {
+    return !!dt && Array.from(dt.types).includes("Files");
+  }
+
+  function aoArrastarPorCima(e: DragEvent) {
+    if (!temFicheiro(e.dataTransfer)) return;
+    e.preventDefault();
+    setArrastando(true);
+  }
+
+  function aoSairDoArrasto(e: DragEvent) {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    setArrastando(false);
+  }
+
+  function aoSoltar(e: DragEvent) {
+    if (!temFicheiro(e.dataTransfer)) return;
+    e.preventDefault();
+    setArrastando(false);
+    const arquivo = e.dataTransfer.files[0];
+    if (arquivo) void processarArquivo(arquivo);
+  }
+
   // Colar o ficheiro copiado (ex. do Finder/Explorer) direto na folha, sem
   // precisar abrir o seletor — pedido do Gabriel (03/09/2026). Ouve na
-  // `window`, não num campo específico: a folha não tem nenhum campo de
-  // texto onde clicar antes, ao contrário do "colar" de Importar extrato
-  // (que pousa no textarea do CSV). Só ouve enquanto a folha está aberta —
-  // `aberta` na dependência garante que o listener sai com ela.
+  // `window`, não na zona de arrastar/colar abaixo: essa zona não tem nenhum
+  // campo de texto onde focar antes de colar, ao contrário do textarea de
+  // Importar extrato. Só ouve enquanto a folha está aberta — `aberta` na
+  // dependência garante que o listener sai com ela.
   useEffect(() => {
     if (!aberta) return;
     function aoColar(e: ClipboardEvent) {
@@ -93,19 +119,28 @@ export default function FolhaBackup({
 
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Backup">
-      <p className={styles.nota}>
-        Exporte todos os dados desta conta, ou restaure de um arquivo — escolhido ou colado com ⌘V.
-      </p>
+      <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um arquivo.</p>
       <div className={styles.linhaAdicionar}>
         <button className={styles.botaoPequeno} onClick={() => void exportar()}>
           <Download size={14} aria-hidden /> Exportar dados
         </button>
+      </div>
+      <div
+        className={`${styles.dropzoneBackup} ${arrastando ? styles.dropzoneBackupArrastando : ""}`}
+        onDragOver={aoArrastarPorCima}
+        onDragLeave={aoSairDoArrasto}
+        onDrop={aoSoltar}
+      >
+        <Upload size={20} aria-hidden />
+        <p className={styles.dropzoneBackupTexto}>
+          Arraste o arquivo de backup aqui, cole com ⌘V/Ctrl+V, ou
+        </p>
         <button
           className={styles.botaoPequeno}
           onClick={() => arquivoRef.current?.click()}
           disabled={importando}
         >
-          <Upload size={14} aria-hidden /> {importando ? "Importando…" : "Importar dados"}
+          {importando ? "Importando…" : "Escolher arquivo"}
         </button>
         <input
           ref={arquivoRef}

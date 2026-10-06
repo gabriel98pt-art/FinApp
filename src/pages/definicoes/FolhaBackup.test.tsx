@@ -7,7 +7,7 @@
 // ficheiro) não faz nada, porque não é o gesto que a folha entende.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import FolhaBackup from "./FolhaBackup";
 
 const exportarBackup = vi.fn(async () => "{}");
@@ -64,6 +64,36 @@ describe("FolhaBackup — colar ficheiro (⌘V)", () => {
       type: "application/json",
     });
     colar(arquivo);
+
+    expect(confirmar).not.toHaveBeenCalled();
+    expect(importarBackup).not.toHaveBeenCalled();
+  });
+});
+
+// Zona visível de "arrastar ou colar arquivo" (05/10/2026) — antes só havia
+// o `paste` escondido na window, testado acima; agora a mesma folha também
+// aceita arrastar e soltar o arquivo direto na caixa.
+describe("FolhaBackup — arrastar e soltar ficheiro", () => {
+  function zona() {
+    return screen.getByText(/Arraste o arquivo de backup aqui/).parentElement!;
+  }
+
+  test("soltar um ficheiro pede confirmação e importa", async () => {
+    render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
+
+    const arquivo = new File(['{"versao":1,"dados":{}}'], "backup.json", {
+      type: "application/json",
+    });
+    fireEvent.drop(zona(), { dataTransfer: { types: ["Files"], files: [arquivo] } });
+
+    await vi.waitFor(() => expect(confirmar).toHaveBeenCalled());
+    await vi.waitFor(() => expect(importarBackup).toHaveBeenCalledWith("u1", expect.any(String)));
+  });
+
+  test("soltar sem ficheiro (ex. texto arrastado) não faz nada", () => {
+    render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
+
+    fireEvent.drop(zona(), { dataTransfer: { types: ["text/plain"], files: [] } });
 
     expect(confirmar).not.toHaveBeenCalled();
     expect(importarBackup).not.toHaveBeenCalled();

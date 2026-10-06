@@ -299,4 +299,43 @@ describe("Importar", () => {
       expect(screen.getByRole("button", { name: /Confirmar importação/ })).not.toBeDisabled();
     });
   });
+
+  // Pedido do Gabriel (06/10/2026): o pop-up de permissão do
+  // `clipboard.readText()` só é necessário em quem não tem Ctrl+V físico
+  // (telemóvel). No desktop o botão continua a existir (funciona igual), só
+  // perde destaque — vira link em vez de botão do mesmo peso que "Carregar
+  // arquivo". `setup.ts` já simula desktop por padrão (matchMedia sempre
+  // false); aqui simula-se o caso touch puro para o outro lado do contraste.
+  describe("peso visual do botão Colar conforme o dispositivo", () => {
+    function simularTouchPuro(ehTouchPuro: boolean) {
+      Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        configurable: true,
+        value: (query: string) => ({
+          matches: ehTouchPuro && query === "(hover: none) and (pointer: coarse)",
+          media: query,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        }),
+      });
+    }
+
+    test("desktop (tem mouse): Colar vira link discreto, sem ícone", () => {
+      linhas = null;
+      simularTouchPuro(false);
+      render(<Importar />);
+
+      const botaoColar = screen.getByRole("button", { name: "Colar" });
+      expect(botaoColar.querySelector("svg")).toBeNull();
+    });
+
+    test("telemóvel (touch puro, sem mouse): Colar continua em destaque, com ícone", () => {
+      linhas = null;
+      simularTouchPuro(true);
+      render(<Importar />);
+
+      const botaoColar = screen.getByRole("button", { name: /Colar/ });
+      expect(botaoColar.querySelector("svg")).not.toBeNull();
+    });
+  });
 });

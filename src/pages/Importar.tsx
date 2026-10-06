@@ -13,6 +13,7 @@ import {
 } from "../services/importacaoService";
 import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useAuthStore } from "../stores/authStore";
 import { comHistoricoSuprimido, useHistoricoStore } from "../stores/historicoStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -203,6 +204,10 @@ export default function Importar() {
   const [enviando, setEnviando] = useState(false);
   const [lendoPdf, setLendoPdf] = useState(false);
   const [arrastando, setArrastando] = useState(false);
+  // Decide o peso visual do botão "Colar" (ver comentário em
+  // `colarDoClipboard`) — quem não tem mouse/trackpad (hover:none) nem
+  // ponteiro fino (pointer:coarse) é quem de fato precisa dele em destaque.
+  const semMouse = useMediaQuery("(hover: none) and (pointer: coarse)");
   /** Conta escolhida para o extrato todo de uma vez. O extrato costuma ser de
    *  uma conta só, e escolher a mesma linha a linha era o trabalho repetido
    *  desta página. Só guarda o que foi escolhido em massa — a fonte da verdade
@@ -349,7 +354,12 @@ export default function Importar() {
    *  aparece se o que está copiado for TEXTO — quem copiou o PDF do extrato
    *  toca na caixa e não lhe aparece opção nenhuma. Este botão lê a área de
    *  transferência por API, que é o único caminho que o iOS dá a uma página
-   *  web (mostra o seu próprio pedido de permissão ao primeiro toque). */
+   *  web (mostra o seu próprio pedido de permissão ao primeiro toque).
+   *
+   *  No desktop esse pop-up de permissão é só ruído: o Ctrl+V nativo já cai
+   *  direto no textarea (onPaste acima) sem pedir nada. Por isso o botão
+   *  continua a existir também aí (pode ser útil fora do textarea), mas em
+   *  peso visual reduzido — ver `semMouse` no render, mais abaixo. */
   async function colarDoClipboard() {
     if (!navigator.clipboard?.readText) {
       mostrarToast("Este navegador não deixa colar por botão — usa Carregar arquivo.");
@@ -549,9 +559,15 @@ export default function Importar() {
             >
               Analisar
             </button>
-            <button className={styles.botao} onClick={colarDoClipboard} disabled={lendoPdf}>
-              <ClipboardPaste size={15} aria-hidden /> Colar
-            </button>
+            {semMouse ? (
+              <button className={styles.botao} onClick={colarDoClipboard} disabled={lendoPdf}>
+                <ClipboardPaste size={15} aria-hidden /> Colar
+              </button>
+            ) : (
+              <button className={styles.linkBotao} onClick={colarDoClipboard} disabled={lendoPdf}>
+                Colar
+              </button>
+            )}
             <button
               className={styles.botao}
               onClick={() => arquivoRef.current?.click()}

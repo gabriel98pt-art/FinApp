@@ -5,7 +5,7 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 06/10/2026 — 517 mudanças registadas.
+Período coberto: 23/07/2026 a 06/10/2026 — 520 mudanças registadas.
 
 ---
 
@@ -19,6 +19,17 @@ Período coberto: 23/07/2026 a 06/10/2026 — 517 mudanças registadas.
   uma despesa/receita também trava o botão "Confirmar importação" e mostra
   o aviso na própria linha — sem conta nenhuma cadastrada ainda, continua
   sem travar (não há o que escolher).
+- No computador, o botão "Colar" de Importar extrato abria o aviso de
+  permissão do navegador toda vez, mesmo quando colar com Ctrl+V direto na
+  caixa já funcionava sem pedir nada — o botão só existe de verdade por causa
+  do iPhone. Agora, em quem tem mouse/trackpad, ele vira um link discreto em
+  vez de um botão do mesmo tamanho dos outros; no telemóvel continua igual,
+  em destaque.
+- Na folha de Backup (Definições → Dados), colar o arquivo de backup
+  (⌘V/Ctrl+V) funcionava mas não tinha nenhuma pista visual — quem não sabia
+  que existia, não descobria. Agora há uma área visível mostrando as 3 formas
+  de entrar: arrastar o arquivo, colar, ou escolher pelo seletor. Arrastar é
+  novo; colar e escolher já existiam.
 
 ## 03/10/2026
 

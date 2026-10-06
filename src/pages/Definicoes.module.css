@@ -304,6 +304,35 @@
   display: none;
 }
 
+/* Zona de "arrastar ou colar arquivo" do backup (05/10/2026) — mesmo espírito
+   da caixa de Importar extrato (Importar.module.css .entrada), mas sem
+   textarea: esta só aceita o ARQUIVO do backup, nunca texto solto. Substitui
+   o antigo "colar invisível" (só um listener na window, sem pista visual
+   nenhuma) por uma área que já avisa as 3 formas de entrar — arrastar, colar,
+   escolher — em vez de deixar a pessoa descobrir por acaso. */
+.dropzoneBackup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 8px 0;
+  padding: 20px 16px;
+  border: 1px dashed var(--brd);
+  border-radius: var(--r-card);
+  color: var(--mut);
+  text-align: center;
+}
+
+.dropzoneBackupArrastando {
+  border-color: var(--blu);
+  background: color-mix(in srgb, var(--blu) 8%, transparent);
+  color: var(--txt);
+}
+
+.dropzoneBackupTexto {
+  font-size: var(--fs-body);
+}
+
 /* Escolha dos 2 KPIs por página no mobile (item 8) */
 .grupoKpis {
   padding: 2px 8px 6px;
