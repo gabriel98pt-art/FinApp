@@ -11,6 +11,11 @@ Período coberto: 23/07/2026 a 06/10/2026 — 526 mudanças registadas.
 
 ## 06/10/2026
 
+- **Importar: campo "Nota" removido da linha de revisão.** O app já não tem campo
+  separado de nota nos lançamentos (a descrição é um campo só, desde 30/08 e 01/09),
+  então este era um campo sobrando. Os campos de tipo, conta e categoria agora
+  ficam alinhados pelo topo, sem o espaço vazio que a nota deixava no fim do editor.
+
 - A revisão da tela Importar extrato foi reorganizada. Primeiro escolhe-se o
   extrato ("Carregar arquivo", ou "Colar texto", que só abre a caixa de texto
   quando é escolhido). Depois as linhas aparecem agrupadas pelo que precisam:

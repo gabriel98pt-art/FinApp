@@ -367,16 +367,6 @@ export default function EditorLinha({
             </Campo>
           </>
         )}
-
-        <label className={`${styles.campo} ${styles.campoLargo}`}>
-          <span className={styles.campoRotulo}>Nota</span>
-          <input
-            className={styles.campoTexto}
-            placeholder="Opcional"
-            value={l.notaEscolhida}
-            onChange={(e) => atualizar({ notaEscolhida: e.target.value })}
-          />
-        </label>
       </div>
 
       {/* A outra ponta da mesma transferência, já lançada do lado contrário.
