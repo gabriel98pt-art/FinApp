@@ -54,6 +54,8 @@ export function useImportacao() {
   const setLinhas = useImportacaoStore((s) => s.setLinhas);
   const importadoEm = useImportacaoStore((s) => s.importadoEm);
   const setImportadoEm = useImportacaoStore((s) => s.setImportadoEm);
+  const marcarImportado = useImportacaoStore((s) => s.marcarImportado);
+  const totalImportado = useImportacaoStore((s) => s.totalImportado);
   const resetarRascunho = useImportacaoStore((s) => s.resetar);
 
   // Quanto tempo a revisão fica visível (marcada "importado") depois de
@@ -64,11 +66,21 @@ export function useImportacao() {
    *  confirmada — comparado ao índice atual (abaixo) pra saber se um
    *  "Desfazer" já passou por cima dela. Derivado no render, não num efeito:
    *  não há nada pra sincronizar com um sistema externo aqui, só uma conta a
-   *  partir de dois números que já estão disponíveis. */
-  const [indiceAoImportar, setIndiceAoImportar] = useState<number | null>(null);
+   *  partir de dois números que já estão disponíveis. Vive na store
+   *  persistida, junto de `importadoEm`: num useState perdia-se ao sair da
+   *  aba e voltar, e um "Desfazer" feito entretanto deixava de ser detectado. */
+  const indiceAoImportar = useImportacaoStore((s) => s.indiceAoImportar);
   const indiceHistoricoAtual = useHistoricoStore((s) => s.pilha.indice);
+  const tamanhoPilha = useHistoricoStore((s) => s.pilha.pilha.length);
+  // A pilha de undo só existe em memória: um refresh (ou novo login) começa-a
+  // vazia, e aí o índice guardado já não se refere a ela — comparar daria
+  // "desfeito" sem ninguém ter desfeito nada, e reabria uma revisão já
+  // gravada. Só conta enquanto a pilha ainda contém o ponto da importação.
   const foiDesfeito =
-    Boolean(importadoEm) && indiceAoImportar !== null && indiceHistoricoAtual < indiceAoImportar;
+    Boolean(importadoEm) &&
+    indiceAoImportar !== null &&
+    indiceAoImportar < tamanhoPilha &&
+    indiceHistoricoAtual < indiceAoImportar;
   // Alguém desfez (↩ no menu "Mais") depois desta importação: os dados já voltaram no
   // Firebase, então a revisão volta a ficar editável — mesmo sem `importadoEm`
   // ainda ter sido limpo, é como se não tivesse sido confirmada.
@@ -79,8 +91,8 @@ export function useImportacao() {
   const limparRevisao = useCallback(() => {
     setLinhas(null);
     setTexto("");
+    // Limpa também `totalImportado`/`indiceAoImportar` (ver a store).
     setImportadoEm(null);
-    setIndiceAoImportar(null);
   }, [setLinhas, setTexto, setImportadoEm]);
 
   // Limpeza automática: se ninguém desfez nem limpou à mão, a revisão some
@@ -176,6 +188,9 @@ export function useImportacao() {
     );
     setLinhas(analisadas);
     setFiltro("todas");
+    // Os ids das linhas são o índice no extrato (0..n): um "aberto" que
+    // ficasse do extrato anterior abriria a linha errada neste.
+    setOutraPontaAberta(new Set());
     mostrarToast(`${analisadas.length} linha(s) analisada(s)`);
   }
 
@@ -214,7 +229,22 @@ export function useImportacao() {
     }
 
     const leitor = new FileReader();
-    leitor.onload = () => analisar(parseExtratoCsv(String(leitor.result ?? "")));
+    const falhouCsv = (erro: unknown) => {
+      // Mesmo motivo do PDF acima: o toast fica curto, o erro fica registado.
+      console.error("Falha ao ler extrato em CSV:", erro);
+      mostrarToast("Não foi possível ler este arquivo CSV.");
+    };
+    leitor.onload = () => {
+      let brutas: LinhaExtrato[];
+      try {
+        brutas = parseExtratoCsv(String(leitor.result ?? ""));
+      } catch (erro) {
+        falhouCsv(erro);
+        return;
+      }
+      analisar(brutas);
+    };
+    leitor.onerror = () => falhouCsv(leitor.error);
     leitor.readAsText(arquivo);
   }
 
@@ -303,6 +333,8 @@ export function useImportacao() {
       if (!(await pedirConfirmacao("Limpar o rascunho da importação e recomeçar?"))) return;
       resetarRascunho();
       setFiltro("todas");
+      setContaEmMassa("");
+      setOutraPontaAberta(new Set());
     })();
   }
 
@@ -311,6 +343,8 @@ export function useImportacao() {
     void (async () => {
       if (!(await pedirConfirmacao("Descartar as linhas analisadas e recomeçar?"))) return;
       setLinhas(null);
+      setContaEmMassa("");
+      setOutraPontaAberta(new Set());
     })();
   }
 
@@ -397,8 +431,9 @@ export function useImportacao() {
       // sem reanalisar o extrato do zero e perder as marcações. `importadoEm`
       // troca a tela pra um estado "importado" (ver useEffect mais acima,
       // que limpa sozinho depois de um tempo, e o que detecta um desfazer).
-      setImportadoEm(Date.now());
-      setIndiceAoImportar(useHistoricoStore.getState().pilha.indice);
+      // `n` (o que de facto foi gravado) fica guardado para a tela
+      // "importado" — antes ela mostrava `linhas.length`, puladas incluídas.
+      marcarImportado(n, useHistoricoStore.getState().pilha.indice);
       setRevisaoDup(null);
     } catch {
       mostrarToast("Não foi possível importar. Tente de novo.");
@@ -408,7 +443,13 @@ export function useImportacao() {
   }
 
   async function confirmar() {
-    if (!uid || !linhas) return;
+    if (!linhas) return;
+    if (!uid) {
+      // Sem sessão não há onde gravar — antes saía calado e o botão parecia
+      // não fazer nada.
+      mostrarToast("Sessão não carregada. Tente de novo.");
+      return;
+    }
     const aImportar = linhas.filter((l) => l.acao === "import");
     if (aImportar.length === 0) {
       mostrarToast("Nenhuma linha marcada para importar.");
@@ -471,6 +512,7 @@ export function useImportacao() {
     setTexto,
     linhas,
     mostrandoImportado,
+    totalImportado,
     limparRevisao,
     resetarImportacao,
     descartarLinhas,

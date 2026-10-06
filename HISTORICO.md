@@ -11,6 +11,19 @@ Período coberto: 23/07/2026 a 06/10/2026 — 525 mudanças registadas.
 
 ## 06/10/2026
 
+- Rodada de correções na tela de Importar extrato. No resumo antes de
+  gravar, o botão "Importar agora" subia por cima da lista do resumo — agora
+  fica no fim, onde deve. O aviso "importado" passou a dizer quantos
+  lançamentos entraram de facto (antes contava também as linhas puladas). O
+  selo de cada linha passou a ter a cor do que diz: verde para
+  auto-classificada, neutro para nova, e tom de alerta para provável
+  duplicata e revisão (antes uma duplicata podia aparecer verde). "Novo
+  extrato" e "Resetar importação" limpam também a conta escolhida para
+  todas. Um "Desfazer" feito noutra aba depois de importar volta a ser
+  notado. Confirmar sem a sessão carregada mostra um aviso em vez de não
+  fazer nada, e um ficheiro CSV que não se consegue ler mostra uma mensagem
+  de erro. Na revisão de duplicatas, o valor do registo antigo aparece sem
+  sinal, como no resto da tela.
 - A tela de Importar extrato ganhou um visual mais limpo e mais fácil de ler:
   em cada linha o nome e o valor ficam maiores e a data, o selo e as escolhas
   (tipo, categoria, conta) ficam abaixo, em tamanho menor. Os filtros e os

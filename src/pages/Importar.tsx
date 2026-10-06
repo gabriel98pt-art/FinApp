@@ -55,7 +55,8 @@ export default function Importar() {
         <div className={styles.importado} role="status">
           <p className={styles.importadoTitulo}>
             <CircleCheck size={20} aria-hidden className={styles.importadoIcone} />
-            {linhas.length} lançamento(s) importado(s).
+            {imp.totalImportado ?? linhas.filter((l) => l.acao === "import").length} lançamento(s)
+            importado(s).
           </p>
           <p>
             Se foi engano, clica em <strong>Desfazer</strong> (↩) no menu <strong>Mais</strong> — a

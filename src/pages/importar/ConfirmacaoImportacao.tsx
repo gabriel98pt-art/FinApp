@@ -50,7 +50,7 @@ export default function ConfirmacaoImportacao({
   return (
     <>
       <button
-        className={styles.confirmar}
+        className={`${styles.confirmar} ${styles.confirmarFlutuante}`}
         onClick={() => setAberta(true)}
         disabled={enviando || totalImportar === 0 || bloqueado}
       >

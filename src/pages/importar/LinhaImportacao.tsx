@@ -7,7 +7,7 @@ import { nomeAtualDoMetodo } from "../../utils/instituicoes";
 import { rotuloMes } from "../../utils/calculos";
 import type { Abastecimento, ConfigConta, DestinoLinha, LinhaAnalisada } from "../../types";
 import {
-  corConfianca,
+  corDecisao,
   descricaoExistente,
   DESTINOS_ENTRADA,
   DESTINOS_SAIDA,
@@ -81,7 +81,7 @@ function LinhaImportacao({
           <span className={styles.linhaData}>
             {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
           </span>
-          <span className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}>
+          <span className={`${styles.badge} ${corDecisao(l.decisao)}`}>
             <IconeDecisao size={12} strokeWidth={2.5} aria-hidden />
             {ROTULO_DECISAO[l.decisao]}
             <span className={styles.soLeitor}>, {ROTULO_CONFIANCA[l.classificacao.confianca]}</span>

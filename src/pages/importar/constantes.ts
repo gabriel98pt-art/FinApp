@@ -111,6 +111,11 @@ export function descricaoExistente(ex: ExistenteParaDedup, currency: Currency): 
   return ex.descricao;
 }
 
-export function corConfianca(c: Confianca): string {
-  return c === "high" ? styles.confAlta : c === "medium" ? styles.confMedia : styles.confBaixa;
+/** Cor do selo da linha: segue a decisão, a mesma coisa que o texto do selo
+ *  diz. Auto-classificada é positivo, nova é neutro, e as duas que pedem um
+ *  olhar (provável duplicata e revisão) ficam no tom de alerta. */
+export function corDecisao(d: DecisaoLinha): string {
+  if (d === "auto_classificada") return styles.decisaoAuto;
+  if (d === "nova") return styles.decisaoNova;
+  return styles.decisaoAlerta;
 }

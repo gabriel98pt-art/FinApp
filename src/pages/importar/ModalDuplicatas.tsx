@@ -59,7 +59,9 @@ export default function ModalDuplicatas({
                 </span>
                 <span className={styles.revisaoMeta}>
                   {ex.data.slice(8, 10)}/{ex.data.slice(5, 7)} ·{" "}
-                  <span className={styles.revisaoValor}>{formatMoney(ex.valor, currency)}</span>
+                  <span className={styles.revisaoValor}>
+                    {formatMoney(Math.abs(ex.valor), currency)}
+                  </span>
                 </span>
               </div>
               <label className={styles.revisaoApagar}>

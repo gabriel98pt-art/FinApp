@@ -33,7 +33,7 @@ export default function ImportacaoFiltros({
             aria-selected={ativo}
             // Variante de painel único: ao contrário de Despesas ou
             // Veículo, aqui não há um painel por separador — é sempre a
-            // mesma lista, filtrada. Os três separadores apontam para ela,
+            // mesma lista, filtrada. Os cinco separadores apontam para ela,
             // e é ela que muda de rótulo conforme o que está seleccionado.
             aria-controls={idPainelAba("linhas")}
             {...propsAba(f.id)}

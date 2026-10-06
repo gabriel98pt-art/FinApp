@@ -457,22 +457,24 @@
   border: 0;
 }
 
-/* Tokens dos selos — ver nota em tokens.css. Estes marcam a confiança do
-   reconhecimento de cada linha do extrato: são exactamente o sítio onde a
-   pessoa decide o que aceitar, portanto o sítio onde ler mal custa dinheiro. */
-.confAlta {
+/* Tokens dos selos — ver nota em tokens.css. Estes marcam a DECISÃO de cada
+   linha do extrato (o mesmo que o texto do selo diz): são exactamente o sítio
+   onde a pessoa decide o que aceitar, portanto o sítio onde ler mal custa
+   dinheiro. Antes a cor seguia a confiança da classificação e o texto a
+   decisão — "Provável duplicata" chegava a aparecer verde. */
+.decisaoAuto {
   color: var(--selo-pago-txt);
   background: var(--selo-pago-bg);
 }
 
-.confMedia {
-  color: var(--selo-pendente-txt);
-  background: var(--selo-pendente-bg);
-}
-
-.confBaixa {
+.decisaoNova {
   color: var(--mut);
   background: var(--s2);
+}
+
+.decisaoAlerta {
+  color: var(--selo-alerta-txt);
+  background: var(--selo-alerta-bg);
 }
 
 .motivoDup {
@@ -522,16 +524,24 @@
   border-radius: var(--r-sm);
   padding: 12px;
   font-size: var(--fs-title);
-  position: sticky;
-  bottom: calc(var(--alt-barra-nav) + 47px);
 }
 
 .confirmar:disabled {
   opacity: 0.5;
 }
 
+/* Só o botão da página flutua acima da barra de navegação. O sticky vivia
+   em `.confirmar`, que é partilhado com o "Importar agora" da folha de
+   resumo: lá dentro o contentor de scroll é a própria folha, e os ~110px de
+   `bottom` (medidos para a barra da página) empurravam o botão para cima,
+   por cima da lista do resumo. */
+.confirmarFlutuante {
+  position: sticky;
+  bottom: calc(var(--alt-barra-nav) + 47px);
+}
+
 @media (min-width: 768px) {
-  .confirmar {
+  .confirmarFlutuante {
     position: static;
   }
 }
