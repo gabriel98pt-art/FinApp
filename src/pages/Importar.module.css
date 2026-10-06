@@ -24,6 +24,35 @@
   box-shadow: 0 0 0 3px rgba(var(--blu-rgb), 0.25);
 }
 
+/* A ler o ficheiro: a caixa fica em espera — borda de acento sem o halo do
+   arrasto (não há nada a soltar), e o campo de texto recua, porque o que lá
+   está vai ser substituído pelo que sair do PDF. O botão "Lendo…" ganha o
+   indicador a girar. Tamanho intacto, como no arrasto. */
+.entradaLendo {
+  border-color: var(--blu);
+  cursor: progress;
+}
+
+.entradaLendo .textarea {
+  opacity: 0.55;
+}
+
+.girando {
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .girando {
+    animation: none;
+  }
+}
+
 .entradaTitulo {
   font-weight: 700;
   font-size: var(--fs-title);
@@ -32,6 +61,16 @@
 .entradaSub {
   color: var(--mut);
   font-size: var(--fs-body);
+  margin-top: -4px;
+}
+
+/* Formatos aceites: consulta, não instrução — fica por baixo dos botões, no
+   tamanho de legenda. */
+.entradaFormatos {
+  color: var(--mut);
+  font-size: var(--fs-label);
+  border-top: 1px solid var(--brd);
+  padding-top: 10px;
 }
 
 .textarea {
@@ -100,38 +139,104 @@
 }
 
 .linkBotao {
+  position: relative;
   color: var(--blu);
   font-weight: 700;
   font-size: var(--fs-body);
 }
 
+/* Botões que se leem como link ("Novo extrato", "limpa agora", "Resetar
+   importação", "Ver detalhes"): o texto tem ~18px de altura; o toque apanha
+   uma faixa de ~40px à volta, sem mexer no desenho nem no fluxo do texto. */
+.linkBotao::after,
+.outraPontaAcao::after {
+  content: "";
+  position: absolute;
+  inset: -11px -6px;
+}
+
+.resumoMarcadas {
+  color: var(--txt);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .acoesLote {
   display: flex;
+  align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
 
+/* Ação principal do lote: fundo de acento a 14%, como os selos — destaca
+   sem competir com o "Confirmar importação" cheio, lá em baixo. */
+.botaoAcento {
+  color: var(--blu);
+  background: color-mix(in srgb, var(--blu) 14%, var(--s1));
+}
+
+.botaoAcento:hover {
+  background: color-mix(in srgb, var(--blu) 22%, var(--s1));
+}
+
+/* Marcar/pular tudo: um par, colado, com o mesmo fundo e uma fresta entre os
+   dois — lê-se como uma escolha só, com dois lados. */
+.acoesPar {
+  display: flex;
+  gap: 2px;
+}
+
+.acoesPar .botao:first-child {
+  border-radius: var(--r-sm) var(--r-xs) var(--r-xs) var(--r-sm);
+}
+
+.acoesPar .botao:last-child {
+  border-radius: var(--r-xs) var(--r-sm) var(--r-sm) var(--r-xs);
+}
+
+/* Estado "importado": ocupa o lugar da lista, em cartão como ela, e não some
+   como um toast. Fundo de cartão com o texto normal — o verde fica só no
+   ícone e no título, que é onde está a notícia. */
 .importado {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--selo-pago-bg);
-  color: var(--selo-pago-txt);
-  border-radius: var(--r-sm);
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-card);
   padding: 16px;
   font-size: var(--fs-body);
 }
 
+.importadoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--selo-pago-txt);
+}
+
+.importadoIcone {
+  flex: none;
+}
+
 .importadoAviso {
-  opacity: 0.8;
+  color: var(--mut);
   font-size: var(--fs-label);
 }
 
+/* O padding vertical (desfeito pela margem) dá espaço ao alvo de toque
+   alargado de cada aba, abaixo: com `overflow-x: auto` o contentor corta
+   também na vertical, e o alvo ficava aparado à altura da pílula. */
 .filtros {
   display: flex;
   gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
+  padding: 6px 2px;
+  margin: -6px -2px;
 }
 
 .filtros::-webkit-scrollbar {
@@ -139,6 +244,10 @@
 }
 
 .filtroBotao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   white-space: nowrap;
   background: var(--s1);
   border: 1px solid var(--brd);
@@ -149,6 +258,26 @@
   padding: 6px 12px;
 }
 
+/* A pílula mede ~30px; o toque apanha a faixa à volta dela até ~42px, sem
+   mexer no desenho nem invadir a aba do lado (para no `gap`). */
+.filtroBotao::after {
+  content: "";
+  position: absolute;
+  inset: -6px -2px;
+}
+
+.filtroIcone {
+  flex: none;
+}
+
+.filtroContagem {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Selecionada não é só cor: a pílula passa de contorno a cheia — salto de
+   forma e de luminância, legível também a quem não distingue o azul. O peso
+   do texto fica igual nas duas de propósito: mudá-lo mudava a largura, e a
+   fila inteira saltava a cada seta. */
 .filtroAtivo {
   background: var(--blu);
   color: var(--bg);
@@ -201,9 +330,13 @@
   gap: 6px;
 }
 
+/* Primeiro degrau da linha: nome e valor, os dois no tamanho de título e
+   sempre na mesma linha — também no telemóvel, onde o nome encolhe (o campo
+   corta-se sozinho) e o valor nunca quebra. */
 .linhaTopo {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 10px;
 }
 
@@ -212,7 +345,7 @@
    passar o rato ou ao focar, que é quando importa saber que dá para escrever. */
 .linhaDesc {
   font-weight: 700;
-  font-size: var(--fs-body);
+  font-size: var(--fs-title);
   min-width: 0;
   flex: 1;
   background: none;
@@ -254,6 +387,7 @@
 
 .valorPositivo {
   color: var(--grn);
+  font-size: var(--fs-title);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -261,11 +395,13 @@
 
 .valorNegativo {
   color: var(--red);
+  font-size: var(--fs-title);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
+/* Segundo degrau: data e selo, em legenda. */
 .linhaMeta {
   display: flex;
   align-items: center;
@@ -273,13 +409,52 @@
   flex-wrap: wrap;
   font-size: var(--fs-label);
   color: var(--mut);
+  margin-top: -2px;
+}
+
+.linhaData {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Terceiro degrau: os seletores do que se pode corrigir. Texto um passo
+   abaixo do nome (o gatilho do Seletor vem em corpo, o mesmo peso que o nome
+   tinha), mas a altura de toque de 36px do gatilho fica como está. */
+.linhaCampos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: var(--fs-label);
+  color: var(--mut);
+}
+
+/* `[aria-haspopup]` só apanha o gatilho do Seletor, e o atributo a mais é
+   o que dá a especificidade para passar à frente de `.inline .gatilho`. */
+.linhaCampos button[aria-haspopup] {
+  font-size: var(--fs-label);
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: var(--fs-micro);
   font-weight: 700;
   border-radius: var(--r-pill);
-  padding: 3px 9px;
+  padding: 3px 9px 3px 7px;
+}
+
+/* Lido pelo leitor de tela, invisível no ecrã. */
+.soLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Tokens dos selos — ver nota em tokens.css. Estes marcam a confiança do
@@ -361,6 +536,66 @@
   }
 }
 
+/* Resumo antes de gravar: o total grande, a divisão por decisão em lista de
+   duas colunas (rótulo à esquerda, número alinhado à direita) e, se houver,
+   quantas ficam de fora. */
+.resumoFinal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.resumoFinalTotal {
+  font-size: var(--fs-body);
+  color: var(--mut);
+}
+
+.resumoFinalNumero {
+  font-size: var(--fs-display);
+  font-weight: 700;
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+
+.resumoFinalLista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+}
+
+.resumoFinalItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: var(--fs-body);
+}
+
+.resumoFinalItem + .resumoFinalItem {
+  border-top: 1px solid var(--brd);
+}
+
+.resumoFinalRotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mut);
+}
+
+.resumoFinalContagem {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumoFinalFora {
+  font-size: var(--fs-label);
+  color: var(--mut);
+}
+
 /* Revisão de duplicatas: o que entra ao lado do que já existe, uma coluna
    para cada, com a caixa de apagar por baixo. */
 .revisaoLista {
@@ -372,7 +607,7 @@
 
 .revisaoItem {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px 12px;
   background: var(--s2);
   border-radius: var(--r-sm);
@@ -384,6 +619,31 @@
   flex-direction: column;
   min-width: 0;
   gap: 2px;
+}
+
+/* Fio entre os dois lados: separa "o que entra" de "o que já lá está" sem
+   mais uma caixa. */
+.revisaoLadoExistente {
+  border-left: 1px solid var(--brd);
+  padding-left: 12px;
+}
+
+/* O motivo da suspeita, por cima dos dois lados, no tom de aviso da linha. */
+.revisaoMotivo {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  /* O texto de selo de aviso em vez do --ylw cru: é o tom medido para texto
+     miúdo sobre fundo tingido (ver tokens.css). */
+  color: var(--selo-pendente-txt);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.revisaoValor {
+  color: var(--txt);
+  font-weight: 700;
 }
 
 .revisaoRotulo {
@@ -398,7 +658,7 @@
   font-size: var(--fs-body);
   font-weight: 600;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .revisaoMeta {
@@ -438,6 +698,7 @@
 }
 
 .outraPontaAcao {
+  position: relative;
   color: var(--blu);
   font-size: var(--fs-label);
   font-weight: 700;

@@ -71,6 +71,7 @@ const mostrarToast = vi.hoisted(() => vi.fn());
 vi.mock("../stores/toastStore", () => ({ mostrarToast }));
 
 const Importar = (await import("./Importar")).default;
+const { confirmarImportacao } = await import("../services/importacaoService");
 
 /** Constrói a linha com a própria `analisarLinha` em vez de a inventar à mão.
  *  Um stub literal deste tipo precisa de `classificacao` e `duplicata`
@@ -297,6 +298,37 @@ describe("Importar", () => {
 
       expect(screen.queryByText("Escolha a conta ou cartão desta linha.")).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: /Confirmar importação/ })).not.toBeDisabled();
+    });
+  });
+
+  // Fase 3 do redesign: "Confirmar importação" passou a abrir um resumo do
+  // lote (quantas entram, por decisão, quantas ficam de fora). A gravação só
+  // acontece no botão final desse resumo — é o mesmo `confirmar` de sempre,
+  // chamado de outro sítio.
+  describe("resumo antes de gravar", () => {
+    test("Confirmar importação abre o resumo e ainda não grava", async () => {
+      cfg = { ...CONFIG_PADRAO, contasCartoes: [] };
+      linhas = [linha(), { ...linha({ descricao: "PADARIA" }), id: 2, acao: "skip" }];
+      vi.mocked(confirmarImportacao).mockClear();
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: /Confirmar importação/ }));
+
+      expect(await screen.findByRole("button", { name: "Importar agora (1)" })).toBeInTheDocument();
+      expect(screen.getByText("1 linha(s) ficam de fora.")).toBeInTheDocument();
+      expect(confirmarImportacao).not.toHaveBeenCalled();
+    });
+
+    test("o botão final do resumo é que grava", async () => {
+      cfg = { ...CONFIG_PADRAO, contasCartoes: [] };
+      linhas = [linha()];
+      vi.mocked(confirmarImportacao).mockClear();
+      render(<Importar />);
+
+      await userEvent.click(screen.getByRole("button", { name: /Confirmar importação/ }));
+      await userEvent.click(await screen.findByRole("button", { name: "Importar agora (1)" }));
+
+      await waitFor(() => expect(confirmarImportacao).toHaveBeenCalledTimes(1));
     });
   });
 

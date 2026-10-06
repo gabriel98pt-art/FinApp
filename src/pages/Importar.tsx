@@ -1,4 +1,4 @@
-import { Upload } from "lucide-react";
+import { CircleCheck, Upload } from "lucide-react";
 import Pagina, { EstadoVazio } from "../components/Pagina";
 import { useImportacao } from "./importar/useImportacao";
 import ImportacaoEntrada from "./importar/ImportacaoEntrada";
@@ -7,6 +7,7 @@ import ImportacaoToolbar from "./importar/ImportacaoToolbar";
 import ImportacaoFiltros from "./importar/ImportacaoFiltros";
 import ListaLinhasImportacao from "./importar/ListaLinhasImportacao";
 import ModalDuplicatas from "./importar/ModalDuplicatas";
+import ConfirmacaoImportacao from "./importar/ConfirmacaoImportacao";
 import styles from "./Importar.module.css";
 
 /** Página Importar: só monta os pedaços. Toda a lógica e a ligação às stores
@@ -48,11 +49,17 @@ export default function Importar() {
       ) : linhas.length === 0 ? (
         <EstadoVazio Icone={Upload} mensagem="Nenhuma linha reconhecida" />
       ) : imp.mostrandoImportado ? (
-        <div className={styles.importado}>
+        // Não é um toast: fica no lugar da lista, com o mesmo peso dela, até
+        // limpar sozinho. `role="status"` para o leitor de tela anunciar a
+        // troca — a lista que estava em foco acabou de desaparecer.
+        <div className={styles.importado} role="status">
+          <p className={styles.importadoTitulo}>
+            <CircleCheck size={20} aria-hidden className={styles.importadoIcone} />
+            {linhas.length} lançamento(s) importado(s).
+          </p>
           <p>
-            ✓ {linhas.length} lançamento(s) importado(s). Se foi engano, clica em{" "}
-            <strong>Desfazer</strong> (↩) no menu <strong>Mais</strong> — a revisão volta exatamente
-            como estava.
+            Se foi engano, clica em <strong>Desfazer</strong> (↩) no menu <strong>Mais</strong> — a
+            revisão volta exatamente como estava.
           </p>
           <p className={styles.importadoAviso}>
             Esta lista limpa sozinha em alguns minutos, ou{" "}
@@ -93,13 +100,13 @@ export default function Importar() {
             alternarOutraPonta={imp.alternarOutraPonta}
           />
 
-          <button
-            className={styles.confirmar}
-            onClick={imp.confirmar}
-            disabled={imp.enviando || imp.totalImportar === 0 || imp.incompletas.length > 0}
-          >
-            {imp.enviando ? "Aguarde…" : `Confirmar importação (${imp.totalImportar})`}
-          </button>
+          <ConfirmacaoImportacao
+            linhas={linhas}
+            totalImportar={imp.totalImportar}
+            bloqueado={imp.incompletas.length > 0}
+            enviando={imp.enviando}
+            onConfirmar={imp.confirmar}
+          />
         </>
       )}
 

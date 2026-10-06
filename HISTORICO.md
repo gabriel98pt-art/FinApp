@@ -5,11 +5,27 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 06/10/2026 — 522 mudanças registadas.
+Período coberto: 23/07/2026 a 06/10/2026 — 525 mudanças registadas.
 
 ---
 
 ## 06/10/2026
+
+- A tela de Importar extrato ganhou um visual mais limpo e mais fácil de ler:
+  em cada linha o nome e o valor ficam maiores e a data, o selo e as escolhas
+  (tipo, categoria, conta) ficam abaixo, em tamanho menor. Os filtros e os
+  selos ganharam um pequeno ícone (✓ automática, ⚠ duplicata, ! revisão),
+  para não depender só da cor. Enquanto um PDF está a ser lido, a caixa de
+  entrada fica em espera, com um indicador a girar no botão. A revisão de
+  duplicatas mostra agora o motivo da suspeita por cima dos dois lados.
+- "Confirmar importação" passou a abrir primeiro um resumo — quantos
+  lançamentos vão entrar, de que tipo, e quantas linhas ficam de fora — e só
+  grava no botão "Importar agora". O aviso de "importado" deixou de parecer um
+  toast: fica no lugar da lista, num cartão, até limpar sozinho.
+- Para quem usa leitor de tela: a contagem de linhas marcadas é anunciada
+  quando muda, cada caixa de marcar diz de que linha é, e os selos dizem a
+  confiança por extenso. Botões pequenos com aspeto de link ganharam uma área
+  de toque maior, sem mudar de tamanho no ecrã.
 
 - Restaurar um backup apagava os dados atuais da conta sem guardar cópia
   nenhuma — se o arquivo escolhido fosse o errado, não havia volta. Agora,

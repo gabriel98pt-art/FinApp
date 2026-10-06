@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ClipboardPaste, Upload } from "lucide-react";
+import { ClipboardPaste, Loader2, Upload } from "lucide-react";
 import styles from "../Importar.module.css";
 
 /** Caixa de entrada do extrato (colar texto, arrastar/colar ficheiro ou
@@ -35,7 +35,9 @@ export default function ImportacaoEntrada({
 
   return (
     <div
-      className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""}`}
+      className={`${styles.entrada} ${arrastando ? styles.entradaArrastando : ""} ${
+        lendoPdf ? styles.entradaLendo : ""
+      }`}
       onDragOver={aoArrastarPorCima}
       onDragLeave={aoSairDoArrasto}
       onDrop={aoSoltar}
@@ -46,14 +48,15 @@ export default function ImportacaoEntrada({
       // de "ainda a processar" no meio do caminho.
       aria-busy={lendoPdf}
     >
+      {/* Três degraus, por esta ordem: o que fazer (título), como (uma frase)
+          e o que é suportado (linha miúda de formatos, por baixo dos botões —
+          é consulta, não instrução). */}
       <p id="importar-entrada-titulo" className={styles.entradaTitulo}>
         Colar ou carregar extrato
       </p>
       <p id="importar-entrada-sub" className={styles.entradaSub}>
-        PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
-        descrição e valor — exportado do banco ou colado direto de uma folha de cálculo. Um PDF
-        abre-se pelo botão <strong>Carregar arquivo</strong> (no computador também se arrasta para
-        aqui); texto copiado entra pelo botão <strong>Colar</strong>.
+        Um PDF abre-se pelo botão <strong>Carregar arquivo</strong> (no computador também se arrasta
+        para aqui); texto copiado entra pelo botão <strong>Colar</strong>.
       </p>
       <textarea
         className={styles.textarea}
@@ -62,7 +65,7 @@ export default function ImportacaoEntrada({
         onChange={(e) => setTexto(e.target.value)}
         rows={8}
         aria-labelledby="importar-entrada-titulo"
-        aria-describedby="importar-entrada-sub"
+        aria-describedby="importar-entrada-sub importar-entrada-formatos"
       />
       <div className={styles.entradaAcoes}>
         <button
@@ -86,7 +89,12 @@ export default function ImportacaoEntrada({
           onClick={() => arquivoRef.current?.click()}
           disabled={lendoPdf}
         >
-          <Upload size={15} aria-hidden /> {lendoPdf ? "Lendo…" : "Carregar arquivo"}
+          {lendoPdf ? (
+            <Loader2 size={15} className={styles.girando} aria-hidden />
+          ) : (
+            <Upload size={15} aria-hidden />
+          )}{" "}
+          {lendoPdf ? "Lendo…" : "Carregar arquivo"}
         </button>
         <input
           ref={arquivoRef}
@@ -99,6 +107,10 @@ export default function ImportacaoEntrada({
           onChange={aoCarregarArquivo}
         />
       </div>
+      <p id="importar-entrada-formatos" className={styles.entradaFormatos}>
+        PDF do extrato, direto do banco. Ou CSV/texto delimitado (tab/;/,) com colunas de data,
+        descrição e valor — exportado do banco ou colado direto de uma folha de cálculo.
+      </p>
     </div>
   );
 }

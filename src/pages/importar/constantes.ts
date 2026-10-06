@@ -1,3 +1,4 @@
+import { Check, CircleAlert, Dot, TriangleAlert, type LucideIcon } from "lucide-react";
 import { formatMoney } from "../../utils/money";
 import { somarMeses } from "../../utils/calculos";
 import type {
@@ -16,6 +17,24 @@ export const ROTULO_DECISAO: Record<DecisaoLinha, string> = {
   nova: "Nova",
   duplicata_provavel: "Provável duplicata",
   revisao: "Revisão",
+};
+
+/** Forma de cada decisão — usada no filtro e no selo da linha, a mesma nos
+ *  dois sítios. Existe para a decisão não se ler só pela cor (WCAG 1.4.1):
+ *  ✓ entra sem mexer, · é nova, ⚠ já parece existir, ! pede um olhar. */
+export const ICONE_DECISAO: Record<DecisaoLinha, LucideIcon> = {
+  auto_classificada: Check,
+  nova: Dot,
+  duplicata_provavel: TriangleAlert,
+  revisao: CircleAlert,
+};
+
+/** A confiança do reconhecimento, por extenso — o selo mostra-a em cor, e
+ *  isto é o que o leitor de tela lê no lugar dela. */
+export const ROTULO_CONFIANCA: Record<Confianca, string> = {
+  high: "confiança alta",
+  medium: "confiança média",
+  low: "confiança baixa",
 };
 
 /** Onde um registo já existente mora, em português — usado no "ver detalhes"

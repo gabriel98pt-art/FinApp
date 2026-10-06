@@ -10,7 +10,9 @@ import {
   descricaoExistente,
   DESTINOS_ENTRADA,
   DESTINOS_SAIDA,
+  ICONE_DECISAO,
   mesesDaFatura,
+  ROTULO_CONFIANCA,
   ROTULO_DECISAO,
   ROTULO_ORIGEM,
   ROTULO_TIPO,
@@ -45,11 +47,15 @@ export default function LinhaImportacao({
   atualizarLinha: (id: number, mudancas: Partial<LinhaAnalisada>) => void;
   alternarOutraPonta: (id: number) => void;
 }) {
+  const IconeDecisao = ICONE_DECISAO[l.decisao];
   return (
     <div className={styles.linha}>
       <label className={styles.linhaAcao}>
         <input
           type="checkbox"
+          // Sem texto ao lado, a caixa não tinha nome: o leitor de tela dizia
+          // só "caixa de seleção, marcada", sem dizer de que linha.
+          aria-label={`Importar ${l.descricao}`}
           checked={l.acao === "import"}
           onChange={(e) => atualizarLinha(l.id, { acao: e.target.checked ? "import" : "skip" })}
         />
@@ -69,21 +75,20 @@ export default function LinhaImportacao({
             {formatMoney(l.valor, cfg.currency)}
           </span>
         </div>
-        {/* Nota livre, em qualquer destino que tenha campo para ela. */}
-        <input
-          className={styles.linhaNota}
-          aria-label={`Nota de ${l.descricao}`}
-          placeholder="Nota (opcional)"
-          value={l.notaEscolhida}
-          onChange={(e) => atualizarLinha(l.id, { notaEscolhida: e.target.value })}
-        />
+        {/* Segundo degrau, miúdo: quando e como foi reconhecida. */}
         <div className={styles.linhaMeta}>
-          <span>
+          <span className={styles.linhaData}>
             {l.data.slice(8, 10)}/{l.data.slice(5, 7)}
           </span>
           <span className={`${styles.badge} ${corConfianca(l.classificacao.confianca)}`}>
+            <IconeDecisao size={12} strokeWidth={2.5} aria-hidden />
             {ROTULO_DECISAO[l.decisao]}
+            <span className={styles.soLeitor}>, {ROTULO_CONFIANCA[l.classificacao.confianca]}</span>
           </span>
+        </div>
+        {/* Terceiro degrau: o que se pode corrigir. Agrupado à parte da data e
+            do selo, para os seletores não competirem com o nome e o valor. */}
+        <div className={styles.linhaCampos}>
           <Seletor
             variante="inline"
             rotulo={`Tipo do registro de ${l.descricao}`}
@@ -257,6 +262,14 @@ export default function LinhaImportacao({
             </>
           )}
         </div>
+        {/* Nota livre, em qualquer destino que tenha campo para ela. */}
+        <input
+          className={styles.linhaNota}
+          aria-label={`Nota de ${l.descricao}`}
+          placeholder="Nota (opcional)"
+          value={l.notaEscolhida}
+          onChange={(e) => atualizarLinha(l.id, { notaEscolhida: e.target.value })}
+        />
         {l.acao === "import" && l.destino === "carga" && !l.localCarga.trim() && (
           <p className={styles.faltaCarga}>Escolha o local desta recarga.</p>
         )}

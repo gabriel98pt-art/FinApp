@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import BottomSheet from "../../components/BottomSheet";
 import { formatMoney } from "../../utils/money";
 import type { Currency, LinhaAnalisada } from "../../types";
@@ -35,20 +36,30 @@ export default function ModalDuplicatas({
           const marcada = marcadasParaApagar.has(l.id);
           return (
             <div key={l.id} className={styles.revisaoItem}>
+              {/* O porquê, por cima dos dois lados: é o que diz onde olhar
+                  ao comparar (a data? o valor? o nome?). */}
+              {l.duplicata.motivos.length > 0 && (
+                <p className={styles.revisaoMotivo}>
+                  <TriangleAlert size={13} strokeWidth={2.5} aria-hidden />
+                  {l.duplicata.motivos.join(", ")}
+                </p>
+              )}
               <div className={styles.revisaoLado}>
                 <span className={styles.revisaoRotulo}>A importar</span>
                 <span className={styles.revisaoDesc}>{l.descricao}</span>
                 <span className={styles.revisaoMeta}>
-                  {l.data.slice(8, 10)}/{l.data.slice(5, 7)} · {formatMoney(l.valor, currency)}
+                  {l.data.slice(8, 10)}/{l.data.slice(5, 7)} ·{" "}
+                  <span className={styles.revisaoValor}>{formatMoney(l.valor, currency)}</span>
                 </span>
               </div>
-              <div className={styles.revisaoLado}>
+              <div className={`${styles.revisaoLado} ${styles.revisaoLadoExistente}`}>
                 <span className={styles.revisaoRotulo}>Já registado</span>
                 <span className={styles.revisaoDesc}>
                   {ex.origem === "carga" ? `Carga elétrica em ${ex.descricao}` : ex.descricao}
                 </span>
                 <span className={styles.revisaoMeta}>
-                  {ex.data.slice(8, 10)}/{ex.data.slice(5, 7)} · {formatMoney(ex.valor, currency)}
+                  {ex.data.slice(8, 10)}/{ex.data.slice(5, 7)} ·{" "}
+                  <span className={styles.revisaoValor}>{formatMoney(ex.valor, currency)}</span>
                 </span>
               </div>
               <label className={styles.revisaoApagar}>
