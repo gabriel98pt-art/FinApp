@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Seletor from "../../components/Seletor";
 import { dadosDaTransferencia, pagamentoDaLinha } from "../../services/importacaoService";
 import { estimarKwh } from "../../utils/importacao";
@@ -25,7 +26,7 @@ import styles from "../Importar.module.css";
  *  valor, data, badge de decisão e os seletores que mudam conforme o destino
  *  (lançamento, recarga, transferência interna ou fatura paga), mais os avisos
  *  do que falta completar e de possíveis cruzamentos com o que já existe. */
-export default function LinhaImportacao({
+function LinhaImportacao({
   l,
   cfg,
   cargasVeiculo,
@@ -358,3 +359,10 @@ export default function LinhaImportacao({
     </div>
   );
 }
+
+/** `memo`: editar uma linha só re-renderiza essa linha. Funciona porque as
+ *  outras linhas mantêm a mesma identidade (`atualizarLinha` só recria o
+ *  objeto alterado) e todos os outros props são estáveis entre renders —
+ *  `cfg`/`cargasVeiculo` vêm direto das stores, as listas e os handlers são
+ *  `useMemo`/`useCallback` em `useImportacao`. */
+export default memo(LinhaImportacao);

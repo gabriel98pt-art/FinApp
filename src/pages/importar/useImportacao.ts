@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apagarExistentes,
   construirExistentes,
@@ -123,15 +123,29 @@ export function useImportacao() {
   const [outraPontaAberta, setOutraPontaAberta] = useState<Set<number>>(new Set());
 
   const categoriasConfiguradas = cfg.categoriasDespesa;
-  const opcoesCategoria = [
-    ...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"]),
-  ];
+  // As três listas abaixo (e os dois handlers `atualizarLinha`/
+  // `alternarOutraPonta`, mais abaixo) vão como props para cada
+  // `LinhaImportacao`, que é `memo`: precisam de manter a mesma identidade
+  // entre renders, senão editar uma linha re-renderizava a lista inteira.
+  const opcoesCategoria = useMemo(
+    () => [...new Set([...categoriasConfiguradas, "Cartão de Crédito", "Transferência", "Outros"])],
+    [categoriasConfiguradas],
+  );
   // Receita não tem categoria, tem FONTE — outro conceito e outro campo. A
   // lista de despesas ("Alimentação", "Saúde") não dizia nada a quem estava a
   // classificar um salário.
-  const opcoesFonte = [...new Set([...cfg.fontesReceita, "Transferência", "Outros"])];
+  const fontesReceita = cfg.fontesReceita;
+  const opcoesFonte = useMemo(
+    () => [...new Set([...fontesReceita, "Transferência", "Outros"])],
+    [fontesReceita],
+  );
   // Só cartões de crédito têm fatura para pagar.
-  const cartoesCredito = cfg.contasCartoes.filter((c) => cfg.tipoCartao[c] === "credit");
+  const contasCartoes = cfg.contasCartoes;
+  const tipoCartao = cfg.tipoCartao;
+  const cartoesCredito = useMemo(
+    () => contasCartoes.filter((c) => tipoCartao[c] === "credit"),
+    [contasCartoes, tipoCartao],
+  );
 
   function analisar(brutas: LinhaExtrato[]) {
     if (brutas.length === 0) {
@@ -300,9 +314,12 @@ export function useImportacao() {
     })();
   }
 
-  function atualizarLinha(id: number, mudancas: Partial<LinhaAnalisada>) {
-    setLinhas((atual) => atual?.map((l) => (l.id === id ? { ...l, ...mudancas } : l)) ?? null);
-  }
+  const atualizarLinha = useCallback(
+    (id: number, mudancas: Partial<LinhaAnalisada>) => {
+      setLinhas((atual) => atual?.map((l) => (l.id === id ? { ...l, ...mudancas } : l)) ?? null);
+    },
+    [setLinhas],
+  );
 
   function aceitarAutoClassificadas() {
     setLinhas(
@@ -322,14 +339,14 @@ export function useImportacao() {
     setLinhas((atual) => (atual ? aplicarContaATodas(atual, conta) : null));
   }
 
-  function alternarOutraPonta(id: number) {
+  const alternarOutraPonta = useCallback((id: number) => {
     setOutraPontaAberta((atual) => {
       const novo = new Set(atual);
       if (novo.has(id)) novo.delete(id);
       else novo.add(id);
       return novo;
     });
-  }
+  }, []);
 
   function marcarParaApagar(id: number, marcar: boolean) {
     setMarcadasParaApagar((atual) => {
