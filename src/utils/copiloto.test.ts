@@ -296,9 +296,10 @@ describe("responderPergunta — intents (seção 3.9)", () => {
       primeiroMes: "2026-06",
       cartao: "AB Gold (C)",
       autoDebit: true,
+      diaVencimento: 15,
       pagoPorMes: {},
     };
-    // mesReal = "2026-07": junho e julho já saíram pelo cartão, só agosto falta.
+    // mesReal = "2026-07", hoje dia 23: junho e julho (vence dia 15) já saíram pelo cartão, só agosto falta.
     const resp = responderPergunta("quanto falta pagar da tv nova", ctx({ parcelas: [parcela] }));
     expect(resp).toContain("TV Nova");
     expect(resp).toMatch(/Faltam <b>1<\/b> parcela/);
@@ -378,8 +379,10 @@ describe("responderPergunta — intents (seção 3.9)", () => {
       primeiroMes: "2026-06",
       cartao: "AB Gold (C)",
       autoDebit: true,
+      diaVencimento: 15,
       pagoPorMes: {},
     };
+    // mesReal = "2026-07", hoje dia 23: junho e julho (vence dia 15) já saíram pelo cartão, só agosto falta.
     const resp = responderPergunta(
       "quantas parcelas tenho em aberto",
       ctx({ parcelas: [parcela] }),
@@ -396,11 +399,29 @@ describe("responderPergunta — intents (seção 3.9)", () => {
       primeiroMes: "2026-06",
       cartao: "AB Gold (C)",
       autoDebit: true,
+      diaVencimento: 15,
       pagoPorMes: {},
     };
-    // Julho já saiu pelo cartão (mesReal = 2026-07) — não é pendência.
+    // Julho já saiu pelo cartão: vence dia 15, hoje é dia 23 (mesReal = 2026-07) — não é pendência.
     const resp = responderPergunta("o que tenho pendente?", ctx({ parcelas: [parcela] }));
     expect(resp).toMatch(/Não há pendentes/);
+  });
+
+  test("pendentes conta a parcela em débito automático que ainda não venceu este mês", () => {
+    const parcela: Parcela = {
+      id: "p1",
+      descricao: "TV Nova",
+      total: 30000,
+      numParcelas: 3,
+      primeiroMes: "2026-06",
+      cartao: "AB Gold (C)",
+      autoDebit: true,
+      diaVencimento: 27,
+      pagoPorMes: {},
+    };
+    // Julho ainda não saiu pelo cartão: vence dia 27, hoje é dia 23 (mesReal = 2026-07) — é pendência.
+    const resp = responderPergunta("o que tenho pendente?", ctx({ parcelas: [parcela] }));
+    expect(resp).toMatch(/1 parcela/);
   });
 
   test("resumo do ano soma todos os meses, não só o mês corrente", () => {

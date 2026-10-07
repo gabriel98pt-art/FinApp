@@ -657,7 +657,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       );
       const p = ctx.parcelas.find((x) => x.descricao === nome);
       if (!p) return null;
-      const abertos = mesesNaoPagos(p, ctx.mesReal);
+      const abertos = mesesNaoPagos(p, ctx.mesReal, hojeDoContexto(ctx));
       if (!abertos.length)
         return variar(ctx, {
           direto: [`a parcela ${b(p.descricao)} já está totalmente paga.`],
@@ -686,7 +686,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
       let total = 0;
       let n = 0;
       for (const p of ctx.parcelas) {
-        for (const m of mesesNaoPagos(p, ctx.mesReal)) {
+        for (const m of mesesNaoPagos(p, ctx.mesReal, hojeDoContexto(ctx))) {
           total += valorDaParcela(p, m);
           n++;
         }
@@ -1077,7 +1077,7 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     test: (q) => /pendente|em aberto|por pagar|por lancar/.test(q),
     run: (_q, ref, ctx) => {
       const parcelasPendentes = ctx.parcelas.filter((p) =>
-        mesesNaoPagos(p, ctx.mesReal).includes(ref.ym),
+        mesesNaoPagos(p, ctx.mesReal, hojeDoContexto(ctx)).includes(ref.ym),
       );
       const cartoesCredito = ctx.cfg.contasCartoes.filter(
         (c) => ctx.cfg.tipoCartao[c] === "credit",
