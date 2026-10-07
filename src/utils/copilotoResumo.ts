@@ -122,7 +122,12 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
   const anterior = somarMeses(ym, -1);
   const tAnterior = totaisDoMes(ctx, anterior);
   const varReceitas = variacaoMensal(t.receitas, tAnterior.receitas);
-  const varDespesas = variacaoMensal(t.despesas, tAnterior.despesas);
+  // Mesmo clamp usado abaixo em `despesas`/`comparacaoMesAnterior.despesas`:
+  // sem ele, um reembolso que deixa `t.despesas` negativo dava uma variação
+  // sem sentido aritmético (ex. "-150%") ao lado de um "despesas: € 0,00" que
+  // só pode ser -100% na pior das hipóteses. `variacaoMensal` só protege o
+  // `anterior`, nunca o `atual`.
+  const varDespesas = variacaoMensal(Math.max(0, t.despesas), Math.max(0, tAnterior.despesas));
 
   const projecao = projecaoFimMes(ctx, ym);
 

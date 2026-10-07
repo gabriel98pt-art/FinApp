@@ -282,6 +282,27 @@ describe("montarResumoParaIA — números derivados", () => {
     expect(r.comparacaoMesAnterior.despesas).toBe("€ 0,00");
   });
 
+  // Bug: `variacaoDespesas` era calculada com `t.despesas` CRU (negativo
+  // quando o reembolso do mês ultrapassa a despesa), enquanto o campo
+  // `despesas` ao lado já ia protegido com Math.max(0, ...). O resultado era
+  // uma dupla sem sentido aritmético: "despesas: € 0,00" ao lado de
+  // "variacaoDespesas: -130%" — uma queda a partir de € 1.000,00 só pode
+  // chegar a -100%, nunca passar disso.
+  test("reembolso maior que as despesas não distorce a variação para a IA", () => {
+    const r = montarResumoParaIA(
+      ctx({
+        despesas: [
+          despesa(20000, "Casa"),
+          despesa(-50000, "Casa", "2026-07-10", "Reembolso"),
+          despesa(100000, "Casa", "2026-06-05"),
+        ],
+      }),
+    );
+
+    expect(r.despesas).toBe("€ 0,00");
+    expect(r.comparacaoMesAnterior.variacaoDespesas).toBe("-100%");
+  });
+
   test("compara com o mês anterior e leva a variação já com sinal", () => {
     const r = montarResumoParaIA(
       ctx({
