@@ -6,7 +6,7 @@
 // uma fatura só porque ela vence depois da virada do mês.
 
 import { describe, expect, test } from "vitest";
-import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Receita } from "../types";
+import type { ConfigConta, DespesaCorrente, DespesaFixa, Fundo, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ContextoCopiloto } from "./copiloto";
 import { progressoFundo, responderPergunta } from "./copiloto";
@@ -61,6 +61,16 @@ const fixa = (valor: number, diaVencimento: number): DespesaFixa => ({
   diaVencimento,
   inicio: "2026-01",
   pagoPorMes: {},
+});
+
+const parcela = (extra: Partial<Parcela> = {}): Parcela => ({
+  id: "p1",
+  descricao: "TV",
+  total: 120000,
+  numParcelas: 12,
+  primeiroMes: "2026-01",
+  pagoPorMes: {},
+  ...extra,
 });
 
 const fundo = (extra: Partial<Fundo> = {}): Fundo => ({
@@ -273,6 +283,60 @@ describe("buildFinanceSnapshot", () => {
       estourou: true,
       pctUsado: 150,
     });
+  });
+
+  // Bug corrigido: uma parcela em débito automático no cartão já entra
+  // inteira na fatura desse cartão (`debitoAutomaticoParcelas`,
+  // utils/fatura.ts) — por isso o seu vencimento cai no MESMO dia da própria
+  // fatura. Somar a parcela (como "parcela") E a fatura (que já a contém)
+  // nos próximos 30 dias contava o mesmo dinheiro duas vezes.
+  test("parcela em débito automático não é contada duas vezes (parcela + fatura)", () => {
+    const cfg = cfgCom({
+      contasCartoes: ["Cartao"],
+      tipoCartao: { Cartao: "credit" },
+      diaVencimentoFatura: { Cartao: 20 },
+    });
+    const s = buildFinanceSnapshot(
+      ctx({
+        cfg,
+        diaDeHoje: 5,
+        parcelas: [parcela({ cartao: "Cartao", autoDebit: true, diaVencimento: 10 })],
+      }),
+    );
+
+    // Só a fatura aparece — a parcela some da lista por já estar embutida
+    // nela, nunca as duas ao mesmo tempo para o mesmo dinheiro.
+    expect(s.proximos30Dias.filter((p) => p.tipo === "parcela")).toHaveLength(0);
+    const fatura = s.proximos30Dias.find((p) => p.tipo === "fatura");
+    expect(fatura?.valor).toBe(10000);
+    expect(s.totalAPagar30Dias).toBe(10000);
+  });
+
+  // Mesmo bug, mesma família: uma despesa fixa vinculada a um cartão de
+  // crédito também já entra inteira na fatura desse cartão
+  // (`calcularFaturaAutomatica`, utils/fatura.ts) — e aí SEM exigir
+  // `autoDebit`, ao contrário das parcelas no teste acima.
+  test("fixa vinculada a cartão de crédito não é contada duas vezes (fixa + fatura)", () => {
+    const cfg = cfgCom({
+      contasCartoes: ["Cartao"],
+      tipoCartao: { Cartao: "credit" },
+      diaVencimentoFatura: { Cartao: 20 },
+    });
+    const s = buildFinanceSnapshot(
+      ctx({
+        cfg,
+        diaDeHoje: 5,
+        despesasFixas: [
+          { ...fixa(1500, 10), descricao: "Netflix", categoria: "Lazer", contaCartao: "Cartao" },
+        ],
+      }),
+    );
+
+    // Só a fatura aparece — a fixa some da lista por já estar embutida nela.
+    expect(s.proximos30Dias.filter((p) => p.tipo === "fixa")).toHaveLength(0);
+    const fatura = s.proximos30Dias.find((p) => p.tipo === "fatura");
+    expect(fatura?.valor).toBe(1500);
+    expect(s.totalAPagar30Dias).toBe(1500);
   });
 });
 

@@ -144,9 +144,41 @@ function compromissosProximos30Dias(ctx: ContextoCopiloto, hoje: string): Compro
       }))
       .filter((f) => f.restante > 0);
 
+    // Bug corrigido: uma parcela em débito automático no cartão (`p.cartao &&
+    // p.autoDebit`) já entra inteira no `devido`/`restante` de ALGUMA fatura
+    // desse cartão (`debitoAutomaticoParcelas`, utils/fatura.ts soma-a ao
+    // ciclo que ela cobre — sempre mesFatura-1, `cicloDaFatura` — e este loop
+    // varre `ctx.mesReal` até `mesLimite` inteiro, por isso esse ciclo é
+    // sempre coberto por alguma iteração). `vencimentosDeParcelas` continua a
+    // listá-la À PARTE (contrato certo e testado para quem a usa sozinha,
+    // como o Calendário), no dia da fatura mas ainda no mês da própria
+    // parcela — um ciclo adiantado em relação ao mês em que ela é de facto
+    // cobrada. Somar as duas listas aqui contava o mesmo dinheiro duas vezes:
+    // uma vez como "parcela" (adiantada um mês), outra já embutida na
+    // "fatura" que realmente a cobre — inflando `totalAPagar30Dias` e, por
+    // tabela, `margem`, a base de todo o plano. Fora daqui as duas continuam
+    // corretas sozinhas; só ao SOMAR as duas é que a parcela de cartão tem de
+    // sair da lista "parcela" — o seu valor já chega pela "fatura".
+    const parcelasForaDaFatura = ctx.parcelas.filter((p) => !(p.cartao && p.autoDebit));
+    // Mesmo bug, mesma família: uma despesa fixa vinculada a um cartão de
+    // CRÉDITO também já entra inteira no `devido`/`restante` da fatura desse
+    // cartão (`calcularFaturaAutomatica`, utils/fatura.ts, variável `fixas` —
+    // e aí SEM exigir `autoDebit`: "paga-se à mão ou não" já entra, ao
+    // contrário da regra das parcelas acima). Sem o filtro equivalente, a
+    // mesma fixa somava-se outra vez aqui como "fixa", no seu próprio
+    // `diaVencimento`, por cima do que já vinha embutido na "fatura".
+    const fixasForaDaFatura = ctx.despesasFixas.filter(
+      (f) => !(f.contaCartao && cartoesCredito.includes(f.contaCartao)),
+    );
     const vencimentos = [
-      ...vencimentosDeFixas(ctx.despesasFixas, ym, ctx.mesReal, hoje),
-      ...vencimentosDeParcelas(ctx.parcelas, ym, ctx.cfg.diaVencimentoFatura, ctx.mesReal, hoje),
+      ...vencimentosDeFixas(fixasForaDaFatura, ym, ctx.mesReal, hoje),
+      ...vencimentosDeParcelas(
+        parcelasForaDaFatura,
+        ym,
+        ctx.cfg.diaVencimentoFatura,
+        ctx.mesReal,
+        hoje,
+      ),
       ...vencimentosDeFaturas(restantes, ym, ctx.cfg.diaVencimentoFatura),
     ];
 
