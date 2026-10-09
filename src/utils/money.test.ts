@@ -30,6 +30,12 @@ describe("parseMoney — formato português", () => {
   test("ponto seguido de 3 dígitos é milhar pt", () => {
     expect(parseMoney("1.234")).toBe(123400);
   });
+
+  test("ponto com 3 dígitos mas sem nada antes (ou só zero) é decimal, não milhar", () => {
+    expect(parseMoney("0.500")).toBe(50);
+    expect(parseMoney("0.100")).toBe(10);
+    expect(parseMoney(".500")).toBe(50);
+  });
 });
 
 describe("parseMoney — formato americano", () => {

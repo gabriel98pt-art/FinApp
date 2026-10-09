@@ -61,10 +61,13 @@ export function parseMoney(input: string): Cents | null {
     // Só vírgula: decimal, a não ser que apareça várias vezes (milhar en)
     decimalSep = s.indexOf(",") === lastComma ? "," : null;
   } else if (lastDot !== -1) {
-    // Só ponto: `1.234` é milhar pt; `0.50`/`12.5` é decimal en
+    // Só ponto: `1.234` é milhar pt; `0.50`/`12.5`/`0.500` é decimal en
+    // (milhar pt nunca tem "0" antes do ponto: "0.500" só pode ser 0,50)
     const digitsAfter = s.length - lastDot - 1;
     const onlyOnce = s.indexOf(".") === lastDot;
-    decimalSep = onlyOnce && digitsAfter !== 3 ? "." : null;
+    const beforeDot = s.slice(0, lastDot);
+    const beforeDotIsZero = beforeDot === "" || Number(beforeDot) === 0;
+    decimalSep = onlyOnce && (digitsAfter !== 3 || beforeDotIsZero) ? "." : null;
   }
 
   let intPart = s;
