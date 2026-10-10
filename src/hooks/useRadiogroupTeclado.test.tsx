@@ -91,6 +91,34 @@ describe("useRadiogroupTeclado", () => {
     expect(a).toHaveAttribute("tabindex", "-1");
   });
 
+  test("um rádio novo inserido depois do mount também entra no tabindex giratório", async () => {
+    function FixtureDinamica() {
+      const [opcoes, setOpcoes] = useState<string[]>([...OPCOES]);
+      const [valor, setValor] = useState("a");
+      const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
+      return (
+        <div>
+          <button onClick={() => setOpcoes([...opcoes, "d"])}>Adicionar</button>
+          <div role="radiogroup" aria-label="Teste" ref={ref} onKeyDown={onKeyDown}>
+            {opcoes.map((o) => (
+              <button key={o} role="radio" aria-checked={valor === o} onClick={() => setValor(o)}>
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    render(<FixtureDinamica />);
+    fireEvent.click(screen.getByText("Adicionar"));
+
+    const novo = screen.getAllByRole("radio")[3];
+    // Sem a correção, o botão novo nasce sem tabindex escrito pelo hook — o
+    // atributo não existe, em vez de valer "-1" (fora da ordem do Tab, como
+    // qualquer rádio não marcado do grupo).
+    await waitFor(() => expect(novo).toHaveAttribute("tabindex", "-1"));
+  });
+
   test("outras teclas não fazem nada", () => {
     render(<Fixture />);
     const [a] = screen.getAllByRole("radio");

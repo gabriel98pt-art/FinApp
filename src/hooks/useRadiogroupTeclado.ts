@@ -52,9 +52,19 @@ export function useRadiogroupTeclado<T extends HTMLElement>(): {
     atualizarTabIndex();
     // Reage à mudança de opção marcada sem precisar de mais nenhuma prop:
     // observa o atributo aria-checked dos filhos, que cada site já atualiza
-    // sozinho quando o estado dele muda.
+    // sozinho quando o estado dele muda. `childList` cobre o caso de a lista
+    // de opções do grupo mudar de tamanho depois do mount (ex.: uma categoria
+    // nova chegando por sincronização em tempo de outra aba/dispositivo,
+    // enquanto a folha já está montada) — sem isto, um rádio inserido depois
+    // nascia sem `tabIndex` escrito por este hook, e o padrão "só um rádio na
+    // ordem do Tab" passava a valer para o resto do grupo, mas não para ele.
     const obs = new MutationObserver(atualizarTabIndex);
-    obs.observe(container, { attributes: true, attributeFilter: ["aria-checked"], subtree: true });
+    obs.observe(container, {
+      attributes: true,
+      attributeFilter: ["aria-checked"],
+      subtree: true,
+      childList: true,
+    });
     return () => obs.disconnect();
   }, []);
 
