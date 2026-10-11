@@ -1,5 +1,14 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Check, CheckCheck, History, Layers, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  Check,
+  CheckCheck,
+  History,
+  Layers,
+  Pencil,
+  Plus,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -40,6 +49,7 @@ import {
   valorDaParcela,
   valorQuitacao,
 } from "../utils/parcelas";
+import FolhaValoresParcela from "./FolhaValoresParcela";
 import styles from "./Parcelas.module.css";
 import Botao from "../components/Botao";
 
@@ -72,6 +82,7 @@ function LinhaParcela({
   const uid = useUidSessao();
   const confirmar = useConfirmar();
   const [menuAberto, setMenuAberto] = useState(false);
+  const [valoresAbertos, setValoresAbertos] = useState(false);
   const ancoraRef = useRef<HTMLButtonElement>(null);
   const quitada = parcelaQuitada(p, mesRef, hoje);
   const { pagas, total } = progressoDaParcela(p, mesRef, hoje);
@@ -129,6 +140,18 @@ function LinhaParcela({
     ...(!quitada && abertos.length > 0
       ? [{ rotulo: "Pagar tudo", Icone: CheckCheck, onClick: () => void pagarTudo() }]
       : []),
+    // Klarna e afins às vezes cobram parcelas desiguais: aqui acerta-se o
+    // valor de cada mês ANTES de pagar. Mesma condição do "Pagar tudo" —
+    // quitada, não há mais nada que o ajuste mude.
+    ...(!quitada && abertos.length > 0
+      ? [
+          {
+            rotulo: "Ajustar valores por mês",
+            Icone: SlidersHorizontal,
+            onClick: () => setValoresAbertos(true),
+          },
+        ]
+      : []),
     { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
   ];
 
@@ -185,6 +208,17 @@ function LinhaParcela({
         titulo={p.descricao}
         ancoraRef={ancoraRef}
         acoes={acoes}
+      />
+
+      {/* Fica dentro da linha para receber sempre a parcela fresca do store:
+          o valor salvo aparece na folha logo a seguir, sem estado extra. */}
+      <FolhaValoresParcela
+        aberta={valoresAbertos}
+        aoFechar={() => setValoresAbertos(false)}
+        p={p}
+        moeda={moeda}
+        mesRef={mesRef}
+        hoje={hoje}
       />
     </div>
   );

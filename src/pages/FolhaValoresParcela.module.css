@@ -1,0 +1,121 @@
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nota {
+  color: var(--mut);
+  font-size: var(--fs-body);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--s2);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+
+.cabecalhoMes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rotulo {
+  font-weight: 700;
+  font-size: var(--fs-body);
+  color: var(--txt);
+}
+
+.valorPago {
+  font-weight: 700;
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--mut);
+}
+
+/* Marca discreta de que este mês já não segue a divisão automática. */
+.selo {
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  color: var(--selo-pendente-txt);
+  background: var(--selo-pendente-bg);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+}
+
+.linhaEdicao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campo {
+  flex: 1;
+  min-width: 0;
+  background: var(--s1);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  color: var(--txt);
+  font-size: var(--fs-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.campo:focus {
+  outline: none;
+  border-color: var(--blu);
+}
+
+.linhaAutomatico {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.detalhe {
+  color: var(--mut);
+  font-size: var(--fs-label);
+}
+
+.totais {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--brd);
+  padding-top: 10px;
+}
+
+.linhaTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-body);
+  color: var(--mut);
+}
+
+.numero {
+  color: var(--txt);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Aviso, não erro: nunca impede salvar. */
+.aviso {
+  color: var(--ylw);
+  font-size: var(--fs-label);
+}

@@ -314,3 +314,34 @@ describe("excluirParcela", () => {
     expect(snapshot).toHaveBeenCalledTimes(1);
   });
 });
+
+// Compras Klarna com parcelas desiguais (160,75 em 3× → 53,33 + 53,71 +
+// 53,71): o ajuste de UM mês tem de cair no sítio exato que `valorDaParcela`
+// lê, senão a despesa criada ao pagar continua com a divisão automática.
+describe("definirValorDoMes / limparValorDoMes", () => {
+  test("definir grava o valor em centavos no overridePorMes daquele mês", async () => {
+    await s.definirValorDoMes(UID, parcela, "2026-09", 5371);
+    expect(updates).toHaveLength(1);
+    expect(updates[0].caminho).toBe(RAIZ);
+    expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-09": 5371 });
+    expect(dados[`${RAIZ}/parcelas/p1/overridePorMes/2026-09`]).toBe(5371);
+  });
+
+  test("limpar remove a entrada (null), voltando à divisão automática", async () => {
+    dados[`${RAIZ}/parcelas/p1/overridePorMes/2026-09`] = 5371;
+    await s.limparValorDoMes(UID, parcela, "2026-09");
+    expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-09": null });
+    expect(dados[`${RAIZ}/parcelas/p1/overridePorMes/2026-09`]).toBeUndefined();
+  });
+
+  test("o valor ajustado é o que a despesa leva ao pagar o mês", async () => {
+    await s.pagarMesParcela(UID, { ...parcela, overridePorMes: { "2026-08": 5333 } }, "2026-08");
+    expect(lancamentoCriado().valor).toBe(5333);
+  });
+
+  test("as duas passam pelo histórico", async () => {
+    await s.definirValorDoMes(UID, parcela, "2026-09", 5371);
+    await s.limparValorDoMes(UID, parcela, "2026-09");
+    expect(snapshot).toHaveBeenCalledTimes(2);
+  });
+});

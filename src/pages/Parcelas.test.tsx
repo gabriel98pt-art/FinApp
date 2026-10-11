@@ -5,7 +5,7 @@
 // dizer "nenhuma compra parcelada" a quem tem dez compras, todas pagas.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Parcela } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -37,9 +37,13 @@ const confirmar = vi.hoisted(() => vi.fn<(mensagem: string) => Promise<boolean>>
 vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => confirmar }));
 
 const quitarParcela = vi.hoisted(() => vi.fn(async () => {}));
+const definirValorDoMes = vi.hoisted(() => vi.fn(async () => {}));
+const limparValorDoMes = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("../services/parcelasService", async (original) => ({
   ...(await original<Record<string, unknown>>()),
   quitarParcela,
+  definirValorDoMes,
+  limparValorDoMes,
 }));
 
 const Parcelas = (await import("./Parcelas")).default;
@@ -67,6 +71,8 @@ beforeEach(() => {
   estado = { itens: [], carregado: true, erro: false };
   confirmar.mockClear();
   quitarParcela.mockClear();
+  definirValorDoMes.mockClear();
+  limparValorDoMes.mockClear();
 });
 
 describe("Parcelas", () => {
@@ -194,5 +200,103 @@ describe("Parcelas", () => {
     expect(screen.getByLabelText("Quanto no total?")).toHaveAttribute("aria-describedby", idErro);
     expect(screen.getByLabelText("Nº parcelas")).toHaveAttribute("aria-describedby", idErro);
     expect(screen.getByLabelText("Dia do vencimento")).toHaveAttribute("aria-describedby", idErro);
+  });
+
+  // Klarna às vezes cobra parcelas desiguais (160,75 em 3× → 53,33 + 53,71 +
+  // 53,71): a folha "Ajustar valores por mês" acerta o valor de cada mês
+  // ANTES de pagar, para a despesa nascer com o valor certo.
+  describe("Ajustar valores por mês", () => {
+    /** Junho já pago; julho e agosto em aberto. */
+    const comJunhoPago = (extra: Partial<Parcela> = {}) =>
+      parcela({ pagoPorMes: { "2026-06": true }, ...extra });
+
+    async function abrirFolha() {
+      await userEvent.click(screen.getByText("Portátil"));
+      await userEvent.click(await screen.findByRole("button", { name: "Ajustar valores por mês" }));
+      return screen.findByRole("dialog", { name: /Valores por mês/ });
+    }
+
+    test("abre a partir do menu da linha e lista todos os meses do plano", async () => {
+      estado = { itens: [comJunhoPago()], carregado: true, erro: false };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+      expect(within(folha).getByText(/junho/i)).toBeInTheDocument();
+      expect(within(folha).getByLabelText(/Valor de julho/i)).toBeInTheDocument();
+      expect(within(folha).getByLabelText(/Valor de agosto/i)).toBeInTheDocument();
+    });
+
+    test("não aparece no menu de uma parcela quitada", async () => {
+      estado = { itens: [quitada()], carregado: true, erro: false };
+      render(<Parcelas />);
+      await userEvent.click(screen.getByRole("button", { name: /Quitadas/ }));
+      await userEvent.click(await screen.findByText("Telemóvel"));
+      expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Ajustar valores por mês" }),
+      ).not.toBeInTheDocument();
+    });
+
+    test("editar o valor de um mês em aberto grava pelo serviço", async () => {
+      estado = { itens: [comJunhoPago()], carregado: true, erro: false };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      const campo = within(folha).getByLabelText(/Valor de julho/i);
+      await userEvent.type(campo, "{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}9500");
+      await userEvent.click(within(folha).getByRole("button", { name: /Salvar julho/i }));
+
+      expect(definirValorDoMes).toHaveBeenCalledTimes(1);
+      expect(definirValorDoMes).toHaveBeenCalledWith(
+        "u1",
+        expect.objectContaining({ id: "p1" }),
+        "2026-07",
+        9500,
+      );
+    });
+
+    test("'Usar valor automático' só aparece no mês com ajuste, e limpa-o", async () => {
+      estado = {
+        itens: [comJunhoPago({ overridePorMes: { "2026-08": 9500 } })],
+        carregado: true,
+        erro: false,
+      };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      const botoes = within(folha).getAllByRole("button", { name: /Usar valor automático/ });
+      expect(botoes).toHaveLength(1);
+      expect(botoes[0]).toHaveAccessibleName(/agosto/i);
+
+      await userEvent.click(botoes[0]);
+      expect(limparValorDoMes).toHaveBeenCalledWith(
+        "u1",
+        expect.objectContaining({ id: "p1" }),
+        "2026-08",
+      );
+    });
+
+    test("mês pago não é editável e avisa que não corrige o lançamento", async () => {
+      estado = { itens: [comJunhoPago()], carregado: true, erro: false };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      expect(within(folha).queryByLabelText(/Valor de junho/i)).not.toBeInTheDocument();
+      expect(within(folha).getByText(/já pago/i)).toBeInTheDocument();
+    });
+
+    test("soma dos meses diferente do total avisa, sem impedir de salvar", async () => {
+      estado = {
+        itens: [comJunhoPago({ overridePorMes: { "2026-08": 9500 } })],
+        carregado: true,
+        erro: false,
+      };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      expect(within(folha).getByText(/abaixo do total da compra/i)).toBeInTheDocument();
+      const campo = within(folha).getByLabelText(/Valor de julho/i);
+      await userEvent.type(campo, "1");
+      expect(within(folha).getByRole("button", { name: /Salvar julho/i })).toBeEnabled();
+    });
   });
 });

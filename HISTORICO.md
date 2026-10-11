@@ -5,9 +5,23 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 06/10/2026 — 526 mudanças registadas.
+Período coberto: 23/07/2026 a 11/10/2026 — 527 mudanças registadas.
 
 ---
+
+## 11/10/2026
+
+- **Parcelas: dá para ajustar o valor de cada mês antes de pagar.** A Klarna (e
+  serviços parecidos) às vezes cobra parcelas diferentes umas das outras — uma
+  compra de €160,75 em 3 vezes veio €53,33 + €53,71 + €53,71. O app dividia
+  sempre o total em partes iguais, então a despesa criada ao pagar o mês saía
+  com o valor errado. Agora, no menu de cada compra parcelada, há "Ajustar
+  valores por mês": mostra todos os meses do plano, deixa mudar o valor dos
+  que ainda não foram pagos e voltar ao valor automático quando quiser. Os
+  meses já pagos aparecem só para consulta (mudar ali não corrigiria a
+  despesa que já foi lançada). No fim, a folha compara a soma dos meses com o
+  total da compra e avisa se não baterem — só um aviso, para pegar um número
+  digitado errado, nunca impede de salvar.
 
 ## 06/10/2026
 

@@ -5,7 +5,7 @@ import { push, ref, update } from "firebase/database";
 import { db } from "./firebase";
 import { criarParcela as criarParcelaBase, semIndefinidos } from "./lancamentosService";
 import { snapshotHistorico } from "../stores/historicoStore";
-import type { DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
+import type { Cents, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual } from "../utils/calculos";
 import { mesesDaParcela, mesesNaoPagos, valorDaParcela, valorQuitacao } from "../utils/parcelas";
 
@@ -35,6 +35,28 @@ export async function pagarMesParcela(uid: string, p: Parcela, mes: YearMonth) {
   await update(ref(db, raiz(uid)), {
     [`despesasCorrentes/${dcId}`]: semIndefinidos(lancamento),
     [`parcelas/${p.id}/pagoPorMes/${mes}`]: true,
+  });
+}
+
+/** Ajusta à mão o valor de UM mês do plano. Serve para serviços como a
+ *  Klarna, que às vezes cobram parcelas desiguais (160,75 em 3× → 53,33 +
+ *  53,71 + 53,71): a divisão automática nunca acerta nesses casos.
+ *
+ *  Só tem efeito no que ainda vai ser pago — `pagarMesParcela` lê
+ *  `valorDaParcela` na hora de criar a despesa, que já usa este ajuste. Um mês
+ *  já pago mantém a despesa que nasceu com o valor antigo. */
+export async function definirValorDoMes(uid: string, p: Parcela, mes: YearMonth, valor: Cents) {
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), {
+    [`parcelas/${p.id}/overridePorMes/${mes}`]: valor,
+  });
+}
+
+/** Desfaz o ajuste de um mês: volta a valer a divisão automática do total. */
+export async function limparValorDoMes(uid: string, p: Parcela, mes: YearMonth) {
+  snapshotHistorico();
+  await update(ref(db, raiz(uid)), {
+    [`parcelas/${p.id}/overridePorMes/${mes}`]: null,
   });
 }
 
