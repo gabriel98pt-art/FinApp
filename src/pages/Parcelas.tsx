@@ -62,6 +62,7 @@ function LinhaParcela({
   hoje,
   diaVencimentoFatura,
   nomeDoCartao,
+  despesas,
 }: {
   p: Parcela;
   moeda: Currency;
@@ -78,6 +79,9 @@ function LinhaParcela({
   /** O que a parcela guarda é o id do cartão, que nunca muda; o nome de hoje
    *  vem daqui, para uma parcela antiga não ficar presa a um nome antigo. */
   nomeDoCartao: (id: string) => string;
+  /** Repassada à folha de valores: ajustar um mês já pago corrige junto a
+   *  despesa espelho dele. */
+  despesas: DespesaCorrente[];
 }) {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -219,6 +223,7 @@ function LinhaParcela({
         moeda={moeda}
         mesRef={mesRef}
         hoje={hoje}
+        despesas={despesas}
       />
     </div>
   );
@@ -628,6 +633,7 @@ export default function Parcelas() {
               hoje={hoje}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
+              despesas={despesas}
             />
           ))}
         </div>
@@ -664,6 +670,7 @@ export default function Parcelas() {
               hoje={hoje}
               diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
+              despesas={despesas}
             />
           ))}
         </div>

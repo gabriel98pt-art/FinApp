@@ -2,10 +2,10 @@ import { useState } from "react";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import Botao from "../components/Botao";
-import { definirValorDoMes, limparValorDoMes } from "../services/parcelasService";
+import { definirValorDoMes, espelhosDoMes, limparValorDoMes } from "../services/parcelasService";
 import { useUidSessao } from "../hooks/useUidSessao";
 import { mostrarToast } from "../stores/toastStore";
-import type { Cents, Currency, IsoDate, Parcela, YearMonth } from "../types";
+import type { Cents, Currency, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import {
@@ -23,9 +23,11 @@ import styles from "./FolhaValoresParcela.module.css";
  *  arredondamento. A divisão automática do total nunca acerta nesses casos, e
  *  a despesa criada ao pagar o mês sai com o valor errado.
  *
- *  O ajuste vale para o que ainda vai ser pago: `pagarMesParcela` lê o valor
- *  do mês na hora de criar a despesa. Um mês já pago fica só para leitura —
- *  mudar o valor dele aqui não mexeria na despesa que já nasceu.
+ *  Mês em aberto: `pagarMesParcela` lê o valor do mês na hora de criar a
+ *  despesa. Mês já pago também se ajusta: a despesa espelho em Despesas
+ *  (origem "parc") é corrigida na mesma escrita. Pago sem espelho — débito
+ *  automático, cobrado na fatura do cartão — só muda o cálculo da parcela, e
+ *  a nota do mês diz isso.
  *
  *  A soma que não bate com o total é só um aviso: ajuda a apanhar um dígito
  *  trocado, mas nunca impede de salvar (a Klarna pode cobrar um total um
@@ -37,6 +39,7 @@ export default function FolhaValoresParcela({
   moeda,
   mesRef,
   hoje,
+  despesas,
 }: {
   aberta: boolean;
   aoFechar: () => void;
@@ -48,6 +51,8 @@ export default function FolhaValoresParcela({
    *  conta como pago, igual à contagem "N/M" da lista. */
   mesRef: YearMonth;
   hoje: IsoDate;
+  /** Para achar a despesa espelho de um mês já pago e corrigi-la junto. */
+  despesas: DespesaCorrente[];
 }) {
   const uid = useUidSessao();
   // Rascunho por mês: só existe enquanto se está a escrever. Sem entrada, o
@@ -73,7 +78,7 @@ export default function FolhaValoresParcela({
 
   async function salvar(mes: YearMonth, valor: Cents) {
     try {
-      await definirValorDoMes(uid, p, mes, valor);
+      await definirValorDoMes(uid, p, mes, valor, despesas);
       esquecerRascunho(mes);
       mostrarToast(`✓ ${rotuloMes(mes)}: ${formatMoney(valor, moeda)}`);
     } catch {
@@ -83,7 +88,7 @@ export default function FolhaValoresParcela({
 
   async function usarAutomatico(mes: YearMonth) {
     try {
-      await limparValorDoMes(uid, p, mes);
+      await limparValorDoMes(uid, p, mes, despesas);
       esquecerRascunho(mes);
       mostrarToast(`✓ ${rotuloMes(mes)} volta ao valor automático`);
     } catch {
@@ -105,20 +110,6 @@ export default function FolhaValoresParcela({
             const atual = valorDaParcela(p, m);
             const ajustado = p.overridePorMes?.[m] != null;
             const pago = estaEfetivamentePaga(p, m, mesRef, hoje);
-
-            if (pago) {
-              return (
-                <li key={m} className={styles.mes}>
-                  <span className={styles.cabecalhoMes}>
-                    <span className={styles.rotulo}>{rotulo}</span>
-                    <span className={styles.valorPago}>{formatMoney(atual, moeda)}</span>
-                  </span>
-                  <span className={styles.detalhe}>
-                    Já pago — mudar aqui não corrige o lançamento.
-                  </span>
-                </li>
-              );
-            }
 
             const emEdicao = m in rascunho ? (rascunho[m] ?? null) : atual;
             const podeSalvar = emEdicao !== null && emEdicao > 0 && emEdicao !== atual;
@@ -150,6 +141,15 @@ export default function FolhaValoresParcela({
                     Salvar
                   </Botao>
                 </form>
+                {pago && (
+                  <span className={styles.detalhe}>
+                    {espelhosDoMes(p, m, despesas).length > 0
+                      ? "Já pago — ajustar aqui também corrige o lançamento em Despesas."
+                      : p.autoDebit
+                        ? "Já pago via débito automático — ajustar aqui só muda o cálculo da parcela, não a fatura do cartão."
+                        : "Já pago, sem lançamento ligado em Despesas — ajustar aqui só muda o cálculo da parcela."}
+                  </span>
+                )}
                 {ajustado && (
                   <span className={styles.linhaAutomatico}>
                     <span className={styles.detalhe}>

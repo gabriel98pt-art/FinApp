@@ -40,13 +40,6 @@
   color: var(--txt);
 }
 
-.valorPago {
-  font-weight: 700;
-  font-size: var(--fs-body);
-  font-variant-numeric: tabular-nums;
-  color: var(--mut);
-}
-
 /* Marca discreta de que este mês já não segue a divisão automática. */
 .selo {
   font-size: var(--fs-micro);

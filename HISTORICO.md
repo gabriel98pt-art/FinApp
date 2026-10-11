@@ -5,11 +5,20 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 11/10/2026 — 527 mudanças registadas.
+Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
 ## 11/10/2026
+
+- **Parcelas: agora dá para corrigir também o valor de um mês já pago.** Antes,
+  em "Ajustar valores por mês", os meses já pagos ficavam travados. Agora
+  todos os meses podem ser ajustados — e quando o mês já foi pago, a despesa
+  correspondente em Despesas é corrigida junto, com o mesmo valor, para as
+  duas nunca ficarem diferentes. O mesmo vale para "Usar valor automático".
+  Nas compras em débito automático no cartão não existe essa despesa (o valor
+  vem na fatura), então ali o ajuste só muda o cálculo da parcela — e a tela
+  avisa isso por baixo do mês.
 
 - **Parcelas: dá para ajustar o valor de cada mês antes de pagar.** A Klarna (e
   serviços parecidos) às vezes cobra parcelas diferentes umas das outras — uma

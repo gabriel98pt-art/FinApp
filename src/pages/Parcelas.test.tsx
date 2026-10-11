@@ -7,7 +7,7 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Parcela } from "../types";
+import type { DespesaCorrente, Parcela } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
@@ -47,6 +47,7 @@ vi.mock("../services/parcelasService", async (original) => ({
 }));
 
 const Parcelas = (await import("./Parcelas")).default;
+const { useDespesasStore } = await import("../stores/lancamentosStore");
 
 /** 300,00 em 3× a começar em junho de 2026. */
 const parcela = (extra: Partial<Parcela> = {}): Parcela => ({
@@ -73,6 +74,7 @@ beforeEach(() => {
   quitarParcela.mockClear();
   definirValorDoMes.mockClear();
   limparValorDoMes.mockClear();
+  useDespesasStore.setState({ itens: [], carregado: true, erro: false });
 });
 
 describe("Parcelas", () => {
@@ -251,6 +253,7 @@ describe("Parcelas", () => {
         expect.objectContaining({ id: "p1" }),
         "2026-07",
         9500,
+        [],
       );
     });
 
@@ -272,16 +275,87 @@ describe("Parcelas", () => {
         "u1",
         expect.objectContaining({ id: "p1" }),
         "2026-08",
+        [],
       );
     });
 
-    test("mês pago não é editável e avisa que não corrige o lançamento", async () => {
+    /** A despesa que `pagarMesParcela` criou para junho. */
+    const espelhoJunho: DespesaCorrente = {
+      id: "d1",
+      descricao: "Portátil",
+      valor: 10000,
+      data: "2026-06-10",
+      categoria: "Parcelas",
+      origem: "parc",
+      parcelaId: "p1",
+      parcelaMes: "2026-06",
+    };
+
+    test("mês pago também é editável e salvar repassa as despesas ao serviço", async () => {
+      useDespesasStore.setState({ itens: [espelhoJunho] });
       estado = { itens: [comJunhoPago()], carregado: true, erro: false };
       render(<Parcelas />);
       const folha = await abrirFolha();
 
-      expect(within(folha).queryByLabelText(/Valor de junho/i)).not.toBeInTheDocument();
-      expect(within(folha).getByText(/já pago/i)).toBeInTheDocument();
+      const campo = within(folha).getByLabelText(/Valor de junho/i);
+      await userEvent.type(campo, "{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}5333");
+      await userEvent.click(within(folha).getByRole("button", { name: /Salvar junho/i }));
+
+      expect(definirValorDoMes).toHaveBeenCalledWith(
+        "u1",
+        expect.objectContaining({ id: "p1" }),
+        "2026-06",
+        5333,
+        [espelhoJunho],
+      );
+    });
+
+    test("mês pago com despesa espelho avisa que o lançamento é corrigido junto", async () => {
+      useDespesasStore.setState({ itens: [espelhoJunho] });
+      estado = { itens: [comJunhoPago()], carregado: true, erro: false };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      expect(
+        within(folha).getByText(/também corrige o lançamento em Despesas/i),
+      ).toBeInTheDocument();
+    });
+
+    test("mês pago por débito automático, sem espelho: avisa que a fatura não muda", async () => {
+      estado = {
+        // 6 meses: o débito automático já cobrou junho e julho, mas a compra
+        // continua ativa (com 3 meses ficava toda quitada e saía da lista).
+        itens: [parcela({ autoDebit: true, cartao: "c1", numParcelas: 6, total: 60000 })],
+        carregado: true,
+        erro: false,
+      };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      expect(within(folha).getByLabelText(/Valor de junho/i)).toBeInTheDocument();
+      expect(within(folha).getAllByText(/via débito automático/i).length).toBeGreaterThan(0);
+      expect(within(folha).queryByText(/também corrige o lançamento/i)).not.toBeInTheDocument();
+    });
+
+    test("'Usar valor automático' num mês pago repassa as despesas ao serviço", async () => {
+      useDespesasStore.setState({ itens: [espelhoJunho] });
+      estado = {
+        itens: [comJunhoPago({ overridePorMes: { "2026-06": 5333 } })],
+        carregado: true,
+        erro: false,
+      };
+      render(<Parcelas />);
+      const folha = await abrirFolha();
+
+      await userEvent.click(
+        within(folha).getByRole("button", { name: /Usar valor automático em junho/i }),
+      );
+      expect(limparValorDoMes).toHaveBeenCalledWith(
+        "u1",
+        expect.objectContaining({ id: "p1" }),
+        "2026-06",
+        [espelhoJunho],
+      );
     });
 
     test("soma dos meses diferente do total avisa, sem impedir de salvar", async () => {

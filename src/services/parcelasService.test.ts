@@ -320,7 +320,7 @@ describe("excluirParcela", () => {
 // lê, senão a despesa criada ao pagar continua com a divisão automática.
 describe("definirValorDoMes / limparValorDoMes", () => {
   test("definir grava o valor em centavos no overridePorMes daquele mês", async () => {
-    await s.definirValorDoMes(UID, parcela, "2026-09", 5371);
+    await s.definirValorDoMes(UID, parcela, "2026-09", 5371, []);
     expect(updates).toHaveLength(1);
     expect(updates[0].caminho).toBe(RAIZ);
     expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-09": 5371 });
@@ -329,7 +329,7 @@ describe("definirValorDoMes / limparValorDoMes", () => {
 
   test("limpar remove a entrada (null), voltando à divisão automática", async () => {
     dados[`${RAIZ}/parcelas/p1/overridePorMes/2026-09`] = 5371;
-    await s.limparValorDoMes(UID, parcela, "2026-09");
+    await s.limparValorDoMes(UID, parcela, "2026-09", []);
     expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-09": null });
     expect(dados[`${RAIZ}/parcelas/p1/overridePorMes/2026-09`]).toBeUndefined();
   });
@@ -339,9 +339,78 @@ describe("definirValorDoMes / limparValorDoMes", () => {
     expect(lancamentoCriado().valor).toBe(5333);
   });
 
+  // Mês já pago: a despesa espelho (a que `pagarMesParcela` criou) tem de
+  // mudar NA MESMA escrita, senão parcela e lançamento divergem.
+  describe("mês já pago, com despesa espelho", () => {
+    const espelho = (id: string, extra: Partial<DespesaCorrente> = {}): DespesaCorrente => ({
+      id,
+      descricao: "Portátil",
+      valor: 10000,
+      data: "2026-08-10",
+      categoria: "Tecnologia",
+      origem: "parc",
+      parcelaId: "p1",
+      parcelaMes: "2026-08",
+      ...extra,
+    });
+    const despesas: DespesaCorrente[] = [
+      espelho("d1"),
+      // Outro mês da mesma parcela.
+      espelho("d2", { parcelaMes: "2026-09", data: "2026-09-10" }),
+      // Mesmo mês, outra parcela.
+      espelho("d3", { parcelaId: "p9" }),
+      // Despesa avulsa, sem origem de parcela.
+      { id: "d4", descricao: "Café", valor: 250, data: "2026-08-03", categoria: "Comida" },
+      // Lançamento de fatura com os mesmos campos: não é espelho "parc".
+      espelho("d5", { origem: "fat" }),
+    ];
+    const pago = { ...parcela, pagoPorMes: { "2026-08": true } } as Parcela;
+
+    test("definir atualiza o valor da despesa junto com o ajuste, num só update", async () => {
+      await s.definirValorDoMes(UID, pago, "2026-08", 5333, despesas);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].mudancas).toEqual({
+        "parcelas/p1/overridePorMes/2026-08": 5333,
+        "despesasCorrentes/d1/valor": 5333,
+      });
+    });
+
+    test("limpar volta o valor da despesa ao automático daquele mês", async () => {
+      // 300,00 em 3× → 100,00 cada; com override de 53,33 gravado antes.
+      await s.limparValorDoMes(UID, { ...pago, overridePorMes: { "2026-08": 5333 } }, "2026-08", [
+        espelho("d1", { valor: 5333 }),
+        ...despesas.slice(1),
+      ]);
+      expect(updates[0].mudancas).toEqual({
+        "parcelas/p1/overridePorMes/2026-08": null,
+        "despesasCorrentes/d1/valor": 10000,
+      });
+    });
+
+    test("limpar usa o automático DO mês certo (resto da divisão vai às primeiras)", async () => {
+      // 100,01 em 3× → 33,34 + 33,34 + 33,33: setembro (2º mês) volta a 33,34.
+      const desigual = { ...pago, total: 10001 };
+      await s.limparValorDoMes(UID, desigual, "2026-09", despesas);
+      expect(updates[0].mudancas["despesasCorrentes/d2/valor"]).toBe(3334);
+    });
+
+    test("sem despesa espelho (ex.: débito automático): só grava o ajuste", async () => {
+      const auto = { ...parcela, autoDebit: true } as Parcela;
+      await s.definirValorDoMes(UID, auto, "2026-10", 5371, despesas);
+      expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-10": 5371 });
+      await s.limparValorDoMes(UID, auto, "2026-10", despesas);
+      expect(updates[1].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-10": null });
+    });
+
+    test("mês fora do plano: limpar não inventa valor para despesa nenhuma", async () => {
+      await s.limparValorDoMes(UID, pago, "2027-01", [espelho("d6", { parcelaMes: "2027-01" })]);
+      expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2027-01": null });
+    });
+  });
+
   test("as duas passam pelo histórico", async () => {
-    await s.definirValorDoMes(UID, parcela, "2026-09", 5371);
-    await s.limparValorDoMes(UID, parcela, "2026-09");
+    await s.definirValorDoMes(UID, parcela, "2026-09", 5371, []);
+    await s.limparValorDoMes(UID, parcela, "2026-09", []);
     expect(snapshot).toHaveBeenCalledTimes(2);
   });
 });

@@ -7,7 +7,13 @@ import { criarParcela as criarParcelaBase, semIndefinidos } from "./lancamentosS
 import { snapshotHistorico } from "../stores/historicoStore";
 import type { Cents, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual } from "../utils/calculos";
-import { mesesDaParcela, mesesNaoPagos, valorDaParcela, valorQuitacao } from "../utils/parcelas";
+import {
+  mesesDaParcela,
+  mesesNaoPagos,
+  valorBaseDaParcela,
+  valorDaParcela,
+  valorQuitacao,
+} from "../utils/parcelas";
 
 const raiz = (uid: string) => `users/${uid}/fin_v5`;
 
@@ -38,26 +44,60 @@ export async function pagarMesParcela(uid: string, p: Parcela, mes: YearMonth) {
   });
 }
 
+/** Lançamentos de despesa que espelham um mês pago da parcela — os mesmos que
+ *  `pagarMesParcela` cria (e `estornarMesParcela` apaga). */
+export function espelhosDoMes(p: Parcela, mes: YearMonth, despesas: DespesaCorrente[]) {
+  return despesas.filter(
+    (d) => d.origem === "parc" && d.parcelaId === p.id && d.parcelaMes === mes,
+  );
+}
+
 /** Ajusta à mão o valor de UM mês do plano. Serve para serviços como a
  *  Klarna, que às vezes cobram parcelas desiguais (160,75 em 3× → 53,33 +
  *  53,71 + 53,71): a divisão automática nunca acerta nesses casos.
  *
- *  Só tem efeito no que ainda vai ser pago — `pagarMesParcela` lê
- *  `valorDaParcela` na hora de criar a despesa, que já usa este ajuste. Um mês
- *  já pago mantém a despesa que nasceu com o valor antigo. */
-export async function definirValorDoMes(uid: string, p: Parcela, mes: YearMonth, valor: Cents) {
+ *  Mês ainda em aberto: `pagarMesParcela` lê `valorDaParcela` na hora de criar
+ *  a despesa, que já usa este ajuste. Mês já pago: a despesa espelho (origem
+ *  "parc", mesmo parcelaId/parcelaMes) recebe o valor novo NA MESMA escrita —
+ *  parcela e lançamento nunca divergem. Mês pago sem espelho (débito
+ *  automático: o valor real está na fatura do cartão) só grava o ajuste. */
+export async function definirValorDoMes(
+  uid: string,
+  p: Parcela,
+  mes: YearMonth,
+  valor: Cents,
+  despesas: DespesaCorrente[],
+) {
   snapshotHistorico();
-  await update(ref(db, raiz(uid)), {
+  const atualizacoes: Record<string, unknown> = {
     [`parcelas/${p.id}/overridePorMes/${mes}`]: valor,
+  };
+  espelhosDoMes(p, mes, despesas).forEach((d) => {
+    atualizacoes[`despesasCorrentes/${d.id}/valor`] = valor;
   });
+  await update(ref(db, raiz(uid)), atualizacoes);
 }
 
-/** Desfaz o ajuste de um mês: volta a valer a divisão automática do total. */
-export async function limparValorDoMes(uid: string, p: Parcela, mes: YearMonth) {
+/** Desfaz o ajuste de um mês: volta a valer a divisão automática do total. Se
+ *  o mês já foi pago, a despesa espelho volta junto ao valor automático. */
+export async function limparValorDoMes(
+  uid: string,
+  p: Parcela,
+  mes: YearMonth,
+  despesas: DespesaCorrente[],
+) {
   snapshotHistorico();
-  await update(ref(db, raiz(uid)), {
+  const atualizacoes: Record<string, unknown> = {
     [`parcelas/${p.id}/overridePorMes/${mes}`]: null,
-  });
+  };
+  const idx = mesesDaParcela(p).indexOf(mes);
+  if (idx >= 0) {
+    const automatico = valorBaseDaParcela(p, idx);
+    espelhosDoMes(p, mes, despesas).forEach((d) => {
+      atualizacoes[`despesasCorrentes/${d.id}/valor`] = automatico;
+    });
+  }
+  await update(ref(db, raiz(uid)), atualizacoes);
 }
 
 /** Estorno de um mês específico: desfaz o pago e remove SÓ aquele lançamento
