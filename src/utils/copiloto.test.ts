@@ -936,6 +936,28 @@ describe("copiloto: melhor e pior mês", () => {
     expect(pior).toMatch(/2025/);
     expect(pior).not.toMatch(/2026/);
   });
+
+  // Bug: um mês anterior ao primeiro movimento da conta (sem receita nem
+  // despesa nenhuma) entrava na disputa com saldo 0 — ausência de dados, não
+  // um mês parado de verdade. Aqui a conta só começa em março (mesReal é
+  // julho) e todos os meses reais (mar–jul) ficam no vermelho: sem o travão,
+  // "melhor mês" apontava para janeiro ou fevereiro, meses em que a conta
+  // nem existia, só porque 0 € "vence" qualquer saldo negativo.
+  test("não elege um mês anterior ao primeiro movimento da conta", () => {
+    const c = ctx({
+      despesas: [
+        despesa({ data: "2026-03-10", valor: 400000 }),
+        despesa({ data: "2026-04-10", valor: 100000 }),
+        despesa({ data: "2026-05-10", valor: 300000 }),
+        despesa({ data: "2026-06-10", valor: 200000 }),
+        despesa({ data: "2026-07-10", valor: 500000 }),
+      ],
+    });
+    const melhor = responderPergunta("qual foi o melhor mes", c);
+    expect(melhor).not.toMatch(/[Jj]aneiro/);
+    expect(melhor).not.toMatch(/[Ff]evereiro/);
+    expect(melhor).toMatch(/[Aa]bril/);
+  });
 });
 
 describe("copiloto: resumo anual", () => {

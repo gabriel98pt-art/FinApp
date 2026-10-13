@@ -474,12 +474,39 @@ export function categoriasAcimaDaMedia(
   );
 }
 
+/** Primeiro mês em que a conta teve QUALQUER movimento — receita, despesa,
+ *  veículo, fixa ou parcela. Mesma ideia de `primeiroMesComDespesa`
+ *  (utils/resumoMensal.ts), mas olhando também receitas, que entram no saldo
+ *  que `melhorPiorMes` compara. `null` só quando não há dado nenhum. */
+function primeiroMesComMovimento(ctx: ContextoCopiloto): YearMonth | null {
+  const meses: string[] = [
+    ...ctx.receitas.map((r) => r.data),
+    ...ctx.despesas.map((d) => d.data),
+    ...ctx.veiculo.cargas.map((c) => c.data),
+    ...ctx.veiculo.despesas.map((d) => d.data),
+    ...ctx.parcelas.map((p) => p.primeiroMes),
+  ];
+  for (const f of [...ctx.despesasFixas, ...ctx.veiculo.despesasFixas]) {
+    if (f.inicio) meses.push(f.inicio);
+  }
+  if (!meses.length) return null;
+  return meses.map((m) => m.slice(0, 7)).reduce((min, m) => (m < min ? m : min));
+}
+
 function melhorPiorMes(ctx: ContextoCopiloto, ano: number) {
+  // Bug corrigido: sem este travão, um mês anterior ao primeiro movimento da
+  // conta (ainda sem nenhuma receita/despesa registada) entrava na disputa
+  // com saldo 0 — ausência de dados, não um mês parado de verdade. Com um ano
+  // em que todos os meses REAIS ficaram no vermelho, esse mês fantasma ainda
+  // "ganhava" como melhor mês do ano, e o mesmo valia ao contrário se todos
+  // os meses reais fossem positivos: o vazio "ganhava" como pior.
+  const primeiro = primeiroMesComMovimento(ctx);
   let melhor: { ym: YearMonth; saldo: Cents } | null = null;
   let pior: { ym: YearMonth; saldo: Cents } | null = null;
   for (let mi = 1; mi <= 12; mi++) {
     const ym = `${ano}-${String(mi).padStart(2, "0")}`;
     if (ym > ctx.mesReal) break;
+    if (primeiro && ym < primeiro) continue;
     const t = totaisDoMes(ctx, ym);
     const saldo = t.receitas - t.despesas;
     if (!melhor || saldo > melhor.saldo) melhor = { ym, saldo };
