@@ -238,7 +238,11 @@ export function interpretarReferencia(
   // (ano escrito por extenso ou "ano passado"), por isso basta checá-lo aqui.
   if (anoDaPergunta !== null)
     return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoDaPergunta };
-  if (/\bano\b/.test(q))
+  // "anual" é tão um pedido de ano quanto "ano": "resumo anual" (frase óbvia,
+  // nome da própria tela "Resumo Anual" do app) não tem a palavra "ano" nem
+  // um ano explícito, só "anual" — sem este caso, caía direto no mês corrente
+  // e a resposta era um resumo do MÊS, contradizendo a própria pergunta.
+  if (/\bano\b|\banual\b/.test(q))
     return { ym: mesCorrente, label: rotuloMes(mesCorrente), isYear: true, year: anoAtual };
 
   return { ym: mesCorrente, label: rotuloMes(mesCorrente) };

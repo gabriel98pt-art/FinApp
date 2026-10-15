@@ -969,6 +969,20 @@ describe("copiloto: resumo anual", () => {
     expect(typeof r).toBe("string");
     expect(r.length).toBeGreaterThan(0);
   });
+
+  // Bug: "resumo anual" — a frase óbvia, com o mesmo nome da tela "Resumo
+  // Anual" do próprio app — não tem a palavra "ano" nem um ano escrito por
+  // extenso, só "anual". interpretarReferencia só reconhecia "ano" (palavra
+  // inteira) ou um ano explícito ("de 2025", "ano passado"); sem nenhum dos
+  // dois, "anual" era lido e ignorado, e a pergunta caía no mês corrente — um
+  // resumo de MÊS para quem pediu, no nome, o do ANO. A despesa de março só
+  // entra na soma se a resposta for mesmo anual (mesReal é julho; o mês
+  // corrente, sozinho, não tem essa despesa).
+  test("'resumo anual' soma o ano todo, não só o mês corrente", () => {
+    const c = ctx({ despesas: [despesa({ valor: 5000, data: "2026-03-10" })] });
+    const r = responderPergunta("resumo anual", c);
+    expect(r).toMatch(/50,00/);
+  });
 });
 
 describe("copiloto: despesas genérico", () => {
