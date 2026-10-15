@@ -109,7 +109,12 @@ function detectarDelim(linha: string): string {
   const pontoVirgula = (linha.match(/;/g) || []).length;
   const virgula = (linha.match(/,/g) || []).length;
   if (pontoVirgula > 0 && pontoVirgula >= virgula) delim = ";";
-  else if (virgula > 1) delim = ",";
+  // Mesmo limiar do `;` acima (>0, não >1): um CSV de só 2 colunas
+  // ("Data,Valor") tem exatamente 1 vírgula no cabeçalho — com `>1` aqui
+  // o delimitador ficava TAB por engano, `dividirLinhaCsv` devolvia cada
+  // linha como uma coluna só, e todo o extrato era descartado em silêncio
+  // pelo `cols.length < 2` mais abaixo.
+  else if (virgula > 0) delim = ",";
   return delim;
 }
 

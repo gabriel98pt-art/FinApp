@@ -30,6 +30,19 @@ describe("parseExtratoCsv", () => {
     expect(linhas[1].valor).toBe(185000);
   });
 
+  // Bug: a vírgula só era aceite como delimitador com MAIS de uma ocorrência
+  // na linha (`virgula > 1`), ao contrário do `;` (`pontoVirgula > 0`). Um
+  // CSV legítimo de só 2 colunas tem exatamente 1 vírgula no cabeçalho, caía
+  // no `else` e o delimitador ficava TAB por engano — o extrato inteiro era
+  // descartado em silêncio (ver detectarDelim em importacaoParser.ts).
+  test("delimitador , com só 2 colunas (sem descrição)", () => {
+    const csv = ["Data,Valor", "10/07/2026,-45.90", "12/07/2026,1850.00"].join("\n");
+    const linhas = parseExtratoCsv(csv);
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0]).toEqual({ data: "2026-07-10", descricao: "", valor: -4590 });
+    expect(linhas[1]).toEqual({ data: "2026-07-12", descricao: "", valor: 185000 });
+  });
+
   test("linha com menos colunas que o cabeçalho (última coluna vazia sem vírgula final) não quebra o import", () => {
     const csv = [
       "Date,Description,Debit,Credit",
