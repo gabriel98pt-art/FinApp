@@ -340,7 +340,7 @@ export default function RegistroRapido() {
   // fora do que este teto mede. Segue o mês da data escolhida (não sempre
   // "hoje"), pra um lançamento retroativo mostrar o teto do mês certo.
   const statusTeto =
-    tipo === "despesa" && !ehParcelada && etiqueta && cfg.orcamentos[etiqueta]
+    lado === "despesa" && !ehParcelada && etiqueta && cfg.orcamentos[etiqueta]
       ? statusOrcamentoMes(
           despesas,
           parcelas,
