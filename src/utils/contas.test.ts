@@ -283,6 +283,80 @@ describe("espelho de fixa paga não conta em dobro (origem 'fixa')", () => {
   });
 });
 
+describe("parcelas no resumo da conta", () => {
+  // Uma compra parcelada pode estar vinculada a QUALQUER conta/cartão (o
+  // formulário em Parcelas.tsx oferece toda `cfg.contasCartoes`, não só
+  // cartão de crédito) — sem isto, o plano da parcela não entrava em
+  // `DadosContas` nenhuma, e "Gasto do mês" de uma conta de débito ignorava
+  // por completo uma compra parcelada paga direto dela, mesmo com o mês já
+  // vencido.
+  const comParcela: DadosContas = {
+    ...dados,
+    parcelas: [
+      {
+        id: "p1",
+        descricao: "Sofá",
+        total: 90000,
+        numParcelas: 3,
+        primeiroMes: "2026-06",
+        categoria: "Casa",
+        cartao: "Conta",
+        pagoPorMes: {},
+      },
+    ],
+  };
+
+  it("soma a parcela do mês por competência, mesmo sem marcar como paga", () => {
+    const semParcela = resumoDaConta("Conta", dados, cfg, "2026-07");
+    const comParcelaResumo = resumoDaConta("Conta", comParcela, cfg, "2026-07");
+    // 90000 / 3 = 30000 por mês.
+    expect(comParcelaResumo.gastoMes - semParcela.gastoMes).toBe(30000);
+    expect(comParcelaResumo.despesasMes - semParcela.despesasMes).toBe(1);
+  });
+
+  it("não conta a parcela de uma conta diferente", () => {
+    const deOutraConta: DadosContas = {
+      ...dados,
+      parcelas: [{ ...comParcela.parcelas![0], cartao: "Gold" }],
+    };
+    const conta = resumoDaConta("Conta", deOutraConta, cfg, "2026-07");
+    const semParcela = resumoDaConta("Conta", dados, cfg, "2026-07");
+    expect(conta.gastoMes).toBe(semParcela.gastoMes);
+  });
+
+  it("o espelho de um mês pago por fora da fatura não conta em dobro (origem 'parc')", () => {
+    // `pagarMesParcela` grava, na mesma escrita, `pagoPorMes` E um
+    // lançamento-espelho em despesasCorrentes com a mesma conta e
+    // `origem: 'parc'` — só para o extrato saber a data real do pagamento.
+    const comEspelho: DadosContas = {
+      ...comParcela,
+      despesasCorrentes: [
+        ...dados.despesasCorrentes,
+        {
+          id: "espelho-p1",
+          descricao: "Sofá",
+          valor: 30000,
+          categoria: "Casa",
+          contaCartao: "Conta",
+          data: "2026-07-05",
+          origem: "parc",
+          parcelaId: "p1",
+          parcelaMes: "2026-07",
+        },
+      ],
+    };
+    const semEspelho = resumoDaConta("Conta", comParcela, cfg, "2026-07");
+    const comoEspelho = resumoDaConta("Conta", comEspelho, cfg, "2026-07");
+    expect(comoEspelho.gastoMes).toBe(semEspelho.gastoMes);
+  });
+
+  it("sem parcelas, o resumo é o mesmo de antes", () => {
+    expect(resumoDaConta("Conta", dados, cfg, "2026-07")).toEqual(
+      resumoDaConta("Conta", { ...dados, parcelas: undefined }, cfg, "2026-07"),
+    );
+  });
+});
+
 describe("resumosDasContas", () => {
   it("devolve um resumo por conta configurada, na mesma ordem", () => {
     expect(resumosDasContas(dados, cfg, "2026-07").map((r) => r.conta)).toEqual(["Conta", "Gold"]);

@@ -13,6 +13,17 @@
 // mesma regra das despesas correntes: é o mesmo dinheiro saindo da mesma
 // conta. São opcionais em `DadosContas` porque o campo `contaCartao` delas é
 // recente — quem não os passar continua com o comportamento antigo.
+//
+// Parcelas entram pela mesma regra das fixas (competência: conta pelo plano,
+// paga ou não — `parcelasDoMes`) — o `cartao` de uma parcela não precisa ser
+// um cartão de crédito (o formulário em Parcelas.tsx oferece toda `contasCartoes`),
+// então uma compra parcelada paga direto de uma conta de débito sumia do
+// "Gasto do mês" dela até alguém marcar o mês como pago à mão, e nunca entrava
+// no total de um cartão de crédito em débito automático (o espelho que
+// `pagarMesParcela`/`pagarFatura` grava não leva `contaCartao`, de propósito,
+// pra não contar a compra outra vez na fatura). O lançamento-espelho de um mês
+// já pago por FORA da fatura (ver `pagarMesParcela`) é excluído de
+// `correntesMes`, mesma razão do espelho de fixa.
 
 import type {
   Abastecimento,
@@ -22,6 +33,7 @@ import type {
   DespesaFixa,
   DespesaVeiculo,
   IsoDate,
+  Parcela,
   Receita,
   TipoCartao,
   Transferencia,
@@ -29,6 +41,7 @@ import type {
 } from "../types";
 import { mesDe } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
+import { mesesDaParcela, valorDaParcela } from "./parcelas";
 
 export interface DadosContas {
   receitas: Receita[];
@@ -39,6 +52,8 @@ export interface DadosContas {
   /** Carregamentos e despesas variáveis do veículo pagos pela conta. */
   cargas?: Abastecimento[];
   despesasVeiculo?: DespesaVeiculo[];
+  /** Compras parceladas vinculadas à conta/cartão. */
+  parcelas?: Parcela[];
 }
 
 export interface ResumoConta {
@@ -58,6 +73,16 @@ export interface ResumoConta {
 function fixasDoMes(fixas: DespesaFixa[], conta: string, mes: YearMonth) {
   const ativas = fixas.filter((f) => f.contaCartao === conta && fixaAtivaNoMes(f, mes));
   return { total: ativas.reduce((s, f) => s + f.valor, 0), quantidade: ativas.length };
+}
+
+/** Soma das parcelas da conta cujo plano cobre aquele mês (competência) —
+ *  mesma regra de `fixasDoMes`: conta o valor do mês, pago ou não. */
+function parcelasDoMes(parcelas: Parcela[], conta: string, mes: YearMonth) {
+  const ativas = parcelas.filter((p) => p.cartao === conta && mesesDaParcela(p).includes(mes));
+  return {
+    total: ativas.reduce((s, p) => s + valorDaParcela(p, mes), 0),
+    quantidade: ativas.length,
+  };
 }
 
 /** Soma das fixas da conta efetivamente pagas (caixa): os meses marcados à
@@ -116,15 +141,20 @@ export function resumoDaConta(
   // `fixasVeiculo` (competência) e por `fixasPagas` (caixa, abaixo). Sem esta
   // exclusão a mesma fixa paga à mão contava em dobro, igual ao bug já
   // corrigido para os totais gerais em `transacoes.ts`/`veiculo.ts`.
+  // `origem !== "parc"` é a mesma exclusão para o espelho de uma parcela paga
+  // por fora da fatura (`pagarMesParcela`) — o valor dela já entra aqui por
+  // `parcelasMes` (competência, abaixo).
   const correntesMes = dados.despesasCorrentes.filter(
     (d) =>
       d.contaCartao === conta &&
       mesDe(d.data) === mes &&
       d.origem !== "fixa" &&
+      d.origem !== "parc" &&
       d.origem !== "recon",
   );
   const fixasGerais = fixasDoMes(dados.despesasFixas, conta, mes);
   const fixasVeiculo = fixasDoMes(dados.despesasFixasVeiculo, conta, mes);
+  const parcelasMes = parcelasDoMes(dados.parcelas ?? [], conta, mes);
   const saidasMes = dados.transferencias.filter((t) => t.de === conta && mesDe(t.data) === mes);
   const entradasMes = dados.transferencias.filter((t) => t.para === conta && mesDe(t.data) === mes);
   const cargasMes = (dados.cargas ?? []).filter(
@@ -142,6 +172,7 @@ export function resumoDaConta(
     correntesMes.reduce((s, d) => s + d.valor, 0) +
     fixasGerais.total +
     fixasVeiculo.total +
+    parcelasMes.total +
     saidasMes.reduce((s, t) => s + t.valor, 0) +
     cargasMes.reduce((s, c) => s + c.custo, 0) +
     veiculoMes.reduce((s, d) => s + d.valor, 0);
@@ -150,6 +181,7 @@ export function resumoDaConta(
     correntesMes.length +
     fixasGerais.quantidade +
     fixasVeiculo.quantidade +
+    parcelasMes.quantidade +
     saidasMes.length +
     cargasMes.length +
     veiculoMes.length;

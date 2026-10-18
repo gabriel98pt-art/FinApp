@@ -419,8 +419,9 @@ export default function Cartoes() {
       transferencias,
       cargas: veiculo.cargas,
       despesasVeiculo: veiculo.despesas,
+      parcelas,
     }),
-    [receitas, despesas, despesasFixas, veiculo, transferencias],
+    [receitas, despesas, despesasFixas, veiculo, transferencias, parcelas],
   );
 
   const cartoesCredito = useMemo(
