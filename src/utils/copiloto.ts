@@ -1434,8 +1434,14 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // igual ao mesmo furo já corrigido para "meta"/"metas" no intent de
   // poupança. `gastos?` aceita as duas formas sem abrir mão da fronteira de
   // palavra.
+  //
+  // Mesmo furo, mesma família: \bsaida\b não batia no plural — "quais foram
+  // minhas saídas este mês?" normaliza para "saidas", que não tem fronteira
+  // de palavra logo depois de "saida" (o "s" seguinte impede o \b), e a
+  // pergunta caía na resposta padrão em vez do intent de despesas.
+  // `saidas?` aceita as duas formas, mesma correção de `gastos?` acima.
   {
-    test: (q) => /despes|gastei|\bgastos?\b|\bsaiu\b|\bsaida\b|torrei/.test(q),
+    test: (q) => /despes|gastei|\bgastos?\b|\bsaiu\b|\bsaidas?\b|torrei/.test(q),
     run: (_q, ref, ctx) => {
       const total = totaisDoMes(ctx, ref.ym).despesas;
       // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO (ver

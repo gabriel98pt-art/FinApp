@@ -1032,12 +1032,14 @@ describe("copiloto: mais sinônimos reconhecidos", () => {
     receitas: [receita({ valor: 20000 })],
   });
 
-  test.each(["quanto saiu esse mes", "quanto torrei esse mes", "qual foi minha saida esse mes"])(
-    "%s bate no intent de despesas",
-    (q) => {
-      expect(responderPergunta(q, cDados)).not.toBe(RESPOSTA_PADRAO);
-    },
-  );
+  test.each([
+    "quanto saiu esse mes",
+    "quanto torrei esse mes",
+    "qual foi minha saida esse mes",
+    "quais foram minhas saidas esse mes",
+  ])("%s bate no intent de despesas", (q) => {
+    expect(responderPergunta(q, cDados)).not.toBe(RESPOSTA_PADRAO);
+  });
 
   test.each([
     "qual meu salario",
