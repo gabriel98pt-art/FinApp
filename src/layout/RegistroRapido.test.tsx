@@ -11,7 +11,7 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { DespesaCorrente } from "../types";
+import type { DespesaCorrente, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, veiculoVazio } from "../testes/dobras";
 
@@ -37,6 +37,7 @@ vi.mock("../services/veiculoService", () => ({
 vi.mock("../services/parcelasService", () => ({ criarParcela: vi.fn(async () => {}) }));
 
 let despesas = lista<DespesaCorrente>();
+let receitas = lista<Receita>();
 let estadoUi = {
   registroAberto: true,
   registroTipo: "despesa" as const,
@@ -53,7 +54,7 @@ vi.mock("../stores/uiStore", () => ({
 }));
 vi.mock("../stores/lancamentosStore", () => ({
   useDespesasStore: (s: (e: unknown) => unknown) => s(despesas),
-  useReceitasStore: (s: (e: unknown) => unknown) => s(lista()),
+  useReceitasStore: (s: (e: unknown) => unknown) => s(receitas),
 }));
 vi.mock("../stores/parcelasStore", () => ({
   useParcelasStore: (s: (e: unknown) => unknown) => s(lista()),
@@ -101,11 +102,13 @@ async function submeter() {
 
 beforeEach(() => {
   despesas = lista<DespesaCorrente>();
+  receitas = lista<Receita>();
   estadoUi = { ...estadoUi, editandoId: null, registroTipo: "despesa" };
   cfg = CONFIG_PADRAO;
   criarDespesa.mockClear();
   atualizarDespesa.mockClear();
   criarCarga.mockClear();
+  criarReceita.mockClear();
 });
 
 describe("segmentado Despesa / Reembolso", () => {
@@ -197,6 +200,36 @@ describe("gravação do reembolso", () => {
     const [, dados] = criarDespesa.mock.calls[0] as unknown as [string, DespesaCorrente];
     expect(dados.reembolsoDeId).toBeUndefined();
     expect(dados.valor).toBe(-7500);
+  });
+});
+
+// Bug corrigido (19/10): editar uma receita, trocar para o lado Despesa (o
+// seletor "Receita ou despesa" da edição) e escolher Reembolso nessa mesma
+// troca gravava uma despesa comum — valor positivo, sem origem "reemb" — a
+// escolha de Reembolso era descartada em silêncio porque esse ramo do
+// submit (criar do outro lado + apagar o original) não passava pelo mesmo
+// tratamento que o ramo normal já dá ao reembolso.
+describe("trocar de Receita para Despesa na edição, com Reembolso escolhido", () => {
+  test("grava a despesa NEGATIVA, com origem reemb", async () => {
+    receitas = lista<Receita>([
+      {
+        id: "r1",
+        descricao: "Venda de equipamento",
+        valor: 10000,
+        data: "2026-10-05",
+        fonte: "Outros",
+      },
+    ]);
+    estadoUi = { ...estadoUi, editandoId: "r1", registroTipo: "receita" as never };
+    render(<RegistroRapido />);
+
+    await userEvent.click(screen.getByRole("radio", { name: "Despesa" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Reembolso" }));
+    await submeter();
+
+    const [, dados] = criarDespesa.mock.calls[0] as unknown as [string, DespesaCorrente];
+    expect(dados.valor).toBe(-10000);
+    expect(dados.origem).toBe("reemb");
   });
 });
 

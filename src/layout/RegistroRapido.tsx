@@ -483,12 +483,20 @@ export default function RegistroRapido() {
           });
           await removerDespesa(uid, editando.id);
         } else {
+          // Mesmo tratamento de reembolso do ramo normal (abaixo): o seletor
+          // "Gasto"/"Reembolso" aparece aqui também (é `lado === "despesa"`
+          // que o decide, não `tipo`), e sem isto uma receita virada despesa
+          // com "Reembolso" marcado nascia como despesa comum, com o valor
+          // positivo e sem `origem`/`reembolsoDeId` — a escolha feita na
+          // folha era descartada em silêncio.
           await criarDespesa(uid, {
             descricao,
-            valor,
+            valor: reembolso ? -valor : valor,
             data,
             categoria: etiquetaFinal,
             contaCartao: conta || undefined,
+            origem: reembolso ? "reemb" : undefined,
+            reembolsoDeId: reembolso ? reembolsoDe || undefined : undefined,
           });
           await removerReceita(uid, editando.id);
         }
