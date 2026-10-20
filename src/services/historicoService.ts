@@ -68,7 +68,16 @@ export function capturarEstadoAtual(): string {
     // devolve ao formato de mapa que o RTDB espera, como cfgService já faz
     // em toda escrita normal.
     cfg: { ...cfg, instituicoes: brutoDasInstituicoes(cfg.instituicoes) },
-    tvde: useTvdeStore.getState().dados,
+    // `tvde.despesas` é uma LISTA [{id,...}] em memória, mesma razão de
+    // `cfg.instituicoes` acima: gravá-la tal e qual faria o RTDB reindexar por
+    // posição (0, 1...) em vez dos ids reais, trocando o id de toda despesa de
+    // TVDE a cada desfazer/refazer. Os outros campos de `DadosTvde` (cfg,
+    // semanas, segPorMes, lancamentos) já são mapas de verdade — não entram
+    // nesta conversão.
+    tvde: {
+      ...useTvdeStore.getState().dados,
+      despesas: paraMapa(useTvdeStore.getState().dados.despesas),
+    },
   };
   return JSON.stringify(arvore);
 }

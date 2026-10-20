@@ -32,7 +32,7 @@ let veiculo: Record<"cargas" | "despesas" | "despesasFixas" | "quilometragem", u
   quilometragem: [],
 };
 let cfg: unknown = { currency: "EUR", instituicoes: [] };
-let tvde: unknown = { metaMensal: 0 };
+let tvde: unknown = { metaMensal: 0, despesas: [] };
 
 vi.mock("../stores/cfgStore", () => ({ useCfgStore: { getState: () => ({ cfg }) } }));
 vi.mock("../stores/eventosStore", () => ({
@@ -67,7 +67,7 @@ beforeEach(() => {
   transferencias = [];
   veiculo = { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] };
   cfg = { currency: "EUR", instituicoes: [] };
-  tvde = { metaMensal: 0 };
+  tvde = { metaMensal: 0, despesas: [] };
   atualizarNaRaiz.mockClear();
   refChamado.mockClear();
 });
@@ -127,9 +127,9 @@ describe("capturarEstadoAtual", () => {
     });
   });
 
-  test("cfg e tvde entram como objeto direto, sem paraMapa — não são listas", () => {
+  test("cfg e tvde entram como objeto direto (exceto os campos que são listas)", () => {
     cfg = { currency: "EUR", modoDiscreto: true, instituicoes: [] };
-    tvde = { metaMensal: 150000 };
+    tvde = { metaMensal: 150000, despesas: [] };
 
     const arvore = JSON.parse(capturarEstadoAtual());
 
@@ -137,7 +137,25 @@ describe("capturarEstadoAtual", () => {
       ...(cfg as Record<string, unknown>),
       instituicoes: {},
     });
-    expect(arvore.tvde).toEqual(tvde);
+    expect(arvore.tvde).toEqual({ ...(tvde as Record<string, unknown>), despesas: {} });
+  });
+
+  test("tvde.despesas vira mapa por id, não lista — mesmo bug de cfg.instituicoes", () => {
+    // `despesas` é uma lista [{id,...}] em memória (DadosTvde.despesas), igual
+    // às outras coleções do RTDB — capturá-la tal e qual faria o RTDB
+    // reindexar por posição (0, 1...) em vez dos ids reais, trocando o id de
+    // toda despesa de TVDE no próximo desfazer/refazer.
+    tvde = {
+      metaMensal: 150000,
+      despesas: [{ id: "d1", data: "2026-07-05", descricao: "Lavagem", valor: 1500 }],
+    };
+
+    const arvore = JSON.parse(capturarEstadoAtual());
+
+    expect(arvore.tvde).toEqual({
+      metaMensal: 150000,
+      despesas: { d1: { data: "2026-07-05", descricao: "Lavagem", valor: 1500 } },
+    });
   });
 
   test("cfg.instituicoes vira mapa por id, não lista — o RTDB reindexa uma lista por posição", () => {
