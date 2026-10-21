@@ -379,6 +379,58 @@ describe("validarArquivoBackup", () => {
     }
   });
 
+  test("recusa cada sub-coleção de `veiculo` que venha como array ou primitivo", () => {
+    // Mesmo bug já corrigido em historicoService.ts para tvde.despesas e
+    // cfg.instituicoes: um array aqui também reindexaria os ids por posição
+    // ao ser escrito de volta no RTDB — só que, vindo de um backup, quem
+    // reindexava era a própria restauração.
+    for (const sub of ["cargas", "despesas", "despesasFixas", "quilometragem"]) {
+      for (const mau of [[{ descricao: "x" }], 5, "texto", true, null]) {
+        const r = s.validarArquivoBackup(
+          arquivo({ versao: 1, dados: { veiculo: { [sub]: mau } } }),
+        );
+        expect(r.ok, `veiculo.${sub} = ${JSON.stringify(mau)}`).toBe(false);
+        expect(!r.ok && r.erro).toContain(`veiculo/${sub}`);
+      }
+    }
+  });
+
+  test("recusa `veiculo` que não seja objeto", () => {
+    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { veiculo: [] } }));
+    expect(r.ok).toBe(false);
+  });
+
+  test("recusa `tvde.despesas` que venha como array ou primitivo", () => {
+    for (const mau of [[{ descricao: "x" }], 5, "texto", true, null]) {
+      const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { tvde: { despesas: mau } } }));
+      expect(r.ok, `tvde.despesas = ${JSON.stringify(mau)}`).toBe(false);
+      expect(!r.ok && r.erro).toContain("tvde/despesas");
+    }
+  });
+
+  test("recusa `tvde` que não seja objeto", () => {
+    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { tvde: [] } }));
+    expect(r.ok).toBe(false);
+  });
+
+  test("aceita `veiculo` e `tvde` bem formados", () => {
+    const r = s.validarArquivoBackup(
+      arquivo({
+        versao: 1,
+        dados: {
+          veiculo: {
+            cargas: { c1: {} },
+            despesas: { d1: {} },
+            despesasFixas: { f1: {} },
+            quilometragem: { k1: {} },
+          },
+          tvde: { metaMensal: 150000, despesas: { d1: {} } },
+        },
+      }),
+    );
+    expect(r.ok).toBe(true);
+  });
+
   test("recusa cfg que não seja objeto", () => {
     const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { cfg: [] } }));
     expect(r.ok).toBe(false);

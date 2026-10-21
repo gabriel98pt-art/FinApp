@@ -62,6 +62,15 @@ const COLECOES_LANCAMENTOS = [
   "parcelas",
 ] as const;
 
+/** Sub-coleções de `veiculo`, mesmo caso de `COLECOES_MAPA` mas um nível
+ *  abaixo: também vivem no RTDB como mapa `{id: item}` (ver
+ *  `veiculoService.paraLista`). Sem esta checagem, um array aqui não era
+ *  recusado — passava a validação e só corrompia os ids ao ser escrito de
+ *  volta no RTDB (mesma classe de bug já corrigida para `tvde.despesas` e
+ *  `cfg.instituicoes` em `historicoService.ts`, só que ali era o undo/redo a
+ *  gravar errado; aqui seria a própria restauração do backup). */
+const SUBCOLECOES_VEICULO = ["cargas", "despesas", "despesasFixas", "quilometragem"] as const;
+
 export interface ResumoBackup {
   /** Data ISO gravada no arquivo, ou `null` se faltar / for inválida. */
   exportadoEm: string | null;
@@ -132,6 +141,32 @@ export function validarArquivoBackup(json: string): ResultadoValidacao {
       return {
         ok: false,
         erro: `O arquivo tem “${colecao}” num formato inesperado (deveria ser um mapa de itens por id).`,
+      };
+    }
+  }
+
+  if ("veiculo" in dadosObj) {
+    if (!ehObjeto(dadosObj.veiculo)) {
+      return { ok: false, erro: "O arquivo tem “veiculo” num formato inesperado." };
+    }
+    for (const sub of SUBCOLECOES_VEICULO) {
+      if (sub in dadosObj.veiculo && !ehObjeto(dadosObj.veiculo[sub])) {
+        return {
+          ok: false,
+          erro: `O arquivo tem “veiculo/${sub}” num formato inesperado (deveria ser um mapa de itens por id).`,
+        };
+      }
+    }
+  }
+
+  if ("tvde" in dadosObj) {
+    if (!ehObjeto(dadosObj.tvde)) {
+      return { ok: false, erro: "O arquivo tem “tvde” num formato inesperado." };
+    }
+    if ("despesas" in dadosObj.tvde && !ehObjeto(dadosObj.tvde.despesas)) {
+      return {
+        ok: false,
+        erro: "O arquivo tem “tvde/despesas” num formato inesperado (deveria ser um mapa de itens por id).",
       };
     }
   }
