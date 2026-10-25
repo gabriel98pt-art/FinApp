@@ -354,6 +354,24 @@ export function progressoFundo(fundo: Fundo, mesReal: YearMonth): ProgressoFundo
   };
 }
 
+/** Soma receitas e despesas de todos os meses do ano até `ctx.mesReal` — um
+ *  mês futuro do próprio ano ainda não tem dado nenhum, por isso não entra.
+ *  Mesma soma que os intents de resumo/saldo já fazem inline para um ano
+ *  explícito; existe aqui à parte porque os intents genéricos de
+ *  receitas/despesas (mais abaixo) também precisam dela. */
+function totaisDoAno(ctx: ContextoCopiloto, ano: number): { receitas: Cents; despesas: Cents } {
+  let receitas = 0;
+  let despesas = 0;
+  for (let mi = 1; mi <= 12; mi++) {
+    const ym = `${ano}-${String(mi).padStart(2, "0")}`;
+    if (ym > ctx.mesReal) break;
+    const t = totaisDoMes(ctx, ym);
+    receitas += t.receitas;
+    despesas += t.despesas;
+  }
+  return { receitas, despesas };
+}
+
 export function totaisDoMes(ctx: ContextoCopiloto, ym: YearMonth) {
   // `hoje` dá precisão de DIA ao mês corrente: sem ele, uma fixa ou parcela em
   // débito automático que só vence no dia 27 já contava como despesa realizada
@@ -1417,9 +1435,21 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
     },
   },
   // receitas genérico
+  //
+  // Bug corrigido: sem o travão de isYear, "quanto recebi em 2025?" ignorava
+  // o ano pedido (ref.isYear/ref.year, ver interpretarReferencia) e respondia
+  // sempre sobre o mês corrente — ref.ym não muda com isYear, só ref.year. Os
+  // intents de resumo/saldo já tratam o mesmo caso; aqui tinha sido esquecido.
   {
     test: (q) => PALAVRAS_DE_RECEITA.test(q),
     run: (_q, ref, ctx) => {
+      if (ref.isYear && ref.year !== undefined) {
+        const dinheiro = b(formatMoney(totaisDoAno(ctx, ref.year).receitas, ctx.cfg.currency));
+        return variar(ctx, {
+          direto: [`recebeu ${dinheiro} em ${ref.year}.`, `entraram ${dinheiro} em ${ref.year}.`],
+          acolhedor: [`em ${ref.year} entraram ${dinheiro}.`],
+        });
+      }
       const dinheiro = b(formatMoney(totaisDoMes(ctx, ref.ym).receitas, ctx.cfg.currency));
       return variar(ctx, {
         direto: [`recebeu ${dinheiro} em ${ref.label}.`, `entraram ${dinheiro} em ${ref.label}.`],
@@ -1440,9 +1470,31 @@ export const INTENTS_COPILOTO: IntentCopiloto[] = [
   // de palavra logo depois de "saida" (o "s" seguinte impede o \b), e a
   // pergunta caía na resposta padrão em vez do intent de despesas.
   // `saidas?` aceita as duas formas, mesma correção de `gastos?` acima.
+  //
+  // Bug corrigido: sem o travão de isYear, "quanto gastei em 2025?" ignorava
+  // o ano pedido (ref.isYear/ref.year, ver interpretarReferencia) e respondia
+  // sempre sobre o mês corrente — ref.ym não muda com isYear, só ref.year. Os
+  // intents de resumo/saldo já tratam o mesmo caso; aqui tinha sido esquecido.
   {
     test: (q) => /despes|gastei|\bgastos?\b|\bsaiu\b|\bsaidas?\b|torrei/.test(q),
     run: (_q, ref, ctx) => {
+      if (ref.isYear && ref.year !== undefined) {
+        const totalAno = totaisDoAno(ctx, ref.year).despesas;
+        // Mesmo travão do ramo mensal abaixo, aplicado ao total do ano.
+        if (totalAno < 0)
+          return variar(ctx, {
+            direto: [`não há despesas registadas em ${ref.year}.`],
+            acolhedor: [`não há despesas registadas em ${ref.year} — nada a assinalar.`],
+          });
+        const dinheiroAno = b(formatMoney(totalAno, ctx.cfg.currency));
+        return variar(ctx, {
+          direto: [
+            `gastou ${dinheiroAno} em ${ref.year}.`,
+            `saíram ${dinheiroAno} em ${ref.year}.`,
+          ],
+          acolhedor: [`em ${ref.year} saíram ${dinheiroAno}.`],
+        });
+      }
       const total = totaisDoMes(ctx, ref.ym).despesas;
       // Bug corrigido: um reembolso é uma despesa de valor NEGATIVO (ver
       // utils/reembolsos.ts). Quando os reembolsos do mês ultrapassam as

@@ -1021,6 +1021,40 @@ describe("copiloto: despesas genérico", () => {
     expect(resp).not.toContain("-");
     expect(resp).toMatch(/não há despesas/i);
   });
+
+  // Bug: ref.isYear/ref.year (ver interpretarReferencia) não eram lidos
+  // aqui — só os intents de resumo/saldo tratavam um ano explícito. "quanto
+  // gastei em 2025?" ignorava o "2025" da pergunta e respondia sempre sobre
+  // o mês corrente (mesReal é julho de 2026), a mesma classe de bug já
+  // corrigida para "do ano passado" no intent de melhor/pior mês.
+  test("'quanto gastei em 2025' soma o ano pedido, não o mês corrente", () => {
+    const c = ctx({
+      despesas: [
+        despesa({ data: "2025-07-05", valor: 10000 }),
+        despesa({ data: "2026-07-05", valor: 500 }),
+      ],
+    });
+    const r = responderPergunta("quanto gastei em 2025?", c);
+    expect(r).toMatch(/100,00/);
+    expect(r).toContain("2025");
+    expect(r).not.toContain("5,00");
+  });
+});
+
+describe("copiloto: receitas genérico", () => {
+  // Mesmo bug do intent de despesas genérico acima, mesma correção.
+  test("'quanto recebi em 2025' soma o ano pedido, não o mês corrente", () => {
+    const c = ctx({
+      receitas: [
+        receita({ data: "2025-07-05", valor: 10000 }),
+        receita({ data: "2026-07-05", valor: 500 }),
+      ],
+    });
+    const r = responderPergunta("quanto recebi em 2025?", c);
+    expect(r).toMatch(/100,00/);
+    expect(r).toContain("2025");
+    expect(r).not.toContain("5,00");
+  });
 });
 
 describe("copiloto: mais sinônimos reconhecidos", () => {
