@@ -179,3 +179,34 @@ describe("a lista da folha do teto soma exatamente o gasto do orçamento", () =>
     expect(nomes("2026-07-25").some((n) => n.startsWith("Consola"))).toBe(true);
   });
 });
+
+// A mesma coerência, mas olhando um mês FUTURO pelo seletor do header
+// (Despesas, Planejamento) — alcançável normalmente, sem nada de especial: a
+// seta "mês seguinte" não tem limite. `statusOrcamentoMes` só tratava o mês
+// CORRENTE como exceção (`ym === mesReal`); um mês futuro caía na regra de
+// "mês fechado" e contava a parcela cheia, mesmo sem ter vencido — enquanto
+// `gastosDaCategoriaMes` (que decide por `ym < mesReferencia`, não por
+// `===`) continuava a excluí-la. O card dizia "Lazer estourou" e a folha de
+// edição, aberta para mostrar de onde vinha esse gasto, aparecia vazia.
+describe("a mesma conta, olhando um mês futuro", () => {
+  const mesReal = "2026-06";
+  const hoje = "2026-06-15";
+
+  test("parcela de um mês futuro, ainda sem vencer: nenhum dos dois conta", () => {
+    expect(statusOrcamentoMes([], [parcela], { Lazer: 100000 }, MES, mesReal, hoje)[0].gasto).toBe(
+      0,
+    );
+    expect(gastosDaCategoriaMes([], [parcela], "Lazer", MES, mesReal, hoje)).toHaveLength(0);
+  });
+
+  test("marcada paga à mão, mesmo um mês futuro: os dois concordam", () => {
+    const paga: Parcela = { ...parcela, pagoPorMes: { [MES]: true } };
+    const gasto = statusOrcamentoMes([], [paga], { Lazer: 100000 }, MES, mesReal, hoje)[0].gasto;
+    const soma = gastosDaCategoriaMes([], [paga], "Lazer", MES, mesReal, hoje).reduce(
+      (s, t) => s + t.valor,
+      0,
+    );
+    expect(soma).toBe(gasto);
+    expect(gasto).toBeGreaterThan(0);
+  });
+});

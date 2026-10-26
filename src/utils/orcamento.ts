@@ -48,7 +48,14 @@ export function statusOrcamentoMes(
     gastoPorCategoria.set(d.categoria, (gastoPorCategoria.get(d.categoria) ?? 0) + d.valor);
   }
   for (const p of parcelas.filter((p) => mesesDaParcela(p).includes(ym))) {
-    if (ym === mesReal && !estaEfetivamentePaga(p, ym, mesReal, hoje)) continue;
+    // `ym >= mesReal`, não só `===`: um mês FUTURO (navegado pelo seletor do
+    // header) também não pode ter nada "efetivamente pago" ainda, e precisa
+    // da mesma exceção do mês corrente. Com só `===`, um mês futuro contava a
+    // parcela cheia aqui mas `gastosDaCategoriaMes`/`transacoesDoMes` (que
+    // decidem por `ym < mesReferencia`, não por `===`) continuavam a
+    // excluí-la — o card dizia "Lazer: 100€/50€, Estourou" e a folha de
+    // edição, ao abrir pra mostrar de onde vinha esse gasto, aparecia vazia.
+    if (ym >= mesReal && !estaEfetivamentePaga(p, ym, mesReal, hoje)) continue;
     const cat = p.categoria ?? "Parcelas";
     gastoPorCategoria.set(cat, (gastoPorCategoria.get(cat) ?? 0) + valorDaParcela(p, ym));
   }
