@@ -11,6 +11,24 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 26/10/2026
 
+- **Início, segunda rodada de ajustes.** O botão de tema claro/escuro saiu do
+  cabeçalho e no lugar dele entrou o olho de "ocultar valores" (o mesmo
+  interruptor do Modo discreto em Definições; o tema continua em Definições →
+  Aparência). Agora o Modo discreto também borra o resultado do mês, os totais,
+  os valores de "A pagar" e dos últimos movimentos. Cada secção mostra no
+  máximo 4 itens e tem "Ver todos" ao lado do título ("A pagar" leva ao
+  Calendário). "Onde foi o dinheiro" passou a se chamar "Categorias". Os
+  títulos ganharam mais respiro em relação às listas, e em "A pagar" o total
+  foi para uma linha logo abaixo do título ("€ 307,33 em 2 pagamentos"),
+  somando todos os pagamentos do mês, não só os 4 que aparecem.
+
+- **Despesa fixa e parcela no cartão de crédito não são mais contadas duas
+  vezes.** Uma despesa fixa paga com cartão de crédito já está dentro da
+  fatura; antes ela aparecia também sozinha em "A pagar" e no Calendário,
+  somando o mesmo dinheiro duas vezes. Agora só a fatura aparece (o mesmo vale
+  para parcela em débito automático). Fixa ou parcela sem cartão, ou em cartão
+  de débito, continua aparecendo normalmente.
+
 - **Início novo: menos números soltos, mais o que importa.** A página inicial
   foi refeita. No topo fica um quadro grande com o **resultado do mês**
   (receitas menos despesas) e uma barra que mostra quanto do dinheiro entrou e

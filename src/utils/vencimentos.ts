@@ -130,6 +130,30 @@ export function vencimentosDeFaturas(
     }));
 }
 
+/** Tira de uma lista de compromissos o que já vai DENTRO de uma fatura de
+ *  cartão de crédito — para quem lista fixas, parcelas e faturas juntas (a
+ *  Início e o Calendário). Sem isto o mesmo dinheiro aparecia duas vezes: uma
+ *  como a fixa/parcela, outra embutida na fatura que a cobra.
+ *
+ *  As duas regras espelham o que `calcularFaturaAutomatica` (utils/fatura.ts)
+ *  soma à fatura, uma a uma:
+ *   - fixa: entra sempre que `contaCartao` é cartão de crédito, paga-se à mão
+ *     ou não;
+ *   - parcela: só em débito automático (`cartao` + `autoDebit`).
+ *  Fixa ou parcela de cartão de débito, ou sem cartão, é um pagamento próprio
+ *  e continua na lista. */
+export function foraDaFatura(
+  fixas: DespesaFixa[],
+  parcelas: Parcela[],
+  tipoCartao: Record<string, string | undefined>,
+): { fixas: DespesaFixa[]; parcelas: Parcela[] } {
+  const credito = (c?: string | null) => !!c && tipoCartao[c] === "credit";
+  return {
+    fixas: fixas.filter((f) => !credito(f.contaCartao)),
+    parcelas: parcelas.filter((p) => !(p.autoDebit && credito(p.cartao))),
+  };
+}
+
 /** Quanto dinheiro está em jogo — a soma dos vencimentos passados.
  *
  *  É o que os KPIs do Calendário mostram: contar compromissos ("3 vencimentos")

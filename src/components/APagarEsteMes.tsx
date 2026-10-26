@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { CreditCard, Receipt, Repeat, type LucideIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight, CreditCard, Receipt, Repeat, type LucideIcon } from "lucide-react";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -14,6 +15,7 @@ import { calcularFatura, montarDadosFatura } from "../utils/fatura";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { formatMoney } from "../utils/money";
 import {
+  foraDaFatura,
   totalAVencer,
   vencimentosDeFaturas,
   vencimentosDeFixas,
@@ -47,8 +49,12 @@ function rotuloDia(dia: string, hoje: string): { texto: string; perto: boolean }
  *  num cartão de crédito fica de fora, porque o valor dela já está dentro da
  *  fatura (ver `debitoAutomaticoParcelas`) — listar as duas contava o mesmo
  *  dinheiro a dobrar. */
+const QUANTOS = 4;
+
 export default function APagarEsteMes() {
   const cfg = useCfgStore((s) => s.cfg);
+  const navegar = useNavigate();
+  const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const receitas = useReceitasStore((s) => s.itens);
@@ -74,17 +80,23 @@ export default function APagarEsteMes() {
         nome: nomeAtualDoMetodo(cfg, c),
         restante: calcularFatura(c, mesReal, dadosFatura, cfg).restante,
       }));
-    const foraDaFatura = parcelas.filter(
-      (p) => !(p.cartao && p.autoDebit && cfg.tipoCartao[p.cartao] === "credit"),
+    const proprios = foraDaFatura(
+      [...despesasFixas, ...veiculo.despesasFixas],
+      parcelas,
+      cfg.tipoCartao,
     );
     return [
-      ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], mesReal, mesReal, hoje),
-      ...vencimentosDeParcelas(foraDaFatura, mesReal, cfg.diaVencimentoFatura, mesReal, hoje),
+      ...vencimentosDeFixas(proprios.fixas, mesReal, mesReal, hoje),
+      ...vencimentosDeParcelas(proprios.parcelas, mesReal, cfg.diaVencimentoFatura, mesReal, hoje),
       ...vencimentosDeFaturas(restantePorCartao, mesReal, cfg.diaVencimentoFatura),
     ].sort((a, b) => (a.dia < b.dia ? -1 : a.dia > b.dia ? 1 : 0));
   }, [cfg, despesas, despesasFixas, receitas, transferencias, parcelas, veiculo, mesReal, hoje]);
 
   if (vencimentos.length === 0) return null;
+
+  // O total e a contagem são de TODOS os pendentes do mês; só a lista é cortada.
+  const total = totalAVencer(vencimentos);
+  const n = vencimentos.length;
 
   return (
     <section className={styles.secao} aria-labelledby="a-pagar">
@@ -92,27 +104,40 @@ export default function APagarEsteMes() {
         <h3 id="a-pagar" className={styles.titulo}>
           A pagar este mês
         </h3>
-        <span className={styles.soma}>{formatMoney(totalAVencer(vencimentos), cfg.currency)}</span>
+        <button type="button" className={styles.link} onClick={() => navegar("/calendario")}>
+          Ver todos
+          <ChevronRight size={15} strokeWidth={2} aria-hidden />
+        </button>
       </div>
-      {vencimentos.map((v) => {
-        const Icone = ICONE[v.tipo];
-        const dia = rotuloDia(v.dia, hoje);
-        return (
-          <div key={`${v.tipo}-${v.titulo}-${v.dia}`} className={styles.linha}>
-            <span className={styles.icone}>
-              <Icone size={17} strokeWidth={1.75} aria-hidden />
-            </span>
-            <div className={styles.texto}>
-              <span className={styles.nome}>{v.titulo}</span>
-              <span className={styles.sub}>
-                {v.tipo === "fixa" ? "Despesa fixa" : v.detalhe} ·{" "}
-                <span className={dia.perto ? styles.perto : undefined}>{dia.texto}</span>
+      <p className={styles.resumo}>
+        <span className={`${styles.resumoValor} ${classeDiscreta}`}>
+          {formatMoney(total, cfg.currency)}
+        </span>{" "}
+        em {n} {n === 1 ? "pagamento" : "pagamentos"}
+      </p>
+      <div className={styles.lista}>
+        {vencimentos.slice(0, QUANTOS).map((v) => {
+          const Icone = ICONE[v.tipo];
+          const dia = rotuloDia(v.dia, hoje);
+          return (
+            <div key={`${v.tipo}-${v.titulo}-${v.dia}`} className={styles.linha}>
+              <span className={styles.icone}>
+                <Icone size={17} strokeWidth={1.75} aria-hidden />
+              </span>
+              <div className={styles.texto}>
+                <span className={styles.nome}>{v.titulo}</span>
+                <span className={styles.sub}>
+                  {v.tipo === "fixa" ? "Despesa fixa" : v.detalhe} ·{" "}
+                  <span className={dia.perto ? styles.perto : undefined}>{dia.texto}</span>
+                </span>
+              </div>
+              <span className={`${styles.valor} ${classeDiscreta}`}>
+                {formatMoney(v.valor, cfg.currency)}
               </span>
             </div>
-            <span className={styles.valor}>{formatMoney(v.valor, cfg.currency)}</span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </section>
   );
 }

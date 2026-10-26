@@ -38,6 +38,8 @@ export default function UltimosMovimentos() {
   const transferencias = useTransferenciasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
+  const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
+
   const ultimos = useMemo(
     () =>
       transacoesDoMes(
@@ -72,32 +74,36 @@ export default function UltimosMovimentos() {
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
         </button>
       </div>
-      {ultimos.map((t) => {
-        const entrada = entraDinheiro(t);
-        // Ícone da categoria quando ela tem um escolhido; senão a seta da
-        // direção do dinheiro. Neutro, nunca a cor da categoria.
-        const Icone: LucideIcon =
-          iconePorId(iconeDaCategoria(cfg, t.categoria ?? "")) ??
-          (entrada ? ArrowDownLeft : ArrowUpRight);
-        return (
-          <button key={t.chave} type="button" className={styles.linha} onClick={() => abrir(t)}>
-            <span className={`${styles.icone} ${entrada ? styles.entrada : ""}`}>
-              <Icone size={17} strokeWidth={1.75} aria-hidden />
-            </span>
-            <span className={styles.texto}>
-              <span className={styles.nome}>{t.titulo}</span>
-              <span className={styles.sub}>
-                {t.categoria ? `${t.categoria} · ` : ""}
-                {Number(t.data.slice(8, 10))} {MESES_CURTOS_PT[Number(t.data.slice(5, 7)) - 1]}
+      <div className={styles.lista}>
+        {ultimos.map((t) => {
+          const entrada = entraDinheiro(t);
+          // Ícone da categoria quando ela tem um escolhido; senão a seta da
+          // direção do dinheiro. Neutro, nunca a cor da categoria.
+          const Icone: LucideIcon =
+            iconePorId(iconeDaCategoria(cfg, t.categoria ?? "")) ??
+            (entrada ? ArrowDownLeft : ArrowUpRight);
+          return (
+            <button key={t.chave} type="button" className={styles.linha} onClick={() => abrir(t)}>
+              <span className={`${styles.icone} ${entrada ? styles.entrada : ""}`}>
+                <Icone size={17} strokeWidth={1.75} aria-hidden />
               </span>
-            </span>
-            <span className={`${styles.valor} ${entrada ? styles.valorEntrada : ""}`}>
-              {entrada ? "+" : "−"}
-              {CURRENCY_SYMBOLS[cfg.currency]} {formatCents(Math.abs(t.valor))}
-            </span>
-          </button>
-        );
-      })}
+              <span className={styles.texto}>
+                <span className={styles.nome}>{t.titulo}</span>
+                <span className={styles.sub}>
+                  {t.categoria ? `${t.categoria} · ` : ""}
+                  {Number(t.data.slice(8, 10))} {MESES_CURTOS_PT[Number(t.data.slice(5, 7)) - 1]}
+                </span>
+              </span>
+              <span
+                className={`${styles.valor} ${entrada ? styles.valorEntrada : ""} ${classeDiscreta}`}
+              >
+                {entrada ? "+" : "−"}
+                {CURRENCY_SYMBOLS[cfg.currency]} {formatCents(Math.abs(t.valor))}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 }

@@ -1,8 +1,9 @@
 /* Base comum das secções do Início (A pagar, Onde foi o dinheiro, Últimos
    movimentos): sem cartão, só título, linhas e um fio fino a separá-las. O fio
    é o --mut a 15% — o mesmo cinza-azulado do texto apagado, sem token novo. */
+/* 36px entre secções: a página já dá 16 de intervalo, estes 20 completam. */
 .secao {
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .cabecalho {
@@ -10,7 +11,24 @@
   align-items: center;
   justify-content: space-between;
   min-height: 32px;
-  margin-bottom: 4px;
+}
+
+/* 12px entre o bloco do título (com a linha de resumo, se houver) e o primeiro
+   item — igual em todas as secções. */
+.lista {
+  margin-top: 12px;
+}
+
+.resumo {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.resumoValor {
+  color: var(--txt);
+  font-weight: 600;
 }
 
 .titulo {
@@ -27,13 +45,6 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--blu);
-}
-
-.soma {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--mut);
-  font-variant-numeric: tabular-nums;
 }
 
 .linha {

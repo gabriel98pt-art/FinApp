@@ -12,7 +12,7 @@ import styles from "./InicioSecoes.module.css";
 
 const QUANTAS = 4;
 
-/** As maiores categorias de despesa do mês — no lugar da pizza. A fonte é a
+/** "Categorias": as maiores categorias de despesa do mês — no lugar da pizza. A fonte é a
  *  mesma do DonutCategoriaCard (fluxo de caixa, pela data real de cada
  *  lançamento); "Ver todas" abre a folha com a lista completa que a pizza
  *  abria. A barra de cada linha é proporcional à MAIOR categoria, não ao
@@ -41,30 +41,32 @@ export default function OndeFoiODinheiro() {
   const maior = maiores[0].valor;
 
   return (
-    <section className={styles.secao} aria-labelledby="onde-foi">
+    <section className={styles.secao} aria-labelledby="categorias">
       <div className={styles.cabecalho}>
-        <h3 id="onde-foi" className={styles.titulo}>
-          Onde foi o dinheiro
+        <h3 id="categorias" className={styles.titulo}>
+          Categorias
         </h3>
         <button type="button" className={styles.link} onClick={() => setAberta(true)}>
           Ver todas
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
         </button>
       </div>
-      {maiores.map((f) => (
-        <div key={f.categoria} className={styles.categoria}>
-          <div className={styles.categoriaLinha}>
-            <span className={styles.categoriaNome}>{f.categoria}</span>
-            <span className={styles.pct}>{f.pct}%</span>
-            <span className={`${styles.categoriaValor} ${discreto ? "discreto" : ""}`}>
-              {formatMoney(f.valor, moeda)}
-            </span>
+      <div className={styles.lista}>
+        {maiores.map((f) => (
+          <div key={f.categoria} className={styles.categoria}>
+            <div className={styles.categoriaLinha}>
+              <span className={styles.categoriaNome}>{f.categoria}</span>
+              <span className={styles.pct}>{f.pct}%</span>
+              <span className={`${styles.categoriaValor} ${discreto ? "discreto" : ""}`}>
+                {formatMoney(f.valor, moeda)}
+              </span>
+            </div>
+            <div className={styles.trilho} aria-hidden>
+              <i style={{ width: `${maior > 0 ? (f.valor / maior) * 100 : 0}%` }} />
+            </div>
           </div>
-          <div className={styles.trilho} aria-hidden>
-            <i style={{ width: `${maior > 0 ? (f.valor / maior) * 100 : 0}%` }} />
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
       <FolhaCategorias
         aberta={aberta}
         aoFechar={() => setAberta(false)}

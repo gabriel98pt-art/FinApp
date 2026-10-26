@@ -1,10 +1,12 @@
-import { Moon, Sun } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
-import { useThemeStore } from "../stores/themeStore";
-import { useTemaEfetivo } from "../hooks/useTemaEfetivo";
+import { useAuthStore } from "../stores/authStore";
+import { useCfgStore } from "../stores/cfgStore";
+import { mostrarToast } from "../stores/toastStore";
+import { atualizarConfig } from "../services/cfgService";
 import styles from "./Header.module.css";
 
 /** Rotas cujo conteúdo é por mês — só nelas o seletor aparece (item 1). O
@@ -33,8 +35,20 @@ export default function Header() {
   const mes = useMesVisivelStore((s) => s.mes);
   const setMes = useMesVisivelStore((s) => s.setMes);
   const mostrarMes = ROTAS_COM_MES.includes(pathname);
-  const temaEfetivo = useTemaEfetivo();
-  const definirTema = useThemeStore((s) => s.definirTema);
+  const uid = useAuthStore((s) => s.sessao?.uid);
+  const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
+
+  /** Mesmo campo e mesmo gesto do interruptor "Modo discreto" em Definições —
+   *  aqui é o atalho para o esconder valores em público. O tema deixou de ter
+   *  atalho no cabeçalho; continua em Definições → Aparência. */
+  async function alternarModoDiscreto() {
+    if (!uid) return;
+    try {
+      await atualizarConfig(uid, { modoDiscreto: !modoDiscreto });
+    } catch {
+      mostrarToast("Não foi possível alterar.");
+    }
+  }
 
   return (
     <header className={`${styles.header} material`}>
@@ -53,14 +67,14 @@ export default function Header() {
       <div className={styles.acoes}>
         <button
           className={styles.acao}
-          onClick={() => definirTema(temaEfetivo === "dark" ? "light" : "dark")}
-          aria-label={temaEfetivo === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
-          title="Este atalho fixa o tema, mesmo se estiver em Sistema — ajustável em Definições"
+          onClick={() => void alternarModoDiscreto()}
+          aria-label={modoDiscreto ? "Mostrar valores" : "Ocultar valores"}
+          aria-pressed={modoDiscreto}
         >
-          {temaEfetivo === "dark" ? (
-            <Sun size={20} strokeWidth={1.75} aria-hidden />
+          {modoDiscreto ? (
+            <EyeOff size={20} strokeWidth={1.75} aria-hidden />
           ) : (
-            <Moon size={20} strokeWidth={1.75} aria-hidden />
+            <Eye size={20} strokeWidth={1.75} aria-hidden />
           )}
         </button>
         <NotificacoesSino />

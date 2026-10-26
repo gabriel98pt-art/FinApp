@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DespesaFixa, Parcela } from "../types";
 import {
+  foraDaFatura,
   naJanela,
   porDia,
   totalAVencer,
@@ -198,5 +199,36 @@ describe("naJanela", () => {
     const agosto = vencimentosDeFixas([fixa({ diaVencimento: 2 })], "2026-08");
     const dentro = naJanela([...lista, ...agosto], "2026-07-28", "2026-08-04");
     expect(dentro.map((v) => v.dia)).toEqual(["2026-08-02"]);
+  });
+});
+
+describe("foraDaFatura", () => {
+  const tipos = { Visa: "credit", Maestro: "debit" } as const;
+
+  it("fixa num cartão de crédito sai, com ou sem débito automático — a fatura já a soma", () => {
+    const f = [
+      fixa({ id: "a", contaCartao: "Visa", autoDebit: true }),
+      fixa({ id: "b", contaCartao: "Visa" }),
+    ];
+    expect(foraDaFatura(f, [], tipos).fixas).toEqual([]);
+  });
+
+  it("fixa sem cartão, ou num cartão de débito, fica", () => {
+    const f = [fixa({ id: "a" }), fixa({ id: "b", contaCartao: "Maestro" })];
+    expect(foraDaFatura(f, [], tipos).fixas.map((x) => x.id)).toEqual(["a", "b"]);
+  });
+
+  it("parcela em débito automático num cartão de crédito sai", () => {
+    const p = [parcela({ id: "a", cartao: "Visa", autoDebit: true })];
+    expect(foraDaFatura([], p, tipos).parcelas).toEqual([]);
+  });
+
+  it("parcela de crédito SEM débito automático, de débito ou sem cartão fica", () => {
+    const p = [
+      parcela({ id: "a", cartao: "Visa" }),
+      parcela({ id: "b", cartao: "Maestro", autoDebit: true }),
+      parcela({ id: "c" }),
+    ];
+    expect(foraDaFatura([], p, tipos).parcelas.map((x) => x.id)).toEqual(["a", "b", "c"]);
   });
 });

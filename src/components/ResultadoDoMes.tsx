@@ -1,3 +1,4 @@
+import { useCfgStore } from "../stores/cfgStore";
 import type { Cents, Currency } from "../types";
 import { CURRENCY_SYMBOLS, formatCents, formatMoney } from "../utils/money";
 import styles from "./ResultadoDoMes.module.css";
@@ -19,6 +20,7 @@ export default function ResultadoDoMes({
   aoAbrirReceitas: () => void;
   aoAbrirDespesas: () => void;
 }) {
+  const classeDiscreta = useCfgStore((s) => s.cfg.modoDiscreto) ? "discreto" : "";
   const saldo = receitas - despesas;
   const negativo = saldo < 0;
   const simbolo = CURRENCY_SYMBOLS[moeda];
@@ -35,7 +37,7 @@ export default function ResultadoDoMes({
         Resultado do mês
       </h3>
       <p
-        className={`${styles.valor} ${negativo ? styles.negativo : styles.positivo}`}
+        className={`${styles.valor} ${negativo ? styles.negativo : styles.positivo} ${classeDiscreta}`}
         role="img"
         aria-label={`${negativo ? "−" : ""}${simbolo} ${numero}`}
       >
@@ -69,7 +71,9 @@ export default function ResultadoDoMes({
             <i className={`${styles.bolinha} ${styles.bolinhaEntrada}`} />
             Receitas
           </span>
-          <span className={styles.totalValor}>{formatMoney(receitas, moeda)}</span>
+          <span className={`${styles.totalValor} ${classeDiscreta}`}>
+            {formatMoney(receitas, moeda)}
+          </span>
         </button>
         <button
           type="button"
@@ -80,7 +84,9 @@ export default function ResultadoDoMes({
             <i className={`${styles.bolinha} ${styles.bolinhaSaida}`} />
             Despesas
           </span>
-          <span className={styles.totalValor}>{formatMoney(despesas, moeda)}</span>
+          <span className={`${styles.totalValor} ${classeDiscreta}`}>
+            {formatMoney(despesas, moeda)}
+          </span>
         </button>
       </div>
     </section>

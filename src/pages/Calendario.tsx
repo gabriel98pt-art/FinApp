@@ -26,6 +26,7 @@ import {
   porDia,
   totalAVencer,
   vencimentosDeFaturas,
+  foraDaFatura,
   vencimentosDeFixas,
   vencimentosDeParcelas,
   type TipoVencimento,
@@ -112,9 +113,16 @@ export default function Calendario() {
         nome: nomeAtualDoMetodo(cfg, c),
         restante: calcularFatura(c, ym, dadosFatura, cfg).restante,
       }));
+    // Fixa/parcela que já vai dentro da fatura de um cartão de crédito não se
+    // lista também à parte — o dinheiro contava duas vezes.
+    const proprios = foraDaFatura(
+      [...despesasFixas, ...veiculo.despesasFixas],
+      parcelas,
+      cfg.tipoCartao,
+    );
     return [
-      ...vencimentosDeFixas([...despesasFixas, ...veiculo.despesasFixas], ym, mesReal, hoje),
-      ...vencimentosDeParcelas(parcelas, ym, cfg.diaVencimentoFatura, mesReal, hoje),
+      ...vencimentosDeFixas(proprios.fixas, ym, mesReal, hoje),
+      ...vencimentosDeParcelas(proprios.parcelas, ym, cfg.diaVencimentoFatura, mesReal, hoje),
       ...vencimentosDeFaturas(restantePorCartao, ym, cfg.diaVencimentoFatura),
     ];
   }

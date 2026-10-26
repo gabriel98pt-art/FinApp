@@ -8,7 +8,7 @@
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { ConfigConta, DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, listaComErro, veiculoVazio } from "../testes/dobras";
@@ -199,7 +199,7 @@ describe("Inicio", () => {
     ]);
     desenhar();
     expect(screen.getByRole("heading", { name: "Resultado do mês" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Onde foi o dinheiro" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Categorias" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Últimos movimentos" })).toBeInTheDocument();
   });
 
@@ -282,6 +282,101 @@ describe("Inicio", () => {
       expect(within(secao).getByText("€ 154,00")).toBeInTheDocument();
     });
 
+    test("mostra no máximo 4, mas o total e a contagem são de todos os pendentes", () => {
+      fixas = lista<DespesaFixa>(
+        [11, 12, 13, 14, 15, 16].map((dia) =>
+          fixa({ id: `f${dia}`, descricao: `Conta ${dia}`, valor: 1000, diaVencimento: dia }),
+        ),
+      );
+      desenhar();
+
+      const secao = screen.getByRole("region", { name: "A pagar este mês" });
+      // Os 4 mais próximos por data.
+      for (const dia of [11, 12, 13, 14]) {
+        expect(within(secao).getByText(`Conta ${dia}`)).toBeInTheDocument();
+      }
+      expect(within(secao).queryByText("Conta 15")).not.toBeInTheDocument();
+      expect(within(secao).queryByText("Conta 16")).not.toBeInTheDocument();
+      // 6 × € 10,00, e não só os 4 que estão à vista.
+      expect(within(secao).getByText("€ 60,00")).toBeInTheDocument();
+      expect(secao).toHaveTextContent("em 6 pagamentos");
+    });
+
+    test("com um só pendente diz 'pagamento' no singular", () => {
+      fixas = lista<DespesaFixa>([fixa({})]);
+      desenhar();
+      expect(screen.getByRole("region", { name: "A pagar este mês" })).toHaveTextContent(
+        "em 1 pagamento",
+      );
+    });
+
+    test("'Ver todos' está ao lado do título em todas as secções, e em A pagar leva ao Calendário", () => {
+      fixas = lista<DespesaFixa>([fixa({})]);
+      despesas = lista<DespesaCorrente>([
+        {
+          id: "d1",
+          descricao: "Mercado",
+          valor: 3870,
+          data: "2026-08-03",
+          categoria: "Alimentação",
+        } as DespesaCorrente,
+      ]);
+      desenhar();
+      for (const nome of ["A pagar este mês", "Categorias", "Últimos movimentos"]) {
+        const secao = screen.getByRole("region", { name: nome });
+        expect(within(secao).getByRole("button", { name: /Ver tod[oa]s/ })).toBeInTheDocument();
+      }
+    });
+
+    test("'Ver todos' de A pagar abre o Calendário", () => {
+      fixas = lista<DespesaFixa>([fixa({})]);
+      render(
+        <MemoryRouter>
+          <Routes>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/calendario" element={<p>tela do calendário</p>} />
+          </Routes>
+        </MemoryRouter>,
+      );
+      const secao = screen.getByRole("region", { name: "A pagar este mês" });
+      fireEvent.click(within(secao).getByRole("button", { name: /Ver todos/ }));
+      expect(screen.getByText("tela do calendário")).toBeInTheDocument();
+    });
+
+    test("fixa paga com cartão de crédito só aparece dentro da fatura", () => {
+      cfgTeste = {
+        ...CONFIG_PADRAO,
+        contasCartoes: ["Visa"],
+        tipoCartao: { Visa: "credit" },
+        diaVencimentoFatura: { Visa: 25 },
+      };
+      // A fatura de agosto cobre o ciclo de julho: a fixa ativa em julho entra
+      // nela (€ 54,00). Listá-la também à parte contava o dinheiro a dobrar.
+      fixas = lista<DespesaFixa>([
+        fixa({ id: "f1", descricao: "Seguro", contaCartao: "Visa", autoDebit: true }),
+        fixa({ id: "f2", descricao: "Ginásio", valor: 2500, diaVencimento: 12 }),
+      ]);
+      desenhar();
+
+      const secao = screen.getByRole("region", { name: "A pagar este mês" });
+      expect(within(secao).getByText("Fatura Visa")).toBeInTheDocument();
+      expect(within(secao).queryByText("Seguro")).not.toBeInTheDocument();
+      // Fixa sem cartão continua a aparecer sozinha.
+      expect(within(secao).getByText("Ginásio")).toBeInTheDocument();
+      expect(secao).toHaveTextContent("em 2 pagamentos");
+    });
+
+    test("fixa num cartão de débito continua a aparecer sozinha", () => {
+      cfgTeste = {
+        ...CONFIG_PADRAO,
+        contasCartoes: ["Maestro"],
+        tipoCartao: { Maestro: "debit" },
+      };
+      fixas = lista<DespesaFixa>([fixa({ contaCartao: "Maestro" })]);
+      desenhar();
+      expect(screen.getByText("Seguro")).toBeInTheDocument();
+    });
+
     test("chama 'amanhã' ao dia seguinte", () => {
       fixas = lista<DespesaFixa>([fixa({ diaVencimento: 11 })]);
       desenhar();
@@ -306,5 +401,17 @@ describe("Inicio", () => {
       // Contado uma vez só: a fatura de € 100,00, não € 200,00.
       expect(within(secao).getAllByText("€ 100,00")).toHaveLength(2); // linha + soma
     });
+  });
+
+  test("modo discreto borra os valores da página", () => {
+    cfgTeste = { ...CONFIG_PADRAO, modoDiscreto: true };
+    receitas = lista<Receita>([
+      { id: "r1", descricao: "Corridas", valor: 150000, data: "2026-08-02" } as Receita,
+    ]);
+    desenhar();
+    expect(
+      screen.getByRole("button", { name: /Receitas/ }).querySelector(".discreto"),
+    ).not.toBeNull();
+    expect(screen.getByRole("img", { name: "€ 1.500,00" })).toHaveClass("discreto");
   });
 });
