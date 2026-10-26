@@ -9,6 +9,30 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 26/10/2026
+
+- **Início novo: menos números soltos, mais o que importa.** A página inicial
+  foi refeita. No topo fica um quadro grande com o **resultado do mês**
+  (receitas menos despesas) e uma barra que mostra quanto do dinheiro entrou e
+  quanto saiu; embaixo dele, os totais de receitas e despesas, que levam às
+  telas delas. Se alguma categoria está perto do limite do orçamento, aparece
+  só uma linha discreta em amarelo com os nomes. Depois vêm **"A pagar este
+  mês"** (o que ainda falta pagar: fixas, parcelas e faturas), **"Onde foi o
+  dinheiro"** (as 4 maiores categorias de gasto, no lugar da pizza, com "Ver
+  todas" para a lista completa) e **"Últimos movimentos"** (os 4 mais
+  recentes). O Copiloto virou um botão de uma linha que abre o Copiloto. Saíram
+  da página os quatro cartões de números (incluindo "Poupança"), a pizza e o
+  gráfico dos últimos 6 meses — os cálculos continuam iguais, só mudou o jeito
+  de mostrar. Uma parcela no débito automático do cartão não aparece mais na
+  lista "A pagar" junto com a fatura: o valor dela já está dentro da fatura, e
+  antes seria contado duas vezes.
+
+- **Cabeçalho mais fácil de tocar.** O seletor de mês virou uma pílula com
+  contorno e as setas dentro, e os botões de tema e de lembretes ficaram
+  redondos e um pouco maiores, com o ícone mais nítido. Como o cabeçalho é o
+  mesmo em todas as telas, a mudança aparece em todas; nada foi acrescentado
+  nele.
+
 ## 11/10/2026
 
 - **Parcelas: agora dá para corrigir também o valor de um mês já pago.** Antes,

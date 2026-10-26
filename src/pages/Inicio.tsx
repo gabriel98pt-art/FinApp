@@ -1,12 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Pagina, { Kpis } from "../components/Pagina";
+import { ChevronRight, Sparkles } from "lucide-react";
+import Pagina from "../components/Pagina";
+import APagarEsteMes from "../components/APagarEsteMes";
 import AvisoOrcamento from "../components/AvisoOrcamento";
-import ErroSincronizacao from "../components/ErroSincronizacao";
-import KpiCard from "../components/KpiCard";
+import BottomSheet from "../components/BottomSheet";
 import CopilotoCard from "../components/CopilotoCard";
-import DonutCategoriaCard from "../components/DonutCategoriaCard";
-import ResumoAnual from "../components/ResumoAnual";
+import ErroSincronizacao from "../components/ErroSincronizacao";
+import OndeFoiODinheiro from "../components/OndeFoiODinheiro";
+import ResultadoDoMes from "../components/ResultadoDoMes";
+import UltimosMovimentos from "../components/UltimosMovimentos";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
@@ -16,32 +19,21 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import {
-  despesasNosTotais,
-  hojeIso,
-  mesAtual,
-  receitasNosTotais,
-  saldoTotal,
-  totalDoMes,
-} from "../utils/calculos";
-import { totalFixasGeral } from "../utils/despesasFixas";
-import { totalParcelasGeral } from "../utils/parcelas";
+import { hojeIso, mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
 import { despesaRegistradaMes } from "../utils/resumoMensal";
-import { totalVeiculoGeral } from "../utils/veiculo";
-import { formatMoney } from "../utils/money";
+import styles from "../components/InicioSecoes.module.css";
 
 export default function Inicio() {
   const navegar = useNavigate();
+  const [copilotoAberto, setCopilotoAberto] = useState(false);
   const moeda = useCfgStore((s) => s.cfg.currency);
-  const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
-  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   // Início não tem lista própria: mostra só totais, somados a partir de cinco
-  // domínios. Se um deles não sincronizou, os KPIs continuam a desenhar um
+  // domínios. Se um deles não sincronizou, o quadro continua a desenhar um
   // número — e um total incompleto é indistinguível de um total certo. Pior,
   // com a subscrição caída logo no arranque o número é "€ 0,00", que se lê
   // como "não tens nada", não como "não conseguimos saber".
@@ -78,7 +70,7 @@ export default function Inicio() {
   // passou a existir a partir de agora (contam pelo mês de vencimento, como
   // sempre contaram — não é aproximação nova, é o de sempre preservado).
   //
-  // Só o KPI do Início muda de significado: Despesas/Metas/Resumo Anual/
+  // Só o quadro do Início muda de significado: Despesas/Metas/Resumo Anual/
   // Copiloto continuam com `despesaRealizadaMes` (cronograma), de propósito
   // — não é o mesmo número, e não deveria ser.
   //
@@ -93,64 +85,35 @@ export default function Inicio() {
     const d = despesaRegistradaMes(despesas, despesasFixas, veiculo, mes, mesReal, hoje);
     return { receitas: r, despesas: d, saldo: r - d };
   }, [receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje]);
-  // Poupança acumulada: mesmas exclusões e os mesmos quatro termos do "Total
-  // geral" da tela Despesas (Despesas.tsx). Sem `despesasNosTotais` aqui, o
-  // pagamento de fatura contava como despesa por cima da compra original e a
-  // parcela contava pelo espelho em vez do plano — dois números diferentes
-  // para a mesma ideia, em duas telas.
-  const acumulado = useMemo(
-    () =>
-      saldoTotal(receitasNosTotais(receitas), despesasNosTotais(despesas)) -
-      totalFixasGeral(despesasFixas, mesReal, hoje) -
-      totalParcelasGeral(parcelas, mesReal, hoje) -
-      totalVeiculoGeral(veiculo, mesReal, hoje),
-    [receitas, despesas, despesasFixas, parcelas, veiculo, mesReal, hoje],
-  );
-
   return (
     <Pagina titulo="Início">
-      {/* Compacta, e acima dos números: a faixa cheia substituiria os KPIs, e
-          eles continuam a valer — o que caiu foi a atualização, não os dados
-          que já lá estavam. */}
+      {/* Compacta, e acima dos números: a faixa cheia substituiria o quadro, e
+          os números continuam a valer — o que caiu foi a atualização, não os
+          dados que já lá estavam. */}
       {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
-      <Kpis pagina="inicio">
-        <KpiCard
-          rotulo="Receitas"
-          valor={formatMoney(resumo.receitas, moeda)}
-          tom="verde"
-          aoClicar={() => navegar("/receitas")}
-        />
-        <KpiCard
-          rotulo="Despesas"
-          valor={formatMoney(resumo.despesas, moeda)}
-          tom="vermelho"
-          aoClicar={() => navegar("/despesas")}
-        />
-        <KpiCard
-          rotulo="Saldo do mês"
-          valor={formatMoney(resumo.saldo, moeda)}
-          tom={resumo.saldo >= 0 ? "acento" : "vermelho"}
-        />
-        <KpiCard
-          rotulo="Poupança"
-          valor={formatMoney(acumulado, moeda)}
-          // "amarelo" no positivo destoava de "Taxa de Poupança" (sempre
-          // verde, em Planejamento → Metas) — poupança positiva é um bom
-          // sinal, não um alerta (achado da auditoria de Design).
-          tom={acumulado >= 0 ? "verde" : "vermelho"}
-          discreto={modoDiscreto}
-        />
-      </Kpis>
+      <ResultadoDoMes
+        receitas={resumo.receitas}
+        despesas={resumo.despesas}
+        moeda={moeda}
+        aoAbrirReceitas={() => navegar("/receitas")}
+        aoAbrirDespesas={() => navegar("/despesas")}
+      />
       <AvisoOrcamento />
-      <DonutCategoriaCard />
-      {/* "Últimos 6 meses", e não "Resumo Anual": Planejamento → Metas mostra o
-          MESMO quadro com uma janela de 12 meses. Os dois chamavam-se "Resumo
-          Anual" e somavam períodos diferentes — quem comparava as duas telas
-          via dois totais a discordar sem nada que explicasse porquê. O título
-          passa a dizer a janela que cada um soma. (Aqui a janela ainda termina
-          no mês do seletor, ao contrário da de 12 meses, que fica em hoje.) */}
-      <ResumoAnual meses={6} titulo="Últimos 6 meses" ate={mes} />
-      <CopilotoCard />
+      <APagarEsteMes />
+      <OndeFoiODinheiro />
+      <UltimosMovimentos />
+      <button type="button" className={styles.copiloto} onClick={() => setCopilotoAberto(true)}>
+        <Sparkles className={styles.copilotoIcone} size={18} strokeWidth={1.75} aria-hidden />
+        <span>Perguntar ao Copiloto</span>
+        <ChevronRight className={styles.chevron} size={15} strokeWidth={2} aria-hidden />
+      </button>
+      <BottomSheet
+        aberta={copilotoAberto}
+        aoFechar={() => setCopilotoAberto(false)}
+        titulo="Copiloto"
+      >
+        <CopilotoCard />
+      </BottomSheet>
     </Pagina>
   );
 }

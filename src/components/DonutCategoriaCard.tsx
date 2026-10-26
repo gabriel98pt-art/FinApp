@@ -2,26 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, PieChart } from "lucide-react";
 import { EstadoVazio } from "./Pagina";
-import BottomSheet from "./BottomSheet";
-import CategoriaBolha from "./CategoriaBolha";
+import FolhaCategorias from "./FolhaCategorias";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
-import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { despesaPorCategoriaRegistradaMes, paradasDonut } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import styles from "./DonutCategoriaCard.module.css";
-
-type OrdemFatias = "maiorValor" | "menorValor" | "nome";
-
-const ROTULOS_ORDEM: Record<OrdemFatias, string> = {
-  maiorValor: "Maior valor",
-  menorValor: "Menor valor",
-  nome: "Nome",
-};
 
 /** Donut de despesas por categoria do mês (seção 7 / dashboard do app de
  *  referência). Sem lib de gráfico: `conic-gradient` num círculo + um círculo
@@ -37,8 +27,6 @@ export default function DonutCategoriaCard() {
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
   const [aberta, setAberta] = useState(false);
-  const { ref: radiogroupRef, onKeyDown: aoTeclarRadio } = useRadiogroupTeclado<HTMLDivElement>();
-  const [ordem, setOrdem] = useState<OrdemFatias>("maiorValor");
 
   // Segue o seletor do header, como os KPIs ao lado — senão o donut ficaria
   // preso no mês de hoje enquanto o resto do Início mostra outro mês.
@@ -62,17 +50,10 @@ export default function DonutCategoriaCard() {
   // Breakdown por categoria é sensível (seção 4.6) — borra em modo discreto
   const classeDiscreta = cfg.modoDiscreto ? "discreto" : "";
 
-  /** Clicar numa fatia leva ao extrato já filtrado por ela — a categoria viaja
-   *  no `state` da navegação, o mesmo padrão que Transações usa para abrir
-   *  Despesas na aba certa.
-   *
-   *  "Veículo" é a exceção: aquela fatia é SINTÉTICA (soma cargas, despesas e
-   *  fixas do veículo inteiro, ver `despesaPorCategoriaMes`) e não existe como
-   *  categoria de nenhuma transação — as do veículo guardam a categoria delas
-   *  ("Seguro", "Portagens"…). Filtrar o extrato por ela daria lista vazia,
-   *  então o destino natural é a própria tela do Veículo. */
+  /** Clicar numa fatia leva ao extrato já filtrado por ela. "Veículo" é a
+   *  exceção (fatia sintética, ver FolhaCategorias): vai para a tela do
+   *  Veículo. */
   function irParaCategoria(categoria: string) {
-    setAberta(false);
     if (categoria === "Veículo") {
       navegar("/veiculo");
       return;
@@ -110,12 +91,6 @@ export default function DonutCategoriaCard() {
   const descricaoDonut = `Despesas de ${rotuloMes(mes)} por categoria: ${fatias
     .map((f) => `${f.categoria} ${f.pct}%`)
     .join(", ")}`;
-  const ordenadas = [...comCor].sort((a, b) => {
-    if (ordem === "nome") return a.categoria.localeCompare(b.categoria, "pt");
-    if (ordem === "menorValor") return a.valor - b.valor;
-    return b.valor - a.valor;
-  });
-
   return (
     <>
       {/* O card já não é um botão só: cada linha da legenda leva ao extrato
@@ -168,60 +143,12 @@ export default function DonutCategoriaCard() {
         </div>
       </div>
 
-      <BottomSheet
+      <FolhaCategorias
         aberta={aberta}
         aoFechar={() => setAberta(false)}
-        titulo="Despesas por categoria"
-      >
-        <div
-          className={styles.donutGrande}
-          style={{ background: `conic-gradient(${paradas.join(", ")})` }}
-          role="img"
-          aria-label={descricaoDonut}
-        >
-          <span className={styles.buracoGrande} />
-        </div>
-
-        <div
-          className={styles.fileiraOrdem}
-          role="radiogroup"
-          aria-label="Ordenar por"
-          ref={radiogroupRef}
-          onKeyDown={aoTeclarRadio}
-        >
-          {(["maiorValor", "menorValor", "nome"] as OrdemFatias[]).map((o) => (
-            <button
-              key={o}
-              type="button"
-              role="radio"
-              aria-checked={ordem === o}
-              className={`${styles.opcaoOrdem} ${ordem === o ? styles.opcaoOrdemAtiva : ""}`}
-              onClick={() => setOrdem(o)}
-            >
-              {ROTULOS_ORDEM[o]}
-            </button>
-          ))}
-        </div>
-
-        <ul className={styles.listaCompleta}>
-          {ordenadas.map((f) => (
-            <li key={f.categoria}>
-              <button
-                type="button"
-                className={styles.linhaCompleta}
-                onClick={() => irParaCategoria(f.categoria)}
-              >
-                <CategoriaBolha categoria={f.categoria} tamanho={28} />
-                <span className={styles.categoriaCompleta}>{f.categoria}</span>
-                <span className={styles.pct}>{f.pct}%</span>
-                <span className={`${styles.valor} ${classeDiscreta}`}>
-                  {formatMoney(f.valor, cfg.currency)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </BottomSheet>
+        fatias={fatias}
+        mes={mes}
+      />
     </>
   );
 }

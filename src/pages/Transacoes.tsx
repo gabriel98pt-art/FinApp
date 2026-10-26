@@ -35,25 +35,12 @@ import { dadosDespesaDaCarga } from "../utils/veiculo";
 import {
   entraDinheiro,
   filtrarTransacoes,
+  TELA_DO_TIPO,
   transacoesDoMes,
   type DadosTransacoes,
   type Transacao,
 } from "../utils/transacoes";
 import styles from "./Transacoes.module.css";
-
-/** Onde cada tipo é gerenciado — usado pelo botão da folha de detalhe.
- *  `aba`, quando presente, é passada como state da navegação para a página
- *  de destino abrir direto na aba certa (item 4.6) — sem isto, "aba" é
- *  estado local da página de destino e ela cai sempre na primeira. */
-const TELA_DO_TIPO: Record<Transacao["origem"], { rota: string; nome: string; aba?: string }> = {
-  receita: { rota: "/receitas", nome: "Receitas" },
-  despesa: { rota: "/despesas", nome: "Despesas" },
-  fixa: { rota: "/despesas", nome: "Despesas → Fixas", aba: "fixas" },
-  parcela: { rota: "/parcelas", nome: "Parcelas" },
-  transferencia: { rota: "/cartoes", nome: "Cartões → Transferências" },
-  carga: { rota: "/veiculo", nome: "Veículo → Carregamentos", aba: "cargas" },
-  despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas", aba: "despesas" },
-};
 
 /** Uma linha do extrato — item 2 do lote de UX/nav (30/08). Receita/despesa
  *  (os dois tipos que o Registro Rápido já edita em qualquer tela do app)

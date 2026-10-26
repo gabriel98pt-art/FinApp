@@ -1,0 +1,198 @@
+/* Base comum das secções do Início (A pagar, Onde foi o dinheiro, Últimos
+   movimentos): sem cartão, só título, linhas e um fio fino a separá-las. O fio
+   é o --mut a 15% — o mesmo cinza-azulado do texto apagado, sem token novo. */
+.secao {
+  margin-top: 14px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  margin-bottom: 4px;
+}
+
+.titulo {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--blu);
+}
+
+.soma {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.linha {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  text-align: left;
+}
+
+/* O fio começa no texto (32 de ícone + 12 de respiro), não na borda. */
+.linha + .linha::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 44px;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--mut) 15%, transparent);
+}
+
+.icone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--s2);
+  color: var(--mut);
+}
+
+.entrada {
+  color: var(--grn);
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.nome {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+
+.perto {
+  color: var(--ylw);
+  font-weight: 500;
+}
+
+.valor {
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+}
+
+.valorEntrada {
+  color: var(--grn);
+}
+
+/* Onde foi o dinheiro */
+.categoria {
+  padding: 10px 0 11px;
+}
+
+.categoria + .categoria {
+  border-top: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
+}
+
+.categoriaLinha {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.categoriaNome {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pct {
+  font-size: 12px;
+  color: var(--mut);
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.categoriaValor {
+  min-width: 78px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.trilho {
+  height: 3px;
+  margin-top: 9px;
+  border-radius: var(--r-pill);
+  background: var(--s2);
+  overflow: hidden;
+}
+
+.trilho i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--blu);
+}
+
+/* Copiloto: uma linha com contorno fino. */
+.copiloto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: var(--r-card);
+  box-shadow: inset 0 0 0 1px var(--brd);
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease-exit);
+}
+
+.copiloto:hover {
+  background: var(--s1);
+}
+
+.copiloto > span {
+  flex: 1;
+}
+
+.copilotoIcone {
+  color: var(--blu);
+}
+
+.chevron {
+  color: var(--mut);
+}

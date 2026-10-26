@@ -1,0 +1,143 @@
+/* Único quadro destacado do Início — raio 20 de propósito, acima do --r-card
+   dos outros cartões, para ler como "o número da página". */
+.quadro {
+  background: var(--s1);
+  border-radius: 20px;
+  box-shadow: var(--sh-card);
+  padding: 20px 20px 18px;
+}
+
+.rotulo {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mut);
+}
+
+.valor {
+  display: flex;
+  align-items: baseline;
+  margin-top: 6px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.positivo {
+  color: var(--blu);
+}
+
+.negativo {
+  color: var(--red);
+}
+
+.simbolo {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-right: 3px;
+}
+
+/* Valores grandes ("€ 12.345") não cabem em 48px a 320px: encolhe com a
+   largura em vez de partir a linha. */
+.inteiro {
+  font-size: clamp(36px, 12vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.centavos {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  opacity: 0.7;
+}
+
+.nota {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--mut);
+  opacity: 0.8;
+}
+
+.barra {
+  display: flex;
+  height: 6px;
+  gap: 3px;
+  margin-top: 20px;
+}
+
+.barra i {
+  border-radius: var(--r-pill);
+}
+
+.saida {
+  flex: 1;
+  background: var(--red);
+}
+
+.entrada {
+  background: var(--grn);
+}
+
+.vazia {
+  flex: 1;
+  background: var(--s2);
+}
+
+.totais {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Alvo de toque maior do que o texto: o padding vertical é compensado pela
+   margem negativa, e o quadro não cresce. */
+.total {
+  display: block;
+  padding: 8px 0;
+  margin: -8px 0;
+  min-width: 0;
+  text-align: left;
+  border-radius: var(--r-sm);
+}
+
+.direita {
+  text-align: right;
+}
+
+.totalRotulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--mut);
+}
+
+.direita .totalRotulo {
+  justify-content: flex-end;
+}
+
+.bolinha {
+  flex: none;
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.totalValor {
+  display: block;
+  margin-top: 3px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt);
+}
+
+.bolinhaEntrada {
+  background: var(--grn);
+}
+
+.bolinhaSaida {
+  background: var(--red);
+}

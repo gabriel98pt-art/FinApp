@@ -31,11 +31,14 @@
   text-transform: capitalize;
 }
 
-/* Variante do header (item 1): sem fundo próprio — o header já é a superfície
-   — e rótulo que encolhe em vez de forçar largura. */
+/* Variante do header (item 1): pílula com fundo e contorno próprios, e rótulo
+   que encolhe em vez de forçar largura. */
 .compacto {
-  background: transparent;
-  border-color: transparent;
+  background: var(--s1);
+  border-color: var(--brd);
+  /* Pílula: com contorno e setas dentro, lê-se como controle tocável e não
+     como um texto solto no cabeçalho. */
+  border-radius: var(--r-pill);
   max-width: 100%;
 }
 
@@ -58,10 +61,11 @@
 /* Estreita para o mês caber, mas alta: a altura não disputa espaço com o
    rótulo e mantém o alvo de toque decente. */
 .compacto .seta {
-  width: 24px;
-  height: 36px;
+  width: 26px;
+  height: 34px;
   flex: none;
   position: relative;
+  border-radius: var(--r-pill);
 }
 
 /* Área de toque real por volta de 44px (achado da auditoria de Design & Cor:

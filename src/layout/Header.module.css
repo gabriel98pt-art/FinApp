@@ -74,32 +74,30 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  /* Sobraram dois botões (tema e sino) desde que desfazer/refazer foram para
-     o menu "Mais" e para a barra lateral. O intervalo passou de 1px a 14px
-     porque é ele que dá o PASSO de 44 pontos entre os dois: 30 de desenho +
-     14 de folga. Assim cada área de toque tem os 44 pontos da Apple em
-     largura e encosta na do vizinho sem a invadir — antes só a altura os
-     tinha. */
-  gap: 14px;
+  /* Botões de 36px com a área de toque de 44 por trás (ver `.acao::before`):
+     8px de intervalo dão o passo de 44 entre os dois, então as áreas encostam
+     sem se sobrepor — senão um toque na fronteira ia parar ao botão errado. */
+  gap: 8px;
   /* O ícone tem folga dentro do seu quadrado; puxar o grupo aproxima-o
      opticamente da borda sem mexer no padding do header (que mantém o logo
      alinhado com o conteúdo das páginas). */
-  margin-right: -5px;
+  margin-right: -4px;
 }
 
 .acao {
   display: grid;
   place-items: center;
-  /* O quadrado VISUAL continua discreto (30px); quem tem os 44 pontos de
-     toque é a área invisível logo abaixo. */
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-sm);
+  /* Redondo e de 36px: o formato diz "isto toca-se". A área de toque de 44
+     está na invisível logo abaixo. */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   color: var(--mut);
   /* Âncora da área de toque invisível, logo abaixo. */
   position: relative;
   transition:
     background var(--dur-fast) var(--ease-exit),
+    color var(--dur-fast) var(--ease-exit),
     opacity var(--dur-fast) var(--ease-exit);
 }
 
@@ -125,6 +123,11 @@
 
 .acao:hover {
   background: var(--s2);
+  color: var(--txt);
+}
+
+.acao:active {
+  background: var(--s3);
   color: var(--txt);
 }
 

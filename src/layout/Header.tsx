@@ -57,7 +57,11 @@ export default function Header() {
           aria-label={temaEfetivo === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro"}
           title="Este atalho fixa o tema, mesmo se estiver em Sistema — ajustável em Definições"
         >
-          {temaEfetivo === "dark" ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
+          {temaEfetivo === "dark" ? (
+            <Sun size={20} strokeWidth={1.75} aria-hidden />
+          ) : (
+            <Moon size={20} strokeWidth={1.75} aria-hidden />
+          )}
         </button>
         <NotificacoesSino />
       </div>

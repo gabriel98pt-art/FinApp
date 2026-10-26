@@ -91,6 +91,23 @@ export function entraDinheiro(t: Pick<Transacao, "valor" | "entrada">): boolean 
   return t.valor < 0 ? !t.entrada : t.entrada;
 }
 
+/** Onde cada tipo é gerenciado — usado pelo botão da folha de detalhe.
+ *  `aba`, quando presente, é passada como state da navegação para a página
+ *  de destino abrir direto na aba certa (item 4.6) — sem isto, "aba" é
+ *  estado local da página de destino e ela cai sempre na primeira. */
+export const TELA_DO_TIPO: Record<
+  Transacao["origem"],
+  { rota: string; nome: string; aba?: string }
+> = {
+  receita: { rota: "/receitas", nome: "Receitas" },
+  despesa: { rota: "/despesas", nome: "Despesas" },
+  fixa: { rota: "/despesas", nome: "Despesas → Fixas", aba: "fixas" },
+  parcela: { rota: "/parcelas", nome: "Parcelas" },
+  transferencia: { rota: "/cartoes", nome: "Cartões → Transferências" },
+  carga: { rota: "/veiculo", nome: "Veículo → Carregamentos", aba: "cargas" },
+  despesaVeiculo: { rota: "/veiculo", nome: "Veículo → Despesas", aba: "despesas" },
+};
+
 export interface DadosTransacoes {
   receitas: Receita[];
   despesasCorrentes: DespesaCorrente[];

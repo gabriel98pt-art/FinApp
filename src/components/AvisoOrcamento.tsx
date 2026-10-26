@@ -1,4 +1,4 @@
-import { ChevronRight, PiggyBank } from "lucide-react";
+import { ChevronRight, TriangleAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCfgStore } from "../stores/cfgStore";
 import { useDespesasStore } from "../stores/lancamentosStore";
@@ -8,10 +8,11 @@ import { hojeIso, mesAtual } from "../utils/calculos";
 import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import styles from "./AvisoOrcamento.module.css";
 
-/** Tira compacta (mesma linguagem da faixa de sincronização) que resume o
- *  orçamento por categoria direto no Início — some quando nada está perto do
- *  teto, pra não ocupar espaço à toa. O detalhe completo, categoria a
- *  categoria, é a aba Planejamento; aqui é só "olha, vale a pena ir ver". */
+/** Linha discreta, sem cartão, que resume o orçamento por categoria direto no
+ *  Início — some quando nada está perto do teto, pra não ocupar espaço à toa.
+ *  O detalhe completo, categoria a categoria, é a aba Planejamento; aqui é só
+ *  "olha, vale a pena ir ver". Sempre amarela, perto ou acima do teto: o
+ *  vermelho já tem dono no quadro de cima (despesas) e o laranja é do TVDE. */
 export default function AvisoOrcamento() {
   const cfg = useCfgStore((s) => s.cfg);
   const despesas = useDespesasStore((s) => s.itens);
@@ -27,23 +28,21 @@ export default function AvisoOrcamento() {
   const plural = total > 1;
   let texto: string;
   if (estouradas.length > 0 && pertos.length === 0) {
-    texto = `${estouradas.length} ${
-      plural ? "categorias estouraram" : "categoria estourou"
-    } o orçamento este mês`;
+    texto = `${total} ${plural ? "categorias acima" : "categoria acima"} do limite`;
   } else if (estouradas.length === 0) {
-    texto = `${pertos.length} ${plural ? "categorias estão" : "categoria está"} perto do teto este mês`;
+    texto = `${total} ${plural ? "categorias perto" : "categoria perto"} do limite`;
   } else {
-    texto = `${total} ${plural ? "categorias estão" : "categoria está"} perto ou acima do teto este mês`;
+    texto = `${total} ${plural ? "categorias perto ou acima" : "categoria perto ou acima"} do limite`;
   }
+  const nomes = [...estouradas, ...pertos].map((s) => s.categoria).join(", ");
 
   return (
-    <Link
-      to="/planejamento"
-      className={`${styles.tira} ${estouradas.length > 0 ? styles.estourado : styles.perto}`}
-    >
-      <PiggyBank size={15} aria-hidden />
-      <span className={styles.texto}>{texto}</span>
-      <ChevronRight size={16} aria-hidden />
+    <Link to="/planejamento" className={styles.linha}>
+      <TriangleAlert size={16} strokeWidth={2} aria-hidden />
+      <span className={styles.texto}>
+        <strong>{texto}</strong> · {nomes}
+      </span>
+      <ChevronRight className={styles.chevron} size={15} strokeWidth={2} aria-hidden />
     </Link>
   );
 }

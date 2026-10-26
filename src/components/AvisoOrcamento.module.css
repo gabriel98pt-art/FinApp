@@ -1,41 +1,38 @@
-/* Mesma silhueta da faixa de sincronização (ErroSincronizacao.module.css,
-   variante .tira), só que como link de verdade — leva pra Planejamento em
-   vez de repetir uma ação no lugar. */
-
-.tira {
+/* Linha solta, sem fundo nem contorno: o aviso é um pé de página do quadro de
+   cima, não mais um cartão a pedir atenção. */
+.linha {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  color: var(--ylw);
   border-radius: var(--r-sm);
-  font-size: var(--fs-body);
-  font-weight: 700;
   transition: background var(--dur-fast) var(--ease-exit);
 }
 
+.linha:hover {
+  background: var(--s2);
+}
+
+/* Uma linha só: a lista de categorias corta com reticências em vez de empurrar
+   o aviso para duas linhas num ecrã estreito. */
 .texto {
   flex: 1;
   min-width: 0;
-  color: var(--txt);
+  font-size: 13px;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.texto strong {
+  color: var(--ylw);
   font-weight: 600;
 }
 
-.perto {
-  background: var(--tint-ylw-12-s1);
-  border: 1px solid var(--tint-ylw-30);
-  color: var(--ylw);
-}
-
-.perto:hover {
-  background: color-mix(in srgb, var(--ylw) 18%, var(--s1));
-}
-
-.estourado {
-  background: color-mix(in srgb, var(--red) 12%, var(--s1));
-  border: 1px solid color-mix(in srgb, var(--red) 30%, transparent);
-  color: var(--red);
-}
-
-.estourado:hover {
-  background: color-mix(in srgb, var(--red) 18%, var(--s1));
+.chevron {
+  flex: none;
+  color: var(--mut);
 }

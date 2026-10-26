@@ -46,7 +46,7 @@ export default function NotificacoesSino() {
         }
       >
         <span className={styles.envolvente}>
-          <Bell size={17} aria-hidden />
+          <Bell size={20} strokeWidth={1.75} aria-hidden />
           {notificacoes.length > 0 && (
             <span className={styles.badge} aria-hidden>
               {notificacoes.length}
