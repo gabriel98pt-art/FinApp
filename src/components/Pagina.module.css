@@ -4,82 +4,39 @@
   gap: 16px;
 }
 
+/* Título da página, grande como na prévia (28px). */
 .titulo {
-  font-size: var(--fs-display);
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-}
-
-/* Bloco com paginador (Kpis no mobile, >2 cartões, fora do modo denso):
-   só a página atual (no máx. 2 cartões) é filha de .kpis, então o grid abaixo
-   já lida com 1 ou 2 colunas sem precisar de regra extra pro mobile. */
-.kpisBloco {
-  display: flex;
-  flex-direction: column;
-}
-
-/* O título repetia o que a navegação já diz — a barra lateral no desktop, a
-   barra de baixo no telemóvel. Fica no DOM, só sai da vista, em qualquer
-   largura. */
-.titulo {
+/* A Início não mostra o título — o quadro de resultado é a primeira coisa da
+   página. Fica no DOM, para quem navega por cabeçalhos. */
+.tituloOculto {
   display: none;
 }
 
-@media (max-width: 767px) {
-  /* Sem paginador (≤2 cartões na tela, ex. Calendário): ainda força os 2 na
-     mesma linha em vez de deixar o auto-fit empilhar num ecrã estreito. */
-  .kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* 4 num ecrã estreito só cabe com o card mais compacto (vars lidas em
-     KpiCard.module.css) */
-  .kpisDenso {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    --kpi-pad: 10px 5px;
-    --kpi-rotulo-fs: var(--fs-micro);
-    /* fluida: a 320px ainda cabe um valor tipo "€ 12.345,67" nos 4 cards */
-    --kpi-valor-fs: clamp(0.6rem, 2.9vw, 0.86rem);
-  }
+/* Colunas pequenas do quadro de resumo, sob um fio fino. */
+.colunas {
+  display: grid;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
 }
 
-/* Entrada dos KPIs em stagger — só quando o SO não pede menos movimento */
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes kpiEntrada {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
+.colunas + .colunas {
+  margin-top: 14px;
+}
 
-  .kpis > * {
-    /* backwards, não both: fill retido de transform:none mataria o
-       hover-elevate do card (animation ganha de transition) */
-    animation: kpiEntrada var(--dur-enter) var(--ease-enter) backwards;
-  }
-
-  .kpis > *:nth-child(2) {
-    animation-delay: 0.05s;
-  }
-
-  .kpis > *:nth-child(3) {
-    animation-delay: 0.1s;
-  }
-
-  .kpis > *:nth-child(4) {
-    animation-delay: 0.15s;
-  }
+/* O número grande, quando o KPI em destaque leva a algum lado. */
+.destaqueBotao {
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
 .estadoVazio {

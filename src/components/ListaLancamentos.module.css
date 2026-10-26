@@ -1,22 +1,18 @@
+/* A lista vive no fundo da página, sem cartão: só linhas finas. */
 .cartao {
   composes: listaLegivel from "../styles/listas.module.css";
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
-  padding: 8px;
 }
 
 .cabecalho {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px 4px;
+  min-height: 32px;
+  margin-bottom: 4px;
 }
 
 .titulo {
-  font-size: var(--fs-title);
-  font-weight: 700;
+  composes: tituloSecao from "../styles/titulos.module.css";
 }
 
 .vazio {
@@ -32,15 +28,54 @@
   padding: 0;
 }
 
-.linha {
-  width: 100%;
+/* Bloco de um dia: cabeçalho pequeno e apagado, com o total do dia à direita. */
+.dia + .dia {
+  margin-top: 22px;
+}
+
+.diaCabecalho {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px;
-  border-radius: var(--r-sm);
+  min-height: 24px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--mut);
+}
+
+.diaRotulo {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diaTotal {
+  font-variant-numeric: tabular-nums;
+}
+
+/* O fio começa no texto (32 de ícone + 12 de respiro), não na borda. */
+.lista > li {
+  position: relative;
+}
+
+.lista > li + li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 44px;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--mut) 15%, transparent);
+}
+
+.linha {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
   text-align: left;
+  border-radius: var(--r-sm);
 }
 
 .linha:hover {
@@ -52,8 +87,7 @@
   flex-direction: column;
   gap: 1px;
   min-width: 0;
-  /* Cresce pra empurrar o valor pra ponta mesmo com a bolha da categoria
-     antes dela — sem isto o space-between separaria bolha e texto. */
+  /* Cresce pra empurrar o valor pra ponta. */
   flex: 1;
 }
 
@@ -63,8 +97,9 @@
    repita o nome inteiro. Passa a quebrar em até duas linhas — o detalhe logo
    abaixo já quebrava assim — e só reticencia a partir daí. */
 .descricao {
-  font-size: var(--fs-title);
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -74,7 +109,7 @@
 }
 
 .detalhe {
-  font-size: var(--fs-label);
+  font-size: 12.5px;
   color: var(--mut);
 }
 
@@ -83,14 +118,16 @@
    sentido da linha (paguei 100, mas fiquei com 25), e no cinzento do detalhe
    passava despercebida ao lado do valor cheio. */
 .sub {
-  font-size: var(--fs-label);
+  font-size: 12.5px;
   color: var(--grn);
   font-variant-numeric: tabular-nums;
 }
 
 .valor {
-  font-size: var(--fs-title);
-  font-weight: 700;
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -102,8 +139,8 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: 4px;
-  padding: 10px;
-  border-top: 1px solid var(--brd);
+  padding: 10px 0;
+  border-top: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
   font-size: var(--fs-body);
   font-weight: 600;
   color: var(--mut);
@@ -111,15 +148,12 @@
 
 .rodapeValor {
   font-size: var(--fs-title);
-  font-weight: 800;
+  color: var(--txt);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--track-display);
 }
 
 .verde {
   color: var(--grn);
-}
-
-.vermelho {
-  color: var(--red);
 }

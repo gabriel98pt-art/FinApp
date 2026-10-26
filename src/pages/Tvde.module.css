@@ -55,33 +55,17 @@
 }
 
 .abas {
-  display: flex;
-  gap: 4px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-sm);
-  padding: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.abas::-webkit-scrollbar {
-  display: none;
+  composes: abas from "../styles/segmentado.module.css";
 }
 
 .abaBotao {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: var(--r-xs);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  color: var(--mut);
-  white-space: nowrap;
+  composes: abaBotao from "../styles/segmentado.module.css";
 }
 
 .abaAtiva {
-  background: var(--lrj-grad);
-  color: var(--bg);
+  composes: abaAtiva from "../styles/segmentado.module.css";
+  /* O laranja é do TVDE: aqui só o texto da aba ativa, nunca o fundo. */
+  color: var(--lrj);
 }
 
 .cabecalho {

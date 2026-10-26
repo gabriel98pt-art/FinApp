@@ -1,31 +1,31 @@
 // Rótulos dos KPIs de cada página, na ordem em que aparecem na tela — a fonte
-// da seção "KPIs no mobile" em Definições (item 8).
+// da escolha do "Número em destaque" em Definições.
 //
 // Os rótulos aqui TÊM que bater com os `rotulo` (ou `chave`) passados ao
 // KpiCard em cada página: é por esse texto que a escolha do usuário é casada.
 // Ao renomear um KPI numa tela há duas saídas: renomear aqui também — e quem
-// já tinha escolhido esse cartão volta aos 2 primeiros —, ou manter a chave e
+// já tinha escolhido esse KPI volta ao primeiro da página —, ou manter a chave e
 // dar o texto novo em `textos`, passando a chave antiga em `chave` no KpiCard.
 // A segunda é a preferida quando a mudança é só de redação.
 //
-// Fora da lista de propósito: Calendário (só tem 2 KPIs, nada a escolher) e
-// TVDE (mostra sempre os 4, sem configuração).
+// Fora da lista de propósito: Calendário (só tem 2 KPIs) e TVDE (os KPIs
+// mudam conforme o estado da tela) — ficam com o primeiro em destaque.
 
 export interface KpisDaPagina {
   id: string;
   titulo: string;
-  /** As CHAVES dos KPIs — é por elas que a escolha guardada em `kpisMobile`
-   *  casa com o cartão na página. Servem também de texto do chip, exceto
+  /** As CHAVES dos KPIs — é por elas que a escolha guardada em `kpiDestaque`
+   *  (e a antiga, em `kpisMobile`) casa com o KPI na página. Servem também de texto do chip, exceto
    *  quando `textos` traz outro. Nunca renomear: a escolha antiga deixa de
-   *  casar (não quebra, mas a página volta aos 2 primeiros). */
+   *  casar (não quebra, mas a página volta ao primeiro KPI). */
   rotulos: string[];
   /** Texto mostrado no chip quando o KPI foi renomeado na tela e a chave teve
-   *  de ficar como estava. O cartão correspondente passa a chave em `chave`. */
+   *  de ficar como estava. O KPI correspondente passa a chave em `chave`. */
   textos?: Record<string, string>;
 }
 
 export const KPIS_POR_PAGINA: KpisDaPagina[] = [
-  { id: "inicio", titulo: "Início", rotulos: ["Receitas", "Despesas", "Saldo do mês", "Poupança"] },
+  // Início já não tem KPIs (tem o quadro "Resultado do mês", sem escolha).
   {
     id: "receitas",
     titulo: "Receitas",

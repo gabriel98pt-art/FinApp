@@ -9,6 +9,35 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 26/10/2026 (fase 1 do visual novo nas outras telas)
+
+- **Os números de cada tela agora ficam num quadro só.** Em Receitas, Despesas,
+  Planejamento, Cartões, Veículo, Parcelas, Transações, Calendário e TVDE, os
+  quatro cartõezinhos de números viraram um único quadro, no estilo do
+  "Resultado do mês" da Início: um número grande e os outros em colunas
+  pequenas por baixo, separadas por fios finos. Acabou o corte para 2 números
+  no telemóvel — aparecem todos. A cor do número (vermelho, verde, amarelo,
+  laranja no TVDE) continua a dizer o que é, mas já não há fundo colorido.
+- **Você escolhe qual número fica grande.** Em Definições, "KPIs no telemóvel"
+  virou "Número em destaque": uma escolha por tela. Quem já tinha escolhido
+  2 números mantém o primeiro deles em destaque; quem nunca escolheu fica com
+  o primeiro da tela. A escolha antiga continua guardada, não foi apagada.
+  Calendário e TVDE mostram sempre o primeiro em destaque. A Início saiu
+  dessa lista, porque já não tem esses números.
+- **Listas de despesas e receitas por dia.** Quando a lista está ordenada por
+  data, os lançamentos aparecem agrupados por dia, com "Sexta, 24 out" à
+  esquerda e o total do dia à direita (o total do dia não conta o pagamento de
+  fatura nem o espelho de parcela, igual ao total de baixo). Ordenando por
+  valor, a lista continua corrida, como antes. As linhas perderam o cartão:
+  ícone de 32px, texto, valor à direita e um fio fino entre elas. Só o
+  dinheiro que entra leva "+" e verde; despesa é o valor simples. As despesas
+  fixas e as listas do Veículo ganharam o mesmo desenho de linha.
+- **Títulos e controles.** O título de cada página ficou grande (28px) e os
+  títulos de secção seguem o da Início. As abas (Correntes/Fixas,
+  Orçamento/Metas, as do Veículo e do TVDE) viraram um controle segmentado
+  com a aba ativa em branco; "Mês/Semana" virou duas pílulas. Nada mudou no
+  comportamento deles.
+
 ## 26/10/2026
 
 - **Início, segunda rodada de ajustes.** O botão de tema claro/escuro saiu do

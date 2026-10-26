@@ -379,12 +379,14 @@ describe("Despesas com reembolso", () => {
     expect(linha.textContent).not.toContain("−75");
   });
 
-  test("a despesa comum continua com − e a vermelho", () => {
+  test("a despesa comum mostra só o valor, sem sinal — só o dinheiro que volta leva +", () => {
     despesas = lista([gasto()]);
     renderDespesas();
 
     const linha = screen.getByText("Jantar de equipa").closest("button")!;
-    expect(linha.textContent).toContain("−");
+    expect(linha.textContent).toContain("€ 100,00");
+    expect(linha.textContent).not.toContain("−");
+    expect(linha.textContent).not.toContain("+");
   });
 
   test("a linha da despesa original mostra a conta do líquido", async () => {

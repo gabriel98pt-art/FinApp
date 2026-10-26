@@ -232,9 +232,9 @@ describe("Transacoes", () => {
     expect(screen.getByText("€ -42,50")).toBeInTheDocument();
     // Era "amarelo" — inconsistente com todo o resto do app, onde
     // saldo/variação negativos são sempre "vermelho" (achado da auditoria de
-    // Design). O card do Saldo é o `parentElement` do próprio rótulo.
-    const card = screen.getByText("Saldo").parentElement!;
-    expect(card.style.getPropertyValue("--_a")).toBe("var(--red)");
+    // Design). A coluna do Saldo é o `parentElement` do próprio rótulo.
+    const coluna = screen.getByText("Saldo").parentElement!;
+    expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--red)");
   });
 
   test("os três rótulos são os que Definições oferece para o mobile", () => {

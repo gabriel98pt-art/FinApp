@@ -86,7 +86,7 @@ export default function Inicio() {
     return { receitas: r, despesas: d, saldo: r - d };
   }, [receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje]);
   return (
-    <Pagina titulo="Início">
+    <Pagina titulo="Início" tituloVisivel={false}>
       {/* Compacta, e acima dos números: a faixa cheia substituiria o quadro, e
           os números continuam a valer — o que caiu foi a atualização, não os
           dados que já lá estavam. */}

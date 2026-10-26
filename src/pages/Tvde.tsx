@@ -396,8 +396,7 @@ export default function Tvde() {
         </div>
       ) : null}
 
-      {/* denso: 4 KPIs por linha mesmo no mobile (só o TVDE) */}
-      <Kpis denso>
+      <Kpis>
         <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="laranja" />
         <KpiCard rotulo="Média/semana" valor={eur(t.mediaSemana)} />
         <KpiCard rotulo="Média €/hora" valor={t.mediaPorHora ? eur(t.mediaPorHora) : "—"} />

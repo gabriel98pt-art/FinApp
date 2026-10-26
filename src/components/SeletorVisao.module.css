@@ -1,37 +1,18 @@
-/* Mesmo desenho do alternador Mês/Semana que Despesas e Veículo já
-   desenhavam à mão nos seus próprios módulos (`.linhaVisao`/`.alternadorVisao`
-   /`.visaoBotao`/`.visaoAtiva`). Aqui vive a versão partilhada — as duas
-   páginas antigas continuam com a cópia delas até serem migradas. */
+/* Alternador Mês / Semana em pílulas — o desenho vive em styles/pilulas, que
+   Despesas e Veículo também usam. */
 
 .linha {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  composes: linha from "../styles/pilulas.module.css";
 }
 
 .alternador {
-  display: flex;
-  gap: 4px;
-  background: var(--s2);
-  border-radius: var(--r-sm);
-  padding: 4px;
+  composes: alternador from "../styles/pilulas.module.css";
 }
 
 .opcao {
-  padding: 7px 14px;
-  border-radius: var(--r-xs);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  color: var(--mut);
-}
-
-.opcao:hover {
-  color: var(--txt);
+  composes: opcao from "../styles/pilulas.module.css";
 }
 
 .ativa {
-  background: var(--s1);
-  color: var(--txt);
-  box-shadow: var(--sh-sm);
+  composes: ativa from "../styles/pilulas.module.css";
 }

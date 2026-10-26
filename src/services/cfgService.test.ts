@@ -95,6 +95,38 @@ describe("normalizarConfig", () => {
     const normalizada = s.normalizarConfig({ contasCartoes: ["Só este"] });
     expect(normalizada.contasCartoes).toEqual(["Só este"]);
   });
+
+  describe("kpiDestaque", () => {
+    test("conta sem escolha: mapa vazio (o RTDB omite objectos vazios)", () => {
+      expect(s.normalizarConfig({ currency: "EUR" }).kpiDestaque).toEqual({});
+    });
+
+    test("a escolha guardada chega tal como foi gravada", () => {
+      const normalizada = s.normalizarConfig({
+        kpiDestaque: { despesas: "Maior categoria", receitas: "Total do mês" },
+      });
+      expect(normalizada.kpiDestaque).toEqual({
+        despesas: "Maior categoria",
+        receitas: "Total do mês",
+      });
+    });
+
+    test("valor com forma errada é descartado em vez de rebentar a tela", () => {
+      const normalizada = s.normalizarConfig({
+        kpiDestaque: { despesas: 3, receitas: "", cartoes: "Pago", veiculo: null },
+      } as never);
+      expect(normalizada.kpiDestaque).toEqual({ cartoes: "Pago" });
+    });
+
+    test("o campo todo com forma errada vira mapa vazio", () => {
+      expect(s.normalizarConfig({ kpiDestaque: "despesas" } as never).kpiDestaque).toEqual({});
+    });
+
+    test("a escolha antiga de 2 KPIs fica guardada, intocada", () => {
+      const normalizada = s.normalizarConfig({ kpisMobile: { despesas: ["A", "B"] } });
+      expect(normalizada.kpisMobile).toEqual({ despesas: ["A", "B"] });
+    });
+  });
 });
 
 // A ponte entre `instituicoes` e os quatro campos antigos de conta/cartão.

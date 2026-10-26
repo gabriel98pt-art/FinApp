@@ -1,0 +1,8 @@
+/* Título de secção, o mesmo em todas as páginas: o estilo da Início (17px,
+   600). Cada página dá-no ao seu `tituloSecao` com `composes`, em vez de
+   redesenhar o seu. */
+.tituloSecao {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}

@@ -187,12 +187,12 @@ describe("aba Orçamento — tetos por categoria", () => {
 /** O valor de um KPI, pelo rótulo. Preciso porque a percentagem do cartão pode
  *  coincidir com a de uma linha de categoria logo abaixo — e aí um
  *  `getByText("100%")` acha duas e falha sem que nada esteja errado. */
-const valorDoCard = (rotulo: string) =>
-  screen.getByText(rotulo).parentElement!.querySelectorAll("p")[1].textContent;
+// O KPI pequeno é uma coluna: o rótulo e, logo a seguir, o valor.
+const valorDoCard = (rotulo: string) => screen.getByText(rotulo).nextElementSibling!.textContent;
 
 describe("KPIs do plano mensal", () => {
   test("os quatro cartões, com os rótulos que Definições espera", () => {
-    // A escolha de "KPIs no mobile" casa por texto (constants/kpis.ts) e
+    // A escolha do número em destaque casa por texto (constants/kpis.ts) e
     // diverge em silêncio — a página cai nos dois primeiros sem erro nenhum.
     cfg = { ...CONFIG_PADRAO, orcamentoTotalMensal: 100000 };
     montar();
@@ -218,7 +218,7 @@ describe("KPIs do plano mensal", () => {
     despesas = lista([despesa(25000)]);
     montar();
 
-    expect(screen.getByText("€ 1.000,00")).toBeInTheDocument(); // Total
+    expect(screen.getByRole("img", { name: "€ 1.000,00" })).toBeInTheDocument(); // Total (em destaque)
     expect(screen.getByText("€ 750,00")).toBeInTheDocument(); // Restam
     expect(screen.getByText("25%")).toBeInTheDocument();
   });
@@ -368,8 +368,8 @@ describe("aba Metas", () => {
     // (`Math.max(0, ...)` por mês).
     despesas = lista([despesa(999999999)]);
     await montarNasMetas();
-    const card = screen.getByText("Poupado (12m)").parentElement!;
-    expect(card.style.getPropertyValue("--_a")).toBe("var(--grn)");
+    const coluna = screen.getByText("Poupado (12m)").parentElement!;
+    expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--grn)");
   });
 
   test("sem fundos: estado vazio que ensina como criar o primeiro", async () => {

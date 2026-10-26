@@ -168,6 +168,11 @@ export interface ConfigConta {
   /** Quais 2 KPIs cada página mostra no mobile, por id de página (item 8).
    *  Sem entrada = os 2 primeiros da tela. No desktop aparecem todos. */
   kpisMobile: Record<string, [string, string]>;
+  /** Qual KPI fica em destaque (o número grande do quadro de resumo) em cada
+   *  página, por id de página → CHAVE do KPI (a mesma de `constants/kpis.ts`).
+   *  Sem entrada, vale o primeiro da escolha antiga de `kpisMobile` e, não
+   *  havendo, o primeiro KPI da página — ver `chaveEmDestaque`. */
+  kpiDestaque: Record<string, string>;
 
   /** Meta de poupança mensal (antigo `sgoal`). */
   metaPoupanca: Cents;

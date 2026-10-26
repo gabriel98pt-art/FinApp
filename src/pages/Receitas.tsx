@@ -6,7 +6,7 @@ import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorOrdem from "../components/SeletorOrdem";
 import SeletorSemana from "../components/SeletorSemana";
 import SeletorVisao from "../components/SeletorVisao";
-import { compararPorOrdem, type Ordem } from "../utils/ordem";
+import { compararPorOrdem, ordemPorData, type Ordem } from "../utils/ordem";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import { removerReceita } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
@@ -182,6 +182,7 @@ export default function Receitas() {
         }))}
         carregado={carregado}
         erro={erro}
+        agruparPorDia={ordemPorData(ordem)}
         tom="verde"
         moeda={moeda}
         rotuloTotal={

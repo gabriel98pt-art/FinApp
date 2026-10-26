@@ -336,8 +336,7 @@
 }
 
 .tituloSecao {
-  font-weight: 700;
-  font-size: var(--fs-title);
+  composes: tituloSecao from "../styles/titulos.module.css";
 }
 
 .item {

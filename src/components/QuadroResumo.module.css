@@ -1,0 +1,70 @@
+/* O quadro de resumo: o ÚNICO cartão destacado de uma página — raio 20 de
+   propósito, acima do --r-card dos outros cartões, para ler como "o número da
+   página". Partilhado pelo Resultado do mês (Início) e pelos KPIs das outras
+   telas. */
+.quadro {
+  background: var(--s1);
+  border-radius: 20px;
+  box-shadow: var(--sh-card);
+  padding: 20px 20px 18px;
+}
+
+.rotulo {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mut);
+}
+
+.valor {
+  display: flex;
+  align-items: baseline;
+  margin-top: 6px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--_cor, var(--txt));
+}
+
+.simbolo {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-right: 3px;
+}
+
+/* Valores grandes ("€ 12.345") não cabem em 48px a 320px: encolhe com a
+   largura em vez de partir a linha. */
+.inteiro {
+  font-size: clamp(36px, 12vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.centavos,
+.sufixo {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.centavos {
+  opacity: 0.7;
+}
+
+/* O valor que não é número (o nome de uma categoria): mais pequeno, para
+   caber, e corta com reticências em vez de partir o quadro. */
+.texto {
+  font-size: clamp(26px, 8vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nota {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--mut);
+  opacity: 0.8;
+}

@@ -1,56 +1,87 @@
-import { Children, type ReactElement, type ReactNode } from "react";
+import { Children, useId, type ReactElement, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useCfgStore } from "../stores/cfgStore";
+import { chaveEmDestaque, COR_DO_TOM } from "../utils/kpis";
+import type { PropsKpi } from "./KpiCard";
+import QuadroResumo, { NotaDoQuadro, ValorGrande } from "./QuadroResumo";
 import styles from "./Pagina.module.css";
 
-const MOBILE = "(max-width: 767px)";
-const NO_MOBILE = 2;
+/** Colunas pequenas por linha do quadro de resumo. */
+const COLUNAS = 3;
 
 /** Esqueleto comum das páginas: título + conteúdo. */
-export default function Pagina({ titulo, children }: { titulo: string; children?: ReactNode }) {
+export default function Pagina({
+  titulo,
+  tituloVisivel = true,
+  children,
+}: {
+  titulo: string;
+  /** `false` esconde o título da vista sem o tirar do DOM (a Início). */
+  tituloVisivel?: boolean;
+  children?: ReactNode;
+}) {
   return (
     <section className={styles.pagina}>
-      <h2 className={styles.titulo}>{titulo}</h2>
+      <h2 className={`${styles.titulo} ${tituloVisivel ? "" : styles.tituloOculto}`}>{titulo}</h2>
       {children}
     </section>
   );
 }
 
-/** Grid responsivo de KPIs (seção 7). No desktop aparecem todos. No mobile
- *  (<768px) a página mostra só 2 — os que o usuário escolheu em Definições
- *  para aquela `pagina`, ou os 2 primeiros se nunca escolheu (item 8). Sem
- *  paginação: são 2 e pronto.
- *  `denso` (só TVDE) sempre mostra os 4 juntos, em qualquer largura. */
-export function Kpis({
-  children,
-  denso = false,
-  pagina,
-}: {
-  children: ReactNode;
-  denso?: boolean;
-  /** Id da página em `KPIS_POR_PAGINA` — sem ele não há o que escolher. */
-  pagina?: string;
-}) {
-  const mobile = useMediaQuery(MOBILE);
-  const escolhidos = useCfgStore((s) => (pagina ? s.cfg.kpisMobile?.[pagina] : undefined));
+/** O quadro de resumo da página (seção 7): UM cartão com o KPI em destaque em
+ *  número grande e os outros em colunas pequenas por baixo, separadas por um
+ *  fio. Mostra TODOS os KPIs em qualquer largura — o corte para 2 no telemóvel
+ *  acabou.
+ *
+ *  Qual vai em destaque é escolha da pessoa (Definições → Número em destaque),
+ *  por `pagina`; ver `chaveEmDestaque`. Sem `pagina` (Calendário, TVDE), o
+ *  primeiro. Os filhos são `KpiCard`: aqui só se lêem as props deles. */
+export function Kpis({ children, pagina }: { children: ReactNode; pagina?: string }) {
+  const cfg = useCfgStore((s) => s.cfg);
+  const idRotulo = useId();
 
-  const itens = Children.toArray(children) as ReactElement<{ rotulo?: string; chave?: string }>[];
-  if (!mobile || denso || itens.length <= NO_MOBILE) {
-    return <div className={`${styles.kpis} ${denso ? styles.kpisDenso : ""}`}>{children}</div>;
-  }
+  const itens = Children.toArray(children) as ReactElement<PropsKpi>[];
+  if (itens.length === 0) return null;
 
-  // A escolha é casada por `chave` (ou, na falta dela, pelo próprio rótulo) —
-  // `chave` existe justamente nos KpiCard cujo rótulo muda de texto conforme
-  // o estado da tela (Mês/Semana), pra a escolha salva continuar batendo. Se
-  // nada casar (rótulo renomeado na tela sem atualizar KPIS_POR_PAGINA), a
-  // página cai nos 2 primeiros em vez de ficar vazia.
-  const porEscolha = escolhidos
-    ? itens.filter((i) => escolhidos.includes(i.props?.chave ?? i.props?.rotulo ?? ""))
-    : [];
-  const visiveis = porEscolha.length === NO_MOBILE ? porEscolha : itens.slice(0, NO_MOBILE);
+  // O texto de `chave` casa com `KPIS_POR_PAGINA`; sem ele, é o próprio rótulo.
+  const chaveDe = (i: ReactElement<PropsKpi>) => i.props.chave ?? i.props.rotulo;
+  const destaqueChave = chaveEmDestaque(pagina, itens.map(chaveDe), cfg);
+  const destaque = itens.find((i) => chaveDe(i) === destaqueChave) ?? itens[0];
+  const outros = itens.filter((i) => i !== destaque);
 
-  return <div className={styles.kpis}>{visiveis}</div>;
+  // Até 3 por linha; se sobrar, o resto desce para uma segunda linha pequena.
+  const linhas: ReactElement<PropsKpi>[][] = [];
+  for (let i = 0; i < outros.length; i += COLUNAS) linhas.push(outros.slice(i, i + COLUNAS));
+
+  const { rotulo, valor, sub, tom = "neutro", discreto = false, aoClicar } = destaque.props;
+  const grande = <ValorGrande texto={valor} cor={COR_DO_TOM[tom]} discreto={discreto} />;
+
+  return (
+    <QuadroResumo rotulo={rotulo} idRotulo={idRotulo}>
+      {aoClicar ? (
+        <button
+          type="button"
+          className={styles.destaqueBotao}
+          onClick={aoClicar}
+          aria-label={`${rotulo}: ${valor}`}
+        >
+          {grande}
+        </button>
+      ) : (
+        grande
+      )}
+      {sub && <NotaDoQuadro>{sub}</NotaDoQuadro>}
+      {linhas.map((linha, n) => (
+        <div
+          key={n}
+          className={styles.colunas}
+          style={{ gridTemplateColumns: `repeat(${linha.length}, minmax(0, 1fr))` }}
+        >
+          {linha}
+        </div>
+      ))}
+    </QuadroResumo>
+  );
 }
 
 /** Empty state padronizado (seção 7): para telas/listas REAIS sem dados. */

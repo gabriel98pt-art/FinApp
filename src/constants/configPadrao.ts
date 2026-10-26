@@ -25,6 +25,7 @@ export const CONFIG_PADRAO: ConfigConta = {
   categoriaIcone: {},
   categoriaCor: {},
   kpisMobile: {},
+  kpiDestaque: {},
   metaPoupanca: 0,
   orcamentos: {},
   saldosIniciais: {},

@@ -61,6 +61,13 @@ const caminho = (uid: string, sufixo = "") => `users/${uid}/fin_v5/cfg${sufixo}`
 export function normalizarConfig(bruto: ConfigContaBruta | null): ConfigConta {
   const { instituicoes: brutasInstituicoes, ...resto } = bruto ?? {};
   const cfg: ConfigConta = { ...CONFIG_PADRAO, ...resto };
+  // Vem de uma base partilhada: só entra o que tem a forma esperada (página →
+  // texto). Um valor estranho vira "sem escolha" e a página usa o padrão.
+  cfg.kpiDestaque = Object.fromEntries(
+    Object.entries(
+      typeof resto.kpiDestaque === "object" && resto.kpiDestaque ? resto.kpiDestaque : {},
+    ).filter(([, v]) => typeof v === "string" && v !== ""),
+  );
 
   const instituicoes = instituicoesDoBruto(brutasInstituicoes);
   if (instituicoes.length === 0) {

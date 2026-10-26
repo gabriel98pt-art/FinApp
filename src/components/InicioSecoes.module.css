@@ -68,6 +68,7 @@
   background: color-mix(in srgb, var(--mut) 15%, transparent);
 }
 
+/* Ícone neutro das linhas de A pagar (as de movimentos usam IconeLinha). */
 .icone {
   flex: none;
   display: grid;
@@ -77,10 +78,6 @@
   border-radius: 9px;
   background: var(--s2);
   color: var(--mut);
-}
-
-.entrada {
-  color: var(--grn);
 }
 
 .texto {

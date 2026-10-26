@@ -1,0 +1,39 @@
+/* Abas segmentadas (Correntes/Fixas, Orçamento/Metas…): uma pista de fundo
+   --s2 com a aba ativa a subir em --s1. Cada página dá o seu `.abas`,
+   `.abaBotao` e `.abaAtiva` com `composes`; o que for só dela (a cor do ativo
+   no TVDE, o esbatimento nas abas do Veículo) fica no módulo dela.
+
+   Rola na horizontal quando as abas não cabem (Veículo tem cinco), em vez de
+   as espremer. */
+.abas {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--s2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar {
+  display: none;
+}
+
+.abaBotao {
+  flex: 1;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mut);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.abaAtiva {
+  background: var(--s1);
+  color: var(--txt);
+  font-weight: 600;
+  box-shadow: var(--sh-sm);
+}

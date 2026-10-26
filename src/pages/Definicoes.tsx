@@ -22,7 +22,7 @@ import FolhaDiagnostico from "./definicoes/FolhaDiagnostico";
 import FolhaCopiloto from "./definicoes/FolhaCopiloto";
 import FolhaCategorias from "./definicoes/FolhaCategorias";
 import FolhaCorBotao from "./definicoes/FolhaCorBotao";
-import FolhaKpisMobile from "./definicoes/FolhaKpisMobile";
+import FolhaKpiDestaque from "./definicoes/FolhaKpiDestaque";
 import FolhaNotificacoes from "./definicoes/FolhaNotificacoes";
 import FolhaVeiculo from "./definicoes/FolhaVeiculo";
 import FolhaContasCartoes from "./definicoes/FolhaContasCartoes";
@@ -274,7 +274,7 @@ export default function Definicoes() {
       </SettingsSection>
 
       <SettingsSection titulo="Personalização">
-        <SettingsRow titulo="KPIs no telemóvel" navegavel onClick={() => setKpisAberto(true)} />
+        <SettingsRow titulo="Número em destaque" navegavel onClick={() => setKpisAberto(true)} />
         <SettingsRow
           titulo="Copiloto"
           valor={cfg.copiloto !== undefined ? "Configurado" : undefined}
@@ -338,7 +338,7 @@ export default function Definicoes() {
         aberta={corBotaoAberto}
         aoFechar={() => setCorBotaoAberto(false)}
       />
-      <FolhaKpisMobile
+      <FolhaKpiDestaque
         cfg={cfg}
         uid={uid}
         aberta={kpisAberto}

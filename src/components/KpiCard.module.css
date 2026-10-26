@@ -1,119 +1,50 @@
-.card {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
-  /* --kpi-* vêm do grid (Pagina.module.css): o modo denso encolhe o card */
-  padding: var(--kpi-pad, 14px 16px);
+/* Coluna pequena do quadro de resumo. As colunas ficam lado a lado numa grelha
+   (ver `.colunas` em Pagina.module.css), separadas por um fio fino. */
+.coluna {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 3px;
   min-width: 0;
-  position: relative;
-  overflow: hidden;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+  padding-left: 12px;
+  border-left: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sh-card-hi);
-}
-
-/* Aura da categoria: hairline no topo… */
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--_a, var(--blu));
-}
-
-/* …e wash de gradiente descendo do topo */
-.card::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 45% 0;
-  background: linear-gradient(180deg, var(--_a, var(--blu)), transparent);
-  opacity: 0.11;
-  pointer-events: none;
-  transition: opacity var(--dur-exit) var(--ease-exit);
-}
-
-.card:hover::after {
-  opacity: 0.16;
-}
-
-[data-theme="light"] .card::after {
-  opacity: 0.08;
-}
-
-[data-theme="light"] .card:hover::after {
-  opacity: 0.16;
+.coluna:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
 .rotulo {
-  font-size: var(--kpi-rotulo-fs, var(--fs-label));
-  font-weight: 600;
+  max-width: 100%;
+  font-size: 12px;
   color: var(--mut);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-  text-align: center;
 }
 
-/* Sem cor por tom em card nenhum: a categoria vive só na luz do topo. O branco
-   cheio do texto normal — o `--mut` do rótulo puxava a azul e deixava o valor
-   com ar de secundário, que não é o caso.
-
-   Sem opacidade nenhuma: `--txt` a 62% sobre o `--s1` do card dava exatamente
-   o cinza de que se estava a fugir, e ainda um pouco mais apagado que o
-   rótulo — o número, que é a informação do card, era o texto menos legível
-   dele. O tamanho e o peso continuam a ser o que o destaca; a cor agora
-   também. */
+/* Encolhe com a largura: três colunas a 320px não dão para "€ 12.345,67" a
+   15px, e cortar um valor em dinheiro é pior do que o ter mais pequeno. */
 .valor {
-  color: var(--txt);
-  font-size: var(--kpi-valor-fs, var(--fs-display));
-  text-align: center;
-  /* sem isto o valor pode ficar mais largo que o card (o card tem
-     overflow:hidden) e sair cortado no meio do número */
   max-width: 100%;
+  font-size: clamp(12px, 3.8vw, 15px);
+  font-weight: 600;
+  color: var(--_cor, var(--txt));
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 800;
-  letter-spacing: var(--track-display);
-  font-variant-numeric: tabular-nums;
 }
 
-/* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual do card
-   — inclusive o hover-elevate herdado de .card. */
-.clicavel {
-  width: 100%;
-  font: inherit;
-  color: inherit;
-  text-align: center;
-  cursor: pointer;
-}
-
-/* Detalhe por baixo do valor, quando o valor principal é um nome.
-   Numa coluna estreita (dois cards lado a lado no telemóvel) esta linha era a
-   que mais sofria com o `nowrap`: "inclui fixas, parcelas…" e
-   "julho 2026: € 3.729,…" ficavam cortados e não havia como ver o resto —
-   num telemóvel não há hover para um `title`. Passa a quebrar em até duas
-   linhas, o que chega para todos os subs que existem hoje; da terceira em
-   diante ainda reticencia, para o card não crescer sem limite. */
+/* Detalhe por baixo do valor, quando o valor principal é um nome. Quebra em até
+   duas linhas — num telemóvel não há hover para um `title`. */
 .sub {
-  font-size: var(--fs-label);
-  font-weight: 700;
+  font-size: 12px;
   color: var(--mut);
-  text-align: center;
-  max-width: 100%;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -121,4 +52,9 @@
   overflow: hidden;
   overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
+}
+
+/* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual. */
+.clicavel {
+  cursor: pointer;
 }

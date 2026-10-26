@@ -24,6 +24,12 @@ export const ROTULOS_ORDEM: Record<Ordem, string> = {
 export type LinhaOrdem<T extends string> =
   { tipo: "simples"; valor: T; rotulo: string } | { tipo: "par"; rotulo: string; desc: T; asc: T };
 
+/** A ordem é por data (mais recentes ou mais antigas) — as únicas em que a
+ *  lista se divide em blocos de um dia. */
+export function ordemPorData(ordem: Ordem): boolean {
+  return ordem === "recentes" || ordem === "antigas";
+}
+
 /** Compara dois itens conforme a ordem escolhida. `data` pode ser um IsoDate
  *  ou um YearMonth — a comparação é textual, que já ordena os dois formatos. */
 export function compararPorOrdem<T extends { data: string; valor: number }>(

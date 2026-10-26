@@ -13,7 +13,7 @@ import Seletor from "../components/Seletor";
 import SeletorCategoria from "../components/SeletorCategoria";
 import SeletorOrdem from "../components/SeletorOrdem";
 import SeletorSemana from "../components/SeletorSemana";
-import { compararPorOrdem, type Ordem } from "../utils/ordem";
+import { compararPorOrdem, ordemPorData, type Ordem } from "../utils/ordem";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils/semanas";
 import {
   alternarPagoDespesaFixa,
@@ -212,6 +212,7 @@ export default function Despesas() {
   // pequena demais para as perguntas que eles fazem.
   const porSemana = aba === "correntes" && visao === "semana" && semanaAtual !== undefined;
   const contadasDoPeriodo = despesasNosTotais(doPeriodo);
+  const contamNosTotais = new Set(contadasDoPeriodo.map((d) => d.id));
   const totalKpi = porSemana ? total(contadasDoPeriodo) : totalDoMesComVeiculo;
 
   function editar(id: string) {
@@ -521,6 +522,7 @@ export default function Despesas() {
             <ListaLancamentos
               /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
               key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
+              agruparPorDia={ordemPorData(ordem)}
               itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((d) => {
                 // A conta do líquido é feita contra o mês INTEIRO (`itens`) e
                 // não contra `doPeriodo`: na visão por semana, o reembolso
@@ -535,6 +537,7 @@ export default function Despesas() {
                   data: d.data,
                   etiqueta: d.nota ? `${d.categoria} · ${d.nota}` : d.categoria,
                   categoria: d.categoria,
+                  foraDoTotal: !contamNosTotais.has(d.id),
                   sub: liq.temReembolso
                     ? `${formatMoney(liq.bruto, moeda)} − ${formatMoney(liq.reembolsado, moeda)} reembolsado = ${formatMoney(liq.liquido, moeda)} líquido`
                     : undefined,

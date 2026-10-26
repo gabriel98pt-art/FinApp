@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import CategoriaBolha from "./CategoriaBolha";
+import IconeLinha from "./IconeLinha";
 import ErroSincronizacao from "./ErroSincronizacao";
 import MenuAcoesItem from "./MenuAcoesItem";
 import Paginador from "./Paginador";
 import { EstadoVazio } from "./Pagina";
 import type { Cents, Currency, Id, IsoDate } from "../types";
+import { agruparPorDia, rotuloDoDia } from "../utils/agruparPorDia";
 import { total as somar } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import styles from "./ListaLancamentos.module.css";
@@ -29,6 +30,10 @@ export interface ItemLista {
    *  Mesmo papel do "X de Y em Z" da linha de Parcelas: o número que interessa
    *  a seguir, sem obrigar a abrir a despesa para o calcular de cabeça. */
   sub?: string;
+  /** A linha aparece na lista mas não conta nos totais (pagamento de fatura,
+   *  espelho de parcela em Despesas — ver `despesasNosTotais`). O total do dia
+   *  também a deixa de fora, para bater com o do rodapé. */
+  foraDoTotal?: boolean;
 }
 
 function dataCurta(data: IsoDate): string {
@@ -43,12 +48,16 @@ function LinhaLancamento({
   item,
   tom,
   moeda,
+  comData,
   aoEditar,
   aoExcluir,
 }: {
   item: ItemLista;
   tom: "verde" | "vermelho";
   moeda: Currency;
+  /** Mostra a data na linha. Dentro de um bloco de um dia o cabeçalho já a
+   *  diz, e repeti-la em cada linha só ocupava espaço. */
+  comData: boolean;
   aoEditar: (id: Id) => void;
   aoExcluir: (id: Id) => void;
 }) {
@@ -71,22 +80,26 @@ function LinhaLancamento({
         onClick={() => setMenuAberto(true)}
         aria-haspopup="dialog"
       >
-        {item.categoria !== undefined && <CategoriaBolha categoria={item.categoria} tamanho={30} />}
+        <IconeLinha categoria={item.categoria} entrada={entrada} />
         <span className={styles.principal}>
           <span className={styles.descricao}>{item.descricao}</span>
-          {/* Data primeiro, etiqueta depois (01/09): numa lista já ordenada por
-              data, é a data que a pessoa procura ao correr o olho pela coluna —
-              e ela ficava no fim de uma etiqueta de comprimento variável, num
-              sítio diferente em cada linha. À esquerda, alinhada, todas as datas
-              caem na mesma coluna. Mesma ordem que Transações e Calendário já
-              usavam. */}
+          {/* Fora de um bloco de um dia, a data vem primeiro e a etiqueta depois
+              (01/09): numa lista já ordenada por data, é a data que a pessoa
+              procura ao correr o olho pela coluna — e ela ficava no fim de uma
+              etiqueta de comprimento variável, num sítio diferente em cada
+              linha. À esquerda, alinhada, todas as datas caem na mesma coluna.
+              Mesma ordem que Transações e Calendário já usavam. */}
           <span className={styles.detalhe}>
-            {dataCurta(item.data)} · {item.etiqueta}
+            {comData ? `${dataCurta(item.data)} · ` : ""}
+            {item.etiqueta}
           </span>
           {item.sub !== undefined && <span className={styles.sub}>{item.sub}</span>}
         </span>
-        <span className={`${styles.valor} ${entrada ? styles.verde : styles.vermelho}`}>
-          {entrada ? "+" : "−"} {formatMoney(Math.abs(item.valor), moeda)}
+        {/* Só o dinheiro que entra leva sinal e verde: a saída é o valor simples,
+            na cor do texto. */}
+        <span className={`${styles.valor} ${entrada ? styles.verde : ""}`}>
+          {entrada ? "+" : ""}
+          {formatMoney(Math.abs(item.valor), moeda)}
         </span>
       </button>
 
@@ -125,6 +138,7 @@ export default function ListaLancamentos({
   rotuloTotal = "Total",
   total,
   erro = false,
+  agruparPorDia: agrupar = false,
 }: {
   /** Sem título, o cartão nasce sem cabeçalho — quem chama já mostrou o
    *  contexto em cima (ex. a aba "Correntes" de Despesas) e põe o próprio
@@ -153,6 +167,10 @@ export default function ListaLancamentos({
    *  mas não os conta nos totais (ver `despesasNosTotais`). Sem isto o rodapé
    *  contradiz o KPI logo acima. */
   total?: Cents;
+  /** A lista está ordenada por data: separa-a em blocos de um dia, cada um com
+   *  o seu cabeçalho ("Sexta, 24 out") e o total do dia. Por valor os dias
+   *  andam baralhados, e aí a lista fica corrida, como sempre. */
+  agruparPorDia?: boolean;
 }) {
   const [pagina, setPagina] = useState(1);
 
@@ -164,6 +182,18 @@ export default function ListaLancamentos({
   const visiveis = itens.slice(
     (paginaAtual - 1) * ITENS_POR_PAGINA,
     paginaAtual * ITENS_POR_PAGINA,
+  );
+
+  const desenharLinha = (comData: boolean) => (item: ItemLista) => (
+    <LinhaLancamento
+      key={item.id}
+      item={item}
+      tom={tom}
+      moeda={moeda}
+      comData={comData}
+      aoEditar={aoEditar}
+      aoExcluir={aoExcluir}
+    />
   );
 
   return (
@@ -192,26 +222,27 @@ export default function ListaLancamentos({
         <EstadoVazio Icone={vazioIcone} mensagem={vazio} sub={vazioSub} />
       ) : (
         <>
-          <ul className={styles.lista}>
-            {visiveis.map((item) => (
-              <LinhaLancamento
-                key={item.id}
-                item={item}
-                tom={tom}
-                moeda={moeda}
-                aoEditar={aoEditar}
-                aoExcluir={aoExcluir}
-              />
-            ))}
-          </ul>
+          {agrupar ? (
+            agruparPorDia(visiveis).map((g) => (
+              <div key={g.dia} className={styles.dia}>
+                <div className={styles.diaCabecalho}>
+                  <h4 className={styles.diaRotulo}>{rotuloDoDia(g.dia)}</h4>
+                  <span className={styles.diaTotal}>
+                    {formatMoney(somar(g.itens.filter((i) => !i.foraDoTotal)), moeda)}
+                  </span>
+                </div>
+                <ul className={styles.lista}>{g.itens.map(desenharLinha(false))}</ul>
+              </div>
+            ))
+          ) : (
+            <ul className={styles.lista}>{visiveis.map(desenharLinha(true))}</ul>
+          )}
 
           <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />
 
           <div className={styles.rodape}>
             <span>{rotuloTotal}</span>
-            <span
-              className={`${styles.rodapeValor} ${tom === "verde" ? styles.verde : styles.vermelho}`}
-            >
+            <span className={`${styles.rodapeValor} ${tom === "verde" ? styles.verde : ""}`}>
               {formatMoney(totalGeral, moeda)}
             </span>
           </div>

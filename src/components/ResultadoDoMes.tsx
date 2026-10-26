@@ -1,6 +1,7 @@
 import { useCfgStore } from "../stores/cfgStore";
 import type { Cents, Currency } from "../types";
 import { CURRENCY_SYMBOLS, formatCents, formatMoney } from "../utils/money";
+import QuadroResumo, { NotaDoQuadro, ValorGrande } from "./QuadroResumo";
 import styles from "./ResultadoDoMes.module.css";
 
 /** Quadro de destaque do Início: o resultado do mês (receitas menos despesas,
@@ -25,34 +26,19 @@ export default function ResultadoDoMes({
   const negativo = saldo < 0;
   const simbolo = CURRENCY_SYMBOLS[moeda];
   const numero = formatCents(Math.abs(saldo));
-  const virgula = numero.lastIndexOf(",");
   const total = receitas + despesas;
   // Sem movimento nenhum a barra não tem proporção para mostrar: fica a faixa
   // neutra, em vez de fingir 50/50.
   const pctReceitas = total > 0 ? (receitas / total) * 100 : null;
 
   return (
-    <section className={styles.quadro} aria-labelledby="resultado-mes">
-      <h3 id="resultado-mes" className={styles.rotulo}>
-        Resultado do mês
-      </h3>
-      <p
-        className={`${styles.valor} ${negativo ? styles.negativo : styles.positivo} ${classeDiscreta}`}
-        role="img"
-        aria-label={`${negativo ? "−" : ""}${simbolo} ${numero}`}
-      >
-        <span className={styles.simbolo} aria-hidden>
-          {negativo ? "−" : ""}
-          {simbolo}
-        </span>
-        <span className={styles.inteiro} aria-hidden>
-          {numero.slice(0, virgula)}
-        </span>
-        <span className={styles.centavos} aria-hidden>
-          {numero.slice(virgula)}
-        </span>
-      </p>
-      <p className={styles.nota}>Receitas menos despesas · não é o saldo das contas</p>
+    <QuadroResumo rotulo="Resultado do mês" idRotulo="resultado-mes">
+      <ValorGrande
+        texto={`${negativo ? "−" : ""}${simbolo} ${numero}`}
+        cor={negativo ? "var(--red)" : "var(--blu)"}
+        discreto={classeDiscreta !== ""}
+      />
+      <NotaDoQuadro>Receitas menos despesas · não é o saldo das contas</NotaDoQuadro>
 
       <div className={styles.barra} aria-hidden>
         {pctReceitas === null ? (
@@ -89,6 +75,6 @@ export default function ResultadoDoMes({
           </span>
         </button>
       </div>
-    </section>
+    </QuadroResumo>
   );
 }

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowDownLeft, ArrowUpRight, ChevronRight, type LucideIcon } from "lucide-react";
-import { iconePorId } from "../constants/aparenciaCategoria";
+import { ChevronRight } from "lucide-react";
+import IconeLinha from "./IconeLinha";
 import { useCfgStore } from "../stores/cfgStore";
 import {
   useDespesasFixasStore,
@@ -14,7 +14,6 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, MESES_CURTOS_PT, mesAtual } from "../utils/calculos";
-import { iconeDaCategoria } from "../utils/categoriaVisual";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { CURRENCY_SYMBOLS, formatCents } from "../utils/money";
 import { entraDinheiro, TELA_DO_TIPO, transacoesDoMes, type Transacao } from "../utils/transacoes";
@@ -77,16 +76,9 @@ export default function UltimosMovimentos() {
       <div className={styles.lista}>
         {ultimos.map((t) => {
           const entrada = entraDinheiro(t);
-          // Ícone da categoria quando ela tem um escolhido; senão a seta da
-          // direção do dinheiro. Neutro, nunca a cor da categoria.
-          const Icone: LucideIcon =
-            iconePorId(iconeDaCategoria(cfg, t.categoria ?? "")) ??
-            (entrada ? ArrowDownLeft : ArrowUpRight);
           return (
             <button key={t.chave} type="button" className={styles.linha} onClick={() => abrir(t)}>
-              <span className={`${styles.icone} ${entrada ? styles.entrada : ""}`}>
-                <Icone size={17} strokeWidth={1.75} aria-hidden />
-              </span>
+              <IconeLinha categoria={t.categoria} entrada={entrada} />
               <span className={styles.texto}>
                 <span className={styles.nome}>{t.titulo}</span>
                 <span className={styles.sub}>
