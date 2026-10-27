@@ -28,12 +28,13 @@
    já usavam, em vez de ir direto pra edição. Só o selo Pago/Pendente (abaixo)
    continua próprio desta tela. */
 
-.cabecalhoLista {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+/* Secção sem cartão: título + o que mexe na lista, 12px até ao conteúdo. */
+.secao {
+  composes: secao from "../styles/secoes.module.css";
+}
+
+.cabecalhoSecao {
+  composes: cabecalho from "../styles/secoes.module.css";
 }
 
 .tituloSecao {

@@ -34,11 +34,8 @@
   text-align: left;
 }
 
+/* Sem caixa: o ícone, a mensagem e o sub assentam direto no fundo da página. */
 .estadoVazio {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
   padding: 28px 20px;
   display: flex;
   flex-direction: column;

@@ -478,7 +478,12 @@ export default function Despesas() {
 
       <AbaTransicao aba={aba}>
         {aba === "correntes" && (
-          <>
+          <section className={styles.secao} aria-label="Movimentos">
+            <div className={styles.cabecalhoSecao}>
+              <h3 className={styles.tituloSecao}>Movimentos</h3>
+              <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+            </div>
+
             <div className={styles.linhaVisao}>
               <div
                 className={styles.alternadorVisao}
@@ -519,8 +524,6 @@ export default function Despesas() {
                 <Plus size={18} aria-hidden />
               </Botao>
             </div>
-
-            <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
 
             <ListaLancamentos
               /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */
@@ -576,13 +579,15 @@ export default function Despesas() {
               aoEditar={editar}
               aoExcluir={(id) => void excluirDespesa(id)}
             />
-          </>
+          </section>
         )}
 
         {aba === "fixas" && (
-          <>
-            <div className={styles.cabecalhoLista}>
-              <h3 className={styles.tituloSecao}>Despesas fixas</h3>
+          <section className={styles.secao} aria-labelledby="despesas-fixas">
+            <div className={styles.cabecalhoSecao}>
+              <h3 id="despesas-fixas" className={styles.tituloSecao}>
+                Despesas fixas
+              </h3>
               <Botao
                 variante="primaria"
                 soIcone
@@ -688,7 +693,7 @@ export default function Despesas() {
                 })
               )}
             </div>
-          </>
+          </section>
         )}
 
         {/* Caixa única de despesa fixa: cria e edita (itens 2, 7, 11, 16, 17, 19) */}

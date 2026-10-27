@@ -1,11 +1,8 @@
-/* Mesma silhueta do .estadoVazio (Pagina.module.css), em tom de alerta: o
-   utilizador reconhece o formato e a cor diz que este não é o vazio normal. */
+/* Mesma silhueta do .estadoVazio (Pagina.module.css, sem caixa), em tom de
+   alerta: o utilizador reconhece o formato e a cor do ícone diz que este não
+   é o vazio normal. */
 
 .caixa {
-  background: var(--s1);
-  border: 1px solid color-mix(in srgb, var(--ylw) 30%, var(--brd));
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
   padding: 28px 20px;
   display: flex;
   flex-direction: column;

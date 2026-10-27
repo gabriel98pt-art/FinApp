@@ -42,11 +42,19 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  min-height: 44px;
+  min-height: 32px;
   margin-left: auto;
+  position: relative;
   font-size: 14px;
   font-weight: 500;
   color: var(--mut);
+}
+
+/* Área de toque de 44px sem alargar a linha do título. */
+.botaoTexto::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px;
 }
 
 .botaoTexto:hover {

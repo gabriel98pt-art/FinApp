@@ -93,6 +93,15 @@ describe("Despesas", () => {
     expect(screen.getByRole("tab", { name: "Correntes" })).toHaveAttribute("aria-selected", "true");
   });
 
+  test("Correntes é uma secção sem cartão: título Movimentos com a ordem à direita", () => {
+    renderDespesas();
+    const secao = screen.getByRole("region", { name: "Movimentos" });
+    expect(within(secao).getByRole("heading", { name: "Movimentos" })).toBeInTheDocument();
+    expect(
+      within(secao).getByRole("button", { name: "Ordenar por — atual: Mais recentes" }),
+    ).toBeInTheDocument();
+  });
+
   test("sem despesas: estado vazio da aba Correntes", () => {
     renderDespesas();
     expect(screen.getByText(/Nenhuma despesa em agosto 2026/)).toBeInTheDocument();

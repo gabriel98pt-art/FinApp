@@ -1,0 +1,17 @@
+/* Uma secção de página sem cartão: título à esquerda (e, à direita, o que mexe
+   na lista), 12px até ao conteúdo, 36px até à secção anterior (16px do gap da
+   página + 20px aqui). */
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+}
