@@ -18,7 +18,7 @@
   display: flex;
   gap: 6px;
   background: var(--s2);
-  border-radius: var(--raio-campo, var(--r-sm));
+  border-radius: var(--r-pill);
   padding: 4px;
 }
 
@@ -34,7 +34,7 @@
   flex: 1;
   min-width: 0;
   padding: 9px 12px;
-  border-radius: var(--raio-segmento, var(--r-xs));
+  border-radius: var(--r-pill);
   color: var(--mut);
   font-size: var(--fs-body);
   font-weight: 700;
@@ -53,9 +53,9 @@
 }
 
 .atalhoAtivo {
-  background: var(--s1);
-  color: var(--txt);
-  box-shadow: var(--sh-sm);
+  background: var(--aba-ativa-bg);
+  color: var(--aba-ativa-txt);
+  box-shadow: var(--aba-ativa-sh);
 }
 
 /* Calendário em grade — mesmo desenho do Calendário, dentro da folha sólida */

@@ -56,13 +56,13 @@
   gap: 6px;
   align-self: center;
   background: var(--s2);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   padding: 4px;
 }
 
 .subTipo {
   padding: 7px 16px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   color: var(--mut);
   font-size: var(--fs-body);
   font-weight: 700;
@@ -76,9 +76,9 @@
 }
 
 .subTipoAtivo {
-  background: var(--s1);
-  color: var(--txt);
-  box-shadow: var(--sh-sm);
+  background: var(--aba-ativa-bg);
+  color: var(--aba-ativa-txt);
+  box-shadow: var(--aba-ativa-sh);
 }
 
 .campo {
@@ -280,14 +280,14 @@
   display: flex;
   gap: 4px;
   background: var(--s2);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-pill);
   padding: 4px;
 }
 
 .opcaoTipoDespesa {
   flex: 1;
   padding: 7px 14px;
-  border-radius: var(--r-xs);
+  border-radius: var(--r-pill);
   font-size: var(--fs-body);
   font-weight: 700;
   color: var(--mut);
@@ -298,7 +298,7 @@
 }
 
 .opcaoTipoDespesaAtiva {
-  background: var(--s1);
-  color: var(--txt);
-  box-shadow: var(--sh-sm);
+  background: var(--aba-ativa-bg);
+  color: var(--aba-ativa-txt);
+  box-shadow: var(--aba-ativa-sh);
 }

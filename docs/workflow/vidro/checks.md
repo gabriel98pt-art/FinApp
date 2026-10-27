@@ -167,3 +167,7 @@ Cartões `.entrada`, `.importado`, `.lista`, `.painelEditor` compõem o vidro. D
 B12 — Login
 
 `.cartao` compõe o vidro; botão "Entrar" preto (creme no escuro), links em `--blu-txt`. `--r-card` 22px bom em 390px. Capturas: b12-login-* (inclui o estado de erro).
+
+## B13 — folhas e modais partilhados
+
+BottomSheet, MenuRegistroRapido, RegistroRapido, ConfirmarAcao e Popover já herdam as superfícies sólidas quentes (`--s1`, creme/café), os botões pretos/cremes e a terracota; ficam opacos de propósito (flutuam sobre conteúdo e têm campos de texto). Alterado: os segmentados do formulário de registo (Gasto/Reembolso, Hoje/Ontem/Escolher data, sub-tipos do Veículo) passam a pílula com o ativo branco/creme (`--aba-ativa-*`). Capturas: b13-menu-registro, b13-registro-form, b13-folha-copiloto, b13-ordenar (popover a 1180), b13-confirmar. DESVIO: o véu escuro atrás das folhas (rgba preto 35%) não foi tornado quente; fica como estava.
