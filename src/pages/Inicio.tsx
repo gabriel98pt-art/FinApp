@@ -19,8 +19,8 @@ import {
 } from "../stores/lancamentosStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import { hojeIso, mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
-import { despesaRegistradaMes } from "../utils/resumoMensal";
+import { hojeIso, mesAtual } from "../utils/calculos";
+import { resultadoDoMes } from "../utils/resumoMensal";
 import styles from "../components/InicioSecoes.module.css";
 import grade from "./Inicio.module.css";
 
@@ -81,11 +81,10 @@ export default function Inicio() {
   // referências dos arrays das stores só mudam quando os dados de fato
   // mudam (todo service do app substitui o array, nunca muta em lugar), então
   // a lista de dependências já é o sinal certo de "recalcular ou não".
-  const resumo = useMemo(() => {
-    const r = totalDoMes(receitasNosTotais(receitas), mes);
-    const d = despesaRegistradaMes(despesas, despesasFixas, veiculo, mes, mesReal, hoje);
-    return { receitas: r, despesas: d, saldo: r - d };
-  }, [receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje]);
+  const resumo = useMemo(
+    () => resultadoDoMes(receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje),
+    [receitas, despesas, despesasFixas, veiculo, mes, mesReal, hoje],
+  );
   return (
     <Pagina titulo="Início" tituloVisivel={false}>
       {/* Compacta, e acima dos números: a faixa cheia substituiria o quadro, e

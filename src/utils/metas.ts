@@ -80,6 +80,15 @@ export function calcularMetaMensal(
   return { receitas: rec, despesas: desp, saldo, meta, pct, atingiu: saldo >= meta, fechado };
 }
 
+/** Taxa de poupança do mês, em %: a parte da receita que sobrou (nunca
+ *  negativa). A fórmula do KPI "Taxa de Poupança" de Planejamento → Metas,
+ *  extraída para a Análise usar a mesma. `null` sem receita — a percentagem
+ *  não existe, e dividir por zero daria NaN/∞; quem mostra decide ("—"). */
+export function taxaPoupanca(receitas: Cents, saldo: Cents): number | null {
+  if (receitas <= 0) return null;
+  return Math.round((Math.max(0, saldo) / receitas) * 100);
+}
+
 export interface TotalFundos {
   atual: Cents;
   alvo: Cents;

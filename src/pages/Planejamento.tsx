@@ -34,7 +34,7 @@ import {
   mesesRecentes,
   rotuloMes,
 } from "../utils/calculos";
-import { calcularMetaMensal, poupancaMeses, totalFundos } from "../utils/metas";
+import { calcularMetaMensal, poupancaMeses, taxaPoupanca, totalFundos } from "../utils/metas";
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
 import { idAba, idPainelAba } from "../utils/abas";
@@ -149,8 +149,7 @@ export default function Planejamento() {
     real,
     hoje,
   );
-  const taxaPoupanca =
-    meta.receitas > 0 ? Math.round((Math.max(0, meta.saldo) / meta.receitas) * 100) : 0;
+  const taxaPoupancaMes = taxaPoupanca(meta.receitas, meta.saldo) ?? 0;
 
   const [novoAberto, setNovoAberto] = useState(false);
   const [nome, setNome] = useState("");
@@ -291,7 +290,7 @@ export default function Planejamento() {
           <>
             <Kpis pagina="metas">
               <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, moeda)} tom="acento" />
-              <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupanca}%`} tom="verde" />
+              <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupancaMes}%`} tom="verde" />
               <KpiCard
                 rotulo="Total em Fundos"
                 valor={formatMoney(fundosAtual, moeda)}

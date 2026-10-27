@@ -208,3 +208,28 @@ export function despesaRegistradaMes(
     fixasSemEspelhoNoMes(veiculo.despesasFixas, veiculo.despesas, ym, mesReal, hoje)
   );
 }
+
+export interface ResultadoDoMes {
+  receitas: Cents;
+  despesas: Cents;
+  /** receitas − despesas: o número grande do "Resultado do mês". */
+  saldo: Cents;
+}
+
+/** Receitas, despesas e saldo de um mês em FLUXO DE CAIXA — a conta do quadro
+ *  "Resultado do mês" da Início, extraída para a Análise a usar exatamente a
+ *  mesma e os dois nunca divergirem. Receita pela data real
+ *  (`receitasNosTotais`), despesa por `despesaRegistradaMes`. */
+export function resultadoDoMes(
+  receitas: Receita[],
+  despesasCorrentes: DespesaCorrente[],
+  despesasFixas: DespesaFixa[],
+  veiculo: DadosVeiculo,
+  ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
+): ResultadoDoMes {
+  const r = totalDoMes(receitasNosTotais(receitas), ym);
+  const d = despesaRegistradaMes(despesasCorrentes, despesasFixas, veiculo, ym, mesReal, hoje);
+  return { receitas: r, despesas: d, saldo: r - d };
+}
