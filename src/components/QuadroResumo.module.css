@@ -1,11 +1,8 @@
-/* O quadro de resumo: o ÚNICO cartão destacado de uma página — raio 20 de
-   propósito, acima do --r-card dos outros cartões, para ler como "o número da
-   página". Partilhado pelo Resultado do mês (Início) e pelos KPIs das outras
+/* O quadro de resumo: o ÚNICO cartão destacado de uma página, agora em vidro
+   (styles/vidro.module.css). Partilhado pelo Resultado do mês (Início) e pelos KPIs das outras
    telas. */
 .quadro {
-  background: var(--s1);
-  border-radius: 20px;
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 20px 20px 18px;
 }
 
@@ -35,7 +32,7 @@
    largura em vez de partir a linha. */
 .inteiro {
   font-size: clamp(36px, 12vw, 48px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.04em;
 }
 
@@ -54,7 +51,7 @@
    caber, e corta com reticências em vez de partir o quadro. */
 .texto {
   font-size: clamp(26px, 8vw, 34px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
   min-width: 0;
   overflow: hidden;

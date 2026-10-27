@@ -64,3 +64,15 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 - DESVIO: sem o pulso de brilho do "+" (a prévia não o tem; com o botão preto um brilho terracota ficava estranho). Vale para o FAB de desktop também.
 - Não movido: a prévia do iPad mostra o "+" no topo da pílula; aqui o FAB continua no canto inferior direito (mudar a posição seria mudança de função). Marcado unresolved.
 - Capturas: a4-* (Chromium e WebKit).
+
+## A5 — componentes base
+
+- QuadroResumo: `.quadro` compõe o vidro (`vidro.module.css`); número grande a 600 com tabular-nums (era 700); título de página 600 (era 700). API intacta.
+- Segmentado (Despesas, Planejamento, Veículo, TVDE): pílula de vidro, aba ativa em branco (creme no escuro), com `--aba-ativa-*`.
+- Chips de estado: Pago ✓ e Pendente ◷, por CSS (`::before` com `/ ""`), então o texto não muda; usam os `--selo-*` recalculados (A1/A2). Chips de estado só onde já existe um estado: o estado "Atrasado" (!) não existe hoje no código (A pagar mostra "hoje/amanhã/dia"), por isso não foi criado.
+- Chips de variação ▲/▼: não existe nenhum chip de variação no código (o KPI "vs setembro" é um texto, não um chip). Não criei componente novo. Unresolved, para decidir com o plano da Início/Análise.
+- Toggles (SettingsSwitchRow): já usam `--blu` (terracota) com polegar branco; sem alteração.
+- Anéis e barras: as barras (Categorias, trilho) usam `--blu`, agora terracota. O app não tem anéis de progresso hoje (só o donut de categorias, com cores de categoria). Sem alteração.
+- Botões primários: `--btn-bg` (A1).
+- Tipografia: `--fs-micro` 0.68rem → 0.6875rem (11px) e os 4 tamanhos soltos abaixo de 11px (0.58/0.62/0.65rem) passam a `--fs-micro`. Alterou a medida do selo/badge em ~0,1px.
+- DESVIO: o alternador "Mês/Semana" (pilulas.module.css, preenchido a preto) não foi mexido: é outro componente e já está no desenho novo (preto/creme).

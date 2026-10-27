@@ -77,7 +77,7 @@
      que cada um tenha um papel próprio. Um valor fora da escala num
      .module.css é agora um sinal de que ou o papel do texto é novo, ou (muito
      mais provável) é um dos casos que a escala já cobre. */
-  --fs-micro: 0.68rem; /* selo, badge, contador, rótulo de aba */
+  --fs-micro: 0.6875rem; /* 11px: o mínimo do app. selo, badge, contador, rótulo de aba */
   --fs-label: 0.76rem; /* rótulo, legenda, nota de apoio, overline em caps */
   --fs-body: 0.85rem; /* corpo de lista, texto de botão, texto padrão */
   --fs-title: 0.95rem; /* título de secção e de cartão, linha de destaque */

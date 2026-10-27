@@ -1,5 +1,5 @@
-/* Abas segmentadas (Correntes/Fixas, Orçamento/Metas…): uma pista de fundo
-   --s2 com a aba ativa a subir em --s1. Cada página dá o seu `.abas`,
+/* Abas segmentadas (Correntes/Fixas, Orçamento/Metas…): uma pílula de vidro
+   com a aba ativa em branco (creme no escuro). Cada página dá o seu `.abas`,
    `.abaBotao` e `.abaAtiva` com `composes`; o que for só dela (a cor do ativo
    no TVDE, o esbatimento nas abas do Veículo) fica no módulo dela.
 
@@ -9,8 +9,9 @@
   display: flex;
   gap: 2px;
   padding: 3px;
-  border-radius: 11px;
-  background: var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--vidro-bg);
+  box-shadow: inset 0 0 0 1px var(--vidro-brd);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -23,7 +24,7 @@
   flex: 1;
   min-height: 30px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: var(--r-pill);
   font-size: 13px;
   font-weight: 500;
   color: var(--mut);
@@ -32,8 +33,8 @@
 }
 
 .abaAtiva {
-  background: var(--s1);
-  color: var(--txt);
+  background: var(--aba-ativa-bg);
+  color: var(--aba-ativa-txt);
   font-weight: 600;
-  box-shadow: var(--sh-sm);
+  box-shadow: var(--aba-ativa-sh);
 }

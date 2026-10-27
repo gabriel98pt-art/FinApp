@@ -7,7 +7,7 @@
 /* Título da página, grande como na prévia (28px). */
 .titulo {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.15;
 }

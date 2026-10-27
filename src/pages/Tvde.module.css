@@ -146,7 +146,7 @@
 
 .badgeTeste {
   font-style: normal;
-  font-size: 0.65rem;
+  font-size: var(--fs-micro);
   font-weight: 700;
   /* Tokens dos selos — ver nota em tokens.css. A 0.65rem este é o selo mais
      pequeno do app, portanto o que menos margem tinha para falhar contraste. */

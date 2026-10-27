@@ -21,3 +21,16 @@
   color: var(--selo-pendente-txt);
   background: var(--selo-pendente-bg);
 }
+
+/* O estado não pode depender só da cor: um glifo antes do texto. Em CSS (e
+   com `/ ""`, que o marca como decoração para os leitores de ecrã) porque o
+   texto do selo — "Pago", "Pendente" — não muda. */
+.badgePago::before {
+  content: "✓ ";
+  content: "✓ " / "";
+}
+
+.badgePendente::before {
+  content: "◷ ";
+  content: "◷ " / "";
+}
