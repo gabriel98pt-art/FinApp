@@ -40,3 +40,7 @@ DESVIOS / unresolved:
 3. A taxa de poupança aqui usa o fluxo de caixa; a de Planejamento → Metas usa a despesa por cronograma (nota do D1).
 4. Texto novo desta página (inevitável): "Ainda não há dados para analisar", "Sem receitas neste mês", "Com mais um mês de histórico aparecem aqui…", "este mês" no cabeçalho das categorias com 1 só mês.
 5. Capturas e WebKit: FinApp-capturas/analise/.
+
+## D3 — capturas e fecho
+
+Capturas em ~/Projetos/Dev/FinApp-capturas/analise/ (Chromium): analise-390-claro, analise-390-escuro, analise-320-claro, analise-820-claro (2 colunas), analise-1180-claro, analise-3meses-390-claro, analise-12meses-390-claro (só 6 meses de histórico: a janela encolhe), analise-borda-1mes-390-claro (um mês de dados, receita 0, nome de categoria comprido), analise-vazio-390-claro, analise-menu-mais-390-{claro,escuro}. WebKit: analise-390-claro-webkit, analise-1180-claro-webkit, analise-12meses-390-claro-webkit, analise-borda-1mes-390-claro-webkit (o anel e os gráficos desenham-se bem). HISTORICO.md atualizado.

@@ -9,6 +9,27 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 27/10/2026 (página Análise)
+
+- **Nova página Análise.** Fica no menu "Mais" do telemóvel e na barra lateral
+  dos ecrãs grandes, a seguir ao Planejamento. Mostra, para o mês escolhido no
+  cabeçalho e para os últimos 3, 6 ou 12 meses: a taxa de poupança (num anel,
+  com a média do período), as receitas e as despesas mês a mês em duas linhas,
+  o mês contra a sua média, o gasto de cada semana, as maiores categorias mês
+  a mês e os três maiores gastos do mês.
+- **Os números são os de sempre.** Receitas e despesas de cada mês são as do
+  "Resultado do mês" da Início, a taxa de poupança é a do Planejamento e a
+  média é a mesma das "Média (3 meses)": nada foi calculado de outra maneira.
+- **Setas além da cor.** Os pequenos sinais de variação levam ▲ ou ▼ e, em
+  vez de só vermelho ou verde, têm o texto "pior" ou "melhor" para quem usa
+  leitor de ecrã. Gastar mais do que a média é pior; receber mais é melhor.
+- **Com pouco histórico** a página mostra o que dá (a taxa, as semanas, as
+  categorias) e esconde as comparações; sem nada, mostra um aviso.
+- **Limpeza.** Saiu o ficheiro antigo que dava ao botão "+" a cor de cada
+  página; o "+" é preto (creme no escuro) em todo o lado.
+
+---
+
 ## 27/10/2026 (visual novo "vidro claro e terracota" na app toda)
 
 - **Cores novas.** O fundo passou a creme quente com manchas suaves (e, no
