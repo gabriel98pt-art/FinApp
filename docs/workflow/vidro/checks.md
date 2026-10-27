@@ -177,3 +177,9 @@ BottomSheet, MenuRegistroRapido, RegistroRapido, ConfirmarAcao e Popover já her
 C1 — vermelho vs terracota
 
 Matiz em OKLCH: claro `--red` #B11F4B H=10,1° vs `--blu-txt` #974926 H=43,3° → ΔH 33° (antes #A8350A H=37,5°, ΔH 6°). Escuro `--red` #FD7B97 H=8,3° vs `--blu` #F0844F H=45,6° → ΔH 37° (antes #FF8F75 H=34,1°, ΔH 11°). Contrastes `--red`: claro 4,80 no ponto mais escuro do mesh, 6,0 no vidro, 5,6 sobre --s2, 5,46 sobre o tint #FBE3EA; escuro 6,4 sobre --s1, 6,7 no vidro, 4,82 sobre o tint (16%). Chips vermelhos: `--soft-red` e `--selo-alerta-bg` seguem. DESVIO: o ponto de partida do planejador (#B4233C) dá H=18° (ΔH 25°), por isso desci para H≈10° (#B11F4B). DESVIO: contador de notificações usa `--bg` (cor do número) em vez de #fff. Capturas antes/depois: vidro-faseC/{antes,depois}-{metas,tvde,despesas}-390-{claro,escuro}.png.
+
+## C2
+
+C2 — TVDE, fio azul do cartão do topo
+
+Removido o `.hero::before` (linha de 1px em `--tvde` na borda de cima). Era a única origem; não havia border-top. Capturas: vidro-faseC/{antes,depois}-tvde-390-{claro,escuro}.png.

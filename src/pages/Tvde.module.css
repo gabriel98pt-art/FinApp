@@ -10,16 +10,6 @@
   overflow: hidden;
 }
 
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--tvde);
-}
-
 .heroRotulo {
   color: var(--mut);
   font-size: var(--fs-label);
