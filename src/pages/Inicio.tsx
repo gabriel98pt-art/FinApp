@@ -93,7 +93,7 @@ export default function Inicio() {
           dados que já lá estavam. */}
       {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
       <div className={grade.grade}>
-        <div className={grade.coluna}>
+        <div className={`${grade.coluna} ${grade.resultado}`}>
           <ResultadoDoMes
             receitas={resumo.receitas}
             despesas={resumo.despesas}
@@ -103,10 +103,10 @@ export default function Inicio() {
           />
           <AvisoOrcamento />
         </div>
-        <div className={grade.coluna}>
+        <div className={`${grade.coluna} ${grade.pagar}`}>
           <APagarEsteMes />
         </div>
-        <div className={grade.coluna}>
+        <div className={`${grade.coluna} ${grade.categorias}`}>
           <OndeFoiODinheiro />
         </div>
         <div className={`${grade.coluna} ${grade.movimentos}`}>

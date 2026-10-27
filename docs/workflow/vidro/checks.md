@@ -86,3 +86,14 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 - "Resultado do mês" na prévia traz o chip "▲ 8% vs set", "Entrou X · saiu Y", Semana/Mês/Ano e Exportar: NÃO entram (funções/textos novos).
 - hex soltos novos fora de tokens.css: nenhum (o único é o `theme-color` do useAplicarTema, que já tinha hex).
 - Capturas (Chromium e WebKit): ver lista no relatório.
+
+# Fase B
+
+## B0a — cabeçalho no tom do fundo
+
+- `--cabecalho-bg`: creme #FBF3EA a 90% no claro; #15100C a 90% no escuro, com fio `--linha` por baixo. Sem blur abaixo de 768px; ≥ 768px blur leve (com -webkit-) e fundo sólido com prefers-reduced-transparency. Tirei a classe `.material` do header.
+- ≥ 768px a faixa ocupa a largura toda (já não começa depois da sidebar); só o conteúdo se afasta (`padding-left: --sidebar-w + 16px`). A sidebar sobe para z-index 31 (acima do header, 30) para não ficar por baixo dele em ecrãs baixos.
+
+## B0b — Início ≥ 1024px
+
+- Escolha: o "Perguntar ao Copiloto" passa para a coluna 2, por baixo do "A pagar" (grid-template-areas, fila do meio 1fr); Últimos movimentos ficam por baixo das duas primeiras colunas. Sem conteúdo novo. A ordem do DOM e a do telemóvel não mudam.

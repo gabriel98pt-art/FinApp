@@ -30,16 +30,37 @@
   }
 }
 
+/* Três colunas: Resultado | A pagar | Categorias. O Copiloto fica na coluna do
+   meio, por baixo do A pagar (a coluna ficava com um vazio grande), e os
+   Últimos movimentos por baixo das duas primeiras. A fila do meio é a que
+   estica (1fr), para o Copiloto encostar ao A pagar. */
 @media (min-width: 1024px) {
   .grade {
     grid-template-columns: 1.15fr 1fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "resultado pagar categorias"
+      "resultado copiloto categorias"
+      "movimentos movimentos categorias";
+  }
+
+  .resultado {
+    grid-area: resultado;
+  }
+
+  .pagar {
+    grid-area: pagar;
+  }
+
+  .categorias {
+    grid-area: categorias;
   }
 
   .movimentos {
-    grid-column: 1 / span 2;
+    grid-area: movimentos;
   }
 
   .copiloto {
-    grid-column: 3;
+    grid-area: copiloto;
   }
 }

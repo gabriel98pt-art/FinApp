@@ -12,3 +12,11 @@ Regras: um commit por nó (format → lint → test → build) com push. ZERO mu
 - A6 Início (Resultado do mês em destaque terracota, secções em vidro, grelha de 3 colunas ≥768px)
 
 Arestas: A1 → A2, A3 → A4, A5 → A6. TVDE passa ao azul do TVDE Pro (#3F5EF0 claro, #8FA2FF escuro), tokens `--tvde*`.
+
+## Fase B (liberada após revisão da Fase A)
+
+- B0a cabeçalho no tom do fundo (creme ~90%, sem blur abaixo de 768px, fio fino); também em ≥ 768px
+- B0b Início ≥ 1024px: Copiloto para a coluna 2, sob "A pagar"
+- B1 Despesas · B2 Receitas · B3 Transações · B4 Parcelas · B5 Cartões · B6 Calendário · B7 Planejamento · B8 Veículo · B9 TVDE · B10 Definições · B11 Importar · B12 Login · B13 Folhas e modais partilhados
+- Regras: as da Fase A. Só cartões de vidro, raios, cores e tipografia; mesmo conteúdo e ordem; confirmar --r-card 22px em cada tela; capturas 390 claro/escuro, 320 claro, 1180 claro, 390 claro WebKit em FinApp-capturas/vidro-faseB/ (dados realistas + borda). Fim: HISTORICO.md.
+- Do Gabriel (não mexer): apagar corBotaoRegistro.ts; "+" do iPad fica no canto.
