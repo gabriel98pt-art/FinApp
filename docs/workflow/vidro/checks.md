@@ -183,3 +183,9 @@ Matiz em OKLCH: claro `--red` #B11F4B H=10,1° vs `--blu-txt` #974926 H=43,3° �
 C2 — TVDE, fio azul do cartão do topo
 
 Removido o `.hero::before` (linha de 1px em `--tvde` na borda de cima). Era a única origem; não havia border-top. Capturas: vidro-faseC/{antes,depois}-tvde-390-{claro,escuro}.png.
+
+## C3
+
+C3 — pares rótulo + valor inteiros
+
+Em vez de `white-space: nowrap` por par (exigia partir o texto em elementos e quebrava os testes que procuram a frase inteira), usei espaços sem quebra (U+00A0) dentro de cada par, via `semQuebra()` em utils/money.ts: o efeito visual é o mesmo (pode quebrar entre pares, nunca dentro) e o texto copiado/lido não muda. Aplicado: TVDE (semanas), Cartões (2 subtextos), Parcelas ("inclui € X quitado"), Despesas e Receitas ("era € X"). Procurei outros subtextos "rótulo € valor": os restantes têm o valor num elemento próprio (negrito) ou já cabem numa linha. DESVIO: dois testes de Cartões comparavam o `textContent` bruto; agora trocam U+00A0 por espaço antes de comparar. Capturas: vidro-faseC/{antes,depois}-tvde-{390,320}-{claro,escuro}.png.

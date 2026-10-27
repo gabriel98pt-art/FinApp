@@ -110,3 +110,10 @@ export function formatCents(cents: Cents): string {
 export function formatMoney(cents: Cents, currency: Currency): string {
   return `${CURRENCY_SYMBOLS[currency]} ${formatCents(cents)}`;
 }
+
+/** Troca os espaços por espaços sem quebra: "€ 339,38" (ou "Custos € 339,38")
+ *  nunca parte a meio numa linha estreita. O texto lê-se igual — só deixa de
+ *  haver onde quebrar. Para os pares rótulo+valor de um subtexto. */
+export function semQuebra(texto: string): string {
+  return texto.replace(/ /g, "\u00a0");
+}

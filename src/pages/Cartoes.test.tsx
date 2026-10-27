@@ -168,7 +168,10 @@ describe("Cartoes", () => {
       .getAllByRole("button")
       .find((b) => b.textContent?.includes("Fatura de agosto 2026 · a pagar"))!;
     expect(quadro.textContent).toContain("Fatura de agosto 2026 · a pagar€ 100,00");
-    expect(quadro.textContent).toContain("Fatura de setembro 2026 (em formação): € 25,00");
+    // O valor leva espaços sem quebra (não parte a meio numa linha estreita).
+    expect(quadro.textContent?.replace(/\u00a0/g, " ")).toContain(
+      "Fatura de setembro 2026 (em formação): € 25,00",
+    );
   });
 
   // A hierarquia invertida do quadro de débito: o movimento do mês (−57,00 no
@@ -196,7 +199,9 @@ describe("Cartoes", () => {
       .getAllByRole("button")
       .find((b) => b.textContent?.includes("Saldo atual"))!;
     // O saldo vem antes do gasto no texto do quadro — é ele a manchete.
-    expect(quadro.textContent).toMatch(/Saldo atual€ 4\.657,00Gasto em agosto 2026: € 57,00/);
+    expect(quadro.textContent?.replace(/\u00a0/g, " ")).toMatch(
+      /Saldo atual€ 4\.657,00Gasto em agosto 2026: € 57,00/,
+    );
   });
 
   test("gasto negativo do mês é dito como devolução, não como saldo a menos", () => {

@@ -59,7 +59,7 @@ import {
   type DadosContas,
   type ResumoConta,
 } from "../utils/contas";
-import { formatMoney } from "../utils/money";
+import { formatMoney, semQuebra } from "../utils/money";
 import { debitoDaMesmaInstituicao, nomeAtualDoMetodo } from "../utils/instituicoes";
 import styles from "./Cartoes.module.css";
 import Botao from "../components/Botao";
@@ -235,9 +235,8 @@ function leiturasDoQuadro(
           : `Fatura de ${rotuloMes(mes)} · a pagar`,
       valor: formatMoney(restante, moeda),
       tom: restante > 0 ? styles.amarelo : styles.verde,
-      secundario: `Fatura de ${rotuloMes(proximo)}${emFormacao ? " (em formação)" : ""}: ${formatMoney(
-        faturaSeguinte?.devido ?? 0,
-        moeda,
+      secundario: `Fatura de ${rotuloMes(proximo)}${emFormacao ? " (em formação)" : ""}: ${semQuebra(
+        formatMoney(faturaSeguinte?.devido ?? 0, moeda),
       )}`,
     };
   }
@@ -250,7 +249,7 @@ function leiturasDoQuadro(
     tom: r.saldoAtual < 0 ? styles.vermelho : "",
     secundario:
       r.gastoMes > 0
-        ? `Gasto em ${rotuloMes(mes)}: ${formatMoney(r.gastoMes, moeda)}`
+        ? `Gasto em ${rotuloMes(mes)}: ${semQuebra(formatMoney(r.gastoMes, moeda))}`
         : r.gastoMes < 0
           ? // Gasto negativo é dinheiro que voltou (reembolso, estorno) — chamar
             // isso de "gasto de −57,00" era pedir para ser lido como dívida.

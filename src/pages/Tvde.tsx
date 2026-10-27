@@ -43,6 +43,7 @@ import {
 } from "../utils/tvde";
 import { idAba, idPainelAba } from "../utils/abas";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
+import { semQuebra } from "../utils/money";
 import styles from "./Tvde.module.css";
 
 // Moeda FIXA em EUR (seção 4.4) — este módulo NÃO segue a moeda da conta.
@@ -460,7 +461,13 @@ export default function Tvde() {
                       nSem={nSem}
                       rotulo={`Semana ${nSem} · ${rotuloDaSemana(cfg.inicioSemana1, nSem)}`}
                       teste={w.teste ?? false}
-                      detalhe={`Fat. ${eur(w.fat)} · Receita ${eur(c.receita)} · Custos ${eur(c.custos)}`}
+                      detalhe={[
+                        `Fat. ${eur(w.fat)}`,
+                        `Receita ${eur(c.receita)}`,
+                        `Custos ${eur(c.custos)}`,
+                      ]
+                        .map(semQuebra)
+                        .join(" · ")}
                       lucro={eur(c.lucro)}
                       lancada={!!lancada}
                       aoEditar={() => setEditando(nSem)}

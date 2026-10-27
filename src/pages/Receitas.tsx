@@ -32,7 +32,7 @@ import {
   totalDoMes,
   variacaoMensal,
 } from "../utils/calculos";
-import { formatMoney } from "../utils/money";
+import { formatMoney, semQuebra } from "../utils/money";
 import styles from "./Receitas.module.css";
 
 export default function Receitas() {
@@ -143,7 +143,7 @@ export default function Receitas() {
           // O rótulo muda com o mês; a escolha de destaque casa pela chave.
           chave="vs mês passado"
           valor={variacao === null ? (totalMes > 0 ? "Novo" : "—") : rotuloVariacao(variacao)}
-          sub={`era ${formatMoney(totalMesAnterior, moeda)}`}
+          sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
           tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "verde" : "vermelho"}
         />
         <KpiCard

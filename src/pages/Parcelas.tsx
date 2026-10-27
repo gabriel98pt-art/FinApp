@@ -36,7 +36,7 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { Cents, Currency, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
-import { formatMoney } from "../utils/money";
+import { formatMoney, semQuebra } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
 import {
@@ -584,7 +584,7 @@ export default function Parcelas() {
           valor={formatMoney(totalDoMes, moeda)}
           sub={
             totalQuitadasNoMes > 0
-              ? `inclui ${formatMoney(totalQuitadasNoMes, moeda)} quitado`
+              ? `inclui ${semQuebra(formatMoney(totalQuitadasNoMes, moeda))} quitado`
               : undefined
           }
           tom="acento"

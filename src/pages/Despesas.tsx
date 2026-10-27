@@ -52,7 +52,7 @@ import { LIMIAR_PERTO_ORCAMENTO, statusOrcamentoMes } from "../utils/orcamento";
 import { liquidoDaDespesa } from "../utils/reembolsos";
 import { despesaRealizadaMes, primeiroMesComDespesa } from "../utils/resumoMensal";
 import { despesaPorCategoriaMes, maiorCategoriaRelevante } from "../utils/despesaPorCategoria";
-import { formatMoney } from "../utils/money";
+import { formatMoney, semQuebra } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import type { Cents, DespesaFixa, Id } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
@@ -438,7 +438,7 @@ export default function Despesas() {
           valor={
             variacao === null ? (totalDoMesComVeiculo > 0 ? "Novo" : "—") : rotuloVariacao(variacao)
           }
-          sub={`era ${formatMoney(totalMesAnterior, moeda)}`}
+          sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
           tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"}
         />
         {/* Mesmo cartão, mesmas palavras e mesmo tom do de Receitas: os dois
