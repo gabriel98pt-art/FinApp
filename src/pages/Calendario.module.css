@@ -7,10 +7,7 @@
 }
 
 .grid {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 10px;
 }
 
@@ -157,14 +154,11 @@
 }
 
 .item {
+  composes: vidro from "../styles/vidro.module.css";
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
   padding: 12px 14px;
 }
 

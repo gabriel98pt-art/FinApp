@@ -127,3 +127,9 @@ Os cartões das compras parceladas (`.parcela`) e o de "Serviços de parcelament
 `.cartao`, `.quadro` (cartão clicável) e `.item` (transferências) compõem o vidro. Mesmo conteúdo e ordem. `--r-card` 22px ficou bem (cartões de 140–180px). Borda: cartão sem transações, lista de transferências vazia, valores de 4 dígitos.
 
 - Capturas: FinApp-capturas/vidro-faseB/b5-cartoes-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B6 — Calendário
+
+A grelha do mês (`.grid`) e os cartões da lista (`.item`) compõem o vidro. O dia de hoje continua em terracota com texto `--on-blu` (5,8:1). Os pontos de vencimento mantêm as cores de tipo. `--r-card` 22px: bom na grelha (≈ 450px) e nos itens (≈ 60px de altura, ficam quase em cápsula; aceitável). Borda: dia sem eventos, nome comprido, lista vazia.
+
+- Capturas: FinApp-capturas/vidro-faseB/b6-calendario-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
