@@ -4,8 +4,8 @@ import { ListTree, Pencil, Trash2 } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import BottomSheet from "../components/BottomSheet";
-import CategoriaBolha from "../components/CategoriaBolha";
 import ErroSincronizacao from "../components/ErroSincronizacao";
+import IconeLinha from "../components/IconeLinha";
 import FiltroTransacoes from "../components/FiltroTransacoes";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import Paginador from "../components/Paginador";
@@ -31,6 +31,7 @@ import type { Currency } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
+import { agruparPorDia, rotuloDoDia } from "../utils/agruparPorDia";
 import { dadosDespesaDaCarga } from "../utils/veiculo";
 import {
   entraDinheiro,
@@ -76,24 +77,24 @@ function LinhaTransacao({
   ];
 
   return (
-    <>
+    <li>
       <button
         ref={ancoraRef}
         className={styles.linha}
         onClick={() => (editavel ? setMenuAberto(true) : aoAbrirDetalhe(t))}
         aria-haspopup={editavel ? "dialog" : undefined}
       >
-        <CategoriaBolha categoria={t.categoria ?? ""} tamanho={32} />
+        <IconeLinha categoria={t.categoria} entrada={entrada} />
+        {/* A data já está no cabeçalho do dia, por isso não se repete aqui. */}
         <span className={styles.texto}>
           <span className={styles.titulo}>{t.titulo}</span>
           <span className={styles.detalhe}>
-            {t.data.slice(8, 10)}/{t.data.slice(5, 7)}
-            {t.categoria ? ` · ${t.categoria}` : ""}
-            {t.nota ? ` · ${t.nota}` : ""}
-            {t.conta ? ` · ${nomeDaConta(t.conta)}` : ""}
+            {[t.categoria, t.nota, t.conta ? nomeDaConta(t.conta) : ""].filter(Boolean).join(" · ")}
           </span>
         </span>
-        <span className={`${styles.valor} ${entrada ? styles.entrada : styles.saida}`}>
+        {/* Aqui entram e saem coisas na mesma lista, por isso o sinal fica nos
+              dois lados; só o que entra leva verde. */}
+        <span className={`${styles.valor} ${entrada ? styles.entrada : ""}`}>
           {entrada ? "+" : "−"}
           {formatMoney(Math.abs(t.valor), moeda)}
         </span>
@@ -107,7 +108,7 @@ function LinhaTransacao({
           acoes={acoes}
         />
       )}
-    </>
+    </li>
   );
 }
 
@@ -151,19 +152,40 @@ function ExtratoPaginado({
 
   return (
     <>
-      <div className={styles.lista}>
-        {visiveis.map((t) => (
-          <LinhaTransacao
-            key={t.chave}
-            t={t}
-            moeda={moeda}
-            nomeDaConta={nomeDaConta}
-            aoEditar={aoEditar}
-            aoExcluir={aoExcluir}
-            aoAbrirDetalhe={aoAbrirDetalhe}
-          />
-        ))}
-      </div>
+      {agruparPorDia(visiveis).map((g) => {
+        // O total do dia é o líquido: o que entrou menos o que saiu. Só com 2 ou
+        // mais movimentos — com um, repetiria o valor da linha.
+        const liquido = g.itens.reduce(
+          (soma, t) => soma + (entraDinheiro(t) ? 1 : -1) * Math.abs(t.valor),
+          0,
+        );
+        return (
+          <div key={g.dia} className={styles.dia}>
+            <div className={styles.diaCabecalho}>
+              <h4 className={styles.diaRotulo}>{rotuloDoDia(g.dia)}</h4>
+              {g.itens.length >= 2 && (
+                <span className={styles.diaTotal}>
+                  {liquido < 0 ? "−" : liquido > 0 ? "+" : ""}
+                  {formatMoney(Math.abs(liquido), moeda)}
+                </span>
+              )}
+            </div>
+            <ul className={styles.lista}>
+              {g.itens.map((t) => (
+                <LinhaTransacao
+                  key={t.chave}
+                  t={t}
+                  moeda={moeda}
+                  nomeDaConta={nomeDaConta}
+                  aoEditar={aoEditar}
+                  aoExcluir={aoExcluir}
+                  aoAbrirDetalhe={aoAbrirDetalhe}
+                />
+              ))}
+            </ul>
+          </div>
+        );
+      })}
 
       <Paginador pagina={paginaAtual} paginas={paginas} aoMudar={setPagina} />
     </>
@@ -335,57 +357,59 @@ export default function Transacoes() {
         />
       </Kpis>
 
-      {itens.length > 0 && (
-        <div className={styles.cabecalho}>
-          <span className={styles.contagem}>
-            {filtroAtivo
-              ? `${itensFiltrados.length} de ${itens.length} transações`
-              : `${itens.length} transações`}
-          </span>
-          <FiltroTransacoes
-            categorias={cfg.categoriasDespesa}
-            contas={cfg.contasCartoes}
-            filtroCategoria={filtroCategoria}
-            aoMudarCategoria={setFiltroCategoria}
-            filtroConta={filtroConta}
-            aoMudarConta={setFiltroConta}
-            rotuloConta={(c) => nomeAtualDoMetodo(cfg, c)}
+      <section className={styles.secao} aria-label="Extrato">
+        {itens.length > 0 && (
+          <div className={styles.cabecalhoSecao}>
+            <h3 className={styles.contagem}>
+              {filtroAtivo
+                ? `${itensFiltrados.length} de ${itens.length} transações`
+                : `${itens.length} transações`}
+            </h3>
+            <FiltroTransacoes
+              categorias={cfg.categoriasDespesa}
+              contas={cfg.contasCartoes}
+              filtroCategoria={filtroCategoria}
+              aoMudarCategoria={setFiltroCategoria}
+              filtroConta={filtroConta}
+              aoMudarConta={setFiltroConta}
+              rotuloConta={(c) => nomeAtualDoMetodo(cfg, c)}
+            />
+          </div>
+        )}
+
+        {/* Há linhas na tela: faixa fina por cima, elas continuam a valer. */}
+        {erro && itensFiltrados.length > 0 && <ErroSincronizacao compacto />}
+
+        {erro && itens.length === 0 ? (
+          // Sem nada para mostrar E com a sincronização caída, o vazio seria uma
+          // afirmação errada ("não movimentaste nada") sobre dados que não
+          // chegaram. Aqui a caixa cheia substitui mesmo o vazio.
+          <ErroSincronizacao sub="Não deu para carregar o extrato deste mês." />
+        ) : carregado && itens.length === 0 ? (
+          <EstadoVazio
+            Icone={ListTree}
+            mensagem={`Nada movimentado em ${rotuloMes(mes)}`}
+            sub="Receitas, despesas, parcelas, transferências e o veículo aparecem aqui juntos."
           />
-        </div>
-      )}
-
-      {/* Há linhas na tela: faixa fina por cima, elas continuam a valer. */}
-      {erro && itensFiltrados.length > 0 && <ErroSincronizacao compacto />}
-
-      {erro && itens.length === 0 ? (
-        // Sem nada para mostrar E com a sincronização caída, o vazio seria uma
-        // afirmação errada ("não movimentaste nada") sobre dados que não
-        // chegaram. Aqui a caixa cheia substitui mesmo o vazio.
-        <ErroSincronizacao sub="Não deu para carregar o extrato deste mês." />
-      ) : carregado && itens.length === 0 ? (
-        <EstadoVazio
-          Icone={ListTree}
-          mensagem={`Nada movimentado em ${rotuloMes(mes)}`}
-          sub="Receitas, despesas, parcelas, transferências e o veículo aparecem aqui juntos."
-        />
-      ) : carregado && itensFiltrados.length === 0 ? (
-        <EstadoVazio
-          Icone={ListTree}
-          mensagem="Nenhuma transação com esse filtro"
-          sub="Tente outra categoria ou conta, ou limpe o filtro no ícone acima."
-        />
-      ) : (
-        <ExtratoPaginado
-          /* key: trocar de mês ou de filtro é outra lista — volta pra página 1 */
-          key={`${mes}-${filtroCategoria}-${filtroConta}`}
-          itens={itensFiltrados}
-          moeda={cfg.currency}
-          nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}
-          aoEditar={editar}
-          aoExcluir={(item) => void excluirTransacao(item)}
-          aoAbrirDetalhe={abrirDetalhe}
-        />
-      )}
+        ) : carregado && itensFiltrados.length === 0 ? (
+          <EstadoVazio
+            Icone={ListTree}
+            mensagem="Nenhuma transação com esse filtro"
+            sub="Tente outra categoria ou conta, ou limpe o filtro no ícone acima."
+          />
+        ) : (
+          <ExtratoPaginado
+            /* key: trocar de mês ou de filtro é outra lista — volta pra página 1 */
+            key={`${mes}-${filtroCategoria}-${filtroConta}`}
+            itens={itensFiltrados}
+            moeda={cfg.currency}
+            nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}
+            aoEditar={editar}
+            aoExcluir={(item) => void excluirTransacao(item)}
+            aoAbrirDetalhe={abrirDetalhe}
+          />
+        )}
+      </section>
 
       <BottomSheet
         aberta={detalhe !== null}

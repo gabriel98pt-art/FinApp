@@ -1,33 +1,62 @@
-.cabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+/* Secção sem cartão: contagem como título (17px) com o filtro à direita, 12px
+   até ao extrato, 36px da secção anterior (ver Despesas). */
+.secao {
+  composes: secao from "../styles/secoes.module.css";
+}
+
+.cabecalhoSecao {
+  composes: cabecalho from "../styles/secoes.module.css";
 }
 
 .contagem {
-  font-size: var(--fs-body);
-  color: var(--mut);
+  composes: tituloSecao from "../styles/titulos.module.css";
 }
 
+/* Blocos de um dia, como nas listas de Despesas e Receitas. */
+.dia {
+  composes: dia from "../components/ListaLancamentos.module.css";
+}
+
+.diaCabecalho {
+  composes: diaCabecalho from "../components/ListaLancamentos.module.css";
+}
+
+.diaRotulo {
+  composes: diaRotulo from "../components/ListaLancamentos.module.css";
+}
+
+.diaTotal {
+  composes: diaTotal from "../components/ListaLancamentos.module.css";
+}
+
+/* Linhas finas no fundo da página, sem cartão; o fio começa no texto. */
 .lista {
-  composes: listaLegivel from "../styles/listas.module.css";
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  composes: lista from "../components/ListaLancamentos.module.css";
+}
+
+.lista > li {
+  position: relative;
+}
+
+.lista > li + li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 44px;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--mut) 15%, transparent);
 }
 
 .linha {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
-  padding: 11px 14px;
+  min-height: 54px;
   color: var(--txt);
   text-align: left;
+  border-radius: var(--r-sm);
 }
 
 .linha:hover {
@@ -37,31 +66,29 @@
 .texto {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex: 1;
   min-width: 0;
 }
 
 .titulo {
-  font-weight: 700;
-  font-size: var(--fs-title);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
 }
 
 .detalhe {
   color: var(--mut);
-  font-size: var(--fs-label);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
 }
 
 .valor {
   flex: none;
-  font-weight: 800;
-  font-size: var(--fs-title);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

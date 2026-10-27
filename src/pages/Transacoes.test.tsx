@@ -7,7 +7,7 @@
 // fica bonita e mente —, por isso fica presa por teste.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { ConfigConta, DespesaCorrente, Receita } from "../types";
@@ -109,6 +109,37 @@ describe("Transacoes", () => {
 
     expect(screen.getByText(/Gold Novo/)).toBeInTheDocument();
     expect(screen.queryByText(/AB Gold \(C\)/)).toBeNull();
+  });
+
+  test("o extrato agrupa por dia; o total do dia é o líquido e só aparece com 2+ movimentos", () => {
+    receitas = lista<Receita>([
+      { id: "r1", descricao: "Salário", valor: 185000, data: "2026-08-03", fonte: "Trabalho" },
+    ] as Receita[]);
+    despesas = lista<DespesaCorrente>([
+      { id: "d1", descricao: "Mercado", valor: 4250, data: "2026-08-03", categoria: "Alimentação" },
+      { id: "d2", descricao: "Cinema", valor: 1800, data: "2026-08-10", categoria: "Lazer" },
+    ] as DespesaCorrente[]);
+    desenhar();
+
+    const dias = screen.getAllByRole("heading", { level: 4 }).map((h) => h.textContent);
+    expect(dias).toEqual(["Segunda, 10 ago", "Segunda, 3 ago"]);
+
+    // Dia 3: entrou 1850,00 e saiu 42,50 → +€ 1.807,50 (líquido).
+    const dia3 = screen.getByRole("heading", { name: "Segunda, 3 ago" }).parentElement!;
+    expect(within(dia3).getByText("+€ 1.807,50")).toBeInTheDocument();
+    // Dia 10: um movimento só — só a data, o valor fica na linha.
+    const dia10 = screen.getByRole("heading", { name: "Segunda, 10 ago" }).parentElement!;
+    expect(dia10.textContent).toBe("Segunda, 10 ago");
+  });
+
+  test("o extrato é uma secção sem cartão: a contagem faz de título", () => {
+    despesas = lista<DespesaCorrente>([
+      { id: "d1", descricao: "Mercado", valor: 4250, data: "2026-08-03", categoria: "Alimentação" },
+    ] as DespesaCorrente[]);
+    desenhar();
+
+    const secao = screen.getByRole("region", { name: "Extrato" });
+    expect(within(secao).getByRole("heading", { name: "1 transações" })).toBeInTheDocument();
   });
 
   test("monta e mostra o título", () => {
