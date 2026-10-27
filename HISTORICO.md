@@ -9,6 +9,39 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 27/10/2026 (visual novo "vidro claro e terracota" na app toda)
+
+- **Cores novas.** O fundo passou a creme quente com manchas suaves (e, no
+  escuro, a um castanho-café), os cartões a vidro claro e o destaque do app
+  inteiro a terracota. O laranja deixou de ser só do TVDE, que passou a usar o
+  azul do app TVDE Pro. O verde continua só para receitas e valores
+  positivos, agora num tom menta. Os textos foram medidos para ler bem
+  (contraste de pelo menos 4,5:1) nos dois temas; alguns tons ficaram um passo
+  mais escuros do que na prévia por causa disso.
+- **Vidro.** Os cartões são brancos e translúcidos no telemóvel e só ganham
+  o efeito fosco em ecrãs a partir de 768px (e há versão sólida para quem não
+  suporta ou pede menos transparência).
+- **Navegação nova.** No iPhone, a barra de baixo é uma pílula flutuante só
+  com ícones, com a aba ativa num círculo branco e o "+" preto ao centro. No
+  iPad e no computador, a barra lateral é uma pílula vertical de ícones, com o
+  nome a aparecer ao passar o rato ou ao navegar pelo teclado. As abas e o
+  "Mais" são os mesmos de antes.
+- **Cabeçalho** no tom do próprio fundo, sem a faixa branca.
+- **Início.** O "Resultado do mês" é agora o cartão de destaque em terracota
+  com letras brancas; as outras secções são cartões de vidro. Nos ecrãs
+  grandes fica em três colunas, com o "Perguntar ao Copiloto" por baixo do
+  "A pagar".
+- **Todas as outras telas** (Despesas, Receitas, Transações, Parcelas, Cartões,
+  Calendário, Planejamento, Veículo, TVDE, Definições, Importar, Login, folhas
+  e janelas de confirmação) passaram para o mesmo desenho: cartões de vidro,
+  cantos mais redondos, botões principais pretos (cremes no escuro),
+  abas em pílula, estados com um sinal além da cor (✓ Pago, ◷ Pendente) e
+  barras de progresso em terracota.
+- **Nada mudou no que a app faz nem nos textos.** Ficou de fora, de propósito:
+  gráficos, página de análise, seletor Semana/Mês/Ano e "Exportar".
+
+---
+
 ## 27/10/2026 (fase 2 do visual novo: números em linhas, Despesas, Receitas e Transações)
 
 - **Os números pequenos do quadro viraram linhas.** Em vez de três colunas
