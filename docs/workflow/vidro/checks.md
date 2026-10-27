@@ -151,3 +151,7 @@ Sem alterações de código: o quadro de resumo (vidro), as abas segmentadas (p�
 Cartões `.hero`, `.semana`, `.tabela`, `.blocoExtra` compõem o vidro; os destaques (números, linha do topo do herói, "+", aba ativa) usam o azul do TVDE Pro (#3F5EF0 claro, #8FA2FF escuro; 4,7 e 7,0:1 como texto). O resto igual às outras telas. DESVIO: o texto da aba ativa do segmentado usa o azul a 65% com preto (#5D69A6 no escuro, 4,53:1 sobre a aba creme): o #8FA2FF puro dava ~2:1 sobre o creme.
 
 - Capturas: FinApp-capturas/vidro-faseB/b9-tvde-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B10 — Definições
+
+Os grupos (`.grupo`, `SettingsSection .cartao`) compõem o vidro. Os toggles já eram terracota (`--blu`) com polegar branco; o desligado continua em `--s3`. O botão "Apagar conta" mantém o vermelho cheio. Sem outras alterações. `--r-card` 22px: bom (grupos de 3 a 6 linhas). Capturas: FinApp-capturas/vidro-faseB/b10-definicoes-*.

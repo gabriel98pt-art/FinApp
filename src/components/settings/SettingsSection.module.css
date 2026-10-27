@@ -17,10 +17,7 @@
 }
 
 .cartao {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
+  composes: vidro from "../../styles/vidro.module.css";
   overflow: hidden;
 }
 
