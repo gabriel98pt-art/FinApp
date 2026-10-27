@@ -354,9 +354,10 @@ describe("Receitas — visão Mês / Semana", () => {
 
     expect(screen.getByText("Total da semana")).toBeInTheDocument();
     expect(screen.queryByText("Total do mês")).not.toBeInTheDocument();
-    // € 500,00 aparece no cartão e no rodapé da lista — os dois falam agora
-    // do mesmo período, que é justamente o ponto.
-    expect(screen.getAllByText("€ 500,00").length).toBe(2);
+    // € 500,00 aparece no número grande do quadro e no rodapé da lista — os
+    // dois falam agora do mesmo período, que é justamente o ponto.
+    expect(screen.getByRole("img", { name: "€ 500,00" })).toBeInTheDocument();
+    expect(screen.getAllByText("€ 500,00")).toHaveLength(1);
   });
 
   test("as setas andam de semana, e uma semana vazia diz que está vazia", async () => {

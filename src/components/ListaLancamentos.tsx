@@ -227,9 +227,12 @@ export default function ListaLancamentos({
               <div key={g.dia} className={styles.dia}>
                 <div className={styles.diaCabecalho}>
                   <h4 className={styles.diaRotulo}>{rotuloDoDia(g.dia)}</h4>
-                  <span className={styles.diaTotal}>
-                    {formatMoney(somar(g.itens.filter((i) => !i.foraDoTotal)), moeda)}
-                  </span>
+                  {/* Um movimento só: o total repetiria o valor da linha. */}
+                  {g.itens.length >= 2 && (
+                    <span className={styles.diaTotal}>
+                      {formatMoney(somar(g.itens.filter((i) => !i.foraDoTotal)), moeda)}
+                    </span>
+                  )}
                 </div>
                 <ul className={styles.lista}>{g.itens.map(desenharLinha(false))}</ul>
               </div>

@@ -62,13 +62,19 @@ describe("ListaLancamentos — por data", () => {
     expect(dias).toEqual(["Sábado, 24 out", "Sexta, 23 out", "Terça, 20 out"]);
   });
 
-  test("cada cabeçalho traz o total do seu dia à direita", () => {
+  test("o dia com 2 ou mais movimentos traz o total à direita do cabeçalho", () => {
     desenhar({ agruparPorDia: true });
     const sexta = screen.getByRole("heading", { name: "Sexta, 23 out" }).parentElement!;
     // 12,40 + 19,40
     expect(within(sexta).getByText("€ 31,80")).toBeInTheDocument();
+  });
+
+  test("o dia com 1 movimento só mostra a data, sem total", () => {
+    desenhar({ agruparPorDia: true });
     const sabado = screen.getByRole("heading", { name: "Sábado, 24 out" }).parentElement!;
-    expect(within(sabado).getByText("€ 38,70")).toBeInTheDocument();
+    expect(within(sabado).queryByText("€ 38,70")).not.toBeInTheDocument();
+    // O valor aparece só na linha, uma vez.
+    expect(screen.getAllByText("€ 38,70")).toHaveLength(1);
   });
 
   test("o dia que não conta nos totais deixa-o de fora da soma do dia", () => {
@@ -76,11 +82,13 @@ describe("ListaLancamentos — por data", () => {
       agruparPorDia: true,
       itens: [
         item("a", "2026-10-24", 3870),
+        item("g", "2026-10-24", 1000),
         item("f", "2026-10-24", 100000, { foraDoTotal: true }),
       ],
     });
     const dia = screen.getByRole("heading", { name: "Sábado, 24 out" }).parentElement!;
-    expect(within(dia).getByText("€ 38,70")).toBeInTheDocument();
+    // 38,70 + 10,00; o item fora do total não entra.
+    expect(within(dia).getByText("€ 48,70")).toBeInTheDocument();
     // A linha em si continua a aparecer.
     expect(screen.getByText("Item f")).toBeInTheDocument();
   });
