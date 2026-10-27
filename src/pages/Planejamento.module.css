@@ -13,10 +13,7 @@
 }
 
 .cardMeta {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -93,9 +90,12 @@
   overflow: hidden;
 }
 
+/* Barra de progresso em terracota: é progresso rumo a uma meta, não alarme.
+   O verde só aparece quando a meta foi atingida. */
 .preenchido {
   height: 100%;
   border-radius: var(--r-pill);
+  background: var(--blu);
   /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
      o custo de layout de uma barra sem conteúdo é irrelevante. */
   transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
@@ -103,14 +103,6 @@
 
 .preenchidoOk {
   background: var(--grn);
-}
-
-.preenchidoMeio {
-  background: var(--ylw);
-}
-
-.preenchidoAlerta {
-  background: var(--red);
 }
 
 .cardMetaLinhas {
@@ -195,10 +187,7 @@
 }
 
 .fundoCard {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 14px 16px;
   display: flex;
   flex-direction: column;

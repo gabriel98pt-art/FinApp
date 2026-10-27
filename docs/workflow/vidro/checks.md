@@ -133,3 +133,9 @@ Os cartões das compras parceladas (`.parcela`) e o de "Serviços de parcelament
 A grelha do mês (`.grid`) e os cartões da lista (`.item`) compõem o vidro. O dia de hoje continua em terracota com texto `--on-blu` (5,8:1). Os pontos de vencimento mantêm as cores de tipo. `--r-card` 22px: bom na grelha (≈ 450px) e nos itens (≈ 60px de altura, ficam quase em cápsula; aceitável). Borda: dia sem eventos, nome comprido, lista vazia.
 
 - Capturas: FinApp-capturas/vidro-faseB/b6-calendario-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B7 — Planejamento
+
+Cartões `.cardMeta`, `.fundoCard` e o `OrcamentoCard` ("Orçamento por categoria") compõem o vidro. Barras de progresso em terracota: em "Orçamento por categoria" a barra deixa de levar a cor da categoria (a bolinha da categoria mantém a sua) e fica em `--blu`, vermelha só quando estoura (como já era); em Metas, as barras dos fundos (antes vermelho < 40%, âmbar < 80%, verde ≥ 80%) e a da meta mensal (antes vermelha enquanto não atingida) ficam em terracota, verde só quando a meta mensal é atingida. Sem anéis nem card "Nova meta" tracejado (não existem). DESVIO: as cores por estado das barras dos fundos desaparecem (pedido do planejador: terracota); o estado continua legível pelo texto e pelo selo "Na meta". Capturas das Metas: b7-planejamento-metas-390-*.png.
+
+- Capturas: FinApp-capturas/vidro-faseB/b7-planejamento-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).

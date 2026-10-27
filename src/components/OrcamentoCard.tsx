@@ -12,7 +12,6 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { hojeIso, mesAtual } from "../utils/calculos";
-import { corDaCategoriaVisual } from "../utils/categoriaVisual";
 import { formatMoney } from "../utils/money";
 import {
   gastosDaCategoriaMes,
@@ -229,7 +228,6 @@ export default function OrcamentoCard() {
         <div className={styles.lista}>
           {status.map((s) => {
             const perto = !s.estourado && s.pct >= LIMIAR_PERTO_ORCAMENTO;
-            const cor = corDaCategoriaVisual(cfg, s.categoria);
             return (
               <button
                 key={s.categoria}
@@ -260,7 +258,7 @@ export default function OrcamentoCard() {
                     className={styles.preenchido}
                     style={{
                       width: `${Math.min(100, s.pct)}%`,
-                      background: s.estourado ? "var(--red)" : cor,
+                      background: s.estourado ? "var(--red)" : "var(--blu)",
                     }}
                   />
                 </span>

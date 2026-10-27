@@ -1,8 +1,5 @@
 .card {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 14px 16px;
   display: flex;
   flex-direction: column;

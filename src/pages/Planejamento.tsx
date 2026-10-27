@@ -336,7 +336,7 @@ export default function Planejamento() {
                   </p>
                   <div className={styles.barra}>
                     <div
-                      className={`${styles.preenchido} ${meta.atingiu ? styles.preenchidoOk : styles.preenchidoAlerta}`}
+                      className={`${styles.preenchido} ${meta.atingiu ? styles.preenchidoOk : ""}`}
                       style={{ width: `${meta.pct}%` }}
                     />
                   </div>
@@ -390,12 +390,6 @@ export default function Planejamento() {
                 {fundos.map((f) => {
                   const pct = f.alvo > 0 ? Math.min(100, Math.round((f.atual / f.alvo) * 100)) : 0;
                   const falta = Math.max(0, f.alvo - f.atual);
-                  const corBarra =
-                    pct >= 80
-                      ? styles.preenchidoOk
-                      : pct >= 40
-                        ? styles.preenchidoMeio
-                        : styles.preenchidoAlerta;
 
                   let diasRestantes: number | null = null;
                   if (f.prazo) {
@@ -427,10 +421,7 @@ export default function Planejamento() {
                         </button>
                       </div>
                       <div className={styles.barra}>
-                        <div
-                          className={`${styles.preenchido} ${corBarra}`}
-                          style={{ width: `${pct}%` }}
-                        />
+                        <div className={`${styles.preenchido}`} style={{ width: `${pct}%` }} />
                       </div>
                       <div className={styles.fundoStat}>
                         <span className={styles.fundoAtual}>{formatMoney(f.atual, moeda)}</span>
