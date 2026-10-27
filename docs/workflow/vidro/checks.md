@@ -202,3 +202,9 @@ Em vez de `white-space: nowrap` por par (exigia partir o texto em elementos e qu
 ## F2a — sidebar alinhada ao topo do conteúdo
 
 A pílula deixa de estar centrada na altura da janela: `top: var(--topo-conteudo)` = altura do cabeçalho (61px medidos, token `--cabecalho-alt`) + 16px, o mesmo afastamento do primeiro cartão (confirmado: pílula e cartão começam ambos a y=77 a 1440px). `max-height: 100dvh − topo − 16px`; é `position: fixed`, por isso fica no topo enquanto a página rola (não rola com ela) e, em janelas com menos de 700px de altura, rola por dentro (sem tooltips ali). Capturas: vidro-faseF/f2a-inicio-{1180,1440,1920}-{escuro,claro}.png e f2a-inicio-1024x600-claro.png.
+
+## F3 — taxa de poupança unificada (fluxo de caixa)
+
+Aprovado pelo Gabriel. `calcularMetaMensal` e `poupancaMeses` (Planejamento → Metas) passam a ler receitas, despesas e saldo de `resultadoDoMes` — o mesmo do "Resultado do mês" da Início e da Análise — e já não de `despesaRealizadaMes` (cronograma). Isto vale para o cartão "Meta — <mês>", a Taxa de Poupança e o Poupado (12m), que ficam coerentes entre si. O parâmetro `parcelas` saiu das duas funções (a despesa registada não o usa: as parcelas pagas entram pelo lançamento-espelho). Teste novo: a taxa e o saldo de Metas e da Análise são iguais para os mesmos dados.
+
+Onde o valor muda (exemplo dos testes, metas.test.ts): julho, receita 2.000,00, fixa de 50,00 NUNCA marcada como paga, vista em agosto. Cronograma: despesa 50,00, saldo 1.950,00, taxa 98%. Fluxo de caixa: despesa 0, saldo 2.000,00, taxa 100%. Com a fixa paga (lançamento-espelho em 20/07) os dois critérios dão 50,00. Também muda: uma fixa de 450,00 por pagar num mês fechado deixa de contar (saldo 1.550 → 2.000, taxa 78% → 100%). Testes atualizados: "mês fechado: a fixa … conta o valor cheio" (veículo e geral) passaram a esperar 0 e há um novo para a fixa paga. Nos dados da captura (outubro) não há diferença.

@@ -1,5 +1,11 @@
 // Metas (seção 3, Parte C) — funções puras portadas de renderMetas()
 // (financas.html ~5699-5760). Meta mensal, fundos e poupança de 12 meses.
+//
+// Receitas, despesas e saldo de cada mês são os do "Resultado do mês" da Início
+// (`resultadoDoMes`, FLUXO DE CAIXA: o que de facto entrou e saiu, pela data
+// real), os mesmos da página Análise. Antes as Metas usavam a despesa por
+// cronograma (`despesaRealizadaMes`) e a taxa de poupança podia diferir da da
+// Início no mesmo mês.
 
 import type {
   Cents,
@@ -8,12 +14,10 @@ import type {
   DespesaFixa,
   Fundo,
   IsoDate,
-  Parcela,
   Receita,
   YearMonth,
 } from "../types";
-import { receitasNosTotais, totalDoMes } from "./calculos";
-import { despesaRealizadaMes } from "./resumoMensal";
+import { resultadoDoMes } from "./resumoMensal";
 
 /** Fallback do app de referência: `S.cfg.sgoal || 500` — meta padrão de
  *  50000 centavos quando a conta não configurou nenhuma. */
@@ -41,7 +45,6 @@ export function calcularMetaMensal(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
-  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   ym: YearMonth,
   mesReal: YearMonth,
@@ -52,17 +55,11 @@ export function calcularMetaMensal(
    *  antes do dia de vencimento (ver fixaEfetivamentePaga em fatura.ts). */
   hoje?: IsoDate,
 ): MetaMensal {
-  const rec = totalDoMes(receitasNosTotais(receitas), ym);
-  const desp = despesaRealizadaMes(
-    despesasCorrentes,
-    despesasFixas,
-    parcelas,
-    veiculo,
-    ym,
-    mesReal,
-    hoje,
-  );
-  const saldo = rec - desp;
+  const {
+    receitas: rec,
+    despesas: desp,
+    saldo,
+  } = resultadoDoMes(receitas, despesasCorrentes, despesasFixas, veiculo, ym, mesReal, hoje);
   const meta = metaConfigurada || META_POUPANCA_PADRAO;
   const pct = meta > 0 ? Math.max(0, Math.min(100, Math.round((saldo / meta) * 100))) : 0;
 
@@ -107,23 +104,21 @@ export function poupancaMeses(
   receitas: Receita[],
   despesasCorrentes: DespesaCorrente[],
   despesasFixas: DespesaFixa[],
-  parcelas: Parcela[],
   veiculo: DadosVeiculo,
   meses: YearMonth[],
   mesReal: YearMonth,
   hoje?: IsoDate,
 ): Cents {
   return meses.reduce((s, ym) => {
-    const rec = totalDoMes(receitasNosTotais(receitas), ym);
-    const desp = despesaRealizadaMes(
+    const { saldo } = resultadoDoMes(
+      receitas,
       despesasCorrentes,
       despesasFixas,
-      parcelas,
       veiculo,
       ym,
       mesReal,
       hoje,
     );
-    return s + Math.max(0, rec - desp);
+    return s + Math.max(0, saldo);
   }, 0);
 }

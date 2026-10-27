@@ -21,15 +21,37 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
 
   test("mês corrente: fixa do veículo ainda não paga NÃO conta na despesa", () => {
     const v = veiculo({ despesasFixas: [fixaVeiculo] });
-    const m = calcularMetaMensal(receitas, [], [], [], v, "2026-07", "2026-07", 10, 100000);
+    const m = calcularMetaMensal(receitas, [], [], v, "2026-07", "2026-07", 10, 100000);
     expect(m.despesas).toBe(0);
     expect(m.saldo).toBe(200000);
   });
 
-  test("mês fechado (mês passado): a mesma fixa conta o valor cheio", () => {
+  test("mês fechado (mês passado): a fixa nunca marcada como paga NÃO conta — o dinheiro não saiu", () => {
     const v = veiculo({ despesasFixas: [fixaVeiculo] });
-    // mesReal é agosto → julho já fechou
-    const m = calcularMetaMensal(receitas, [], [], [], v, "2026-07", "2026-08", 10, 100000);
+    // mesReal é agosto → julho já fechou. As Metas passaram a contar em FLUXO
+    // DE CAIXA (como a Início e a Análise): antes (cronograma) esta fixa
+    // contava os 50,00 cheios e o saldo era 1.950,00; agora o saldo é 2.000,00.
+    const m = calcularMetaMensal(receitas, [], [], v, "2026-07", "2026-08", 10, 100000);
+    expect(m.despesas).toBe(0);
+    expect(m.saldo).toBe(200000);
+  });
+
+  test("mês fechado: a fixa paga (com o lançamento-espelho) conta uma vez, pela data real", () => {
+    const espelho: DespesaCorrente = {
+      id: "e1",
+      descricao: "Seguro carro",
+      valor: 5000,
+      data: "2026-07-20",
+      categoria: "Seguro",
+      origem: "fixa",
+      fixaId: "f1",
+      fixaMes: "2026-07",
+    };
+    const v = veiculo({
+      despesas: [espelho],
+      despesasFixas: [{ ...fixaVeiculo, pagoPorMes: { "2026-07": true } }],
+    });
+    const m = calcularMetaMensal(receitas, [], [], v, "2026-07", "2026-08", 10, 100000);
     expect(m.despesas).toBe(5000);
     expect(m.saldo).toBe(195000);
   });
@@ -46,7 +68,6 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
       receitas,
       [],
       [fixaGeral],
-      [],
       veiculo(),
       "2026-07",
       "2026-07",
@@ -57,7 +78,7 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(m.saldo).toBe(200000);
   });
 
-  test("mês fechado: a fixa geral conta o valor cheio", () => {
+  test("mês fechado: a fixa geral nunca marcada como paga também fica de fora (fluxo de caixa)", () => {
     const fixaGeral: DespesaFixa = {
       id: "fg1",
       descricao: "Aluguel",
@@ -69,15 +90,14 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
       receitas,
       [],
       [fixaGeral],
-      [],
       veiculo(),
       "2026-07",
       "2026-08",
       10,
       100000,
     );
-    expect(m.despesas).toBe(45000);
-    expect(m.saldo).toBe(155000);
+    expect(m.despesas).toBe(0);
+    expect(m.saldo).toBe(200000);
   });
 
   test("mês corrente: fixa em débito automático só conta depois do dia de vencimento", () => {
@@ -96,7 +116,6 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
       receitas,
       [],
       [fixaAutoDebit],
-      [],
       veiculo(),
       "2026-07",
       "2026-07",
@@ -112,7 +131,6 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
       receitas,
       [],
       [fixaAutoDebit],
-      [],
       veiculo(),
       "2026-07",
       "2026-07",
@@ -132,7 +150,6 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
       receitas,
       despesas,
       [],
-      [],
       veiculo(),
       "2026-07",
       "2026-07",
@@ -142,39 +159,29 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(negativo.pct).toBe(0);
     expect(negativo.atingiu).toBe(false);
 
-    const acima = calcularMetaMensal(
-      receitas,
-      [],
-      [],
-      [],
-      veiculo(),
-      "2026-07",
-      "2026-07",
-      10,
-      1000,
-    );
+    const acima = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 10, 1000);
     expect(acima.pct).toBe(100);
     expect(acima.atingiu).toBe(true);
   });
 
   test("meta 0/não configurada cai no padrão de 50000 (500 unidades)", () => {
-    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-07", "2026-07", 10, 0);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 10, 0);
     expect(m.meta).toBe(50000);
   });
 
   test("badge: mês corrente em curso não é 'fechado' antes do último dia", () => {
-    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-07", "2026-07", 15, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 15, 100000);
     expect(m.fechado).toBe(false);
   });
 
   test("badge: mês corrente no último dia já é 'fechado'", () => {
     // julho/2026 tem 31 dias
-    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-07", "2026-07", 31, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-07", "2026-07", 31, 100000);
     expect(m.fechado).toBe(true);
   });
 
   test("badge: mês passado está sempre fechado", () => {
-    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-06", "2026-07", 1, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-06", "2026-07", 1, 100000);
     expect(m.fechado).toBe(true);
   });
 
@@ -183,7 +190,7 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     // passado, e o card de Planejamento mostrava "Não atingido" (✗) pra um
     // mês que a pessoa só está espreitando no seletor, sem nenhum lançamento
     // ainda — ver SeletorMes, que não tem limite superior de navegação.
-    const m = calcularMetaMensal(receitas, [], [], [], veiculo(), "2026-08", "2026-07", 1, 100000);
+    const m = calcularMetaMensal(receitas, [], [], veiculo(), "2026-08", "2026-07", 1, 100000);
     expect(m.fechado).toBe(false);
   });
 });
@@ -210,7 +217,6 @@ describe("poupancaMeses — soma só o saldo POSITIVO de cada mês", () => {
     const total = poupancaMeses(
       receitasMultimes,
       despesasMultimes,
-      [],
       [],
       veiculo(),
       ["2026-06", "2026-07"],

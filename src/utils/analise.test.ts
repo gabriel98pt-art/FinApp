@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../types";
 import { analisarMes, primeiroMesDeDados, type DadosAnalise } from "./analise";
 import { mediaDeMeses, receitasNosTotais, totalDoMes } from "./calculos";
-import { taxaPoupanca } from "./metas";
+import { calcularMetaMensal, taxaPoupanca } from "./metas";
 import { despesaRegistradaMes, resultadoDoMes } from "./resumoMensal";
 
 const VAZIO_VEICULO: DadosVeiculo = {
@@ -101,6 +101,23 @@ describe("analisarMes — os números são os do resto do app", () => {
     expect(a.taxa.atual).toBe(27);
     expect(a.taxa.guardou).toBe(67000);
     expect(a.taxa.receitas).toBe(250000);
+  });
+
+  test("a taxa de poupança é a mesma de Planejamento → Metas (mesmo critério: fluxo de caixa)", () => {
+    const a = analisarMes(D, CFG, "2026-10", MES_REAL, HOJE, 6);
+    const meta = calcularMetaMensal(
+      D.receitas,
+      D.despesasCorrentes,
+      D.despesasFixas,
+      D.veiculo,
+      "2026-10",
+      MES_REAL,
+      27,
+      50000,
+      HOJE,
+    );
+    expect(taxaPoupanca(meta.receitas, meta.saldo)).toBe(a.taxa.atual);
+    expect(meta.saldo).toBe(a.meses[a.meses.length - 1].saldo);
   });
 
   test("a taxa média é a média das taxas mensais da janela", () => {
