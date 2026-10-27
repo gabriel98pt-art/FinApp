@@ -1,4 +1,4 @@
-/* Pílula vertical de vidro, colada à esquerda e centrada na altura (VidroIpad):
+/* Pílula vertical de vidro, colada à esquerda e alinhada ao topo do conteúdo (VidroIpad):
    só ícones, a aba ativa num círculo branco (creme no escuro) e um tooltip com
    o nome no hover e no foco. Mesmo material do header (.material).
    z-index 31: acima do header (30, que agora ocupa a largura toda) e bem abaixo
@@ -7,8 +7,9 @@
   display: none;
   position: fixed;
   left: calc(18px + var(--safe-esq));
-  top: 50%;
-  transform: translateY(-50%);
+  /* Alinhada ao TOPO do conteúdo (logo abaixo do cabeçalho, com o mesmo
+     afastamento do primeiro cartão), e não centrada na altura da janela. */
+  top: var(--topo-conteudo);
   z-index: 31;
   width: 60px;
   padding: 10px 0;
@@ -16,10 +17,10 @@
   box-shadow: var(--sh-vidro);
   /* Sem overflow: o tooltip sai da pílula para a direita e seria cortado. Em
      ecrãs baixos as abas encolhem (abaixo); nos muito baixos rola, sem tooltip. */
-  max-height: calc(100dvh - 24px);
+  max-height: calc(100dvh - var(--topo-conteudo) - 16px);
 }
 
-@media (max-height: 640px) {
+@media (max-height: 700px) {
   .barra {
     overflow-y: auto;
     scrollbar-width: none;

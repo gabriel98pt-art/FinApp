@@ -198,3 +198,7 @@ Em vez de `white-space: nowrap` por par (exigia partir o texto em elementos e qu
 - Contraste do ícone sobre a terracota: claro #1C1712 sobre #E8703A = 5,77:1; escuro #1A120D sobre #F0844F = 7,14:1 (≥ 3:1).
 - A aba ativa mantém o círculo branco (claro) / creme (escuro). Tamanhos finais: "+" 56px (`--fab-tam`) no iPhone e no FAB; círculo da aba ativa 40px (`--aba-circulo`; 36px na sidebar em janelas baixas) → diferença de 16px (20px nas janelas baixas). A barra do iPhone passou de 60 para 64px de altura para caber o "+" de 56px, e `--alt-barra-nav` de 66 para 70px + folga. A área de toque das abas continua a ter 44px (pseudo-elemento).
 - Capturas: FinApp-capturas/vidro-faseF/{antes,depois}-mais-vs-aba-390-{escuro,claro}.png (e -receitas-).
+
+## F2a — sidebar alinhada ao topo do conteúdo
+
+A pílula deixa de estar centrada na altura da janela: `top: var(--topo-conteudo)` = altura do cabeçalho (61px medidos, token `--cabecalho-alt`) + 16px, o mesmo afastamento do primeiro cartão (confirmado: pílula e cartão começam ambos a y=77 a 1440px). `max-height: 100dvh − topo − 16px`; é `position: fixed`, por isso fica no topo enquanto a página rola (não rola com ela) e, em janelas com menos de 700px de altura, rola por dentro (sem tooltips ali). Capturas: vidro-faseF/f2a-inicio-{1180,1440,1920}-{escuro,claro}.png e f2a-inicio-1024x600-claro.png.

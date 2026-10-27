@@ -278,6 +278,14 @@
   }
 }
 
+/* Altura do cabeçalho (61px medidos: 10 + 10 de padding, o conteúdo e o fio) e
+   o afastamento do primeiro cartão ao cabeçalho: a sidebar em pílula começa
+   exatamente onde começa o conteúdo. */
+:root {
+  --cabecalho-alt: calc(61px + var(--safe-topo));
+  --topo-conteudo: calc(var(--cabecalho-alt) + 16px);
+}
+
 /* O FAB "+" do desktop (≥ 768px): tamanho e margem num só sítio, para o
    espaço que o conteúdo guarda por baixo (AppShell) nunca se desencontrar do
    botão — o último cartão de qualquer tela tem de poder rolar para fora dele. */
