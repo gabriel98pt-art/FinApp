@@ -14,9 +14,9 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: var(--btn-bg);
-    color: var(--btn-txt);
-    box-shadow: var(--sh-round);
+    background: var(--mais-bg);
+    color: var(--mais-txt);
+    box-shadow: var(--mais-sombra);
     transition:
       transform var(--dur-fast) var(--ease-spring),
       box-shadow var(--dur-fast) var(--ease-spring);
@@ -24,6 +24,6 @@
 
   .fab:active {
     transform: scale(0.92);
-    box-shadow: var(--sh-round-active);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--blu) 35%, transparent);
   }
 }

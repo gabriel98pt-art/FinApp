@@ -284,20 +284,27 @@
 :root {
   --fab-tam: 56px;
   --fab-margem: 24px;
+  /* O "+" é terracota cheio com o ícone em --on-blu, nos dois temas, e MAIOR
+     que o círculo da aba ativa (≥ 12px de diferença): no escuro os dois eram
+     cremes do mesmo tamanho e o "+" lia-se como mais uma aba selecionada. */
+  --aba-circulo: 40px;
+  --mais-bg: var(--blu);
+  --mais-txt: var(--on-blu);
+  --mais-sombra: 0 6px 16px color-mix(in srgb, var(--blu) 42%, transparent);
 }
 
 /* Barra de navegação móvel — fonte única para tudo o que se apoia nela.
 
    --folga-indicador: faixa onde o iOS desenha o indicador de gestos (~13px).
-   A barra é agora uma pílula flutuante que fica 6px ACIMA dela; onde não
+   A barra é agora uma pílula flutuante (64px) que fica 6px ACIMA dela; onde não
    existe a faixa (Android, iPhone com botão, desktop) o respiro é de 6px.
 
-   --alt-barra-nav: do fundo do ecrã ao topo da barra — 6px de respiro + 60px
+   --alt-barra-nav: do fundo do ecrã ao topo da barra — 6px de respiro + 64px
    da pílula + a folga. Quem flutua acima da barra parte daqui em vez de
    repetir contas que deixam de bater assim que a barra se mexe. */
 :root {
   --folga-indicador: max(6px, min(14px, env(safe-area-inset-bottom)));
-  --alt-barra-nav: calc(66px + var(--folga-indicador));
+  --alt-barra-nav: calc(70px + var(--folga-indicador));
 }
 
 /* Área segura do sistema — as quatro faixas onde o telemóvel desenha coisas

@@ -189,3 +189,12 @@ Removido o `.hero::before` (linha de 1px em `--tvde` na borda de cima). Era a ú
 C3 — pares rótulo + valor inteiros
 
 Em vez de `white-space: nowrap` por par (exigia partir o texto em elementos e quebrava os testes que procuram a frase inteira), usei espaços sem quebra (U+00A0) dentro de cada par, via `semQuebra()` em utils/money.ts: o efeito visual é o mesmo (pode quebrar entre pares, nunca dentro) e o texto copiado/lido não muda. Aplicado: TVDE (semanas), Cartões (2 subtextos), Parcelas ("inclui € X quitado"), Despesas e Receitas ("era € X"). Procurei outros subtextos "rótulo € valor": os restantes têm o valor num elemento próprio (negrito) ou já cabem numa linha. DESVIO: dois testes de Cartões comparavam o `textContent` bruto; agora trocam U+00A0 por espaço antes de comparar. Capturas: vidro-faseC/{antes,depois}-tvde-{390,320}-{claro,escuro}.png.
+
+# Fase F (pedidos do Gabriel após ver o Mac)
+
+## F1 — "+" distinto da aba ativa
+
+- O "+" (barra do iPhone e FAB do iPad/Mac) passa a terracota cheio (`--mais-bg` = `--blu`) com o ícone em `--mais-txt` (= `--on-blu`), nos dois temas, com sombra leve da mesma cor (`--mais-sombra`). DESVIO de valor: no claro `--blu` é #E8703A; no escuro é #F0844F (o terracota de preenchimento do tema escuro, que já era o acento aprovado), não #E8703A.
+- Contraste do ícone sobre a terracota: claro #1C1712 sobre #E8703A = 5,77:1; escuro #1A120D sobre #F0844F = 7,14:1 (≥ 3:1).
+- A aba ativa mantém o círculo branco (claro) / creme (escuro). Tamanhos finais: "+" 56px (`--fab-tam`) no iPhone e no FAB; círculo da aba ativa 40px (`--aba-circulo`; 36px na sidebar em janelas baixas) → diferença de 16px (20px nas janelas baixas). A barra do iPhone passou de 60 para 64px de altura para caber o "+" de 56px, e `--alt-barra-nav` de 66 para 70px + folga. A área de toque das abas continua a ter 44px (pseudo-elemento).
+- Capturas: FinApp-capturas/vidro-faseF/{antes,depois}-mais-vs-aba-390-{escuro,claro}.png (e -receitas-).
