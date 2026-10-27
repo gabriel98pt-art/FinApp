@@ -97,3 +97,9 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 ## B0b — Início ≥ 1024px
 
 - Escolha: o "Perguntar ao Copiloto" passa para a coluna 2, por baixo do "A pagar" (grid-template-areas, fila do meio 1fr); Últimos movimentos ficam por baixo das duas primeiras colunas. Sem conteúdo novo. A ordem do DOM e a do telemóvel não mudam.
+
+## B1 — Despesas
+
+Sem alterações de código: a tela já estava no desenho novo depois da Fase 2 e as bases (A1–A5). Verificado em claro e escuro: quadro em vidro, segmentado em pílula com o ativo branco/creme, selos Pago ✓ / Pendente ◷, linhas com fio fino, botões "+" pretos/cremes. `--r-card` 22px (desvio 9): sem problema nesta tela (os únicos cartões são o quadro de resumo e o EstadoVazio). O `.form` de Despesas.module.css e o de Veiculo.module.css não são usados por nenhum componente (CSS morto, não mexi). Borda testada: nome comprido, valor de 5 dígitos, dia com 1 e com 2 movimentos, lista vazia.
+
+- Capturas: FinApp-capturas/vidro-faseB/b1-despesas-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
