@@ -53,3 +53,14 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 - Raios: `--r-card` 16 → 22px, novo `--r-destaque` 24px, `--r-pill` 99px (já existia).
 - DESVIO: `.material` abaixo de 768px usa 86% de branco (a prévia usa 74% só na barra flutuante). O header é sticky e, sem blur, a 74% o texto da lista aparecia por baixo. A 86% continua translúcido.
 - DESVIO: `--r-card` a 22px vale para as 41 utilizações, incluindo telas da Fase B; ali a revisão fica para a Fase B.
+
+## A4 — navegação
+
+- iPhone: pílula flutuante (60px, 14px de margem lateral, 6px acima do indicador), as MESMAS abas (Receitas, Despesas, "+", Início, Mais). Aba ativa em círculo branco (creme no escuro), "+" preto (creme no escuro) de 46px, abas de 44px. `--alt-barra-nav` 57 → 66px + folga, para as coisas que flutuam acima (menu "Mais", toast) ficarem à mesma distância da pílula.
+- ≥ 768px: sidebar em pílula vertical (60px, centrada na altura), só ícones, aba ativa em círculo branco, tooltip com o nome no hover e no foco (`data-nome` + `aria-label`). `--sidebar-w` 68/224 → 88px (já não expande com rótulos).
+- Sem ícones novos (os mesmos Lucide de hoje).
+- DESVIO: a sidebar não leva `title`: o tooltip nativo apareceria por cima do nosso, duplicado. O nome está em `aria-label`. Na barra do iPhone as abas levam `title` (sem tooltip próprio).
+- DESVIO: o "+" já não veste a cor da página (Despesa/Receita/Veículo/TVDE): é preto, como na prévia. `utils/corBotaoRegistro.ts` ficou sem uso nos componentes (continua com os seus testes); apagar fica para o Gabriel decidir.
+- DESVIO: sem o pulso de brilho do "+" (a prévia não o tem; com o botão preto um brilho terracota ficava estranho). Vale para o FAB de desktop também.
+- Não movido: a prévia do iPad mostra o "+" no topo da pílula; aqui o FAB continua no canto inferior direito (mudar a posição seria mudança de função). Marcado unresolved.
+- Capturas: a4-* (Chromium e WebKit).

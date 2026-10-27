@@ -6,10 +6,11 @@ import { useHistoricoStore } from "../stores/historicoStore";
 import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./Sidebar.module.css";
 
-/** Navegação de tablet/desktop, fixa à esquerda. Segue o padrão de sidebar do
- *  iPadOS/macOS: em largura compacta (768-1023px) fica um rail só de ícones;
- *  a partir de 1024px expande com os rótulos. Quem manda na largura é
- *  `--sidebar-w`, o mesmo token que desloca o conteúdo à direita.
+/** Navegação de tablet/desktop: uma pílula de vidro à esquerda, só com ícones
+ *  (VidroIpad). A aba ativa é um círculo branco; o nome aparece num tooltip no
+ *  hover e no foco (data-nome, ver o CSS) e está sempre em `aria-label`. Não
+ *  leva `title`: o tooltip nativo apareceria por cima do nosso. Quem manda na
+ *  largura reservada é `--sidebar-w`, o mesmo token que desloca o conteúdo.
  *
  *  Sem marca aqui: o "FinApp" já está no Header ao lado. No mobile não
  *  aparece — lá a navegação é a MobileNav em baixo. */
@@ -38,8 +39,10 @@ export default function Sidebar() {
               to={rota}
               end={rota === "/"}
               className={({ isActive }) => `${styles.aba} ${isActive ? styles.ativa : ""}`}
+              aria-label={titulo}
+              data-nome={titulo}
             >
-              <Icone size={18} aria-hidden className={styles.icone} />
+              <Icone size={20} aria-hidden className={styles.icone} />
               {/* No rail o rótulo sai da vista mas fica no DOM: é ele que dá
                   nome ao link para o leitor de tela. */}
               <span className={styles.rotulo}>{titulo}</span>
@@ -56,9 +59,9 @@ export default function Sidebar() {
           onClick={() => void desfazer()}
           disabled={!podeUndo}
           aria-label="Desfazer"
-          title="Desfazer"
+          data-nome="Desfazer"
         >
-          <Undo2 size={18} aria-hidden className={styles.icone} />
+          <Undo2 size={20} aria-hidden className={styles.icone} />
           <span className={styles.rotulo}>Desfazer</span>
         </button>
         <button
@@ -66,9 +69,9 @@ export default function Sidebar() {
           onClick={() => void refazer()}
           disabled={!podeRedo}
           aria-label="Refazer"
-          title="Refazer"
+          data-nome="Refazer"
         >
-          <Redo2 size={18} aria-hidden className={styles.icone} />
+          <Redo2 size={20} aria-hidden className={styles.icone} />
           <span className={styles.rotulo}>Refazer</span>
         </button>
       </div>

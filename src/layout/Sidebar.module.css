@@ -1,31 +1,28 @@
-/* Chrome estrutural persistente, como o header e a barra mobile — por isso o
-   mesmo vidro (.material), e não a superfície sólida das folhas/menus.
-   z-index 29: o mesmo lugar na pilha que a antiga TabBar ocupava, abaixo do
-   header (30) e bem abaixo das folhas (45/46), que continuam a cobrir tudo. */
+/* Pílula vertical de vidro, colada à esquerda e centrada na altura (VidroIpad):
+   só ícones, a aba ativa num círculo branco (creme no escuro) e um tooltip com
+   o nome no hover e no foco. Mesmo material do header (.material).
+   z-index 29: abaixo do header (30) e bem abaixo das folhas (45/46). */
 .barra {
   display: none;
   position: fixed;
-  left: 0;
-  top: 0;
+  left: calc(18px + var(--safe-esq));
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 29;
-  width: var(--sidebar-w);
-  height: 100dvh;
-  border-top: none;
-  border-left: none;
-  border-bottom: none;
-  /* A barra vai de topo a fundo do ecrã: em cima reserva o entalhe (no iPad
-     em paisagem a câmara fica exatamente deste lado) e à esquerda a faixa
-     lateral, além do indicador de gestos que já reservava em baixo. */
-  padding: calc(10px + var(--safe-topo)) 8px calc(10px + var(--safe-baixo));
-  padding-left: calc(8px + var(--safe-esq));
-  /* 13 abas num tablet em paisagem podem não caber de uma vez. */
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
+  width: 60px;
+  padding: 10px 0;
+  border-radius: var(--r-pill);
+  box-shadow: var(--sh-vidro);
+  /* Sem overflow: o tooltip sai da pílula para a direita e seria cortado. Em
+     ecrãs baixos as abas encolhem (abaixo); nos muito baixos rola, sem tooltip. */
+  max-height: calc(100dvh - 24px);
 }
 
-.barra::-webkit-scrollbar {
-  display: none;
+@media (max-height: 640px) {
+  .barra {
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
 }
 
 .lista {
@@ -34,44 +31,88 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 6px;
 }
 
 .aba {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  /* Serve links (abas) e botões (as ações lá em baixo): o botão não estica
-     sozinho como o link dentro do <li>. */
-  width: 100%;
-  border-radius: var(--r-sm);
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   color: var(--mut);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  white-space: nowrap;
   transition:
     background 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.aba:hover {
-  background: var(--s2);
-  color: var(--txt);
+@media (hover: hover) and (pointer: fine) {
+  .aba:hover {
+    color: var(--txt);
+    background: color-mix(in srgb, var(--mut) 14%, transparent);
+  }
 }
 
 .aba:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
-/* Mesma pílula de destaque da barra que isto substitui, agora em coluna. */
 .ativa,
 .ativa:hover {
-  background: var(--blu);
-  color: var(--bg);
+  color: var(--aba-ativa-txt);
+  background: var(--aba-ativa-bg);
+  box-shadow: var(--aba-ativa-sh);
 }
 
 .icone {
   flex: none;
+}
+
+/* O nome fica no DOM, fora da vista: é ele que dá nome ao link para o leitor
+   de ecrã (display:none tiraria o nome acessível junto). */
+.rotulo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Tooltip visível no hover e no foco do teclado. O texto vem de data-nome; o
+   `/ ""` diz aos leitores de ecrã que é decoração (o nome já está em
+   aria-label). */
+.aba::after {
+  content: attr(data-nome);
+  content: attr(data-nome) / "";
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: var(--btn-bg);
+  color: var(--btn-txt);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.aba:focus-visible::after {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aba:hover::after {
+    opacity: 1;
+  }
 }
 
 /* Desfazer/refazer, separados das abas por um risco: as de cima levam a uma
@@ -79,10 +120,11 @@
 .acoes {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-top: 8px;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 12px 0;
   padding-top: 8px;
-  border-top: 1px solid var(--brd);
+  border-top: 1px solid var(--linha);
 }
 
 .acoes .aba:disabled {
@@ -90,47 +132,22 @@
   pointer-events: none;
 }
 
-/* Rail (tablet): só o ícone, centrado. */
-@media (min-width: 768px) {
-  .barra {
-    display: block;
-  }
-
+/* Telas baixas (portátil pequeno, iPad com barra do Safari): abas mais
+   juntas para as 14 caberem sem rolar. */
+@media (max-height: 760px) {
   .aba {
-    justify-content: center;
-    height: 46px;
+    width: 36px;
+    height: 36px;
   }
 
-  /* Fora da vista, mas ainda no DOM: é este texto que nomeia o link para o
-     leitor de tela — display:none tiraria o nome acessível junto. */
-  .rotulo {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
+  .lista,
+  .acoes {
+    gap: 3px;
   }
 }
 
-/* Expandida (desktop): ícone + rótulo, alinhados à esquerda. */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .barra {
-    padding: calc(10px + var(--safe-topo)) 12px calc(10px + var(--safe-baixo));
-    padding-left: calc(12px + var(--safe-esq));
-  }
-
-  .aba {
-    justify-content: flex-start;
-    height: auto;
-    padding: 10px 12px;
-  }
-
-  .rotulo {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip: auto;
+    display: block;
   }
 }

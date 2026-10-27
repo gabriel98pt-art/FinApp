@@ -10,7 +10,6 @@ import {
 import { useCfgStore } from "../stores/cfgStore";
 import { useHistoricoStore } from "../stores/historicoStore";
 import { useUiStore } from "../stores/uiStore";
-import { estiloBotaoRegistro } from "../utils/corBotaoRegistro";
 import { podeDesfazer, podeRefazer } from "../utils/historico";
 import styles from "./MobileNav.module.css";
 
@@ -22,6 +21,7 @@ function ItemAba({ aba, aoNavegar }: { aba: AbaDef; aoNavegar: () => void }) {
       end={rota === "/"}
       className={({ isActive }) => `${styles.item} ${isActive ? styles.ativo : ""}`}
       onClick={aoNavegar}
+      title={titulo}
     >
       <Icone size={20} aria-hidden />
       <span className={styles.rotulo}>{titulo}</span>
@@ -129,7 +129,6 @@ export default function MobileNav() {
         <div className={styles.slotCentral}>
           <button
             className={styles.central}
-            style={estiloBotaoRegistro(cfg, pathname)}
             onClick={() => {
               fecharMais();
               abrirMenuRegistro();
@@ -149,6 +148,7 @@ export default function MobileNav() {
           onClick={() => setMaisAberto(!maisAberto)}
           aria-expanded={maisAberto}
           aria-label="Mais abas"
+          title="Mais"
         >
           <MoreHorizontal size={20} aria-hidden />
           <span className={styles.rotulo}>Mais</span>

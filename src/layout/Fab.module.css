@@ -14,8 +14,8 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: var(--blu);
-    color: var(--bg);
+    background: var(--btn-bg);
+    color: var(--btn-txt);
     box-shadow: var(--sh-round);
     transition:
       transform var(--dur-fast) var(--ease-spring),
@@ -25,31 +25,5 @@
   .fab:active {
     transform: scale(0.92);
     box-shadow: var(--sh-round-active);
-    animation: none;
-  }
-}
-
-/* Pulso respirando — só quando o SO permite movimento */
-@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-  @keyframes fabPulse {
-    0%,
-    100% {
-      box-shadow:
-        0 4px 22px rgba(var(--blu-rgb), 0.45),
-        0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    50% {
-      box-shadow:
-        0 4px 30px rgba(var(--blu-rgb), 0.7),
-        0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-  }
-
-  .fab {
-    animation: fabPulse 3s ease-in-out infinite;
-  }
-
-  .fab:hover {
-    animation-play-state: paused;
   }
 }
