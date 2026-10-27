@@ -63,6 +63,12 @@ beforeEach(() => {
   abrirRegistro.mockClear();
 });
 
+// A ordem escolhe-se na folha que o gatilho em texto abre.
+async function ordenarPor(nome: string) {
+  await userEvent.click(screen.getByRole("button", { name: /^Ordenar por/ }));
+  await userEvent.click(await screen.findByRole("radio", { name: nome }));
+}
+
 describe("Receitas", () => {
   test("monta e mostra o título da página", () => {
     render(<Receitas />);
@@ -275,7 +281,7 @@ describe("Receitas — ordenação da lista", () => {
 
   test("Mais antigas inverte a lista", async () => {
     render(<Receitas />);
-    await userEvent.click(screen.getByRole("radio", { name: "Mais antigas" }));
+    await ordenarPor("Mais antigas");
 
     const [a, b, c] = linhasDaLista();
     expect(a).toContain("Salário");
@@ -285,7 +291,7 @@ describe("Receitas — ordenação da lista", () => {
 
   test("Maior valor ordena pelo dinheiro, não pela data", async () => {
     render(<Receitas />);
-    await userEvent.click(screen.getByRole("radio", { name: "Maior valor" }));
+    await ordenarPor("Maior valor");
 
     const [a, b, c] = linhasDaLista();
     expect(a).toContain("Salário");
@@ -295,7 +301,7 @@ describe("Receitas — ordenação da lista", () => {
 
   test("Menor valor ordena do mais barato para o mais caro", async () => {
     render(<Receitas />);
-    await userEvent.click(screen.getByRole("radio", { name: "Menor valor" }));
+    await ordenarPor("Menor valor");
 
     const [a, b, c] = linhasDaLista();
     expect(a).toContain("Aluguel");
@@ -307,7 +313,7 @@ describe("Receitas — ordenação da lista", () => {
     render(<Receitas />);
     expect(screen.getByText("Total agosto 2026")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("radio", { name: "Menor valor" }));
+    await ordenarPor("Menor valor");
 
     // 1850 + 500 + 120 — a ordem mexe nas linhas, nunca na soma.
     expect(screen.getByText("Total agosto 2026")).toBeInTheDocument();
@@ -390,7 +396,7 @@ describe("Receitas — visão Mês / Semana", () => {
     };
     render(<Receitas />);
     await userEvent.click(screen.getByRole("radio", { name: "Semana" }));
-    await userEvent.click(screen.getByRole("radio", { name: "Menor valor" }));
+    await ordenarPor("Menor valor");
 
     // Só as duas da semana, e essas duas ordenadas pelo valor.
     const linhas = linhasDaLista();

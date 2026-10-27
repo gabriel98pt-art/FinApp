@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Check, ListFilter } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronDown, ListFilter } from "lucide-react";
 import FolhaAncorada from "./FolhaAncorada";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import type { LinhaOrdem } from "../utils/ordem";
@@ -19,8 +19,9 @@ function rotuloDaOrdem<T extends string>(linhas: LinhaOrdem<T>[], valor: T): str
 }
 
 /** Botão redondo de ordenação + lista de opções (a atual marcada). Alternativa
- *  à fileira de botões do `SeletorOrdem` para listas com mais opções do que
- *  cabem numa linha — hoje só a tela Parcelas.
+ *  à fileira de botões antiga, para listas com mais opções do que cabem numa
+ *  linha — a tela Parcelas (botão redondo) e, via `SeletorOrdem`, Despesas e
+ *  Receitas (gatilho em texto).
  *
  *  Critérios que existem nos dois sentidos (mais recentes/mais antigas, maior/
  *  menor valor) entram como um `par`: uma linha só, com uma seta que troca a
@@ -35,10 +36,14 @@ export default function SeletorOrdemFolha<T extends string>({
   valor,
   linhas,
   aoMudar,
+  gatilho = "redondo",
 }: {
   valor: T;
   linhas: LinhaOrdem<T>[];
   aoMudar: (o: T) => void;
+  /** "redondo": o botão-ícone de sempre. "texto": a ordem atual escrita, com um
+   *  chevron, sem caixa — alinhada à direita, como no título de uma secção. */
+  gatilho?: "redondo" | "texto";
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
@@ -55,14 +60,21 @@ export default function SeletorOrdemFolha<T extends string>({
       <button
         ref={gatilhoRef}
         type="button"
-        className={styles.botao}
+        className={gatilho === "texto" ? styles.botaoTexto : styles.botao}
         // Segundo clique fecha — ver a mesma nota no `Seletor`.
         onClick={() => setAberta(!aberta)}
         aria-expanded={aberta}
         aria-label={`Ordenar por — atual: ${atual}`}
         title={`Ordenar: ${atual}`}
       >
-        <ListFilter size={16} aria-hidden />
+        {gatilho === "texto" ? (
+          <>
+            {atual}
+            <ChevronDown size={13} strokeWidth={2.4} aria-hidden />
+          </>
+        ) : (
+          <ListFilter size={16} aria-hidden />
+        )}
       </button>
 
       <FolhaAncorada

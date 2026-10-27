@@ -1,9 +1,15 @@
-import { ORDENS, ROTULOS_ORDEM, type Ordem } from "../utils/ordem";
-import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
-import styles from "./SeletorOrdem.module.css";
+import SeletorOrdemFolha from "./SeletorOrdemFolha";
+import { ORDENS, ROTULOS_ORDEM, type LinhaOrdem, type Ordem } from "../utils/ordem";
 
-/** Fileira de botões de ordenação acima da lista (item 14). Não persiste:
- *  sair da tela volta ao padrão ("Mais recentes"). */
+const LINHAS: LinhaOrdem<Ordem>[] = ORDENS.map((o) => ({
+  tipo: "simples",
+  valor: o,
+  rotulo: ROTULOS_ORDEM[o],
+}));
+
+/** Ordenação das listas de lançamentos (item 14): a ordem atual escrita à
+ *  direita, com um chevron; tocar abre as quatro opções (a mesma folha da tela
+ *  Parcelas). Não persiste: sair da tela volta ao padrão ("Mais recentes"). */
 export default function SeletorOrdem({
   valor,
   aoMudar,
@@ -11,27 +17,5 @@ export default function SeletorOrdem({
   valor: Ordem;
   aoMudar: (o: Ordem) => void;
 }) {
-  const { ref, onKeyDown } = useRadiogroupTeclado<HTMLDivElement>();
-  return (
-    <div
-      className={styles.fileira}
-      role="radiogroup"
-      aria-label="Ordenar por"
-      ref={ref}
-      onKeyDown={onKeyDown}
-    >
-      {ORDENS.map((o) => (
-        <button
-          key={o}
-          type="button"
-          role="radio"
-          aria-checked={valor === o}
-          className={`${styles.opcao} ${valor === o ? styles.ativa : ""}`}
-          onClick={() => aoMudar(o)}
-        >
-          {ROTULOS_ORDEM[o]}
-        </button>
-      ))}
-    </div>
-  );
+  return <SeletorOrdemFolha valor={valor} linhas={LINHAS} aoMudar={aoMudar} gatilho="texto" />;
 }

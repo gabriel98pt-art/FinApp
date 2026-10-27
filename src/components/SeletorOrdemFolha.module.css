@@ -36,6 +36,23 @@
   background: var(--s3);
 }
 
+/* Gatilho em texto: sem caixa, a ordem atual em --mut com um chevron, à direita
+   (padrão da prévia). Altura de toque de 44px sem ocupar mais espaço visual. */
+.botaoTexto {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mut);
+}
+
+.botaoTexto:hover {
+  color: var(--txt);
+}
+
 .opcoes {
   display: flex;
   flex-direction: column;
