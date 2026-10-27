@@ -103,3 +103,9 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 Sem alterações de código: a tela já estava no desenho novo depois da Fase 2 e as bases (A1–A5). Verificado em claro e escuro: quadro em vidro, segmentado em pílula com o ativo branco/creme, selos Pago ✓ / Pendente ◷, linhas com fio fino, botões "+" pretos/cremes. `--r-card` 22px (desvio 9): sem problema nesta tela (os únicos cartões são o quadro de resumo e o EstadoVazio). O `.form` de Despesas.module.css e o de Veiculo.module.css não são usados por nenhum componente (CSS morto, não mexi). Borda testada: nome comprido, valor de 5 dígitos, dia com 1 e com 2 movimentos, lista vazia.
 
 - Capturas: FinApp-capturas/vidro-faseB/b1-despesas-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B2 — Receitas
+
+Sem alterações de código: herda o desenho novo (quadro em vidro, "+ Adicionar" em --blu-txt, pílulas Mês/Semana, verde menta só nos valores positivos). Contraste do verde #096B5E medido em checks (A1). Borda: nome comprido, valor grande, lista vazia.
+
+- Capturas: FinApp-capturas/vidro-faseB/b2-receitas-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
