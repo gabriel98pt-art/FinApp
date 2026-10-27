@@ -86,6 +86,15 @@ export function taxaPoupanca(receitas: Cents, saldo: Cents): number | null {
   return Math.round((Math.max(0, saldo) / receitas) * 100);
 }
 
+/** A taxa de poupança com o sinal: negativa quando se gastou mais do que se
+ *  recebeu (-731 de saldo sobre 1.388 de receita = -53%). É a que a Análise
+ *  mostra; o KPI de Metas continua em `taxaPoupanca`, que não desce de zero.
+ *  `null` sem receita. */
+export function taxaPoupancaReal(receitas: Cents, saldo: Cents): number | null {
+  if (receitas <= 0) return null;
+  return Math.round((saldo / receitas) * 100);
+}
+
 export interface TotalFundos {
   atual: Cents;
   alvo: Cents;

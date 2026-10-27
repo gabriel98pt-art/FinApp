@@ -163,7 +163,9 @@ export function MiniBarras({ serie }: { serie: number[] }) {
 
 /** O anel da taxa de poupança: `pct` de 0 a 100, ou `null` ("—") sem receita. */
 export function AnelTaxa({ pct }: { pct: number | null }) {
+  // Uma taxa negativa deixa o anel vazio (só o trilho); o número diz o resto.
   const cheio = pct === null ? 0 : Math.max(0, Math.min(100, pct));
+  const texto = pct === null ? "—" : `${pct < 0 ? "−" : ""}${Math.abs(pct)}%`;
   return (
     <svg
       className={styles.anel}
@@ -171,7 +173,7 @@ export function AnelTaxa({ pct }: { pct: number | null }) {
       height={84}
       viewBox="0 0 42 42"
       role="img"
-      aria-label={pct === null ? "Taxa de poupança: sem receitas" : `Taxa de poupança: ${pct}%`}
+      aria-label={pct === null ? "Taxa de poupança: sem receitas" : `Taxa de poupança: ${texto}`}
     >
       <circle className={styles.anelTrilho} cx={21} cy={21} r={16} />
       <circle
@@ -184,7 +186,7 @@ export function AnelTaxa({ pct }: { pct: number | null }) {
         style={cheio === 0 ? { display: "none" } : undefined}
       />
       <text className={styles.anelTexto} x={21} y={24.5} textAnchor="middle">
-        {pct === null ? "—" : `${pct}%`}
+        {texto}
       </text>
     </svg>
   );

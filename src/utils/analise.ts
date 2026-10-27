@@ -32,7 +32,7 @@ import {
   variacaoMensal,
 } from "./calculos";
 import { despesaPorCategoriaRegistradaMes } from "./despesaPorCategoria";
-import { taxaPoupanca } from "./metas";
+import { taxaPoupancaReal } from "./metas";
 import { resultadoDoMes } from "./resumoMensal";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "./semanas";
 import { entraDinheiro, transacoesDoMes, type Transacao } from "./transacoes";
@@ -54,28 +54,34 @@ export interface PontoMes {
   receitas: Cents;
   despesas: Cents;
   saldo: Cents;
-  /** `null` sem receita nesse mês. */
+  /** Pode ser negativa (gastou mais do que recebeu); `null` sem receita. */
   taxa: number | null;
 }
 
-/** Um número contra a sua média. `pct` é `null` quando não há base (média
- *  ausente ou a zero) — o chip não aparece, em vez de "∞%". `pior` diz se a
- *  variação é má notícia: para despesa subir é pior, para receita e sobra é
- *  descer; `null` quando não há variação a avaliar. */
-export interface Comparacao {
-  atual: Cents;
-  media: Cents | null;
+/** Como um número se compara com a sua média. A percentagem só diz alguma
+ *  coisa com uma base que se aguente: com a média abaixo de € 50, ou quando o
+ *  valor muda de sinal (um mês de sobra negativa contra uma média positiva),
+ *  "▼ 535%" não quer dizer nada — aí a variação vai em euros. A sobra mostra
+ *  sempre euros. `pct` e `euros` nunca vêm os dois; sem média, nenhum.
+ *  `sentido` é o lado da variação; `pior` diz se é má notícia (para despesa
+ *  subir é pior, para receita e sobra é descer), `null` sem variação. */
+export interface Variacao {
   pct: number | null;
+  euros: Cents | null;
+  sentido: -1 | 0 | 1 | null;
   pior: boolean | null;
 }
 
-export interface LinhaCategoria {
+export interface Comparacao extends Variacao {
+  atual: Cents;
+  media: Cents | null;
+}
+
+export interface LinhaCategoria extends Variacao {
   categoria: string;
   atual: Cents;
   /** Um valor por mês da janela (com história), do mais antigo ao atual. */
   serie: Cents[];
-  pct: number | null;
-  pior: boolean | null;
 }
 
 export interface BarraSemana {
@@ -103,6 +109,8 @@ export interface AnaliseMes {
     /** Média das taxas mensais da janela (só meses com receita). */
     media: number | null;
     guardou: Cents;
+    /** Quanto se gastou a mais do que se recebeu (0 quando sobrou). */
+    gastouAMais: Cents;
     receitas: Cents;
   };
   /** Quantos meses entraram na média ("o mês atual vs a sua média"). */
@@ -137,10 +145,43 @@ export function primeiroMesDeDados(d: DadosAnalise): YearMonth | null {
   return meses.length === 0 ? null : meses.reduce((min, m) => (m < min ? m : min));
 }
 
-function comparar(atual: Cents, media: Cents | null, subirEPior: boolean): Comparacao {
-  const pct = media === null ? null : variacaoMensal(atual, media);
-  const pior = pct === null || pct === 0 ? null : subirEPior ? pct > 0 : pct < 0;
-  return { atual, media, pct, pior };
+/** Abaixo disto a média é pequena demais para uma percentagem. */
+const MEDIA_MINIMA_PARA_PCT: Cents = 5000;
+
+const SEM_VARIACAO: Variacao = { pct: null, euros: null, sentido: null, pior: null };
+
+export function variarContraMedia(
+  atual: Cents,
+  media: Cents | null,
+  subirEPior: boolean,
+  soEuros = false,
+): Variacao {
+  if (media === null) return SEM_VARIACAO;
+  const delta = atual - media;
+  const mudaDeSinal = atual * media < 0;
+  const emEuros = soEuros || Math.abs(media) < MEDIA_MINIMA_PARA_PCT || mudaDeSinal;
+  const pctBruto = emEuros ? null : variacaoMensal(atual, media);
+  // Sem base para a percentagem (média negativa), cai para euros.
+  const emEurosFinal = emEuros || pctBruto === null;
+  const pct = emEurosFinal ? null : pctBruto;
+  // Em euros, uma diferença que arredonda a € 0 é "igual", sem seta.
+  const medida = emEurosFinal ? Math.round(delta / 100) : (pct as number);
+  const sentido: -1 | 0 | 1 = medida === 0 ? 0 : medida > 0 ? 1 : -1;
+  return {
+    pct,
+    euros: emEurosFinal ? Math.abs(delta) : null,
+    sentido,
+    pior: sentido === 0 ? null : subirEPior ? sentido > 0 : sentido < 0,
+  };
+}
+
+function comparar(
+  atual: Cents,
+  media: Cents | null,
+  subirEPior: boolean,
+  soEuros = false,
+): Comparacao {
+  return { atual, media, ...variarContraMedia(atual, media, subirEPior, soEuros) };
 }
 
 /** Os movimentos de SAÍDA do mês que contam como gasto: sem transferências
@@ -192,7 +233,7 @@ export function analisarMes(
   const vazioBase: AnaliseMes = {
     vazio: true,
     meses: [],
-    taxa: { atual: null, media: null, guardou: 0, receitas: 0 },
+    taxa: { atual: null, media: null, guardou: 0, gastouAMais: 0, receitas: 0 },
     mesesNaMedia: 0,
     vsMedia: {
       despesas: comparar(0, null, true),
@@ -210,7 +251,7 @@ export function analisarMes(
   const janela = mesesRecentes(periodo, mes).filter((m) => m >= primeiro);
   const meses: PontoMes[] = janela.map((m) => {
     const r = resultado(m);
-    return { mes: m, ...r, taxa: taxaPoupanca(r.receitas, r.saldo) };
+    return { mes: m, ...r, taxa: taxaPoupancaReal(r.receitas, r.saldo) };
   });
   const atual = meses[meses.length - 1];
 
@@ -219,6 +260,7 @@ export function analisarMes(
     atual: atual.taxa,
     media: media(taxas),
     guardou: Math.max(0, atual.saldo),
+    gastouAMais: Math.max(0, -atual.saldo),
     receitas: atual.receitas,
   };
 
@@ -231,7 +273,7 @@ export function analisarMes(
   const vsMedia = {
     despesas: comparar(atual.despesas, mDespesas?.media ?? null, true),
     receitas: comparar(atual.receitas, mReceitas?.media ?? null, false),
-    sobra: comparar(atual.saldo, mSobra?.media ?? null, false),
+    sobra: comparar(atual.saldo, mSobra?.media ?? null, false, true),
   };
 
   // Semanas do mês, a partir dos mesmos movimentos de saída.
@@ -262,8 +304,12 @@ export function analisarMes(
   const categorias: LinhaCategoria[] = fatiasAtual.slice(0, CATEGORIAS_NA_ANALISE).map((f) => {
     const serie = fatiasPorMes.map((fs) => fs.find((x) => x.categoria === f.categoria)?.valor ?? 0);
     const mediaAntes = media(serie.slice(0, -1));
-    const c = comparar(f.valor, mediaAntes, true);
-    return { categoria: f.categoria, atual: f.valor, serie, pct: c.pct, pior: c.pior };
+    return {
+      categoria: f.categoria,
+      atual: f.valor,
+      serie,
+      ...variarContraMedia(f.valor, mediaAntes, true),
+    };
   });
 
   const maioresGastos = [...gastos]

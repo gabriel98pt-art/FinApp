@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../types";
-import { analisarMes, primeiroMesDeDados, type DadosAnalise } from "./analise";
+import { analisarMes, primeiroMesDeDados, variarContraMedia, type DadosAnalise } from "./analise";
 import { mediaDeMeses, receitasNosTotais, totalDoMes } from "./calculos";
 import { calcularMetaMensal, taxaPoupanca } from "./metas";
 import { despesaRegistradaMes, resultadoDoMes } from "./resumoMensal";
@@ -149,7 +149,50 @@ describe("analisarMes — mês atual contra a média dos meses antes", () => {
       pior: false,
     });
     // sobra: 670 contra a média de 1.000 → desceu 33%, e para a sobra descer é pior.
-    expect(a.vsMedia.sobra).toMatchObject({ atual: 67000, media: 100000, pct: -33, pior: true });
+    expect(a.vsMedia.sobra).toMatchObject({
+      atual: 67000,
+      media: 100000,
+      pct: null,
+      euros: 33000,
+      sentido: -1,
+      pior: true,
+    });
+  });
+
+  test("taxa negativa: o valor real, e quanto se gastou a mais", () => {
+    const negativo = dados({
+      receitas: [rec("a", "2026-10-01", 138800)],
+      despesasCorrentes: [desp("c", "2026-10-05", 211900)],
+    });
+    const a = analisarMes(negativo, CFG, "2026-10", MES_REAL, HOJE, 3);
+    expect(a.taxa.atual).toBe(-53);
+    expect(a.taxa.guardou).toBe(0);
+    expect(a.taxa.gastouAMais).toBe(73100);
+  });
+
+  test("média pequena (< € 50) ou mudança de sinal: a variação vai em euros, não em percentagem", () => {
+    expect(variarContraMedia(80000, 2000, true)).toMatchObject({
+      pct: null,
+      euros: 78000,
+      sentido: 1,
+      pior: true,
+    });
+    expect(variarContraMedia(-50000, 40000, false)).toMatchObject({
+      pct: null,
+      euros: 90000,
+      sentido: -1,
+      pior: true,
+    });
+    expect(variarContraMedia(110000, 100000, true)).toMatchObject({
+      pct: 10,
+      euros: null,
+      sentido: 1,
+    });
+    expect(variarContraMedia(100000, null, true)).toMatchObject({
+      pct: null,
+      euros: null,
+      sentido: null,
+    });
   });
 
   test("sem variação não há veredicto", () => {
@@ -262,7 +305,7 @@ describe("analisarMes — semanas, categorias e maiores gastos", () => {
     // média antes: 100.000 → +20%, e gasto a subir é pior.
     expect(casa).toMatchObject({ atual: 120000, pct: 20, pior: true });
     // Mercado só existe em outubro: a média dos meses antes é 0 → sem percentagem.
-    expect(a.categorias[1]).toMatchObject({ categoria: "Mercado", pct: null });
+    expect(a.categorias[1]).toMatchObject({ categoria: "Mercado", pct: null, euros: 55000 });
   });
 
   test("maiores gastos: os 3 maiores, sem transferências nem pagamentos de fatura", () => {

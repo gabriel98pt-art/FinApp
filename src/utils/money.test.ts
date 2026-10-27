@@ -3,6 +3,7 @@ import {
   formatCents,
   formatMoney,
   formatMoneyInteiro,
+  formatMoneySinal,
   fromCents,
   parseMoney,
   toCents,
@@ -121,6 +122,15 @@ describe("formatMoneyInteiro", () => {
     expect(formatMoneyInteiro(189538, "EUR")).toBe("€ 1.895");
     expect(formatMoneyInteiro(189550, "EUR")).toBe("€ 1.896");
     expect(formatMoneyInteiro(0, "EUR")).toBe("€ 0");
-    expect(formatMoneyInteiro(-45600, "EUR")).toBe("€ -456");
+    expect(formatMoneyInteiro(-45600, "EUR")).toBe("−€ 456");
+    expect(formatMoneyInteiro(-73100, "EUR")).toBe("−€ 731");
+  });
+});
+
+describe("formatMoneySinal", () => {
+  test("o sinal vai antes do símbolo, com o menos de verdade", () => {
+    expect(formatMoneySinal(-73100, "EUR")).toBe("−€ 731,00");
+    expect(formatMoneySinal(4230, "EUR")).toBe("€ 42,30");
+    expect(formatMoneySinal(0, "EUR")).toBe("€ 0,00");
   });
 });

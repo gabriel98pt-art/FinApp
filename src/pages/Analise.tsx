@@ -21,12 +21,16 @@ import {
   PERIODOS_ANALISE,
   type Comparacao,
   type PeriodoAnalise,
+  type Variacao,
 } from "../utils/analise";
 import { hojeIso, mesAtual, MESES_CURTOS_PT, nomeDoMes } from "../utils/calculos";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
-import { formatMoney, formatMoneyInteiro } from "../utils/money";
+import { formatMoneyInteiro, formatMoneySinal } from "../utils/money";
 import segmentado from "../styles/segmentado.module.css";
 import styles from "./Analise.module.css";
+
+/** "−53%", com o menos de verdade (U+2212) como no resto do app. */
+const rotuloPct = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n)}%`;
 
 const diaCurto = (iso: string) =>
   `${Number(iso.slice(8, 10))} ${MESES_CURTOS_PT[Number(iso.slice(5, 7)) - 1]}`;
@@ -82,7 +86,7 @@ export default function Analise() {
 
   const nomeMes = nomeDoMes(mes).charAt(0).toUpperCase() + nomeDoMes(mes).slice(1);
   const dinheiro = (cents: number) => (
-    <span className={classeDiscreta}>{formatMoney(cents, moeda)}</span>
+    <span className={classeDiscreta}>{formatMoneySinal(cents, moeda)}</span>
   );
   const dinheiroInteiro = (cents: number) => (
     <span className={classeDiscreta}>{formatMoneyInteiro(cents, moeda)}</span>
@@ -111,6 +115,22 @@ export default function Analise() {
     </div>
   );
 
+  // A variação em ▲/▼: percentagem, ou a diferença em euros quando a base é
+  // pequena ou o sinal mudou (ver `Variacao`).
+  const chip = (v: Variacao) => (
+    <ChipVariacao
+      sentido={v.sentido}
+      texto={
+        v.pct !== null
+          ? `${Math.abs(v.pct)}%`
+          : v.euros !== null
+            ? formatMoneyInteiro(v.euros, moeda)
+            : ""
+      }
+      pior={v.pior}
+    />
+  );
+
   function linhaComparacao(nome: string, c: Comparacao) {
     return (
       <div className={styles.linha} key={nome}>
@@ -122,7 +142,7 @@ export default function Analise() {
         </span>
         <span className={styles.direita}>
           <span className={styles.valor}>{dinheiroInteiro(c.atual)}</span>
-          <ChipVariacao pct={c.pct} pior={c.pior} />
+          {chip(c)}
         </span>
       </div>
     );
@@ -158,6 +178,8 @@ export default function Analise() {
               <p className={styles.destaqueLinha}>
                 {t.atual === null ? (
                   "Sem receitas neste mês"
+                ) : t.gastouAMais > 0 ? (
+                  <>Gastou {dinheiroInteiro(t.gastouAMais)} a mais do que recebeu</>
                 ) : (
                   <>
                     Guardou {dinheiroInteiro(t.guardou)} de {dinheiroInteiro(t.receitas)}
@@ -166,7 +188,7 @@ export default function Analise() {
               </p>
               {t.media !== null && (
                 <p className={styles.destaqueNota}>
-                  Média dos {nMeses} {nMeses === 1 ? "mês" : "meses"}: {t.media}%
+                  Média dos {nMeses} {nMeses === 1 ? "mês" : "meses"}: {rotuloPct(t.media)}
                 </p>
               )}
             </div>
@@ -237,9 +259,7 @@ export default function Analise() {
                     <span className={styles.sub}>{dinheiro(c.atual)}</span>
                   </span>
                   <MiniBarras serie={c.serie} />
-                  <span className={styles.chipFixo}>
-                    <ChipVariacao pct={c.pct} pior={c.pior} />
-                  </span>
+                  <span className={styles.chipFixo}>{chip(c)}</span>
                 </div>
               ))}
             </div>

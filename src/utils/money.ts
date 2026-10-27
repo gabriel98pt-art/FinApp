@@ -118,8 +118,14 @@ export function semQuebra(texto: string): string {
   return texto.replace(/ /g, "\u00a0");
 }
 
-/** `formatMoney` em euros inteiros ("€ 1.895"): para os gráficos e resumos,
- *  onde os cêntimos só atrapalham. Arredonda ao euro mais próximo. */
+/** O padrão do app para um valor negativo: o sinal antes do símbolo ("−€ 731"),
+ *  com o menos de verdade (U+2212). `formatMoney` escreve "€ -731,00". */
+export function formatMoneySinal(cents: Cents, currency: Currency): string {
+  return `${cents < 0 ? "−" : ""}${CURRENCY_SYMBOLS[currency]} ${formatCents(Math.abs(cents))}`;
+}
+
+/** Euros inteiros ("€ 1.895", "−€ 731"): para os gráficos e resumos, onde os
+ *  cêntimos só atrapalham. Arredonda ao euro mais próximo. */
 export function formatMoneyInteiro(cents: Cents, currency: Currency): string {
-  return formatMoney(Math.round(cents / 100) * 100, currency).replace(/,00$/, "");
+  return formatMoneySinal(Math.round(cents / 100) * 100, currency).replace(/,00$/, "");
 }

@@ -48,3 +48,9 @@ Capturas em ~/Projetos/Dev/FinApp-capturas/analise/ (Chromium): analise-390-clar
 ## E1 — espaço por baixo do conteúdo (FAB)
 
 Diagnóstico: a 1180px o AppShell já guardava 96px por baixo (= 56 do FAB + 24 de margem + 16), por isso o FAB não cobre o último cartão quando se rola até ao fim (capturas e1-antes-*-1180-fim.png, com a página rolada até ao fim). O "€ 89,00" tapado em analise-1180-claro era um artefacto da captura de página inteira, que desenha o FAB (fixo) na posição do primeiro ecrã, a meio da página. Mesmo assim, os 96px estavam escritos à mão, separados do tamanho do FAB: novos tokens `--fab-tam` (56px) e `--fab-margem` (24px) em tokens.css, usados pelo Fab.module.css e pelo `padding-bottom` do AppShell (`calc(--fab-tam + --fab-margem + 16px)`), para nunca se desencontrarem. Resultado igual (96px). Capturas e1-depois-{analise,inicio,despesas}-1180-fim.png.
+
+## G1 + G2 — taxa negativa e chips (commit único, por falta de margem de uso)
+
+- G1: `taxaPoupancaReal` (metas.ts) devolve a taxa com sinal (−731 sobre 1.388 = −53%); a Análise mostra "−53%", anel vazio e "Gastou € 731 a mais do que recebeu"; a média dos meses também pode ser negativa ("−12%"). O KPI de Metas continua em `taxaPoupanca` (não desce de 0). Valores negativos da Análise passam ao padrão do app, "−€ 731" (`formatMoneySinal`/`formatMoneyInteiro`), incluindo "média −€ x" e os resumos em texto dos gráficos.
+- G2: `variarContraMedia`: a Sobra mostra sempre a diferença em euros ("▼ € 899"); despesas, receitas e categorias passam a euros com a média abaixo de € 50 ou mudança de sinal. `ChipVariacao` passou a `sentido` + `texto`. Testes dos casos em analise.test.ts.
+- NÃO FEITO: verificar o transbordo horizontal da Análise entre ~1180 e ~1500px (seletor 3/6/12 e valores cortados na captura do Gabriel) e recapturar G1/G2.
