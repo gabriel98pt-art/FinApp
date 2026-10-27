@@ -171,3 +171,9 @@ B12 — Login
 ## B13 — folhas e modais partilhados
 
 BottomSheet, MenuRegistroRapido, RegistroRapido, ConfirmarAcao e Popover já herdam as superfícies sólidas quentes (`--s1`, creme/café), os botões pretos/cremes e a terracota; ficam opacos de propósito (flutuam sobre conteúdo e têm campos de texto). Alterado: os segmentados do formulário de registo (Gasto/Reembolso, Hoje/Ontem/Escolher data, sub-tipos do Veículo) passam a pílula com o ativo branco/creme (`--aba-ativa-*`). Capturas: b13-menu-registro, b13-registro-form, b13-folha-copiloto, b13-ordenar (popover a 1180), b13-confirmar. DESVIO: o véu escuro atrás das folhas (rgba preto 35%) não foi tornado quente; fica como estava.
+
+## C1
+
+C1 — vermelho vs terracota
+
+Matiz em OKLCH: claro `--red` #B11F4B H=10,1° vs `--blu-txt` #974926 H=43,3° → ΔH 33° (antes #A8350A H=37,5°, ΔH 6°). Escuro `--red` #FD7B97 H=8,3° vs `--blu` #F0844F H=45,6° → ΔH 37° (antes #FF8F75 H=34,1°, ΔH 11°). Contrastes `--red`: claro 4,80 no ponto mais escuro do mesh, 6,0 no vidro, 5,6 sobre --s2, 5,46 sobre o tint #FBE3EA; escuro 6,4 sobre --s1, 6,7 no vidro, 4,82 sobre o tint (16%). Chips vermelhos: `--soft-red` e `--selo-alerta-bg` seguem. DESVIO: o ponto de partida do planejador (#B4233C) dá H=18° (ΔH 25°), por isso desci para H≈10° (#B11F4B). DESVIO: contador de notificações usa `--bg` (cor do número) em vez de #fff. Capturas antes/depois: vidro-faseC/{antes,depois}-{metas,tvde,despesas}-390-{claro,escuro}.png.
