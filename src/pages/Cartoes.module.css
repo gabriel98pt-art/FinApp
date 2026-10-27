@@ -10,10 +10,7 @@
 }
 
 .cartao {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -210,13 +207,10 @@
 }
 
 .quadro {
+  composes: vidro from "../styles/vidro.module.css";
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
   padding: 14px;
   color: var(--txt);
   text-align: left;
@@ -340,14 +334,11 @@
 }
 
 .item {
+  composes: vidro from "../styles/vidro.module.css";
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
   padding: 12px 14px;
 }
 
