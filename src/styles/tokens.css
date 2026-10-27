@@ -16,38 +16,46 @@
 
 :root {
   /* Dark (padrão) */
-  --bg: #0a1622;
-  --s1: #101e30;
-  --s2: #16283f;
-  --s3: #1e3349;
-  --txt: #eaf1f7;
-  --mut: #93a5b8;
-  --brd: #1e3349;
+  /* Escuro quente (VidroEscuro): castanho-café em vez do navy. Ainda pode ser
+     vetado pelo Gabriel, por isso tudo o que é do escuro está só neste bloco. */
+  --bg: #15100c;
+  --s1: #2a201a;
+  --s2: #332820;
+  --s3: #3e3128;
+  --txt: #f6eee7;
+  --mut: #b9aa9d;
+  --brd: rgba(255, 235, 215, 0.1);
 
-  --blu: #5fa6fc; /* acento primário / ações */
-  --grn: #4ade80;
-  --red: #fb7185;
-  --ylw: #fbbf24;
+  --blu: #f0844f; /* terracota: acento primário / ações */
+  --grn: #3ccbb5;
+  --red: #ff8f75;
+  --ylw: #f2c14e;
   --pur: #b08dfc;
 
   /* --- Vidro + terracota (nomes novos; os valores do escuro vêm no nó A2) --- */
-  --fundo-mesh: none;
-  --blu-txt: var(--blu); /* terracota como TEXTO/link: ver o bloco claro */
-  --on-blu: #0a1622; /* texto sobre um preenchimento --blu */
-  --btn-bg: var(--blu); /* botão primário */
-  --btn-txt: var(--bg);
-  --aba-ativa-bg: color-mix(in srgb, var(--blu) 14%, transparent);
-  --aba-ativa-txt: var(--blu);
-  --aba-ativa-sh: none;
-  --linha: color-mix(in srgb, var(--mut) 15%, transparent);
-  --vidro-bg: var(--s1);
-  --vidro-bg-blur: var(--s1);
-  --vidro-solido: var(--s1);
-  --vidro-brd: var(--brd);
-  --sh-vidro: var(--sh-card);
-  --soft-grn: color-mix(in srgb, var(--grn) 16%, transparent);
-  --soft-red: color-mix(in srgb, var(--red) 16%, transparent);
-  --soft-ylw: color-mix(in srgb, var(--ylw) 16%, transparent);
+  --fundo-mesh:
+    radial-gradient(60% 40% at 0% 0%, #3a2416 0%, transparent 70%),
+    radial-gradient(55% 35% at 100% 18%, #40220f 0%, transparent 70%),
+    radial-gradient(70% 40% at 20% 70%, #2a1c13 0%, transparent 70%),
+    radial-gradient(60% 40% at 100% 100%, #3a2215 0%, transparent 70%);
+  --blu-txt: var(--blu); /* no escuro a terracota já passa 5,6:1 como texto */
+  --on-blu: #1a120d; /* texto sobre um preenchimento --blu (7,1:1) */
+  --btn-bg: #f6eee7; /* botão primário: creme com texto escuro */
+  --btn-txt: #1a120d;
+  --aba-ativa-bg: #f6eee7;
+  --aba-ativa-txt: #1a120d;
+  --aba-ativa-sh: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --linha: rgba(255, 235, 215, 0.09);
+  --vidro-bg: rgba(48, 36, 29, 0.62);
+  --vidro-bg-blur: rgba(48, 36, 29, 0.62);
+  --vidro-solido: #2a201a;
+  --vidro-brd: rgba(255, 235, 215, 0.08);
+  --sh-vidro: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.28);
+  --soft-grn: rgba(60, 203, 181, 0.16);
+  --soft-red: rgba(255, 143, 117, 0.16);
+  --soft-ylw: rgba(242, 193, 78, 0.16);
+  /* Cartão de destaque: texto branco, por isso mais escuro que a prévia
+     (#EE7E48→#E06630 dá 2,7–3,4:1; este par dá 4,6–5,4:1), nos dois temas. */
   --destaque-grad: linear-gradient(150deg, #c94e1a 0%, #b34314 100%);
   --destaque-sh: 0 12px 30px rgba(179, 67, 20, 0.32);
   --sobre-destaque: #ffffff;
@@ -86,9 +94,7 @@
   --r-sheet: 22px; /* folha inferior e nav flutuante */
 
   /* Sombras em camadas, com inset highlight sutil já no estado base */
-  --sh-card:
-    0 1px 2px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.26),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.28);
   --sh-card-hi:
     inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.25),
     0 8px 24px rgba(0, 0, 0, 0.35);
@@ -102,10 +108,10 @@
   --sh-round-active: 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 8px rgba(0, 0, 0, 0.26);
 
   /* Componentes RGB dos acentos, para sombras/brilhos com alpha */
-  --blu-rgb: 95, 166, 252;
-  --grn-rgb: 74, 222, 128;
-  --red-rgb: 251, 113, 133;
-  --ylw-rgb: 251, 191, 36;
+  --blu-rgb: 240, 132, 79;
+  --grn-rgb: 60, 203, 181;
+  --red-rgb: 255, 143, 117;
+  --ylw-rgb: 242, 193, 78;
   --pur-rgb: 176, 141, 252;
   --tvde-rgb: 143, 162, 255;
 
@@ -130,8 +136,8 @@
   --tint-red-10: color-mix(in srgb, var(--red) 10%, transparent);
 
   /* Material translúcido (header/tabs/nav) */
-  --material-bg: rgba(16, 30, 48, 0.72);
-  --material-brd: rgba(255, 255, 255, 0.06);
+  --material-bg: rgba(48, 36, 29, 0.72);
+  --material-brd: rgba(255, 235, 215, 0.08);
 
   /* Selos de status (Pago/Pendente em Despesas e Veículo, quitada em Parcelas).
      Eram `color-mix(--grn 14%, transparent)` cravado em cada página — três
@@ -143,18 +149,18 @@
      Agora são opacos e medidos: o escuro mantém exactamente a cor que o
      color-mix já produzia sobre --s1 (7,1:1), e o claro ganhou tons próprios
      (5,5:1). Fundo opaco = o mesmo contraste em qualquer superfície. */
-  --selo-pago-txt: #4ade80;
-  --selo-pago-bg: #18393b;
-  --selo-pago-bg-hi: #205446;
-  --selo-pendente-txt: #fbbf24;
-  --selo-pendente-bg: #31352e;
-  --selo-pendente-bg-hi: #524b2d;
+  --selo-pago-txt: #3ccbb5;
+  --selo-pago-bg: #2d3b33;
+  --selo-pago-bg-hi: #34493e;
+  --selo-pendente-txt: #f2c14e;
+  --selo-pendente-bg: #4a3a22;
+  --selo-pendente-bg-hi: #5a4727;
 
   /* Terceiro estado: o selo vermelho de "falhou/estourou" (meta não atingida,
      confiança baixa na importação). Sem par `-hi`: ao contrário do Pago das
      fixas, nenhum destes é clicável — são estado, não acção. */
-  --selo-alerta-txt: #fb7185;
-  --selo-alerta-bg: #312a3c;
+  --selo-alerta-txt: #ff8f75;
+  --selo-alerta-bg: #4c3229;
 }
 
 [data-theme="light"] {

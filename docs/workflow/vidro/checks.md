@@ -26,3 +26,22 @@ Medições com WCAG 2.x, pior caso entre os pontos do mesh (#FBF3EA, #FFE2C8, #F
 | Botão primário #FFF sobre #1C1712              | 17,4                      |
 
 grep de hex soltos novos fora dos tokens: ver o fim do ficheiro (preenchido a cada nó).
+
+## A2 — contraste (escuro quente), fundo #15100C / vidro rgba(48,36,29,.62) / sólido #2A201A
+
+| Par                                  | bg   | vidro | sólido |
+| ------------------------------------ | ---- | ----- | ------ |
+| --txt #F6EEE7                        | 16,5 | 14,5  | 13,9   |
+| --mut #B9AA9D                        | 8,4  | 7,4   | 7,1    |
+| --blu/--blu-txt #F0844F              | 7,3  | 6,4   | 6,2    |
+| --grn #3CCBB5                        | 9,4  | 8,3   | 7,9    |
+| --red #FF8F75                        | 8,5  | 7,5   | 7,2    |
+| --ylw #F2C14E                        | 11,3 | 9,9   | 9,5    |
+| --pur #B08DFC                        | 7,3  | 6,4   | 6,1    |
+| --on-blu #1A120D sobre #F0844F       | 7,1  |       |        |
+| botão primário #1A120D sobre #F6EEE7 | >15  |       |        |
+| --tvde #8FA2FF                       | 7,9  | 7,0   |        |
+
+Chips (texto sobre tint 16% sobre vidro): teal 6,1, vermelho 5,5, âmbar 6,9.
+
+Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do manifest e a arte do ícone ficam navy (a chapa do ícone é imagem, fora do plano).
