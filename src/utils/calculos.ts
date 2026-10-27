@@ -217,6 +217,11 @@ export function rotuloMes(ym: YearMonth): string {
   return `${MESES_PT[(m ?? 1) - 1]} ${y}`;
 }
 
+/** '2026-07' → 'julho' (só o nome, para rótulos curtos). */
+export function nomeDoMes(ym: YearMonth): string {
+  return MESES_PT[(Number(ym.slice(5, 7)) || 1) - 1];
+}
+
 /** '2026-07' → 2026. */
 export function anoDe(ym: YearMonth): number {
   return Number(ym.slice(0, 4));

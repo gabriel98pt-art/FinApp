@@ -447,8 +447,10 @@ describe("KPIs de Despesas", () => {
 
     const esperados = KPIS_POR_PAGINA.find((p) => p.id === "despesas")!.rotulos;
     expect(esperados).toHaveLength(4);
+    // "vs mês passado" mostra o nome do mês ("vs julho"); a chave é que casa.
+    const visivel = (r: string) => (r === "vs mês passado" ? "vs julho" : r);
     for (const rotulo of esperados) {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
+      expect(screen.getByText(visivel(rotulo))).toBeInTheDocument();
     }
   });
 
@@ -473,7 +475,7 @@ describe("KPIs de Despesas", () => {
     renderDespesas();
 
     expect(screen.getByText("+25%")).toBeInTheDocument();
-    expect(screen.getByText(/julho 2026: € 1\.000,00/)).toBeInTheDocument();
+    expect(screen.getByText("era € 1.000,00")).toBeInTheDocument();
   });
 
   test("primeiro mês de uso: 'Novo' em vez de uma percentagem impossível", () => {
@@ -497,7 +499,8 @@ describe("KPIs de Despesas", () => {
     // (100 + 200 + 300) / 3 = 200. O mês exibido fica de fora de propósito: a
     // meio do mês ele arrastaria para baixo a própria referência.
     expect(screen.getByText("€ 200,00")).toBeInTheDocument();
-    expect(screen.getByText("os 3 meses antes deste")).toBeInTheDocument();
+    // Com os 3 meses completos não há detalhe nenhum.
+    expect(screen.queryByText(/meses de dados/)).not.toBeInTheDocument();
   });
 
   test("Média (3 meses): só conta os meses que já existiam", () => {
@@ -506,7 +509,7 @@ describe("KPIs de Despesas", () => {
     despesas = lista([despesa({ id: "d7", valor: 30000, data: "2026-07-10" })]);
     renderDespesas();
 
-    expect(screen.getByText("só 1 mês de história")).toBeInTheDocument();
+    expect(screen.getByText("só 1 mês de dados")).toBeInTheDocument();
   });
 
   test("Média (3 meses): sem passado nenhum, o cartão diz que não sabe", () => {

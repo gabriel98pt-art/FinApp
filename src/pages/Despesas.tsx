@@ -40,6 +40,7 @@ import {
   mediaDeMeses,
   mesAtual,
   mesesRecentes,
+  nomeDoMes,
   rotuloMes,
   rotuloVariacao,
   somarMeses,
@@ -431,11 +432,13 @@ export default function Despesas() {
         {/* Aqui subir é mau: o verde/vermelho é o contrário do mesmo cartão em
             Receitas. */}
         <KpiCard
-          rotulo="vs mês passado"
+          rotulo={`vs ${nomeDoMes(mesAnterior)}`}
+          // O rótulo muda com o mês; a escolha de destaque casa pela chave.
+          chave="vs mês passado"
           valor={
             variacao === null ? (totalDoMesComVeiculo > 0 ? "Novo" : "—") : rotuloVariacao(variacao)
           }
-          sub={`${rotuloMes(mesAnterior)}: ${formatMoney(totalMesAnterior, moeda)}`}
+          sub={`era ${formatMoney(totalMesAnterior, moeda)}`}
           tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"}
         />
         {/* Mesmo cartão, mesmas palavras e mesmo tom do de Receitas: os dois
@@ -445,9 +448,9 @@ export default function Despesas() {
           valor={media ? formatMoney(media.media, moeda) : "—"}
           sub={
             media
-              ? media.meses === 3
-                ? "os 3 meses antes deste"
-                : `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de história`
+              ? media.meses < 3
+                ? `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de dados`
+                : undefined
               : "sem meses anteriores"
           }
           // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um

@@ -62,6 +62,17 @@ describe("Kpis — quadro de resumo", () => {
     expect(screen.getByText("€ 1.895,38")).toBeInTheDocument();
   });
 
+  test("o rótulo visível pode mudar de texto: a escolha casa pela chave", () => {
+    cfg = { ...CONFIG_PADRAO, kpiDestaque: { despesas: "vs mês passado" } };
+    render(
+      <Kpis pagina="despesas">
+        <KpiCard rotulo="Total do mês" valor="€ 1,00" />
+        <KpiCard rotulo="vs setembro" chave="vs mês passado" valor="+12%" sub="era € 9,00" />
+      </Kpis>,
+    );
+    expect(screen.getByRole("region", { name: "vs setembro" })).toBeInTheDocument();
+  });
+
   test("quem só tinha a escolha antiga de 2 KPIs fica com o primeiro dela em destaque", () => {
     cfg = { ...CONFIG_PADRAO, kpisMobile: { despesas: ["Maior categoria", "vs mês passado"] } };
     quadro("despesas");

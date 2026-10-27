@@ -171,8 +171,10 @@ describe("KPIs de Receitas", () => {
 
     const esperados = KPIS_POR_PAGINA.find((p) => p.id === "receitas")!.rotulos;
     expect(esperados).toHaveLength(4);
+    // "vs mês passado" mostra o nome do mês ("vs julho"); a chave é que casa.
+    const visivel = (r: string) => (r === "vs mês passado" ? "vs julho" : r);
     for (const rotulo of esperados) {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
+      expect(screen.getByText(visivel(rotulo))).toBeInTheDocument();
     }
   });
 
@@ -212,7 +214,7 @@ describe("KPIs de Receitas", () => {
     render(<Receitas />);
 
     expect(screen.getByText("+25%")).toBeInTheDocument();
-    expect(screen.getByText(/julho 2026: € 1\.000,00/)).toBeInTheDocument();
+    expect(screen.getByText("era € 1.000,00")).toBeInTheDocument();
   });
 
   test("primeiro mês de uso: 'Novo' em vez de uma percentagem impossível", () => {
@@ -234,7 +236,7 @@ describe("KPIs de Receitas", () => {
     render(<Receitas />);
 
     expect(screen.getByText("€ 900,00")).toBeInTheDocument();
-    expect(screen.getByText("só 1 mês de história")).toBeInTheDocument();
+    expect(screen.getByText("só 1 mês de dados")).toBeInTheDocument();
   });
 });
 
