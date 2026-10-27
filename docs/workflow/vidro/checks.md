@@ -115,3 +115,9 @@ Sem alterações de código: herda o desenho novo (quadro em vidro, "+ Adicionar
 Sem alterações de código: herda o desenho novo (quadro em vidro, extrato agrupado por dia em secção sem cartão). Borda: nome comprido, 15 transações, valores de 5 dígitos, lista vazia. Nota: "Saídas" e "Saldo" negativo continuam em vermelho no quadro, como já eram.
 
 - Capturas: FinApp-capturas/vidro-faseB/b3-transacoes-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B4 — Parcelas
+
+Os cartões das compras parceladas (`.parcela`) e o de "Serviços de parcelamento" (`.gerir`) passam a compor o vidro (translúcido, e fosco ≥ 768px) em vez de `--s1` + sombra própria; o resto herda. As barras de progresso das parcelas continuam em `--mut` (decisão antiga: informação, não ação; comentário no CSS). `--r-card` 22px: bom nestes cartões de ~90px de altura. Borda: nome comprido que passa a 2 linhas, lista vazia.
+
+- Capturas: FinApp-capturas/vidro-faseB/b4-parcelas-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
