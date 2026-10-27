@@ -145,3 +145,9 @@ Cartões `.cardMeta`, `.fundoCard` e o `OrcamentoCard` ("Orçamento por categori
 Sem alterações de código: o quadro de resumo (vidro), as abas segmentadas (pílula) e as listas sem cartão já herdam o desenho novo. O `.form` de Veiculo.module.css não é usado por nenhum componente (CSS morto). Borda: sem registos, nome comprido, valores de 4 dígitos.
 
 - Capturas: FinApp-capturas/vidro-faseB/b8-veiculo-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B9 — TVDE
+
+Cartões `.hero`, `.semana`, `.tabela`, `.blocoExtra` compõem o vidro; os destaques (números, linha do topo do herói, "+", aba ativa) usam o azul do TVDE Pro (#3F5EF0 claro, #8FA2FF escuro; 4,7 e 7,0:1 como texto). O resto igual às outras telas. DESVIO: o texto da aba ativa do segmentado usa o azul a 65% com preto (#5D69A6 no escuro, 4,53:1 sobre a aba creme): o #8FA2FF puro dava ~2:1 sobre o creme.
+
+- Capturas: FinApp-capturas/vidro-faseB/b9-tvde-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).

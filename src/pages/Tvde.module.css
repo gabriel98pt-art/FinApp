@@ -3,10 +3,7 @@
    fundos de pílula e botão — o toque "metalizado". Só aqui: a barra lateral e
    o header continuam no azul padrão mesmo com o TVDE aberto. */
 .hero {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 18px;
   text-align: center;
   position: relative;
@@ -64,8 +61,9 @@
 
 .abaAtiva {
   composes: abaAtiva from "../styles/segmentado.module.css";
-  /* O laranja é do TVDE: aqui só o texto da aba ativa, nunca o fundo. */
-  color: var(--tvde);
+  /* O azul é do TVDE: aqui só o texto da aba ativa, nunca o fundo. Escurecido
+     a 65% porque, no escuro, o azul claro sobre a aba creme dava ~2:1. */
+  color: color-mix(in srgb, var(--tvde) 65%, black);
 }
 
 .cabecalho {
@@ -115,10 +113,7 @@
 }
 
 .semana {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 12px 14px;
   display: flex;
   align-items: center;
@@ -195,10 +190,7 @@
 
 /* Tabelas mês/período */
 .tabela {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -255,10 +247,7 @@
 }
 
 .blocoExtra {
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
+  composes: vidro from "../styles/vidro.module.css";
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
