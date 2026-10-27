@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { Plus, TrendingUp } from "lucide-react";
 import Pagina, { Kpis } from "../components/Pagina";
+import Botao from "../components/Botao";
 import KpiCard from "../components/KpiCard";
 import ListaLancamentos from "../components/ListaLancamentos";
 import SeletorOrdem from "../components/SeletorOrdem";
@@ -32,6 +33,7 @@ import {
   variacaoMensal,
 } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
+import styles from "./Receitas.module.css";
 
 export default function Receitas() {
   const uid = useUidSessao();
@@ -132,9 +134,7 @@ export default function Receitas() {
         <KpiCard
           rotulo="Maior fonte"
           valor={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : "—"}
-          sub={
-            maiorFonte ? `${maiorFonte.nome} · ${maiorFonte.pct}% do mês` : "sem receitas no mês"
-          }
+          sub={maiorFonte ? `${maiorFonte.nome} · ${maiorFonte.pct}%` : "sem receitas no mês"}
         />
         {/* Do lado da receita, subir é bom — o verde/vermelho é o contrário do
             mesmo cartão em Despesas. */}
@@ -162,49 +162,60 @@ export default function Receitas() {
         />
       </Kpis>
 
-      <SeletorVisao valor={visao} aoMudar={setVisao}>
-        {visao === "semana" && (
-          <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-        )}
-      </SeletorVisao>
+      <section className={styles.secao} aria-label="Lançamentos">
+        <div className={styles.cabecalhoSecao}>
+          <h3 className={styles.tituloSecao}>Lançamentos</h3>
+          <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+        </div>
 
-      <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+        <SeletorVisao valor={visao} aoMudar={setVisao}>
+          {visao === "semana" && (
+            <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+          )}
+          <Botao
+            variante="texto"
+            className={styles.adicionar}
+            onClick={() => abrirRegistro("receita")}
+          >
+            <Plus size={15} aria-hidden /> Adicionar
+          </Botao>
+        </SeletorVisao>
 
-      <ListaLancamentos
-        /* key: trocar de mês, de ordem ou de semana remonta a lista e volta
+        <ListaLancamentos
+          /* key: trocar de mês, de ordem ou de semana remonta a lista e volta
            pra página 1 */
-        key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
-        titulo="Lançamentos"
-        itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((r) => ({
-          id: r.id,
-          descricao: r.descricao,
-          valor: r.valor,
-          data: r.data,
-          etiqueta: r.nota ? `${r.fonte} · ${r.nota}` : r.fonte,
-          categoria: r.fonte,
-        }))}
-        carregado={carregado}
-        erro={erro}
-        agruparPorDia={ordemPorData(ordem)}
-        tom="verde"
-        moeda={moeda}
-        rotuloTotal={
-          porSemana && semanaAtual
-            ? `Total ${rotuloDaSemana(semanaAtual)}`
-            : `Total ${rotuloMes(mes)}`
-        }
-        total={totalPeriodo}
-        vazio={
-          porSemana && semanaAtual
-            ? `Nenhuma receita em ${rotuloDaSemana(semanaAtual)}`
-            : `Nenhuma receita em ${rotuloMes(mes)}`
-        }
-        vazioSub="Toque em Adicionar para lançar a primeira."
-        vazioIcone={TrendingUp}
-        aoAdicionar={() => abrirRegistro("receita")}
-        aoEditar={(id) => abrirRegistro("receita", id)}
-        aoExcluir={(id) => void excluirReceita(id)}
-      />
+          key={`${mes}-${ordem}-${visao}-${semanaIdx}`}
+          itens={[...doPeriodo].sort(compararPorOrdem(ordem)).map((r) => ({
+            id: r.id,
+            descricao: r.descricao,
+            valor: r.valor,
+            data: r.data,
+            etiqueta: r.nota ? `${r.fonte} · ${r.nota}` : r.fonte,
+            categoria: r.fonte,
+          }))}
+          carregado={carregado}
+          erro={erro}
+          agruparPorDia={ordemPorData(ordem)}
+          tom="verde"
+          moeda={moeda}
+          rotuloTotal={
+            porSemana && semanaAtual
+              ? `Total ${rotuloDaSemana(semanaAtual)}`
+              : `Total ${rotuloMes(mes)}`
+          }
+          total={totalPeriodo}
+          vazio={
+            porSemana && semanaAtual
+              ? `Nenhuma receita em ${rotuloDaSemana(semanaAtual)}`
+              : `Nenhuma receita em ${rotuloMes(mes)}`
+          }
+          vazioSub="Toque em Adicionar para lançar a primeira."
+          vazioIcone={TrendingUp}
+          aoAdicionar={() => abrirRegistro("receita")}
+          aoEditar={(id) => abrirRegistro("receita", id)}
+          aoExcluir={(id) => void excluirReceita(id)}
+        />
+      </section>
     </Pagina>
   );
 }

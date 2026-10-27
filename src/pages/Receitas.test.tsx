@@ -9,7 +9,7 @@
 // por isso é a que serve para provar o arranjo antes de o repetir.
 
 import { describe, expect, test, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
@@ -132,6 +132,15 @@ describe("Receitas", () => {
     expect(screen.getByText("Trabalho · bónus")).toBeInTheDocument();
   });
 
+  test("Lançamentos é uma secção sem cartão: título com a ordem à direita", () => {
+    render(<Receitas />);
+    const secao = screen.getByRole("region", { name: "Lançamentos" });
+    expect(within(secao).getByRole("heading", { name: "Lançamentos" })).toBeInTheDocument();
+    expect(
+      within(secao).getByRole("button", { name: "Ordenar por — atual: Mais recentes" }),
+    ).toBeInTheDocument();
+  });
+
   test("Adicionar abre o registo rápido no modo receita", async () => {
     render(<Receitas />);
     await userEvent.click(screen.getByRole("button", { name: /Adicionar/ }));
@@ -200,7 +209,7 @@ describe("KPIs de Receitas", () => {
 
     expect(screen.getByText("€ 1.500,00")).toBeInTheDocument();
     // As duas linhas da Uber somam-se numa fonte só, com o peso dela no mês.
-    expect(screen.getByText("Trabalho · 75% do mês")).toBeInTheDocument();
+    expect(screen.getByText("Trabalho · 75%")).toBeInTheDocument();
   });
 
   test("mês sem receitas: o cartão assume que não sabe, em vez de mostrar 0", () => {

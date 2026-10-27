@@ -1,0 +1,17 @@
+/* Secção sem cartão: título + ordem, 12px até ao conteúdo (ver Despesas). */
+.secao {
+  composes: secao from "../styles/secoes.module.css";
+}
+
+.cabecalhoSecao {
+  composes: cabecalho from "../styles/secoes.module.css";
+}
+
+.tituloSecao {
+  composes: tituloSecao from "../styles/titulos.module.css";
+}
+
+/* O "Adicionar" ao fundo da linha do período, como o "+" de Despesas. */
+.adicionar {
+  margin-left: auto;
+}
