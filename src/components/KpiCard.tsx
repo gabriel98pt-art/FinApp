@@ -25,8 +25,8 @@ export interface PropsKpi {
   aoClicar?: () => void;
 }
 
-/** Um KPI na sua forma pequena: uma coluna do quadro de resumo (rótulo, valor,
- *  detalhe). O de destaque não passa por aqui — `Kpis` desenha-o grande a
+/** Um KPI na sua forma pequena: uma linha do quadro de resumo (rótulo e
+ *  detalhe à esquerda, valor à direita). O de destaque não passa por aqui — `Kpis` desenha-o grande a
  *  partir das mesmas props. */
 export default function KpiCard({
   rotulo,
@@ -40,9 +40,11 @@ export default function KpiCard({
   const estilo = { "--_cor": COR_DO_TOM[tom] } as CSSProperties;
   const conteudo = (
     <>
-      <span className={styles.rotulo}>{rotulo}</span>
+      <span className={styles.texto}>
+        <span className={styles.rotulo}>{rotulo}</span>
+        {sub && <span className={`${styles.sub} ${discreto ? "discreto" : ""}`}>{sub}</span>}
+      </span>
       <span className={`${styles.valor} ${discreto ? "discreto" : ""}`}>{valor}</span>
-      {sub && <span className={`${styles.sub} ${discreto ? "discreto" : ""}`}>{sub}</span>}
     </>
   );
 
@@ -50,7 +52,7 @@ export default function KpiCard({
     return (
       <button
         type="button"
-        className={`${styles.coluna} ${styles.clicavel}`}
+        className={`${styles.linha} ${styles.clicavel}`}
         style={estilo}
         onClick={aoClicar}
         data-chave={chave}
@@ -61,7 +63,7 @@ export default function KpiCard({
   }
 
   return (
-    <div className={styles.coluna} style={estilo} data-chave={chave}>
+    <div className={styles.linha} style={estilo} data-chave={chave}>
       {conteudo}
     </div>
   );

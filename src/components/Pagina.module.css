@@ -18,16 +18,11 @@
   display: none;
 }
 
-/* Colunas pequenas do quadro de resumo, sob um fio fino. */
-.colunas {
-  display: grid;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
-}
-
-.colunas + .colunas {
-  margin-top: 14px;
+/* Os KPIs secundários: uma linha cada (ver KpiCard.module.css). */
+.linhas {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
 }
 
 /* O número grande, quando o KPI em destaque leva a algum lado. */

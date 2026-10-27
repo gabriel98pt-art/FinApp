@@ -232,8 +232,8 @@ describe("Transacoes", () => {
     expect(screen.getByText("€ -42,50")).toBeInTheDocument();
     // Era "amarelo" — inconsistente com todo o resto do app, onde
     // saldo/variação negativos são sempre "vermelho" (achado da auditoria de
-    // Design). A coluna do Saldo é o `parentElement` do próprio rótulo.
-    const coluna = screen.getByText("Saldo").parentElement!;
+    // Design). A linha do Saldo é o `div` mais próximo do próprio rótulo.
+    const coluna = screen.getByText("Saldo").closest("div")!;
     expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--red)");
   });
 

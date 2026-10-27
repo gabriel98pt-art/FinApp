@@ -6,9 +6,6 @@ import type { PropsKpi } from "./KpiCard";
 import QuadroResumo, { NotaDoQuadro, ValorGrande } from "./QuadroResumo";
 import styles from "./Pagina.module.css";
 
-/** Colunas pequenas por linha do quadro de resumo. */
-const COLUNAS = 3;
-
 /** Esqueleto comum das páginas: título + conteúdo. */
 export default function Pagina({
   titulo,
@@ -29,8 +26,8 @@ export default function Pagina({
 }
 
 /** O quadro de resumo da página (seção 7): UM cartão com o KPI em destaque em
- *  número grande e os outros em colunas pequenas por baixo, separadas por um
- *  fio. Mostra TODOS os KPIs em qualquer largura — o corte para 2 no telemóvel
+ *  número grande e os outros em linhas por baixo (rótulo à esquerda, valor à
+ *  direita), separadas por um fio. Mostra TODOS os KPIs em qualquer largura — o corte para 2 no telemóvel
  *  acabou.
  *
  *  Qual vai em destaque é escolha da pessoa (Definições → Número em destaque),
@@ -48,10 +45,6 @@ export function Kpis({ children, pagina }: { children: ReactNode; pagina?: strin
   const destaqueChave = chaveEmDestaque(pagina, itens.map(chaveDe), cfg);
   const destaque = itens.find((i) => chaveDe(i) === destaqueChave) ?? itens[0];
   const outros = itens.filter((i) => i !== destaque);
-
-  // Até 3 por linha; se sobrar, o resto desce para uma segunda linha pequena.
-  const linhas: ReactElement<PropsKpi>[][] = [];
-  for (let i = 0; i < outros.length; i += COLUNAS) linhas.push(outros.slice(i, i + COLUNAS));
 
   const { rotulo, valor, sub, tom = "neutro", discreto = false, aoClicar } = destaque.props;
   const grande = <ValorGrande texto={valor} cor={COR_DO_TOM[tom]} discreto={discreto} />;
@@ -71,15 +64,7 @@ export function Kpis({ children, pagina }: { children: ReactNode; pagina?: strin
         grande
       )}
       {sub && <NotaDoQuadro>{sub}</NotaDoQuadro>}
-      {linhas.map((linha, n) => (
-        <div
-          key={n}
-          className={styles.colunas}
-          style={{ gridTemplateColumns: `repeat(${linha.length}, minmax(0, 1fr))` }}
-        >
-          {linha}
-        </div>
-      ))}
+      {outros.length > 0 && <div className={styles.linhas}>{outros}</div>}
     </QuadroResumo>
   );
 }

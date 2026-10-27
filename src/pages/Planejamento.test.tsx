@@ -188,7 +188,8 @@ describe("aba Orçamento — tetos por categoria", () => {
  *  coincidir com a de uma linha de categoria logo abaixo — e aí um
  *  `getByText("100%")` acha duas e falha sem que nada esteja errado. */
 // O KPI pequeno é uma coluna: o rótulo e, logo a seguir, o valor.
-const valorDoCard = (rotulo: string) => screen.getByText(rotulo).nextElementSibling!.textContent;
+const valorDoCard = (rotulo: string) =>
+  screen.getByText(rotulo).parentElement!.nextElementSibling!.textContent;
 
 describe("KPIs do plano mensal", () => {
   test("os quatro cartões, com os rótulos que Definições espera", () => {
@@ -368,7 +369,7 @@ describe("aba Metas", () => {
     // (`Math.max(0, ...)` por mês).
     despesas = lista([despesa(999999999)]);
     await montarNasMetas();
-    const coluna = screen.getByText("Poupado (12m)").parentElement!;
+    const coluna = screen.getByText("Poupado (12m)").closest("div")!;
     expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--grn)");
   });
 

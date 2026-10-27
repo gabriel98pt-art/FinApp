@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-// O quadro de resumo: o KPI em destaque grande e os outros em colunas pequenas.
+// O quadro de resumo: o KPI em destaque grande e os outros em linhas pequenas.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
@@ -48,7 +48,7 @@ describe("Kpis — quadro de resumo", () => {
   test("página sem escolha: o primeiro KPI vai grande", () => {
     quadro("despesas");
     expect(screen.getByRole("img", { name: "€ 1.895,38" })).toBeInTheDocument();
-    // Os outros são colunas pequenas, não números grandes.
+    // Os outros são linhas pequenas, não números grandes.
     expect(screen.queryByRole("img", { name: "€ 1.692,00" })).not.toBeInTheDocument();
     expect(screen.getByText("€ 1.692,00")).toBeInTheDocument();
   });
@@ -58,7 +58,7 @@ describe("Kpis — quadro de resumo", () => {
     quadro("despesas");
     expect(screen.getByRole("region", { name: "Média (3 meses)" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "€ 1.692,00" })).toBeInTheDocument();
-    // E o que era o primeiro desce para coluna pequena.
+    // E o que era o primeiro desce para linha pequena.
     expect(screen.getByText("€ 1.895,38")).toBeInTheDocument();
   });
 
@@ -81,11 +81,14 @@ describe("Kpis — quadro de resumo", () => {
     expect(pequeno.style.getPropertyValue("--_cor")).toBe("var(--red)");
   });
 
-  test("com mais de 3 pequenos, o resto desce para uma segunda linha", () => {
-    quadro("despesas", <KpiCard rotulo="Extra" valor="1" />);
-    // 5 KPIs: 1 grande + 4 pequenos → 3 + 1.
+  test("cada KPI pequeno é uma linha com rótulo, detalhe e valor", () => {
+    quadro("despesas", <KpiCard rotulo="Extra" valor="1" sub="era 0" />);
     const q = screen.getByRole("region", { name: "Total do mês" });
-    expect(q.querySelectorAll("[class*='colunas']")).toHaveLength(2);
+    // 5 KPIs: 1 grande + 4 linhas (sem repartir em colunas).
+    expect(q.querySelectorAll("[class*='_linha_']")).toHaveLength(4);
+    const extra = screen.getByText("Extra").closest("[class*='_linha_']")!;
+    expect(within(extra as HTMLElement).getByText("era 0")).toBeInTheDocument();
+    expect(within(extra as HTMLElement).getByText("1")).toBeInTheDocument();
   });
 
   test("KPI clicável em destaque continua a ser um botão com o rótulo no nome", async () => {

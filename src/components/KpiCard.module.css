@@ -1,57 +1,46 @@
-/* Coluna pequena do quadro de resumo. As colunas ficam lado a lado numa grelha
-   (ver `.colunas` em Pagina.module.css), separadas por um fio fino. */
-.coluna {
+/* Linha do quadro de resumo: rótulo (e detalhe) à esquerda, valor à direita,
+   sob um fio fino. O rótulo quebra se precisar; o valor nunca. */
+.linha {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  min-width: 0;
-  padding-left: 12px;
-  border-left: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--mut) 15%, transparent);
   font: inherit;
   color: inherit;
   text-align: left;
 }
 
-.coluna:first-child {
-  padding-left: 0;
-  border-left: 0;
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .rotulo {
-  max-width: 100%;
-  font-size: 12px;
-  color: var(--mut);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--txt);
+  overflow-wrap: anywhere;
 }
 
-/* Encolhe com a largura: três colunas a 320px não dão para "€ 12.345,67" a
-   15px, e cortar um valor em dinheiro é pior do que o ter mais pequeno. */
+.sub {
+  font-size: 12px;
+  color: var(--mut);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
 .valor {
-  max-width: 100%;
-  font-size: clamp(12px, 3.8vw, 15px);
+  flex-shrink: 0;
+  font-size: 15px;
   font-weight: 600;
   color: var(--_cor, var(--txt));
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Detalhe por baixo do valor, quando o valor principal é um nome. Quebra em até
-   duas linhas — num telemóvel não há hover para um `title`. */
-.sub {
-  font-size: 12px;
-  color: var(--mut);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  font-variant-numeric: tabular-nums;
 }
 
 /* KPI que leva a algum lugar (item 15): vira <button>, mesmo visual. */
