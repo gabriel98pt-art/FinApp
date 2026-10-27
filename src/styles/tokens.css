@@ -87,7 +87,8 @@
   /* Raios. --r-card e --r-sm vêm do app de referência; --r-xs, --r-pill e
      --r-sheet nomeiam valores que já eram usados de forma consistente em
      dezenas de lugares, só que cravados no componente. */
-  --r-card: 16px; /* cartão/quadro de conteúdo */
+  --r-card: 22px; /* cartão/quadro de conteúdo (vidro) */
+  --r-destaque: 24px; /* cartão de destaque em terracota */
   --r-sm: 9px; /* container de controle, campo, item de lista */
   --r-xs: 7px; /* controle DENTRO de um container (segmento, opção) */
   --r-pill: 99px; /* badge, chip, barra de progresso — cápsula */
@@ -136,7 +137,12 @@
   --tint-red-10: color-mix(in srgb, var(--red) 10%, transparent);
 
   /* Material translúcido (header/tabs/nav) */
-  --material-bg: rgba(48, 36, 29, 0.72);
+  --material-bg: rgba(
+    48,
+    36,
+    29,
+    0.86
+  ); /* abaixo de 768px, sem blur: mais opaco para o conteúdo não aparecer por baixo */
   --material-brd: rgba(255, 235, 215, 0.08);
 
   /* Selos de status (Pago/Pendente em Despesas e Veículo, quitada em Parcelas).
@@ -233,7 +239,7 @@
   --pur-rgb: 109, 66, 196;
   --tvde-rgb: 63, 94, 240;
 
-  --material-bg: rgba(255, 255, 255, 0.74);
+  --material-bg: rgba(255, 255, 255, 0.86);
   --material-brd: rgba(255, 255, 255, 0.75);
 
   /* Chips de estado: texto sobre o tint, ≥ 4,5:1 (ver checks.md). */

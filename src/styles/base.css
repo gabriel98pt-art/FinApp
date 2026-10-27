@@ -83,17 +83,38 @@ a {
   user-select: none;
 }
 
-/* Material translúcido das superfícies de navegação, com fallback sólido */
+/* Material das superfícies de navegação (header, barra do iPhone, sidebar).
+   Abaixo de 768px: branco translúcido SEM blur (a barra flutuante do iPhone é
+   assim na prévia). Só a partir de 768px entra o fosco — e sempre os DOIS
+   prefixos, porque o Safari ainda pede o -webkit-. Quem não suporta, ou pede
+   menos transparência ao sistema, fica com o fundo sólido. O mesmo vale para
+   o vidro dos cartões (styles/vidro.module.css). */
 .material {
-  background: var(--s1);
+  background: var(--material-bg);
   border: 1px solid var(--material-brd);
 }
 
-@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+@media (min-width: 768px) {
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .material {
+      background: var(--vidro-bg-blur);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      backdrop-filter: blur(18px) saturate(160%);
+    }
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .material {
-    background: var(--material-bg);
-    -webkit-backdrop-filter: blur(20px) saturate(170%);
-    backdrop-filter: blur(20px) saturate(170%);
+    background: var(--vidro-solido);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .material {
+    background: var(--vidro-solido);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 

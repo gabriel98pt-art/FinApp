@@ -45,3 +45,11 @@ grep de hex soltos novos fora dos tokens: ver o fim do ficheiro (preenchido a ca
 Chips (texto sobre tint 16% sobre vidro): teal 6,1, vermelho 5,5, âmbar 6,9.
 
 Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do manifest e a arte do ícone ficam navy (a chapa do ícone é imagem, fora do plano).
+
+## A3 — materiais
+
+- `styles/vidro.module.css` (`.vidro`) e `.material` (base.css): abaixo de 768px branco translúcido sem blur; ≥ 768px `backdrop-filter` + `-webkit-backdrop-filter` (sempre os dois); `@supports not (...)` e `prefers-reduced-transparency` com `--vidro-solido`.
+- grep: todo `backdrop-filter` tem o `-webkit-backdrop-filter` ao lado (os véus de 4px de BottomSheet/ConfirmarAcao/MobileNav já o tinham e são overlays, não vidro).
+- Raios: `--r-card` 16 → 22px, novo `--r-destaque` 24px, `--r-pill` 99px (já existia).
+- DESVIO: `.material` abaixo de 768px usa 86% de branco (a prévia usa 74% só na barra flutuante). O header é sticky e, sem blur, a 74% o texto da lista aparecia por baixo. A 86% continua translúcido.
+- DESVIO: `--r-card` a 22px vale para as 41 utilizações, incluindo telas da Fase B; ali a revisão fica para a Fase B.
