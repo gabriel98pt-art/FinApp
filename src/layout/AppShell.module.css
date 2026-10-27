@@ -14,7 +14,9 @@
 
 @media (min-width: 768px) {
   .conteudo {
-    padding-bottom: 96px;
+    /* O FAB flutua no canto: o fim da página guarda o tamanho dele, a margem
+       dele e mais 16px, para o último cartão rolar para fora do botão. */
+    padding-bottom: calc(var(--fab-tam) + var(--fab-margem) + 16px);
   }
 }
 

@@ -278,6 +278,14 @@
   }
 }
 
+/* O FAB "+" do desktop (≥ 768px): tamanho e margem num só sítio, para o
+   espaço que o conteúdo guarda por baixo (AppShell) nunca se desencontrar do
+   botão — o último cartão de qualquer tela tem de poder rolar para fora dele. */
+:root {
+  --fab-tam: 56px;
+  --fab-margem: 24px;
+}
+
 /* Barra de navegação móvel — fonte única para tudo o que se apoia nela.
 
    --folga-indicador: faixa onde o iOS desenha o indicador de gestos (~13px).

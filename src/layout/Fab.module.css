@@ -6,11 +6,11 @@
 @media (min-width: 768px) {
   .fab {
     position: fixed;
-    right: 24px;
-    bottom: 24px;
+    right: var(--fab-margem);
+    bottom: var(--fab-margem);
     z-index: 41;
-    width: 56px;
-    height: 56px;
+    width: var(--fab-tam);
+    height: var(--fab-tam);
     border-radius: 50%;
     display: grid;
     place-items: center;

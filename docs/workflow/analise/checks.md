@@ -44,3 +44,7 @@ DESVIOS / unresolved:
 ## D3 — capturas e fecho
 
 Capturas em ~/Projetos/Dev/FinApp-capturas/analise/ (Chromium): analise-390-claro, analise-390-escuro, analise-320-claro, analise-820-claro (2 colunas), analise-1180-claro, analise-3meses-390-claro, analise-12meses-390-claro (só 6 meses de histórico: a janela encolhe), analise-borda-1mes-390-claro (um mês de dados, receita 0, nome de categoria comprido), analise-vazio-390-claro, analise-menu-mais-390-{claro,escuro}. WebKit: analise-390-claro-webkit, analise-1180-claro-webkit, analise-12meses-390-claro-webkit, analise-borda-1mes-390-claro-webkit (o anel e os gráficos desenham-se bem). HISTORICO.md atualizado.
+
+## E1 — espaço por baixo do conteúdo (FAB)
+
+Diagnóstico: a 1180px o AppShell já guardava 96px por baixo (= 56 do FAB + 24 de margem + 16), por isso o FAB não cobre o último cartão quando se rola até ao fim (capturas e1-antes-*-1180-fim.png, com a página rolada até ao fim). O "€ 89,00" tapado em analise-1180-claro era um artefacto da captura de página inteira, que desenha o FAB (fixo) na posição do primeiro ecrã, a meio da página. Mesmo assim, os 96px estavam escritos à mão, separados do tamanho do FAB: novos tokens `--fab-tam` (56px) e `--fab-margem` (24px) em tokens.css, usados pelo Fab.module.css e pelo `padding-bottom` do AppShell (`calc(--fab-tam + --fab-margem + 16px)`), para nunca se desencontrarem. Resultado igual (96px). Capturas e1-depois-{analise,inicio,despesas}-1180-fim.png.
