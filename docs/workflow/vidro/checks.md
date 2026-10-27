@@ -76,3 +76,13 @@ Desvio: `theme-color` do manifest/index passa a #15100C; o `background_color` do
 - Botões primários: `--btn-bg` (A1).
 - Tipografia: `--fs-micro` 0.68rem → 0.6875rem (11px) e os 4 tamanhos soltos abaixo de 11px (0.58/0.62/0.65rem) passam a `--fs-micro`. Alterou a medida do selo/badge em ~0,1px.
 - DESVIO: o alternador "Mês/Semana" (pilulas.module.css, preenchido a preto) não foi mexido: é outro componente e já está no desenho novo (preto/creme).
+
+## A6 — Início
+
+- "Resultado do mês": cartão de destaque em terracota sólido, texto branco (prop opcional `destaque` no QuadroResumo; sem mudar a API existente). Branco sobre o gradiente #C94E1A→#B34314: 4,58 e 5,4:1 (a prévia #EE7E48→#E06630 dá 2,7–3,4, por isso o gradiente é mais escuro: DESVIO). Todo o texto do cartão é branco sólido (sem opacidade, que faria o contraste cair abaixo de 4,5).
+- Barra receitas/despesas e bolinhas sobre o terracota: o que entrou a branco cheio, o que saiu a branco a 38% (comprimento, não só cor). O verde/vermelho desta barra desaparece no cartão de destaque; o sinal "−" do resultado negativo continua.
+- A pagar / Categorias / Últimos movimentos e a linha do Copiloto: cartões de vidro. Conteúdo idêntico ao de hoje; sem gráficos.
+- Grelha: 1 coluna no telemóvel (mesma ordem do DOM), 2 colunas de 768 a 1023px e 3 colunas a partir de 1024px. DESVIO: a 768–1023px a prévia (feita a 1180) não existe; a ~650px de conteúdo três colunas deixavam ~100px de texto por linha.
+- "Resultado do mês" na prévia traz o chip "▲ 8% vs set", "Entrou X · saiu Y", Semana/Mês/Ano e Exportar: NÃO entram (funções/textos novos).
+- hex soltos novos fora de tokens.css: nenhum (o único é o `theme-color` do useAplicarTema, que já tinha hex).
+- Capturas (Chromium e WebKit): ver lista no relatório.

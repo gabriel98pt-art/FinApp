@@ -32,7 +32,7 @@ export default function ResultadoDoMes({
   const pctReceitas = total > 0 ? (receitas / total) * 100 : null;
 
   return (
-    <QuadroResumo rotulo="Resultado do mês" idRotulo="resultado-mes">
+    <QuadroResumo rotulo="Resultado do mês" idRotulo="resultado-mes" destaque>
       <ValorGrande
         texto={`${negativo ? "−" : ""}${simbolo} ${numero}`}
         cor={negativo ? "var(--red)" : "var(--blu-txt)"}

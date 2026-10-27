@@ -22,6 +22,7 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
 import { despesaRegistradaMes } from "../utils/resumoMensal";
 import styles from "../components/InicioSecoes.module.css";
+import grade from "./Inicio.module.css";
 
 export default function Inicio() {
   const navegar = useNavigate();
@@ -91,22 +92,34 @@ export default function Inicio() {
           os números continuam a valer — o que caiu foi a atualização, não os
           dados que já lá estavam. */}
       {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
-      <ResultadoDoMes
-        receitas={resumo.receitas}
-        despesas={resumo.despesas}
-        moeda={moeda}
-        aoAbrirReceitas={() => navegar("/receitas")}
-        aoAbrirDespesas={() => navegar("/despesas")}
-      />
-      <AvisoOrcamento />
-      <APagarEsteMes />
-      <OndeFoiODinheiro />
-      <UltimosMovimentos />
-      <button type="button" className={styles.copiloto} onClick={() => setCopilotoAberto(true)}>
-        <Sparkles className={styles.copilotoIcone} size={18} strokeWidth={1.75} aria-hidden />
-        <span>Perguntar ao Copiloto</span>
-        <ChevronRight className={styles.chevron} size={15} strokeWidth={2} aria-hidden />
-      </button>
+      <div className={grade.grade}>
+        <div className={grade.coluna}>
+          <ResultadoDoMes
+            receitas={resumo.receitas}
+            despesas={resumo.despesas}
+            moeda={moeda}
+            aoAbrirReceitas={() => navegar("/receitas")}
+            aoAbrirDespesas={() => navegar("/despesas")}
+          />
+          <AvisoOrcamento />
+        </div>
+        <div className={grade.coluna}>
+          <APagarEsteMes />
+        </div>
+        <div className={grade.coluna}>
+          <OndeFoiODinheiro />
+        </div>
+        <div className={`${grade.coluna} ${grade.movimentos}`}>
+          <UltimosMovimentos />
+        </div>
+        <div className={`${grade.coluna} ${grade.copiloto}`}>
+          <button type="button" className={styles.copiloto} onClick={() => setCopilotoAberto(true)}>
+            <Sparkles className={styles.copilotoIcone} size={18} strokeWidth={1.75} aria-hidden />
+            <span>Perguntar ao Copiloto</span>
+            <ChevronRight className={styles.chevron} size={15} strokeWidth={2} aria-hidden />
+          </button>
+        </div>
+      </div>
       <BottomSheet
         aberta={copilotoAberto}
         aoFechar={() => setCopilotoAberto(false)}

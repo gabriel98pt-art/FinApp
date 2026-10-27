@@ -6,6 +6,29 @@
   padding: 20px 20px 18px;
 }
 
+/* Destaque: terracota sólido, texto branco (o gradiente é escuro o bastante
+   para o branco dar ≥ 4,5:1 nos dois extremos). `.quadro.destaque` tem duas
+   classes para ganhar ao vidro, que vem de outro módulo. */
+.quadro.destaque {
+  background: var(--destaque-grad);
+  color: var(--sobre-destaque);
+  border: none;
+  border-radius: var(--r-destaque);
+  box-shadow: var(--destaque-sh);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.destaque .rotulo,
+.destaque .nota {
+  color: var(--sobre-destaque);
+  opacity: 1;
+}
+
+.quadro.destaque .valor {
+  color: var(--sobre-destaque);
+}
+
 .rotulo {
   font-size: 13px;
   font-weight: 500;

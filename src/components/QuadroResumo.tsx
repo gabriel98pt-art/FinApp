@@ -7,15 +7,21 @@ import styles from "./QuadroResumo.module.css";
 export default function QuadroResumo({
   rotulo,
   idRotulo,
+  destaque = false,
   children,
 }: {
   rotulo: string;
   /** Liga o quadro ao seu título, para quem navega por regiões. */
   idRotulo?: string;
+  /** Cartão de destaque em terracota sólido, com texto branco, em vez do vidro. */
+  destaque?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className={styles.quadro} aria-labelledby={idRotulo}>
+    <section
+      className={`${styles.quadro} ${destaque ? styles.destaque : ""}`}
+      aria-labelledby={idRotulo}
+    >
       <h3 id={idRotulo} className={styles.rotulo}>
         {rotulo}
       </h3>
