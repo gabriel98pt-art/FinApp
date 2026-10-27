@@ -109,3 +109,9 @@ Sem alterações de código: a tela já estava no desenho novo depois da Fase 2 
 Sem alterações de código: herda o desenho novo (quadro em vidro, "+ Adicionar" em --blu-txt, pílulas Mês/Semana, verde menta só nos valores positivos). Contraste do verde #096B5E medido em checks (A1). Borda: nome comprido, valor grande, lista vazia.
 
 - Capturas: FinApp-capturas/vidro-faseB/b2-receitas-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
+
+## B3 — Transações
+
+Sem alterações de código: herda o desenho novo (quadro em vidro, extrato agrupado por dia em secção sem cartão). Borda: nome comprido, 15 transações, valores de 5 dígitos, lista vazia. Nota: "Saídas" e "Saldo" negativo continuam em vermelho no quadro, como já eram.
+
+- Capturas: FinApp-capturas/vidro-faseB/b3-transacoes-* (390 claro/escuro, 320, 1180, borda, vazio, WebKit).
