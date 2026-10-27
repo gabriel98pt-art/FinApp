@@ -170,8 +170,8 @@
 }
 
 .confirmarMover {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   font-size: var(--fs-title);
   border-radius: var(--r-sm);

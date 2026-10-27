@@ -31,7 +31,7 @@
 }
 
 .logo span {
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .sub {
@@ -79,8 +79,8 @@
 }
 
 .principal {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: 12px;
@@ -93,7 +93,7 @@
 }
 
 .alternar {
-  color: var(--blu);
+  color: var(--blu-txt);
   font-size: var(--fs-body);
   padding: 6px;
 }

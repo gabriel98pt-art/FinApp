@@ -89,7 +89,7 @@
 
 .ativa {
   background: var(--s3);
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 /* Num par, a seta e o visto ficam juntos à direita. */

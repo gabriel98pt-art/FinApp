@@ -81,7 +81,7 @@
 
 .diaHoje {
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
   font-weight: 800;
 }
 
@@ -202,7 +202,7 @@
   justify-content: center;
   gap: 5px;
   width: 100%;
-  color: var(--blu);
+  color: var(--blu-txt);
   font-weight: 700;
   font-size: var(--fs-body);
   padding: 10px;

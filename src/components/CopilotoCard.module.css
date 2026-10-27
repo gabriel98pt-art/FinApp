@@ -50,8 +50,8 @@
 }
 
 .botao {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   font-size: var(--fs-body);
   border-radius: var(--r-sm);
@@ -70,7 +70,7 @@
 .acaoPlano {
   align-self: flex-start;
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
   font-weight: 700;
   font-size: var(--fs-body);
   border-radius: var(--r-sm);

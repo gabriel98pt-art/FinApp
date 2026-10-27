@@ -44,7 +44,7 @@
   min-height: 32px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .linha {
@@ -198,7 +198,7 @@
 }
 
 .copilotoIcone {
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .chevron {

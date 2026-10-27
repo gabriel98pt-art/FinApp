@@ -33,7 +33,7 @@
 .iconeAtivo {
   border-color: var(--blu);
   background: var(--s3);
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .cor {

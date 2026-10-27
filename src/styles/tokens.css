@@ -1,5 +1,10 @@
-/* Tokens de design — paleta "Confiança & Tecnologia" (navy + azul), seção 6 do
-   spec. Valores do app de referência: não redesenhar, preservar.
+/* Tokens de design — visual "vidro + terracota" (Fase A, 27/10/2026): fundo
+   quente em mesh, superfícies de vidro, texto em castanho-tinta, terracota como
+   destaque do app inteiro. Valores das prévias VidroInicio / VidroIpad /
+   VidroEscuro; contrastes medidos em docs/workflow/vidro/checks.md.
+
+   Os comentários abaixo sobre a paleta antiga (navy + azul, seção 6 do spec)
+   ficam como história: o nome dos tokens não mudou, só os valores.
 
    Exceção, a pedido explícito do usuário: o acento `--blu` era um verde-água
    (170°) a 28° do `--grn` (142°) — perto demais para o olho separar "isto é
@@ -25,11 +30,33 @@
   --ylw: #fbbf24;
   --pur: #b08dfc;
 
-  /* Laranja da aba TVDE — identidade própria, não usada em mais nada do app.
-     O `-grad` é o toque "metalizado": dois tons próximos em vez de cor
+  /* --- Vidro + terracota (nomes novos; os valores do escuro vêm no nó A2) --- */
+  --fundo-mesh: none;
+  --blu-txt: var(--blu); /* terracota como TEXTO/link: ver o bloco claro */
+  --on-blu: #0a1622; /* texto sobre um preenchimento --blu */
+  --btn-bg: var(--blu); /* botão primário */
+  --btn-txt: var(--bg);
+  --aba-ativa-bg: color-mix(in srgb, var(--blu) 14%, transparent);
+  --aba-ativa-txt: var(--blu);
+  --aba-ativa-sh: none;
+  --linha: color-mix(in srgb, var(--mut) 15%, transparent);
+  --vidro-bg: var(--s1);
+  --vidro-bg-blur: var(--s1);
+  --vidro-solido: var(--s1);
+  --vidro-brd: var(--brd);
+  --sh-vidro: var(--sh-card);
+  --soft-grn: color-mix(in srgb, var(--grn) 16%, transparent);
+  --soft-red: color-mix(in srgb, var(--red) 16%, transparent);
+  --soft-ylw: color-mix(in srgb, var(--ylw) 16%, transparent);
+  --destaque-grad: linear-gradient(150deg, #c94e1a 0%, #b34314 100%);
+  --destaque-sh: 0 12px 30px rgba(179, 67, 20, 0.32);
+  --sobre-destaque: #ffffff;
+
+  /* Azul da aba TVDE — o `--destaque` do app TVDE Pro, identidade própria da
+     aba. O `-grad` é o toque "metalizado": dois tons próximos em vez de cor
      chapada, só em fundo de botão/pílula. Texto e contorno usam o sólido. */
-  --lrj: #fb923c;
-  --lrj-grad: linear-gradient(135deg, #fdba74, #ea580c);
+  --tvde: #8fa2ff;
+  --tvde-grad: linear-gradient(135deg, #a9b7ff, #8fa2ff);
 
   /* Escala tipográfica. Antes destes tokens a app tinha 32 tamanhos de fonte
      diferentes, 14 deles numa única página, com degraus de 0,02rem (0,32px) —
@@ -80,7 +107,7 @@
   --red-rgb: 251, 113, 133;
   --ylw-rgb: 251, 191, 36;
   --pur-rgb: 176, 141, 252;
-  --lrj-rgb: 251, 146, 60;
+  --tvde-rgb: 143, 162, 255;
 
   /* Tints (achado da auditoria de Design & Cor): 26 receitas distintas de
      `color-mix()`, sem token nenhum, espalhadas por 20+ arquivos — a mesma
@@ -131,59 +158,88 @@
 }
 
 [data-theme="light"] {
-  --bg: #f5f7fa;
-  --s1: #fff;
-  --s2: #eef2f6;
-  --s3: #dce3ea;
-  --txt: #0a2540;
-  --mut: #5b6b7c;
-  --brd: #dce3ea;
+  /* Fundo: quatro manchas quentes sobre creme, sem imagem. O mesh vai para um
+     pseudo-elemento fixo (base.css), não para o body, para não esticar com a
+     altura da página. */
+  --bg: #fbf3ea;
+  --fundo-mesh:
+    radial-gradient(60% 40% at 0% 0%, #ffe2c8 0%, transparent 70%),
+    radial-gradient(55% 35% at 100% 18%, #ffd3b0 0%, transparent 70%),
+    radial-gradient(70% 40% at 20% 70%, #fbebd5 0%, transparent 70%),
+    radial-gradient(60% 40% at 100% 100%, #f9d9bf 0%, transparent 70%);
+  /* Superfícies opacas (folhas, campos, menus): o vidro é à parte (--vidro-*). */
+  --s1: #fffaf5;
+  --s2: #f4eadf;
+  --s3: #e9dccb;
+  --txt: #1c1712;
+  /* Era #6b5f55 na prévia: 4,48:1 sobre o ponto mais escuro do mesh (#ffd3b0),
+     abaixo dos 4,5. Um passo mais escuro dá 4,99. */
+  --mut: #64584e;
+  --brd: rgba(60, 40, 20, 0.12);
+  --linha: rgba(60, 40, 20, 0.1);
 
-  --blu: #0f5dbd;
-  --grn: #15803d;
-  --red: #be123c;
-  --ylw: #b45309;
-  --pur: #7c4fd8;
+  /* Terracota: #e8703a só dá 2,2–2,8:1 como texto, por isso serve a
+     preenchimentos, anéis, barras e toggles. Como TEXTO/link usa-se --blu-txt,
+     o mesmo matiz a 65% (calculado a partir do --blu, para acompanhar quem
+     personalizou a cor em Definições). */
+  --blu: #e8703a;
+  --blu-txt: color-mix(in srgb, var(--blu) 65%, #000);
+  --on-blu: #1c1712; /* tinta sobre terracota: 5,8:1 (o branco dá 3,1) */
+  --grn: #096b5e; /* menta/teal escurecido para texto: 4,6:1 no pior ponto */
+  --red: #a8350a;
+  --ylw: #7f520f;
+  --pur: #6d42c4;
 
-  /* Mais escuro no tema claro, como os outros acentos, para contrastar com o
-     fundo branco. */
-  --lrj: #c2410c;
-  --lrj-grad: linear-gradient(135deg, #fb923c, #9a3412);
+  --tvde: #3f5ef0;
+  --tvde-grad: linear-gradient(135deg, #3f5ef0, #3552dd);
 
-  --sh-card:
-    0 1px 2px rgba(20, 23, 32, 0.06), 0 4px 14px rgba(20, 23, 32, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  --sh-card-hi:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(10, 37, 64, 0.06),
-    0 8px 24px rgba(10, 37, 64, 0.08);
-  --sh: 0 4px 20px rgba(0, 0, 0, 0.07);
-  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --sh-div: 0 1px 6px -3px rgba(20, 23, 32, 0.16);
+  --btn-bg: #1c1712;
+  --btn-txt: #ffffff;
+  --aba-ativa-bg: #ffffff;
+  --aba-ativa-txt: #1c1712;
+  --aba-ativa-sh: 0 2px 8px rgba(60, 40, 20, 0.12);
 
-  --sh-round: 0 2px 6px rgba(20, 23, 32, 0.08), 0 8px 20px rgba(20, 23, 32, 0.1);
-  --sh-round-active: 0 1px 3px rgba(20, 23, 32, 0.08), 0 3px 8px rgba(20, 23, 32, 0.09);
+  /* Vidro. Abaixo de 768px é branco translúcido SEM blur; o fosco entra em
+     --vidro-bg-blur (A3). O sólido serve de fallback. */
+  --vidro-bg: rgba(255, 255, 255, 0.74);
+  --vidro-bg-blur: rgba(255, 255, 255, 0.62);
+  --vidro-solido: #fffaf5;
+  --vidro-brd: rgba(255, 255, 255, 0.75);
+  --sh-vidro: 0 1px 2px rgba(60, 40, 20, 0.05), 0 10px 30px rgba(120, 70, 30, 0.1);
 
-  --blu-rgb: 15, 93, 189;
-  --grn-rgb: 21, 128, 61;
-  --red-rgb: 190, 18, 60;
-  --ylw-rgb: 180, 83, 9;
-  --pur-rgb: 124, 79, 216;
-  --lrj-rgb: 194, 65, 12;
+  --soft-grn: #ddf3ee;
+  --soft-red: #fde4dc;
+  --soft-ylw: #fbefd6;
 
-  --material-bg: rgba(255, 255, 255, 0.72);
-  --material-brd: rgba(10, 37, 64, 0.08);
+  --sh-card: 0 1px 2px rgba(60, 40, 20, 0.05), 0 10px 30px rgba(120, 70, 30, 0.1);
+  --sh-card-hi: 0 1px 2px rgba(60, 40, 20, 0.06), 0 14px 34px rgba(120, 70, 30, 0.14);
+  --sh: 0 4px 20px rgba(60, 40, 20, 0.08);
+  --sh-sm: 0 2px 8px rgba(60, 40, 20, 0.07);
+  --sh-div: 0 1px 6px -3px rgba(60, 40, 20, 0.18);
 
-  /* Texto mais escuro que o --grn/--ylw do tema claro: sobre um tint suave,
-     os tokens normais ficavam a 4,1:1. Ver nota no bloco escuro. */
-  --selo-pago-txt: #126e34;
-  --selo-pago-bg: #e8f2ec;
-  --selo-pago-bg-hi: #d0e6d8;
-  --selo-pendente-txt: #9b4708;
-  --selo-pendente-bg: #f8eee6;
-  --selo-pendente-bg-hi: #f0ddce;
+  --sh-round: 0 2px 6px rgba(60, 40, 20, 0.1), 0 8px 20px rgba(60, 40, 20, 0.12);
+  --sh-round-active: 0 1px 3px rgba(60, 40, 20, 0.1), 0 3px 8px rgba(60, 40, 20, 0.1);
 
-  --selo-alerta-txt: #b8113a;
-  --selo-alerta-bg: #f9e7ec;
+  --blu-rgb: 232, 112, 58;
+  --grn-rgb: 9, 107, 94;
+  --red-rgb: 168, 53, 10;
+  --ylw-rgb: 127, 82, 15;
+  --pur-rgb: 109, 66, 196;
+  --tvde-rgb: 63, 94, 240;
+
+  --material-bg: rgba(255, 255, 255, 0.74);
+  --material-brd: rgba(255, 255, 255, 0.75);
+
+  /* Chips de estado: texto sobre o tint, ≥ 4,5:1 (ver checks.md). */
+  --selo-pago-txt: #096b5e;
+  --selo-pago-bg: #ddf3ee;
+  --selo-pago-bg-hi: #c6ebe3;
+  --selo-pendente-txt: #7f520f;
+  --selo-pendente-bg: #fbefd6;
+  --selo-pendente-bg-hi: #f6e1b5;
+
+  --selo-alerta-txt: #a8350a;
+  --selo-alerta-bg: #fde4dc;
 }
 
 /* Largura da barra lateral — fonte única, lida tanto pela própria barra como

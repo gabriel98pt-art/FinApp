@@ -22,6 +22,17 @@ body {
   font-optical-sizing: auto;
 }
 
+/* Mesh do fundo (tokens: --fundo-mesh). Fixo, atrás de tudo: não estica com a
+   altura da página, e o vidro por cima vê sempre as mesmas manchas. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--fundo-mesh);
+  pointer-events: none;
+}
+
 h1,
 h2,
 h3,

@@ -98,8 +98,8 @@
 }
 
 .botaoPrimario {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   font-size: var(--fs-body);
   border-radius: var(--r-sm);
@@ -146,7 +146,7 @@
 
 .linkBotao {
   position: relative;
-  color: var(--blu);
+  color: var(--blu-txt);
   font-weight: 700;
   font-size: var(--fs-body);
 }
@@ -171,7 +171,7 @@
 /* Ação principal do lote: fundo de acento a 14%, como os selos — destaca
    sem competir com o "Confirmar importação" cheio, lá em baixo. */
 .botaoAcento {
-  color: var(--blu);
+  color: var(--blu-txt);
   background: color-mix(in srgb, var(--blu) 14%, var(--s1));
 }
 
@@ -499,8 +499,8 @@
 }
 
 .confirmar {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: 12px;
@@ -645,7 +645,7 @@
 /* A outra ponta da mesma transferência, já registada. Tom de informação e não
    de alerta: nada está errado, é só o mesmo dinheiro visto do outro lado. */
 .outraPonta {
-  color: var(--blu);
+  color: var(--blu-txt);
   font-size: var(--fs-label);
   display: flex;
   flex-direction: column;
@@ -655,7 +655,7 @@
 
 .outraPontaAcao {
   position: relative;
-  color: var(--blu);
+  color: var(--blu-txt);
   font-size: var(--fs-label);
   font-weight: 700;
   text-decoration: underline;
@@ -1085,5 +1085,5 @@
 
 .entradaArrastando .entradaSoltar {
   border-color: var(--blu);
-  color: var(--blu);
+  color: var(--blu-txt);
 }

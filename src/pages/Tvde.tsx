@@ -397,7 +397,7 @@ export default function Tvde() {
       ) : null}
 
       <Kpis>
-        <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="laranja" />
+        <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="tvde" />
         <KpiCard rotulo="Média/semana" valor={eur(t.mediaSemana)} />
         <KpiCard rotulo="Média €/hora" valor={t.mediaPorHora ? eur(t.mediaPorHora) : "—"} />
         {/* No fim e sem cor: ao lado do "Lucro total" eram dois valores

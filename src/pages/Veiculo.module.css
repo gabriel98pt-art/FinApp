@@ -169,7 +169,7 @@
 
 .tipoAtivo {
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
 }
 
 /* Corpo clicável da linha: abre a caixa de edição (itens 5 e 7). Fica dentro

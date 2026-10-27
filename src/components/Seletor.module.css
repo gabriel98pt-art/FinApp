@@ -107,7 +107,7 @@
 
 .opcaoAtiva {
   background: var(--s2);
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .semIcone {

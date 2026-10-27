@@ -21,8 +21,8 @@
    existiam; o tamanho arredondou para --fs-body (0.85rem, meio pixel acima) ao
    entrar na escala. */
 .primaria {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-size: var(--fs-body);
   padding: 8px 14px;
 }
@@ -31,8 +31,8 @@
    mas larga e alta: é o único destino da folha, e o polegar chega-lhe em
    qualquer sítio da largura do ecrã. */
 .submeter {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-size: var(--fs-title);
   padding: 12px;
   width: 100%;
@@ -41,7 +41,7 @@
 /* Ação de cabeçalho de secção ("adicionar" ao lado do título do quadro): é
    texto, não botão, porque compete com o título ao lado e não deve ganhar. */
 .texto {
-  color: var(--blu);
+  color: var(--blu-txt);
   font-size: var(--fs-body);
   padding: 6px 10px;
 }

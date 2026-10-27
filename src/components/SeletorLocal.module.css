@@ -59,7 +59,7 @@
 
 .localAtivo {
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
 }
 
 .vazio {

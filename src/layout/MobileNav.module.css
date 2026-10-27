@@ -68,7 +68,7 @@
 }
 
 .ativo {
-  color: var(--blu);
+  color: var(--blu-txt);
   background: color-mix(in srgb, var(--blu) 14%, transparent);
 }
 
@@ -238,7 +238,7 @@
 }
 
 .itemMaisAtivo {
-  color: var(--blu);
+  color: var(--blu-txt);
   background: var(--s2);
 }
 

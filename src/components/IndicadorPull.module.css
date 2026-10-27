@@ -28,7 +28,7 @@
 
 /* Passou do limite: soltar agora recarrega, e a cor diz isso. */
 .armado {
-  color: var(--blu);
+  color: var(--blu-txt);
   border-color: var(--blu);
 }
 

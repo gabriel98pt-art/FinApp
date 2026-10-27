@@ -161,7 +161,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--blu);
+  color: var(--blu-txt);
   font-size: var(--fs-body);
   font-weight: 700;
   padding: 6px 10px;
@@ -314,8 +314,8 @@
 }
 
 .salvar {
-  background: var(--blu);
-  color: var(--bg);
+  background: var(--btn-bg);
+  color: var(--btn-txt);
   font-weight: 700;
   border-radius: var(--r-sm);
   padding: 12px;

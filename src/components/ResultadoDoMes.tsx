@@ -35,7 +35,7 @@ export default function ResultadoDoMes({
     <QuadroResumo rotulo="Resultado do mês" idRotulo="resultado-mes">
       <ValorGrande
         texto={`${negativo ? "−" : ""}${simbolo} ${numero}`}
-        cor={negativo ? "var(--red)" : "var(--blu)"}
+        cor={negativo ? "var(--red)" : "var(--blu-txt)"}
         discreto={classeDiscreta !== ""}
       />
       <NotaDoQuadro>Receitas menos despesas · não é o saldo das contas</NotaDoQuadro>

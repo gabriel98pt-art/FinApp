@@ -2,18 +2,18 @@
 
 import type { ConfigConta } from "../types";
 
-export type TomKpi = "neutro" | "acento" | "verde" | "vermelho" | "amarelo" | "laranja";
+export type TomKpi = "neutro" | "acento" | "verde" | "vermelho" | "amarelo" | "tvde";
 
 /** Cor do VALOR de um KPI. O tom é só isto: nunca um fundo nem uma aura
  *  colorida no quadro. "neutro" é o texto normal. Verde continua a ser só de
  *  receita e do que é positivo, como já era. */
 export const COR_DO_TOM: Record<TomKpi, string> = {
   neutro: "var(--txt)",
-  acento: "var(--blu)",
+  acento: "var(--blu-txt)",
   verde: "var(--grn)",
   vermelho: "var(--red)",
   amarelo: "var(--ylw)",
-  laranja: "var(--lrj)",
+  tvde: "var(--tvde)",
 };
 
 /** A CHAVE do KPI em destaque numa página. `chaves` são as dos KPIs que a

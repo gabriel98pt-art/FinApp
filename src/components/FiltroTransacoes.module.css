@@ -37,7 +37,7 @@
 }
 
 .botaoAtivo {
-  color: var(--blu);
+  color: var(--blu-txt);
   border-color: color-mix(in srgb, var(--blu) 40%, var(--brd));
 }
 
@@ -50,7 +50,7 @@
   padding: 0 3px;
   border-radius: var(--r-pill);
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
   font-size: 0.58rem;
   font-weight: 800;
   line-height: 14px;
@@ -171,7 +171,7 @@
 
 .ativa {
   background: var(--s3);
-  color: var(--blu);
+  color: var(--blu-txt);
 }
 
 .limpar {

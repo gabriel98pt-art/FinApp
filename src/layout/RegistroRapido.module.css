@@ -189,7 +189,7 @@
 
 .contaAtiva {
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
 }
 
 /* Despesa parcelada num toque (item 24). Caixa de marcação + texto num só

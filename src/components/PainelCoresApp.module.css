@@ -21,7 +21,7 @@
 
 .pilula {
   background: var(--blu);
-  color: var(--bg);
+  color: var(--on-blu);
   border-radius: var(--r-pill);
   padding: 5px 12px;
 }

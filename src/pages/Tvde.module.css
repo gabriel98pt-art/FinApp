@@ -1,5 +1,5 @@
-/* A aba TVDE tem identidade própria: laranja em vez do acento do resto do app.
-   `--lrj` para texto/ícone/contorno, `--lrj-grad` (dois tons próximos) nos
+/* A aba TVDE tem identidade própria: o azul do app TVDE Pro, em vez do
+   terracota do resto do app. `--tvde` para texto/ícone/contorno, `--tvde-grad` (dois tons próximos) nos
    fundos de pílula e botão — o toque "metalizado". Só aqui: a barra lateral e
    o header continuam no azul padrão mesmo com o TVDE aberto. */
 .hero {
@@ -20,7 +20,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: var(--lrj);
+  background: var(--tvde);
 }
 
 .heroRotulo {
@@ -34,7 +34,7 @@
   font-weight: 800;
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
-  color: var(--lrj);
+  color: var(--tvde);
 }
 
 .heroChips {
@@ -65,7 +65,7 @@
 .abaAtiva {
   composes: abaAtiva from "../styles/segmentado.module.css";
   /* O laranja é do TVDE: aqui só o texto da aba ativa, nunca o fundo. */
-  color: var(--lrj);
+  color: var(--tvde);
 }
 
 .cabecalho {
@@ -88,7 +88,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--lrj);
+  color: var(--tvde);
   font-size: var(--fs-body);
   font-weight: 700;
   padding: 6px 10px;
@@ -177,7 +177,7 @@
 .acaoMini {
   font-size: var(--fs-micro);
   font-weight: 700;
-  color: var(--lrj);
+  color: var(--tvde);
   background: var(--s2);
   border-radius: var(--r-sm);
   padding: 6px 9px;
@@ -294,7 +294,7 @@
 }
 
 .botaoMini {
-  background: var(--lrj-grad);
+  background: var(--tvde-grad);
   color: var(--bg);
   font-weight: 700;
   font-size: var(--fs-body);
@@ -357,7 +357,7 @@
 
 .campoLinha input:focus,
 .campo input:focus {
-  outline: 2px solid var(--lrj);
+  outline: 2px solid var(--tvde);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -388,7 +388,7 @@
 }
 
 .salvar {
-  background: var(--lrj-grad);
+  background: var(--tvde-grad);
   color: var(--bg);
   font-weight: 700;
   border-radius: var(--r-sm);
@@ -415,7 +415,7 @@
    leve e a barra à esquerda, para se achar de relance sem tirar as outras
    linhas da frente. */
 .linhaMesAtual {
-  background: color-mix(in srgb, var(--lrj) 12%, transparent);
-  box-shadow: inset 3px 0 0 var(--lrj);
+  background: color-mix(in srgb, var(--tvde) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--tvde);
   border-radius: var(--r-xs);
 }
