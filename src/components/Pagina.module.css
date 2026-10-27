@@ -12,6 +12,26 @@
   line-height: 1.15;
 }
 
+/* Título + um controlo da página: em linha nos ecrãs largos, empilhados no
+   telemóvel. */
+.cabecalhoPagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 20px;
+}
+
+.acaoPagina {
+  flex: 1 1 100%;
+}
+
+@media (min-width: 768px) {
+  .acaoPagina {
+    flex: 0 0 330px;
+    margin-left: auto;
+  }
+}
+
 /* A Início não mostra o título — o quadro de resultado é a primeira coisa da
    página. Fica no DOM, para quem navega por cabeçalhos. */
 .tituloOculto {

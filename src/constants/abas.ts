@@ -11,8 +11,9 @@ import {
   TrendingDown,
   TrendingUp,
   Upload,
-  type LucideIcon,
 } from "lucide-react";
+import type { ComponentType } from "react";
+import IconeAnalise from "../components/IconeAnalise";
 
 export type AbaId =
   | "inicio"
@@ -23,6 +24,7 @@ export type AbaId =
   | "parcelas"
   | "calendario"
   | "planejamento"
+  | "analise"
   | "transacoes"
   | "importar"
   | "tvde"
@@ -32,8 +34,16 @@ export interface AbaDef {
   id: AbaId;
   rota: string;
   titulo: string;
-  Icone: LucideIcon;
+  Icone: IconeAba;
 }
+
+/** O que as listas de abas precisam de um ícone: os Lucide e o da Análise
+ *  encaixam todos aqui. */
+export type IconeAba = ComponentType<{
+  size?: number;
+  className?: string;
+  "aria-hidden"?: boolean;
+}>;
 
 /** Todas as abas do app (seção 3), na ordem da barra desktop. */
 export const ABAS: AbaDef[] = [
@@ -48,6 +58,7 @@ export const ABAS: AbaDef[] = [
   // itens do menu a responder à mesma pergunta ("o meu plano está a
   // aguentar?"), e agora são duas abas dentro desta página.
   { id: "planejamento", rota: "/planejamento", titulo: "Planejamento", Icone: ClipboardList },
+  { id: "analise", rota: "/analise", titulo: "Análise", Icone: IconeAnalise },
   { id: "transacoes", rota: "/transacoes", titulo: "Transações", Icone: ListTree },
   { id: "importar", rota: "/importar", titulo: "Importar", Icone: Upload },
   { id: "tvde", rota: "/tvde", titulo: "TVDE", Icone: CarTaxiFront },
@@ -69,6 +80,7 @@ export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("cartoes"),
   aba("calendario"),
   aba("planejamento"),
+  aba("analise"),
   aba("veiculo"),
   aba("parcelas"),
   aba("importar"),

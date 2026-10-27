@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { formatCents, formatMoney, fromCents, parseMoney, toCents } from "./money";
+import {
+  formatCents,
+  formatMoney,
+  formatMoneyInteiro,
+  fromCents,
+  parseMoney,
+  toCents,
+} from "./money";
 
 describe("toCents / fromCents", () => {
   test("converte para centavos inteiros com arredondamento", () => {
@@ -106,5 +113,14 @@ describe("formatCents / formatMoney", () => {
     expect(formatMoney(123456, "BRL")).toBe("R$ 1.234,56");
     expect(formatMoney(123456, "USD")).toBe("$ 1.234,56");
     expect(formatMoney(123456, "GBP")).toBe("£ 1.234,56");
+  });
+});
+
+describe("formatMoneyInteiro", () => {
+  test("arredonda ao euro e tira os cêntimos", () => {
+    expect(formatMoneyInteiro(189538, "EUR")).toBe("€ 1.895");
+    expect(formatMoneyInteiro(189550, "EUR")).toBe("€ 1.896");
+    expect(formatMoneyInteiro(0, "EUR")).toBe("€ 0");
+    expect(formatMoneyInteiro(-45600, "EUR")).toBe("€ -456");
   });
 });

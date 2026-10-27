@@ -1,0 +1,208 @@
+/* A página Análise. Cartões de vidro (styles/vidro.module.css); o do topo, a
+   taxa de poupança, é o cartão de destaque em terracota. Uma coluna no
+   telemóvel (a ordem da prévia), duas a partir de 768px e a grelha do iPad a
+   partir de 1024px: [taxa + vs média | linhas + semanas] e por baixo
+   [categorias | maiores gastos]. */
+.grade {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* No telemóvel as colunas dissolvem-se: os cartões ficam todos numa coluna só,
+   pela ordem do `order` (taxa, linhas, vs média, semanas, categorias, maiores),
+   que é a da prévia. */
+.coluna {
+  display: contents;
+}
+
+.coluna:nth-child(1) > :nth-child(1) {
+  order: 1;
+}
+
+.coluna:nth-child(2) > :nth-child(1) {
+  order: 2;
+}
+
+.coluna:nth-child(1) > :nth-child(2) {
+  order: 3;
+}
+
+.coluna:nth-child(2) > :nth-child(2) {
+  order: 4;
+}
+
+.categorias {
+  order: 5;
+}
+
+.maiores {
+  order: 6;
+}
+
+.nota {
+  order: 7;
+  font-size: 13px;
+  color: var(--mut);
+  text-align: center;
+  padding: 4px 8px;
+}
+
+.cartao {
+  composes: vidro from "../styles/vidro.module.css";
+  padding: 16px 16px 8px;
+  min-width: 0;
+}
+
+.titulo {
+  composes: tituloSecao from "../styles/titulos.module.css";
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.apoio {
+  font-size: 12px;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.lista {
+  margin-top: 6px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+}
+
+.linha + .linha {
+  border-top: 1px solid var(--linha);
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.nome {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 12px;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.direita {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 6px 0;
+}
+
+.valor {
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chipFixo {
+  flex: none;
+  width: 72px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* O cartão de destaque: terracota sólido, texto branco (o mesmo gradiente do
+   "Resultado do mês" da Início, ≥ 4,5:1). */
+.destaque {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--r-destaque);
+  background: var(--destaque-grad);
+  color: var(--sobre-destaque);
+  box-shadow: var(--destaque-sh);
+}
+
+.destaqueTexto {
+  min-width: 0;
+}
+
+.destaqueTitulo {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.destaqueLinha {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.destaqueNota {
+  margin-top: 4px;
+  font-size: 12.5px;
+}
+
+@media (min-width: 768px) {
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+  }
+
+  .coluna {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .nota {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .coluna:nth-child(1) {
+    grid-column: 1 / span 2;
+  }
+
+  .coluna:nth-child(2) {
+    grid-column: 3 / span 3;
+  }
+
+  .categorias {
+    grid-column: 1 / span 3;
+  }
+
+  .maiores {
+    grid-column: 4 / span 2;
+  }
+}

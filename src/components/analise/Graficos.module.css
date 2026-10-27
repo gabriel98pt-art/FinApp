@@ -1,0 +1,238 @@
+/* Gráficos da Análise: SVG à mão, só com tokens. Rótulos de 11px ou mais. */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* --- Receitas vs despesas --- */
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--mut);
+}
+
+.legendaItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tracoReceitas,
+.tracoDespesas {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.tracoReceitas {
+  background: var(--grn);
+}
+
+.tracoDespesas {
+  background: var(--blu);
+}
+
+.area {
+  position: relative;
+  height: 120px;
+  margin-top: 12px;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.grelha {
+  stroke: var(--linha);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.linhaReceitas,
+.linhaDespesas {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.linhaReceitas {
+  stroke: var(--grn);
+}
+
+.linhaDespesas {
+  stroke: var(--blu);
+}
+
+.gradReceitas {
+  stop-color: var(--grn);
+}
+
+.gradDespesas {
+  stop-color: var(--blu);
+}
+
+/* Os marcadores do último mês são HTML e não SVG: o desenho estica para
+   preencher a largura, e um círculo SVG esticado ficava oval. */
+.marcador {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--s1);
+  transform: translate(-50%, -50%);
+}
+
+.marcadorReceitas {
+  background: var(--grn);
+}
+
+.marcadorDespesas {
+  background: var(--blu);
+}
+
+.eixoX {
+  position: relative;
+  height: 16px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--mut);
+}
+
+.rotuloX {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.rotuloXInicio {
+  transform: none;
+}
+
+.rotuloXFim {
+  transform: translateX(-100%);
+}
+
+/* --- Gasto por semana --- */
+.barras {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  height: 120px;
+  margin-top: 14px;
+  padding: 0 4px;
+}
+
+.colunaSemana {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.trilhoSemana {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.barraSemana {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--blu) 22%, transparent);
+}
+
+.barraAtual {
+  background: var(--blu);
+}
+
+.barraFutura {
+  background: transparent;
+  border: 1.5px dashed color-mix(in srgb, var(--blu) 45%, transparent);
+}
+
+.valorSemana {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--txt);
+}
+
+.rotuloSemana {
+  font-size: 11px;
+  color: var(--mut);
+}
+
+.rotuloSemanaAtual {
+  font-weight: 700;
+  color: var(--txt);
+}
+
+/* --- Mini-barras das categorias --- */
+.mini {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
+}
+
+.miniBarra {
+  width: 5px;
+  border-radius: 2px;
+  background: var(--blu);
+  opacity: 0.35;
+}
+
+.miniBarraAtual {
+  opacity: 1;
+}
+
+.miniEstreita .miniBarra {
+  width: 4px;
+}
+
+/* --- Anel da taxa de poupança --- */
+.anel {
+  flex: none;
+  display: block;
+}
+
+.anelTrilho {
+  fill: none;
+  stroke: color-mix(in srgb, var(--sobre-destaque) 28%, transparent);
+  stroke-width: 5;
+}
+
+.anelValor {
+  fill: none;
+  stroke: var(--sobre-destaque);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.anelTexto {
+  fill: var(--sobre-destaque);
+  font-size: 9.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

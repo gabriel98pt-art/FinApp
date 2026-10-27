@@ -117,3 +117,9 @@ export function formatMoney(cents: Cents, currency: Currency): string {
 export function semQuebra(texto: string): string {
   return texto.replace(/ /g, "\u00a0");
 }
+
+/** `formatMoney` em euros inteiros ("€ 1.895"): para os gráficos e resumos,
+ *  onde os cêntimos só atrapalham. Arredonda ao euro mais próximo. */
+export function formatMoneyInteiro(cents: Cents, currency: Currency): string {
+  return formatMoney(Math.round(cents / 100) * 100, currency).replace(/,00$/, "");
+}

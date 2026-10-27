@@ -10,16 +10,30 @@ import styles from "./Pagina.module.css";
 export default function Pagina({
   titulo,
   tituloVisivel = true,
+  acao,
   children,
 }: {
   titulo: string;
   /** `false` esconde o título da vista sem o tirar do DOM (a Início). */
   tituloVisivel?: boolean;
+  /** Um controlo da página, à direita do título nos ecrãs largos e por baixo
+   *  dele no telemóvel (o seletor de período da Análise). */
+  acao?: ReactNode;
   children?: ReactNode;
 }) {
+  const h2 = (
+    <h2 className={`${styles.titulo} ${tituloVisivel ? "" : styles.tituloOculto}`}>{titulo}</h2>
+  );
   return (
     <section className={styles.pagina}>
-      <h2 className={`${styles.titulo} ${tituloVisivel ? "" : styles.tituloOculto}`}>{titulo}</h2>
+      {acao ? (
+        <div className={styles.cabecalhoPagina}>
+          {h2}
+          <div className={styles.acaoPagina}>{acao}</div>
+        </div>
+      ) : (
+        h2
+      )}
       {children}
     </section>
   );

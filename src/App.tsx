@@ -29,6 +29,7 @@ const Cartoes = lazy(() => import("./pages/Cartoes"));
 const Parcelas = lazy(() => import("./pages/Parcelas"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
+const Analise = lazy(() => import("./pages/Analise"));
 const Transacoes = lazy(() => import("./pages/Transacoes"));
 const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
@@ -107,6 +108,7 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
             <Route path="/parcelas" element={<Parcelas />} />
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/planejamento" element={<Planejamento />} />
+            <Route path="/analise" element={<Analise />} />
             <Route path="/transacoes" element={<Transacoes />} />
             {/* Metas passou a ser uma aba de Planejamento (as duas telas
                 respondiam à mesma pergunta). A rota antiga continua a existir

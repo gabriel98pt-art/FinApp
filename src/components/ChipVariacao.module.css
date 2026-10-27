@@ -1,0 +1,38 @@
+/* Carmim = pior, teal = melhor, cinza = sem veredicto. As cores vêm dos
+   tokens, medidos ≥ 4,5:1 sobre o seu tint nos dois temas. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pior {
+  background: var(--soft-red);
+  color: var(--red);
+}
+
+.melhor {
+  background: var(--soft-grn);
+  color: var(--grn);
+}
+
+.neutro {
+  background: color-mix(in srgb, var(--mut) 14%, transparent);
+  color: var(--mut);
+}
+
+.leitura {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
