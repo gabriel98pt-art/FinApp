@@ -155,3 +155,9 @@ Cartões `.hero`, `.semana`, `.tabela`, `.blocoExtra` compõem o vidro; os desta
 ## B10 — Definições
 
 Os grupos (`.grupo`, `SettingsSection .cartao`) compõem o vidro. Os toggles já eram terracota (`--blu`) com polegar branco; o desligado continua em `--s3`. O botão "Apagar conta" mantém o vermelho cheio. Sem outras alterações. `--r-card` 22px: bom (grupos de 3 a 6 linhas). Capturas: FinApp-capturas/vidro-faseB/b10-definicoes-*.
+
+## B11
+
+B11 — Importar
+
+Cartões `.entrada`, `.importado`, `.lista`, `.painelEditor` compõem o vidro. DESVIO: `.rodape` (barra de confirmação sticky) fica em `--s1` opaco: sobre as linhas que rolam por baixo um vidro translúcido ficava ilegível. DESVIO: `accent-color: var(--blu)` no html (as caixas de seleção nativas apareciam no azul do sistema, fora da paleta; afeta todo o app). Capturas: b11-importar-* (formulário) e b11-importar-revisao-* (extrato analisado, com nome comprido e valor de 5 dígitos), Chromium e WebKit.
