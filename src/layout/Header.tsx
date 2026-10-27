@@ -51,7 +51,7 @@ export default function Header() {
   }
 
   return (
-    <header className={`${styles.header} material`}>
+    <header className={styles.header}>
       <h1 className={styles.logo}>
         Fin<span>App</span>
       </h1>

@@ -9,7 +9,11 @@
   /* Abre espaço para a barra lateral. O token é 0px no mobile, então isto
      vale em qualquer largura sem media query. Desloca só na horizontal — o
      sticky vertical continua igual. */
-  margin-left: var(--sidebar-w);
+  /* A faixa é do tom do fundo, com um fio fino por baixo; sem blur abaixo de
+     768px. A partir daí ocupa a largura toda (a sidebar flutua por cima dela) e
+     só o conteúdo se afasta, senão começava depois da sidebar como um bloco. */
+  background: var(--cabecalho-bg);
+  border-bottom: 1px solid var(--linha);
   display: grid;
   grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
@@ -24,6 +28,29 @@
   border-left: none;
   border-right: none;
   border-top: none;
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding-left: calc(var(--sidebar-w) + 16px + var(--safe-esq));
+  }
+}
+
+@media (min-width: 768px) {
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .header {
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      backdrop-filter: blur(18px) saturate(160%);
+    }
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header {
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* Seletor de mês fixo no header (item 1). O min-width 0 (e o minmax na coluna)

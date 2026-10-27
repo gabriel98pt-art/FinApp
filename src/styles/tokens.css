@@ -239,6 +239,12 @@
   --pur-rgb: 109, 66, 196;
   --tvde-rgb: 63, 94, 240;
 
+  --cabecalho-bg: rgba(
+    251,
+    243,
+    234,
+    0.9
+  ); /* creme do fundo a 90%: liga-se ao mesh em vez de ser uma faixa branca */
   --material-bg: rgba(255, 255, 255, 0.86);
   --material-brd: rgba(255, 255, 255, 0.75);
 

@@ -1,14 +1,15 @@
 /* Pílula vertical de vidro, colada à esquerda e centrada na altura (VidroIpad):
    só ícones, a aba ativa num círculo branco (creme no escuro) e um tooltip com
    o nome no hover e no foco. Mesmo material do header (.material).
-   z-index 29: abaixo do header (30) e bem abaixo das folhas (45/46). */
+   z-index 31: acima do header (30, que agora ocupa a largura toda) e bem abaixo
+   das folhas (45/46). */
 .barra {
   display: none;
   position: fixed;
   left: calc(18px + var(--safe-esq));
   top: 50%;
   transform: translateY(-50%);
-  z-index: 29;
+  z-index: 31;
   width: 60px;
   padding: 10px 0;
   border-radius: var(--r-pill);
