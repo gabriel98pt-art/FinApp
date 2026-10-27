@@ -161,3 +161,9 @@ Os grupos (`.grupo`, `SettingsSection .cartao`) compõem o vidro. Os toggles já
 B11 — Importar
 
 Cartões `.entrada`, `.importado`, `.lista`, `.painelEditor` compõem o vidro. DESVIO: `.rodape` (barra de confirmação sticky) fica em `--s1` opaco: sobre as linhas que rolam por baixo um vidro translúcido ficava ilegível. DESVIO: `accent-color: var(--blu)` no html (as caixas de seleção nativas apareciam no azul do sistema, fora da paleta; afeta todo o app). Capturas: b11-importar-* (formulário) e b11-importar-revisao-* (extrato analisado, com nome comprido e valor de 5 dígitos), Chromium e WebKit.
+
+## B12
+
+B12 — Login
+
+`.cartao` compõe o vidro; botão "Entrar" preto (creme no escuro), links em `--blu-txt`. `--r-card` 22px bom em 390px. Capturas: b12-login-* (inclui o estado de erro).

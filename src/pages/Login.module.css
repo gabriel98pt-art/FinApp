@@ -11,12 +11,9 @@
 }
 
 .cartao {
+  composes: vidro from "../styles/vidro.module.css";
   width: 100%;
   max-width: 360px;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card-hi);
   padding: 28px 24px;
   display: flex;
   flex-direction: column;
