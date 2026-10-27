@@ -9,6 +9,37 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 27/10/2026 (fase 2 do visual novo: números em linhas, Despesas, Receitas e Transações)
+
+- **Os números pequenos do quadro viraram linhas.** Em vez de três colunas
+  apertadas, cada número secundário ocupa uma linha: o nome à esquerda (com o
+  detalhe pequeno por baixo) e o valor à direita, com um fio fino entre elas.
+  O nome quebra em duas linhas se for comprido e já nada fica cortado, nem a
+  320px ("Abastecimentos", "Líquido (− Seg. Social)"). O valor nunca quebra.
+- **Textos mais curtos.** "vs mês passado" passou a dizer "vs setembro" (o mês
+  por extenso) com "era € 260,99" por baixo; a escolha do número em destaque
+  continua a funcionar como antes. A "Média (3 meses)" só leva texto quando há
+  menos de 3 meses de dados ("só 2 meses de dados"). Em Receitas, "Maior
+  fonte" mostra "Salário · 73%".
+- **O total do dia só aparece com 2 ou mais movimentos.** Com um movimento só,
+  o dia mostra só a data, porque o total repetia o valor da linha.
+- **Despesas e Receitas sem cartões.** Cada parte da página é uma secção com
+  título de 17px, 12px até à lista e 36px até à secção anterior. Despesas
+  (Correntes) ganhou o título "Movimentos"; Receitas, "Lançamentos". O botão
+  Adicionar de Receitas passou para a linha Mês/Semana. O aviso de lista vazia
+  e o de falha de sincronização perderam a caixa, em todas as telas.
+- **Ordenar ficou discreto.** Em vez da fileira de quatro botões com caixa, a
+  ordem atual aparece à direita do título ("Mais recentes ⌄"). Tocar abre as
+  quatro opções (a mesma folha da tela Parcelas). Escolher passa a custar dois
+  toques em vez de um.
+- **Transações em secção, por dia.** O extrato deixou de ser uma pilha de
+  cartões: linhas finas com ícone neutro, agrupadas por dia ("Quinta, 16 jul"),
+  e o total do dia é o líquido (o que entrou menos o que saiu), só com 2 ou
+  mais movimentos. A data deixou de se repetir em cada linha. As saídas mostram
+  "−" sem vermelho; as entradas, "+" em verde.
+- Conferido no Chrome a 320px e 390px, nos temas escuro e claro. Não foi
+  testado no Safari.
+
 ## 26/10/2026 (fase 1 do visual novo nas outras telas)
 
 - **Os números de cada tela agora ficam num quadro só.** Em Receitas, Despesas,
