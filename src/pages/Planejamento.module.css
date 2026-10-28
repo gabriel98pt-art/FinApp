@@ -174,24 +174,52 @@
   padding: 6px 8px;
 }
 
+/* Os fundos vivem DENTRO de um só cartão de vidro (.colunaFundos), como
+   secções sem cartão próprio separadas por um fio: empilhados e com fio
+   horizontal no telemóvel; a partir de 1024px em duas colunas com um fio
+   vertical entre elas. */
 .fundos {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 0;
 }
 
-@media (min-width: 620px) {
+@media (min-width: 1024px) {
   .fundos {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 .fundoCard {
-  composes: vidro from "../styles/vidro.module.css";
-  padding: 14px 16px;
+  padding: 14px 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.fundoCard + .fundoCard {
+  border-top: 1px solid var(--linha);
+}
+
+@media (min-width: 1024px) {
+  /* Duas colunas: o fio vertical separa a coluna da direita; a linha de baixo
+     separa as filas. */
+  .fundoCard {
+    padding: 14px 16px 14px 0;
+  }
+
+  .fundoCard:nth-child(even) {
+    padding: 14px 0 14px 16px;
+    border-left: 1px solid var(--linha);
+  }
+
+  .fundoCard + .fundoCard {
+    border-top: 0;
+  }
+
+  .fundoCard:nth-child(n + 3) {
+    border-top: 1px solid var(--linha);
+  }
 }
 
 .fundoTopo {
@@ -311,8 +339,15 @@
   font-size: var(--fs-title);
 }
 
-/* A coluna dos fundos (título + cartões) empilha com o mesmo intervalo da
-   grelha; os cartões dos fundos ficam a 1 coluna dentro das 8. */
+/* O cartão dos fundos: título com o "+" e, dentro, os fundos sem cartão próprio. */
 .colunaFundos {
-  gap: 16px;
+  composes: vidro from "../styles/vidro.module.css";
+  padding: 16px;
+  gap: 8px;
+}
+
+/* A célula da grelha estica os filhos; aqui só a lista dos fundos pode
+   crescer, o título não. */
+.colunaFundos > * {
+  flex: 0 0 auto;
 }

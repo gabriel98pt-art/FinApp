@@ -96,3 +96,11 @@ Formulário de uma coluna: Pagina estreita (largura máxima 720px, centrada, tí
 Entrada (formulário de uma coluna): Pagina estreita (720px centrada). Revisão (mestre-detalhe) ≥1024px: lista s6 | editor s6 na grelha de 12 (antes 40% / 1fr), editor sticky abaixo do cabeçalho (--topo-conteudo) com max-height da janela. Capturas da revisão (extrato analisado): grelha-importar-revisao-*.png. Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## I1 — o menos de verdade nos "Últimos 12 meses"
+
+`ResumoAnual` escrevia `+586,77` e `-490,06` à mão (`formatCents` com o hífen do número). Passa a "+586,77" e "−490,06" (U+2212; o sinal vem do ramo, o número é o módulo). A grep da src/ por valores negativos formatados à mão (template strings com "-" antes de número ou €, `toFixed`, `Intl`/`toLocaleString` sem `formatMoney`, chamadas a `formatCents`) encontrou, como texto visível: só este. Os restantes são datas ("2026-10"), ids, percentagens de gradiente (`toFixed` em CSS), `toFixed(3)` de preço por kWh/litro (positivo), `toLocaleString` de km/datas (positivos) e `formatCents(Math.abs(...))` com o sinal posto à parte (ResultadoDoMes, UltimosMovimentos, importacao.ts "Valor idêntico", que usa o módulo). Os "+" sem "€" nos meses são o desenho do quadro (células pequenas); não alterei.
+
+## I2 — Fundos num só cartão (Metas)
+
+O bloco "Fundos — € … / € …" + "+" passa a UM cartão de vidro s8 (título dentro); os fundos ficam dentro como secções sem cartão próprio: 2 colunas ≥ 1024px com fio vertical entre elas (e fio horizontal entre filas), 1 coluna abaixo com fio horizontal entre fundos. "Últimos 12 meses" (s4) na mesma linha: topos e bases alinhados (stretch). Sem mudanças de texto nem de comportamento (as barras, os valores e o "Contribuir" são os mesmos). Capturas: FinApp-capturas/grelha/i2-{antes,depois}-metas-{1440-escuro,1440-claro,1024-claro,390-claro,390-escuro}.png. Substitui o desvio 1 do H12.

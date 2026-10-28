@@ -114,7 +114,7 @@ export default function ResumoAnual({
                 ? "·"
                 : c.saldo === 0
                   ? "—"
-                  : `${c.saldo > 0 ? "+" : ""}${formatCents(c.saldo)}`}
+                  : `${c.saldo > 0 ? "+" : "−"}${formatCents(Math.abs(c.saldo))}`}
             </span>
           </div>
         ))}
