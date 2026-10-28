@@ -1,0 +1,85 @@
+/* A grelha alinhada das telas largas.
+
+   12 colunas com 16px de intervalo, a MESMA para todas as linhas da página:
+   cada cartão ocupa um span fixo (12, 8/4, 6/6 ou 4/4/4), por isso as bordas
+   da esquerda e da direita alinham de cima a baixo — nada de 1fr/1,5fr
+   diferentes de linha para linha, nada de colunas independentes. Os cartões da
+   mesma linha têm a mesma altura (stretch); o conteúdo fica no topo e o que
+   for rodapé cola em baixo (cada tela decide com `margin-top: auto`).
+
+   Abaixo de 768px é uma coluna (a ordem do DOM, como sempre); de 768 a 1023px
+   são 2 colunas (`s12` ocupa as duas, os outros uma cada); a partir de 1024px
+   as 12 colunas. Uso:
+
+     <div className={g.grelha}>
+       <div className={`${g.celula} ${g.s6}`}>…cartão…</div>
+       <div className={`${g.celula} ${g.s6}`}>…cartão…</div>
+     </div>
+
+   `celula` estica o cartão lá dentro até à altura da linha e desaparece se
+   estiver vazia (um componente que não desenha nada não deixa um buraco).
+   Sem biblioteca: é só CSS. */
+.grelha {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.celula {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.celula:empty {
+  display: none;
+}
+
+.celula > * {
+  flex: 1 1 auto;
+}
+
+/* Linhas que não esticam: o painel sticky de uma tela de lista precisa de ter a
+   sua própria altura. */
+.alinhaTopo {
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .grelha {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .s12 {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grelha {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .s12 {
+    grid-column: span 12;
+  }
+
+  .s8 {
+    grid-column: span 8;
+  }
+
+  .s6 {
+    grid-column: span 6;
+  }
+
+  .s4 {
+    grid-column: span 4;
+  }
+
+  /* Um cartão alto que ocupa duas linhas (o gráfico da Análise). */
+  .linhas2 {
+    grid-row: span 2;
+  }
+}

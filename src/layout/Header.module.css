@@ -36,6 +36,17 @@
   }
 }
 
+/* A partir de 1024px o conteúdo pára em --conteudo-max, encostado à sidebar;
+   o cabeçalho acompanha esse limite (a faixa continua de lado a lado, o que se
+   desenha nela é que fica na mesma largura do conteúdo). */
+@media (min-width: 1024px) {
+  .header {
+    padding-right: calc(
+      16px + var(--safe-dir) + max(0px, 100% - var(--sidebar-w) - var(--conteudo-max))
+    );
+  }
+}
+
 @media (min-width: 768px) {
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
     .header {

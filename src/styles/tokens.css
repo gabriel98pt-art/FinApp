@@ -278,6 +278,12 @@
   }
 }
 
+/* Largura máxima da área de conteúdo nas telas largas, encostada à sidebar. O
+   cabeçalho acompanha (AppShell/Header). */
+:root {
+  --conteudo-max: 1320px;
+}
+
 /* Altura do cabeçalho (61px medidos: 10 + 10 de padding, o conteúdo e o fio) e
    o afastamento do primeiro cartão ao cabeçalho: a sidebar em pílula começa
    exatamente onde começa o conteúdo. */
