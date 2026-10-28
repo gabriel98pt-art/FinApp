@@ -463,6 +463,14 @@ describe("saldoInicialParaAlvo — acertar a conta pelo extrato do banco", () =>
     expect(saldoInicialParaAlvo(resumo(130000), 100000, 130000)).toBe(100000);
   });
 
+  it("calculado negativo e alvo positivo: o saldo final é exatamente o alvo", () => {
+    // Conta no vermelho (−50,00) com saldo inicial 0: movimentos = −5000.
+    const r = resumo(-5000);
+    const inicial = saldoInicialParaAlvo(r, 0, 12000);
+    expect(inicial).toBe(17000);
+    expect(inicial + (r.saldoAtual - 0)).toBe(12000);
+  });
+
   it("aceita alvo negativo — a conta pode estar no vermelho", () => {
     expect(saldoInicialParaAlvo(resumo(5000), 20000, -3000)).toBe(12000);
   });

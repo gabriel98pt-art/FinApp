@@ -9,6 +9,17 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 28/10/2026 (campo de dinheiro com saldo negativo)
+
+- **Corrigido: ajustar o saldo de uma conta no vermelho.** Quando o saldo
+  calculado era negativo, o campo "Ajustar saldo" vinha preenchido com o valor
+  negativo e partia: o sinal de menos nunca saía, ao apagar tudo ficava sempre
+  um "−0,01" e ao escrever um 8 aparecia um valor sem sentido. Agora apagar
+  leva mesmo ao campo vazio e, depois de vazio, escrever 8 dá 0,08. Escrever
+  sobre um valor negativo continua negativo. Gravar um saldo certo (por
+  exemplo 120,00 com o calculado em −50,00) já funcionava e ficou com teste.
+  Não há tecla para escrever valores negativos — só deixou de partir.
+
 ## 28/10/2026 (grelha alinhada nos ecrãs largos)
 
 - **Tudo alinhado.** Nos ecrãs grandes (a partir de 1024px) as páginas usam

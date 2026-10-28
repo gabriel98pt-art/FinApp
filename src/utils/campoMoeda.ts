@@ -16,19 +16,23 @@ const MAXIMO = Number.MAX_SAFE_INTEGER;
 export type ResultadoTecla = Cents | null | undefined;
 
 export function aplicarTecla(valor: Cents | null, tecla: string): ResultadoTecla {
+  // O campo pode receber um valor negativo de fora (o saldo calculado de uma
+  // conta no vermelho). Trabalha-se no valor absoluto e o sinal mantém-se; ao
+  // esvaziar, o sinal desaparece com o valor.
+  const atual = valor ?? 0;
+  const sinal = atual < 0 ? -1 : 1;
+  const abs = Math.abs(atual);
   if (/^\d$/.test(tecla)) {
-    const atual = valor ?? 0;
-    const novo = atual * 10 + Number(tecla);
+    const novo = abs * 10 + Number(tecla);
     // No teto, ignora o dígito em vez de estourar — o campo pára de crescer.
-    return novo > MAXIMO ? atual : novo;
+    return novo > MAXIMO ? atual : sinal * novo;
   }
   if (tecla === "Backspace" || tecla === "Delete") {
-    const atual = valor ?? 0;
-    const novo = Math.floor(atual / 10);
+    const novo = Math.trunc(abs / 10);
     // Apagar o último dígito devolve o campo ao vazio, não a "0,00" — assim
     // um campo que pode ficar por preencher (o ajuste manual da fatura) sabe
     // que o usuário o esvaziou de propósito.
-    return novo === 0 ? null : novo;
+    return novo === 0 ? null : sinal * novo;
   }
   return undefined;
 }

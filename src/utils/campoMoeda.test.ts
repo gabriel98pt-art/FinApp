@@ -55,6 +55,27 @@ describe("Backspace tira da direita", () => {
   });
 });
 
+describe("valor negativo vindo de fora (conta no vermelho)", () => {
+  test("apagar leva ao vazio, sem ficar um resto", () => {
+    let v: number | null = -12345;
+    const vistos: (number | null)[] = [];
+    for (let i = 0; i < 5; i++) {
+      v = aplicarTecla(v, "Backspace") as number | null;
+      vistos.push(v);
+    }
+    expect(vistos).toEqual([-1234, -123, -12, -1, null]);
+  });
+
+  test("depois de esvaziar, digitar começa positivo", () => {
+    expect(aplicarTecla(aplicarTecla(-1, "Backspace") as null, "8")).toBe(8);
+  });
+
+  test("digitar sobre um negativo cresce e continua negativo", () => {
+    expect(aplicarTecla(-1, "8")).toBe(-18);
+    expect(aplicarTecla(-12345, "6")).toBe(-123456);
+  });
+});
+
 describe("teclas que não são para aqui", () => {
   test("vírgula e ponto não fazem nada — não se digitam separadores", () => {
     expect(aplicarTecla(123, ",")).toBeUndefined();
