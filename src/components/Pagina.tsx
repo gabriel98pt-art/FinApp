@@ -11,6 +11,7 @@ export default function Pagina({
   titulo,
   tituloVisivel = true,
   acao,
+  painel,
   children,
 }: {
   titulo: string;
@@ -19,11 +20,27 @@ export default function Pagina({
   /** Um controlo da página, à direita do título nos ecrãs largos e por baixo
    *  dele no telemóvel (o seletor de período da Análise). */
   acao?: ReactNode;
+  /** Páginas de lista: o que fica no painel da esquerda (o quadro de resumo, as
+   *  abas e os controlos da lista). No telemóvel é a sequência de sempre
+   *  (título, painel, conteúdo); a partir de 1024px o painel ocupa 4 colunas
+   *  da grelha, colado ao topo, e o conteúdo as outras 8. */
+  painel?: ReactNode;
   children?: ReactNode;
 }) {
   const h2 = (
     <h2 className={`${styles.titulo} ${tituloVisivel ? "" : styles.tituloOculto}`}>{titulo}</h2>
   );
+  if (painel) {
+    return (
+      <section className={`${styles.pagina} ${styles.comPainel}`}>
+        <div className={styles.painel}>
+          {h2}
+          {painel}
+        </div>
+        <div className={styles.conteudoLista}>{children}</div>
+      </section>
+    );
+  }
   return (
     <section className={styles.pagina}>
       {acao ? (

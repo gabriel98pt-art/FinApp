@@ -26,6 +26,7 @@ import { useAbasTeclado } from "../hooks/useAbasTeclado";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
 import { useUidSessao } from "../hooks/useUidSessao";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useDespesasFixasStore, useDespesasStore } from "../stores/lancamentosStore";
@@ -381,101 +382,157 @@ export default function Despesas() {
     await encerrarFixa(f);
   }
 
-  return (
-    <Pagina titulo="Despesas">
-      {/* Fora das abas: os três já contam fixas, parcelas e veículo (ver o
-          cálculo de `totalDoMesComVeiculo`), portanto valem tanto numa aba
-          como na outra — e desapareciam ao passar para "Fixas". Mesma ordem
-          de Veiculo e Tvde: KPIs primeiro, abas depois. */}
-      <Kpis pagina="despesas">
-        {/* O sub não é enfeite: este cartão soma quatro coisas (correntes +
-            fixas + parcelas + veículo) e o rodapé da lista lá em baixo soma
-            só as correntes visíveis. Eram dois números diferentes com a mesma
-            palavra "Total" na mesma tela — quem olhava só via a contradição.
-            Aqui diz-se o que entra; lá em baixo diz-se que é só daquela lista. */}
-        <KpiCard
-          rotulo={porSemana ? "Total da semana" : "Total do mês"}
-          chave="Total do mês"
-          valor={formatMoney(totalKpi, moeda)}
-          sub={
-            porSemana && semanaAtual
-              ? rotuloDaSemana(semanaAtual)
-              : "inclui fixas, parcelas e veículo"
-          }
-          tom="vermelho"
-        />
-        {/* O valor manda, o nome é o detalhe: numa fila de quatro cartões que
-            mostram todos dinheiro, o único que mostrava uma palavra obrigava a
-            parar e reler para saber o que estava a ver. */}
-        <KpiCard
-          rotulo="Maior categoria"
-          valor={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : "—"}
-          sub={
-            maiorCategoria
-              ? `${maiorCategoria.categoria}${
-                  statusMaiorCategoria?.estourado
-                    ? " — estourou o teto"
-                    : pertoMaiorCategoria
-                      ? " — perto do teto"
-                      : ""
-                }`
-              : undefined
-          }
-          tom={
-            statusMaiorCategoria?.estourado
-              ? "vermelho"
-              : pertoMaiorCategoria
-                ? "amarelo"
-                : "neutro"
-          }
-        />
-        {/* Aqui subir é mau: o verde/vermelho é o contrário do mesmo cartão em
-            Receitas. */}
-        <KpiCard
-          rotulo={`vs ${nomeDoMes(mesAnterior)}`}
-          // O rótulo muda com o mês; a escolha de destaque casa pela chave.
-          chave="vs mês passado"
-          valor={
-            variacao === null ? (totalDoMesComVeiculo > 0 ? "Novo" : "—") : rotuloVariacao(variacao)
-          }
-          sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
-          tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"}
-        />
-        {/* Mesmo cartão, mesmas palavras e mesmo tom do de Receitas: os dois
-            respondem à mesma pergunta em lados opostos da conta. */}
-        <KpiCard
-          rotulo="Média (3 meses)"
-          valor={media ? formatMoney(media.media, moeda) : "—"}
-          sub={
-            media
-              ? media.meses < 3
-                ? `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de dados`
-                : undefined
-              : "sem meses anteriores"
-          }
-          // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um
-          // dado contextual, não um sinal de bom/mau (achado da auditoria).
-          tom="neutro"
-        />
-      </Kpis>
-
-      <div className={styles.abas} role="tablist" {...propsLista}>
-        {ABAS.map(([id, nome]) => (
+  const largo = useMediaQuery("(min-width: 1024px)");
+  const linhaVisao = (
+    <div className={styles.linhaVisao}>
+      <div
+        className={styles.alternadorVisao}
+        role="radiogroup"
+        aria-label="Período"
+        ref={radiogroupRef}
+        onKeyDown={aoTeclarRadio}
+      >
+        {(
+          [
+            ["mes", "Mês"],
+            ["semana", "Semana"],
+          ] as const
+        ).map(([id, nome]) => (
           <button
             key={id}
-            role="tab"
-            id={idAba(id)}
-            aria-selected={aba === id}
-            aria-controls={idPainelAba(id)}
-            {...propsAba(id)}
-            className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
-            onClick={() => setAba(id)}
+            role="radio"
+            aria-checked={visao === id}
+            className={`${styles.visaoBotao} ${visao === id ? styles.visaoAtiva : ""}`}
+            onClick={() => setVisao(id)}
           >
             {nome}
           </button>
         ))}
       </div>
+      {visao === "semana" && (
+        <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+      )}
+      {/* Já se está na aba "Correntes" — o título "Despesas correntes"
+                  do cartão de baixo era redundante. O botão sobe pra cá. */}
+      <Botao
+        variante="primaria"
+        soIcone
+        className={styles.botaoAdicionarTopo}
+        onClick={() => abrirRegistro("despesa")}
+        aria-label="Adicionar despesa"
+      >
+        <Plus size={18} aria-hidden />
+      </Botao>
+    </div>
+  );
 
+  return (
+    <Pagina
+      titulo="Despesas"
+      painel={
+        <>
+          {/* Fora das abas: os três já contam fixas, parcelas e veículo (ver o
+          cálculo de `totalDoMesComVeiculo`), portanto valem tanto numa aba
+          como na outra — e desapareciam ao passar para "Fixas". Mesma ordem
+          de Veiculo e Tvde: KPIs primeiro, abas depois. */}
+          <Kpis pagina="despesas">
+            {/* O sub não é enfeite: este cartão soma quatro coisas (correntes +
+            fixas + parcelas + veículo) e o rodapé da lista lá em baixo soma
+            só as correntes visíveis. Eram dois números diferentes com a mesma
+            palavra "Total" na mesma tela — quem olhava só via a contradição.
+            Aqui diz-se o que entra; lá em baixo diz-se que é só daquela lista. */}
+            <KpiCard
+              rotulo={porSemana ? "Total da semana" : "Total do mês"}
+              chave="Total do mês"
+              valor={formatMoney(totalKpi, moeda)}
+              sub={
+                porSemana && semanaAtual
+                  ? rotuloDaSemana(semanaAtual)
+                  : "inclui fixas, parcelas e veículo"
+              }
+              tom="vermelho"
+            />
+            {/* O valor manda, o nome é o detalhe: numa fila de quatro cartões que
+            mostram todos dinheiro, o único que mostrava uma palavra obrigava a
+            parar e reler para saber o que estava a ver. */}
+            <KpiCard
+              rotulo="Maior categoria"
+              valor={maiorCategoria ? formatMoney(maiorCategoria.valor, moeda) : "—"}
+              sub={
+                maiorCategoria
+                  ? `${maiorCategoria.categoria}${
+                      statusMaiorCategoria?.estourado
+                        ? " — estourou o teto"
+                        : pertoMaiorCategoria
+                          ? " — perto do teto"
+                          : ""
+                    }`
+                  : undefined
+              }
+              tom={
+                statusMaiorCategoria?.estourado
+                  ? "vermelho"
+                  : pertoMaiorCategoria
+                    ? "amarelo"
+                    : "neutro"
+              }
+            />
+            {/* Aqui subir é mau: o verde/vermelho é o contrário do mesmo cartão em
+            Receitas. */}
+            <KpiCard
+              rotulo={`vs ${nomeDoMes(mesAnterior)}`}
+              // O rótulo muda com o mês; a escolha de destaque casa pela chave.
+              chave="vs mês passado"
+              valor={
+                variacao === null
+                  ? totalDoMesComVeiculo > 0
+                    ? "Novo"
+                    : "—"
+                  : rotuloVariacao(variacao)
+              }
+              sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
+              tom={
+                variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "vermelho" : "verde"
+              }
+            />
+            {/* Mesmo cartão, mesmas palavras e mesmo tom do de Receitas: os dois
+            respondem à mesma pergunta em lados opostos da conta. */}
+            <KpiCard
+              rotulo="Média (3 meses)"
+              valor={media ? formatMoney(media.media, moeda) : "—"}
+              sub={
+                media
+                  ? media.meses < 3
+                    ? `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de dados`
+                    : undefined
+                  : "sem meses anteriores"
+              }
+              // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um
+              // dado contextual, não um sinal de bom/mau (achado da auditoria).
+              tom="neutro"
+            />
+          </Kpis>
+
+          <div className={styles.abas} role="tablist" {...propsLista}>
+            {ABAS.map(([id, nome]) => (
+              <button
+                key={id}
+                role="tab"
+                id={idAba(id)}
+                aria-selected={aba === id}
+                aria-controls={idPainelAba(id)}
+                {...propsAba(id)}
+                className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
+                onClick={() => setAba(id)}
+              >
+                {nome}
+              </button>
+            ))}
+          </div>
+          {largo && aba === "correntes" && linhaVisao}
+        </>
+      }
+    >
       <AbaTransicao aba={aba}>
         {aba === "correntes" && (
           <section className={styles.secao} aria-label="Movimentos">
@@ -484,46 +541,7 @@ export default function Despesas() {
               <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
             </div>
 
-            <div className={styles.linhaVisao}>
-              <div
-                className={styles.alternadorVisao}
-                role="radiogroup"
-                aria-label="Período"
-                ref={radiogroupRef}
-                onKeyDown={aoTeclarRadio}
-              >
-                {(
-                  [
-                    ["mes", "Mês"],
-                    ["semana", "Semana"],
-                  ] as const
-                ).map(([id, nome]) => (
-                  <button
-                    key={id}
-                    role="radio"
-                    aria-checked={visao === id}
-                    className={`${styles.visaoBotao} ${visao === id ? styles.visaoAtiva : ""}`}
-                    onClick={() => setVisao(id)}
-                  >
-                    {nome}
-                  </button>
-                ))}
-              </div>
-              {visao === "semana" && (
-                <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-              )}
-              {/* Já se está na aba "Correntes" — o título "Despesas correntes"
-                  do cartão de baixo era redundante. O botão sobe pra cá. */}
-              <Botao
-                variante="primaria"
-                soIcone
-                className={styles.botaoAdicionarTopo}
-                onClick={() => abrirRegistro("despesa")}
-                aria-label="Adicionar despesa"
-              >
-                <Plus size={18} aria-hidden />
-              </Botao>
-            </div>
+            {!largo && linhaVisao}
 
             <ListaLancamentos
               /* key: trocar de mês ou de ordem remonta a lista e volta pra página 1 */

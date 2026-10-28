@@ -23,3 +23,12 @@ Faixa do aviso de categorias (span 12, some se não houver aviso: a célula vazi
 - Transbordo horizontal (pedido do planejador): a 1024, 1100, 1180, 1280, 1366, 1440 e 1500px, `scrollWidth = clientWidth` e nenhum elemento passa da janela, também com o cenário de taxa negativa e valores longos. O corte da captura do Gabriel não se reproduziu; a grelha de 12 colunas (`minmax(0, 1fr)`, `min-width: 0` nos cartões) deixa de depender das larguras fixas de antes.
 - G1/G2 recapturados: g1-negativo-1440-escuro.png e g1-negativo-390-claro.png (taxa "−67%", anel vazio, "Gastou € 930 a mais do que recebeu", Sobra "−€ 930" com chip "▼ € 2.095", categoria nova com chip em euros). O texto "−67%" do anel passa a corpo menor (7,6) para caber dentro do anel.
 - Capturas: FinApp-capturas/grelha/{antes,depois}-analise-{1180,1440,1920}-{escuro,claro}.png e *-1440-claro-webkit.png.
+
+## H4 — Despesas (GrelhaDespesas), o padrão das páginas de lista
+
+- `Pagina` ganhou a prop opcional `painel`: no telemóvel é a sequência de sempre (título, painel, conteúdo); a partir de 1024px é a grelha de 12 colunas: painel de 4 colunas à esquerda (título, quadro de resumo, abas Correntes/Fixas, Mês/Semana, seletor de semana e o botão "+") e lista de 8 à direita (o título "Movimentos", o seletor de ordem e a lista). Sem `painel` o markup é o de antes.
+- Sticky: o painel fica colado abaixo do cabeçalho (`top: --topo-conteudo`) enquanto a lista rola, só em janelas com 720px de altura ou mais (o painel mede ~500px); abaixo disso NÃO fica sticky (o painel mais alto do que a janela ficaria com o fundo inacessível). A regra é por media query (altura da janela), não medida em JS.
+- A linha Mês/Semana + "+" passa do cartão da lista para o painel só a partir de 1024px (`useMediaQuery`, o elemento é renderizado uma vez, num sítio ou no outro); no telemóvel fica no sítio de antes, por isso a ordem do DOM e do telemóvel não mudam.
+- Verificado: 390px sem alteração; 1180/1440/1920 claro e escuro (separador Fixas a 1440 escuro: depois-despesas-fixas-1440-escuro.png); 1440x600 sem sticky: depois-despesas-1440x600-claro.png.
+- Nota: com 8 colunas a lista de Despesas fica larga a 1920px (≈ 1000px); o valor fica longe do nome em linhas curtas. É o span que a prévia pede; se for demais, o próximo passo é limitar a largura da lista dentro das 8 colunas.
+- Capturas: FinApp-capturas/grelha/{antes,depois}-despesas-{1180,1440,1920}-{escuro,claro}.png e *-1440-claro-webkit.png.

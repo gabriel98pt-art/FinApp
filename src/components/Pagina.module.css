@@ -12,6 +12,44 @@
   line-height: 1.15;
 }
 
+/* Páginas de lista (Despesas…): painel à esquerda + lista à direita. No
+   telemóvel é uma coluna (título, painel, lista) como sempre; a partir de
+   1024px é a grelha de 12 colunas: painel com 4, lista com 8. */
+.painel,
+.conteudoLista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .comPainel {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .painel {
+    grid-column: span 4;
+  }
+
+  .conteudoLista {
+    grid-column: span 8;
+  }
+}
+
+/* Fica colado por baixo do cabeçalho enquanto a lista rola — mas só em janelas
+   com altura para o painel inteiro: um painel mais alto do que a janela
+   ficaria com o fundo inacessível. (A altura do painel é de ~500px; 720px
+   dá-lhe folga.) */
+@media (min-width: 1024px) and (min-height: 720px) {
+  .painel {
+    position: sticky;
+    top: var(--topo-conteudo);
+  }
+}
+
 /* Título + um controlo da página: em linha nos ecrãs largos, empilhados no
    telemóvel. */
 .cabecalhoPagina {
