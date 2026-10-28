@@ -42,7 +42,8 @@ export function variacaoMensal(atual: Cents, anterior: Cents): number | null {
 /** '+12%' / '-8%' / '0%'. O sinal explícito é o ponto do cartão: sem ele,
  *  "12%" não diz se subiu ou desceu. */
 export function rotuloVariacao(pct: number): string {
-  return `${pct > 0 ? "+" : ""}${pct}%`;
+  // O menos de verdade (U+2212), como no resto do app — não o hífen.
+  return pct < 0 ? `−${Math.abs(pct)}%` : `${pct > 0 ? "+" : ""}${pct}%`;
 }
 
 export interface MediaMensal {

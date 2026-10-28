@@ -260,7 +260,9 @@ describe("Transacoes", () => {
     ]);
     desenhar();
 
-    expect(screen.getByText("€ -42,50")).toBeInTheDocument();
+    // O saldo (e a linha do extrato, que também é −€ 42,50) com o menos de verdade.
+    expect(screen.getAllByText("−€ 42,50").length).toBeGreaterThan(0);
+    expect(screen.queryByText("€ -42,50")).not.toBeInTheDocument();
     // Era "amarelo" — inconsistente com todo o resto do app, onde
     // saldo/variação negativos são sempre "vermelho" (achado da auditoria de
     // Design). A linha do Saldo é o `div` mais próximo do próprio rótulo.

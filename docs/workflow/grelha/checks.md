@@ -32,3 +32,7 @@ Faixa do aviso de categorias (span 12, some se não houver aviso: a célula vazi
 - Verificado: 390px sem alteração; 1180/1440/1920 claro e escuro (separador Fixas a 1440 escuro: depois-despesas-fixas-1440-escuro.png); 1440x600 sem sticky: depois-despesas-1440x600-claro.png.
 - Nota: com 8 colunas a lista de Despesas fica larga a 1920px (≈ 1000px); o valor fica longe do nome em linhas curtas. É o span que a prévia pede; se for demais, o próximo passo é limitar a largura da lista dentro das 8 colunas.
 - Capturas: FinApp-capturas/grelha/{antes,depois}-despesas-{1180,1440,1920}-{escuro,claro}.png e *-1440-claro-webkit.png.
+
+## H15 — o menos de verdade nas variações e nos valores
+
+`rotuloVariacao` passa a escrever "−8%" (U+2212) e `formatMoney` escreve os valores negativos como "−€ 731,00" (antes "€ -731,00"), o padrão do app. Cobre todas as telas que usam estas duas funções (Despesas "vs setembro", Receitas, Transações "Saldo", Planejamento "Restam", Cartões…). O resumo que vai para a IA (copilotoResumo) mantém o hífen de sempre (texto simples). Testes atualizados: calculos, Planejamento, Transações (a linha do extrato também é "−€ 42,50", o teste aceita as duas e confirma que "€ -42,50" já não existe). Não mexi na cor do "Total do mês" de Despesas (à espera do Gabriel).

@@ -106,9 +106,11 @@ export function formatCents(cents: Cents): string {
   return `${negative ? "-" : ""}${withThousands},${frac}`;
 }
 
-/** `formatCents` com o símbolo da moeda da conta antes do número. */
+/** `formatCents` com o símbolo da moeda da conta antes do número. Um valor
+ *  negativo leva o sinal antes do símbolo, com o menos de verdade ("−€ 731,00"),
+ *  como o resto do app — e não "€ -731,00". */
 export function formatMoney(cents: Cents, currency: Currency): string {
-  return `${CURRENCY_SYMBOLS[currency]} ${formatCents(cents)}`;
+  return formatMoneySinal(cents, currency);
 }
 
 /** Troca os espaços por espaços sem quebra: "€ 339,38" (ou "Custos € 339,38")
@@ -119,7 +121,7 @@ export function semQuebra(texto: string): string {
 }
 
 /** O padrão do app para um valor negativo: o sinal antes do símbolo ("−€ 731"),
- *  com o menos de verdade (U+2212). `formatMoney` escreve "€ -731,00". */
+ *  com o menos de verdade (U+2212). É também o que `formatMoney` escreve. */
 export function formatMoneySinal(cents: Cents, currency: Currency): string {
   return `${cents < 0 ? "−" : ""}${CURRENCY_SYMBOLS[currency]} ${formatCents(Math.abs(cents))}`;
 }

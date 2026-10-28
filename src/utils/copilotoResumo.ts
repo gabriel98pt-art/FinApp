@@ -35,6 +35,9 @@ import {
 import { formatMoney } from "./money";
 import { rotuloMes, rotuloVariacao, somarMeses, variacaoMensal } from "./calculos";
 
+// O resumo vai para a IA em texto simples: o menos é o hífen de sempre.
+const semMenosTipografico = (texto: string) => texto.replace("−", "-");
+
 export interface CategoriaResumo {
   nome: string;
   total: string;
@@ -188,15 +191,17 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
       receitas: formatMoney(tAnterior.receitas, moeda),
       // Mesma correção do mês corrente, aplicada ao mês anterior.
       despesas: formatMoney(Math.max(0, tAnterior.despesas), moeda),
-      variacaoReceitas: varReceitas === null ? null : rotuloVariacao(varReceitas),
-      variacaoDespesas: varDespesas === null ? null : rotuloVariacao(varDespesas),
+      variacaoReceitas:
+        varReceitas === null ? null : semMenosTipografico(rotuloVariacao(varReceitas)),
+      variacaoDespesas:
+        varDespesas === null ? null : semMenosTipografico(rotuloVariacao(varDespesas)),
     },
     tendencias: categoriasAcimaDaMedia(ctx, ym)
       .slice(0, MAX_TENDENCIAS)
       .map((m) => ({
         categoria: m.categoria,
         // desvioPct nunca é null aqui: categoriasAcimaDaMedia já filtra por ele.
-        desvioPct: rotuloVariacao(m.desvioPct ?? 0),
+        desvioPct: semMenosTipografico(rotuloVariacao(m.desvioPct ?? 0)),
         mesesUsados: m.mesesUsados,
       })),
   };

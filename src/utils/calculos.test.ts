@@ -160,7 +160,7 @@ describe("variacaoMensal", () => {
 describe("rotuloVariacao", () => {
   test("o sinal é explícito na subida", () => {
     expect(rotuloVariacao(12)).toBe("+12%");
-    expect(rotuloVariacao(-8)).toBe("-8%");
+    expect(rotuloVariacao(-8)).toBe("−8%");
     expect(rotuloVariacao(0)).toBe("0%");
   });
 });

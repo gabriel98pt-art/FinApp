@@ -240,7 +240,7 @@ describe("KPIs do plano mensal", () => {
     montar();
 
     // O sinal fica junto ao número, como `formatCents` faz em todo o app.
-    expect(valorDoCard("Restam")).toBe("€ -300,00");
+    expect(valorDoCard("Restam")).toBe("−€ 300,00");
     expect(screen.getByText("passou do plano")).toBeInTheDocument();
     expect(valorDoCard("% usado")).toBe("130%");
   });
