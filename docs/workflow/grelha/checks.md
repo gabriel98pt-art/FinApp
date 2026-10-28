@@ -60,3 +60,9 @@ Painel s4: título e quadro (Total do mês, Falta pagar, Restante, Parcelas ativ
 Decisão (a tela tem quadro, cartões/contas e transferências): padrão de lista, painel s4 = quadro de resumo; s8 = grade de cartões e contas em 2 colunas (cada um ocupa 4 da grelha de 12, intervalo de 16px, mesma altura por linha) + secção Transferências entre contas por baixo. Assim as bordas dos cartões alinham com as colunas da grelha. Telemóvel 390px igual (1 coluna).
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H9 — Veículo (padrão de lista)
+
+Painel s4: título, quadro (Gasto do mês…) e as 5 abas (a pílula rola na horizontal se não couber); s8: aviso de sincronização e o conteúdo da aba. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.

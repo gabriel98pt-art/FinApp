@@ -640,39 +640,44 @@ export default function Veiculo() {
   }
 
   return (
-    <Pagina titulo="Veículo">
-      <Kpis pagina="veiculo">
-        <KpiCard
-          rotulo="Gasto do mês"
-          valor={formatMoney(gastoDoMes, cfg.currency)}
-          tom="vermelho"
-        />
-        <KpiCard
-          rotulo="Abastecimentos"
-          valor={formatMoney(cargasPorSemana ? totalCargasVisiveis : cargasDoMes, cfg.currency)}
-          sub={cargasPorSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
-        />
-        <KpiCard rotulo="Despesas" valor={formatMoney(despesasDoMes, cfg.currency)} />
-        <KpiCard rotulo="Km no mês" valor={kmDoMes ? kmDoMes.toLocaleString("pt-PT") : "0"} />
-      </Kpis>
+    <Pagina
+      titulo="Veículo"
+      painel={
+        <>
+          <Kpis pagina="veiculo">
+            <KpiCard
+              rotulo="Gasto do mês"
+              valor={formatMoney(gastoDoMes, cfg.currency)}
+              tom="vermelho"
+            />
+            <KpiCard
+              rotulo="Abastecimentos"
+              valor={formatMoney(cargasPorSemana ? totalCargasVisiveis : cargasDoMes, cfg.currency)}
+              sub={cargasPorSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
+            />
+            <KpiCard rotulo="Despesas" valor={formatMoney(despesasDoMes, cfg.currency)} />
+            <KpiCard rotulo="Km no mês" valor={kmDoMes ? kmDoMes.toLocaleString("pt-PT") : "0"} />
+          </Kpis>
 
-      <div className={styles.abas} role="tablist" {...propsLista}>
-        {ABAS.map(([id, nome]) => (
-          <button
-            key={id}
-            role="tab"
-            id={idAba(id)}
-            aria-selected={aba === id}
-            aria-controls={idPainelAba(id)}
-            {...propsAba(id)}
-            className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
-            onClick={() => setAba(id)}
-          >
-            {nome}
-          </button>
-        ))}
-      </div>
-
+          <div className={styles.abas} role="tablist" {...propsLista}>
+            {ABAS.map(([id, nome]) => (
+              <button
+                key={id}
+                role="tab"
+                id={idAba(id)}
+                aria-selected={aba === id}
+                aria-controls={idPainelAba(id)}
+                {...propsAba(id)}
+                className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
+                onClick={() => setAba(id)}
+              >
+                {nome}
+              </button>
+            ))}
+          </div>
+        </>
+      }
+    >
       {/* As 5 abas vêm da mesma store, então o aviso é um só, acima delas. Fica
           na versão compacta mesmo sem dados: os botões de adicionar continuam
           a fazer sentido, e o estado vazio de cada aba deixa de enganar com a
