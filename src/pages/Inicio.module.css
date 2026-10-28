@@ -1,66 +1,30 @@
-/* A Início em grelha: uma coluna no telemóvel (a ordem do DOM, como sempre),
-   duas de 768px e três a partir de 1024px, como no VidroIpad — o Resultado
-   do mês à esquerda, A pagar e Categorias ao meio e à direita, e por baixo os
-   Últimos movimentos com o Copiloto ao lado.
-
-   Entre 768 e 1023px o conteúdo mede ~650px; em três colunas as linhas
-   (ícone + nome + valor) ficariam com ~100px de texto, por isso ali são duas. */
-.grade {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.coluna {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
+/* A ordem visual da Início nas telas largas. No telemóvel vale a ordem do DOM
+   (Resultado, aviso, A pagar, Categorias, Últimos movimentos, Copiloto); de
+   768px para cima o `order` põe o aviso numa faixa por cima e os Últimos
+   movimentos (8 colunas) antes das Categorias (4). Os spans vêm de
+   styles/grelha.module.css. */
 @media (min-width: 768px) {
-  .grade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-  }
-
-  .copiloto {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Três colunas: Resultado | A pagar | Categorias. O Copiloto fica na coluna do
-   meio, por baixo do A pagar (a coluna ficava com um vazio grande), e os
-   Últimos movimentos por baixo das duas primeiras. A fila do meio é a que
-   estica (1fr), para o Copiloto encostar ao A pagar. */
-@media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: 1.15fr 1fr 1fr;
-    grid-template-rows: auto 1fr auto;
-    grid-template-areas:
-      "resultado pagar categorias"
-      "resultado copiloto categorias"
-      "movimentos movimentos categorias";
+  .aviso {
+    order: 0;
   }
 
   .resultado {
-    grid-area: resultado;
+    order: 1;
   }
 
   .pagar {
-    grid-area: pagar;
+    order: 2;
+  }
+
+  .ultimos {
+    order: 3;
   }
 
   .categorias {
-    grid-area: categorias;
-  }
-
-  .movimentos {
-    grid-area: movimentos;
+    order: 4;
   }
 
   .copiloto {
-    grid-area: copiloto;
+    order: 5;
   }
 }

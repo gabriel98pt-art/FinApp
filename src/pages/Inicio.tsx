@@ -22,6 +22,7 @@ import { useVeiculoStore } from "../stores/veiculoStore";
 import { hojeIso, mesAtual } from "../utils/calculos";
 import { resultadoDoMes } from "../utils/resumoMensal";
 import styles from "../components/InicioSecoes.module.css";
+import g from "../styles/grelha.module.css";
 import grade from "./Inicio.module.css";
 
 export default function Inicio() {
@@ -91,8 +92,14 @@ export default function Inicio() {
           os números continuam a valer — o que caiu foi a atualização, não os
           dados que já lá estavam. */}
       {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
-      <div className={grade.grade}>
-        <div className={`${grade.coluna} ${grade.resultado}`}>
+      {/* A grelha alinhada (styles/grelha.module.css). A ordem do DOM é a do
+          telemóvel; nas telas largas `order` põe o aviso numa faixa por cima e
+          os Últimos movimentos antes das Categorias. */}
+      <div className={g.grelha}>
+        <div className={`${g.celula} ${g.s12} ${grade.aviso}`}>
+          <AvisoOrcamento />
+        </div>
+        <div className={`${g.celula} ${g.s6} ${grade.resultado}`}>
           <ResultadoDoMes
             receitas={resumo.receitas}
             despesas={resumo.despesas}
@@ -100,18 +107,17 @@ export default function Inicio() {
             aoAbrirReceitas={() => navegar("/receitas")}
             aoAbrirDespesas={() => navegar("/despesas")}
           />
-          <AvisoOrcamento />
         </div>
-        <div className={`${grade.coluna} ${grade.pagar}`}>
+        <div className={`${g.celula} ${g.s6} ${grade.pagar}`}>
           <APagarEsteMes />
         </div>
-        <div className={`${grade.coluna} ${grade.categorias}`}>
+        <div className={`${g.celula} ${g.s4} ${grade.categorias}`}>
           <OndeFoiODinheiro />
         </div>
-        <div className={`${grade.coluna} ${grade.movimentos}`}>
+        <div className={`${g.celula} ${g.s8} ${grade.ultimos}`}>
           <UltimosMovimentos />
         </div>
-        <div className={`${grade.coluna} ${grade.copiloto}`}>
+        <div className={`${g.celula} ${g.s12} ${grade.copiloto}`}>
           <button type="button" className={styles.copiloto} onClick={() => setCopilotoAberto(true)}>
             <Sparkles className={styles.copilotoIcone} size={18} strokeWidth={1.75} aria-hidden />
             <span>Perguntar ao Copiloto</span>

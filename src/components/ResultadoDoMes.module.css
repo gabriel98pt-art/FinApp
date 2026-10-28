@@ -1,8 +1,14 @@
+/* Nas telas largas o cartão estica à altura da linha: a barra e os totais colam
+   em baixo, o número fica no topo. */
+.rodape {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
 .barra {
   display: flex;
   height: 6px;
   gap: 3px;
-  margin-top: 20px;
 }
 
 .barra i {

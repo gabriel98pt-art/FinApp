@@ -7,3 +7,11 @@ Verificação prévia (Análise): a 1024, 1100, 1180, 1280, 1366, 1440 e 1500px 
 - `styles/grelha.module.css`: `.grelha` (1 coluna no telemóvel; 2 colunas de 768 a 1023px; 12 colunas, gap 16px, a partir de 1024px), `.celula` (estica o cartão à altura da linha, desaparece se vazia), spans `.s12/.s8/.s6/.s4` (≥ 1024px), `.linhas2`, `.alinhaTopo` (para o painel sticky). Só CSS, sem biblioteca. De 768 a 1023px `s12` ocupa as 2 colunas e os outros uma cada.
 - Largura: `--conteudo-max` 1320px; o conteúdo encosta à sidebar (`margin-left: var(--sidebar-w)`, a sobra fica à direita) em vez de centrar; o cabeçalho acompanha: o `padding-right` da faixa soma a sobra, de modo que o mês e as ações ficam na mesma largura do conteúdo.
 - Capturas "antes" (estado anterior): FinApp-capturas/grelha/antes-{inicio,analise,despesas}-{1180,1440,1920}-{escuro,claro}.png e antes-*-1440-claro-webkit.png.
+
+## H2 — Início (GrelhaInicio)
+
+Faixa do aviso de categorias (span 12, some se não houver aviso: a célula vazia desaparece); Resultado do mês 6 | A pagar 6; Últimos movimentos 8 | Categorias 4; Copiloto como faixa de span 12 no fim. Bordas esquerda/direita alinhadas de cima a baixo (verificado a 1180, 1440 e 1920px, claro e escuro). O cartão Resultado estica à altura da linha: o número fica no topo, a barra e os totais colam em baixo (`.rodape`, `margin-top: auto`); `QuadroResumo` passou a flex column (os outros quadros não mudam de aspeto).
+
+- A ordem do DOM e a do telemóvel são as de sempre (Resultado, aviso, A pagar, Categorias, Últimos movimentos, Copiloto). DESVIO anotado: a partir de 768px o `order` do CSS põe o aviso por cima e os Últimos movimentos antes das Categorias, por isso nas telas largas a ordem VISUAL difere da do DOM (um leitor de ecrã lê Resultado, aviso, A pagar, Categorias, Últimos movimentos, Copiloto). Cada cartão é uma região com o seu título, e a ordem lida continua lógica.
+- De 768 a 1023px: 2 colunas (aviso e Copiloto a largura toda, os outros dois a dois).
+- Capturas: FinApp-capturas/grelha/{antes,depois}-inicio-{1180,1440,1920}-{escuro,claro}.png e *-1440-claro-webkit.png.

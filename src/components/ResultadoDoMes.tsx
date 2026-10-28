@@ -40,40 +40,42 @@ export default function ResultadoDoMes({
       />
       <NotaDoQuadro>Receitas menos despesas · não é o saldo das contas</NotaDoQuadro>
 
-      <div className={styles.barra} aria-hidden>
-        {pctReceitas === null ? (
-          <i className={styles.vazia} />
-        ) : (
-          <>
-            <i className={styles.entrada} style={{ width: `${pctReceitas}%` }} />
-            <i className={styles.saida} />
-          </>
-        )}
-      </div>
+      <div className={styles.rodape}>
+        <div className={styles.barra} aria-hidden>
+          {pctReceitas === null ? (
+            <i className={styles.vazia} />
+          ) : (
+            <>
+              <i className={styles.entrada} style={{ width: `${pctReceitas}%` }} />
+              <i className={styles.saida} />
+            </>
+          )}
+        </div>
 
-      <div className={styles.totais}>
-        <button type="button" className={styles.total} onClick={aoAbrirReceitas}>
-          <span className={styles.totalRotulo}>
-            <i className={`${styles.bolinha} ${styles.bolinhaEntrada}`} />
-            Receitas
-          </span>
-          <span className={`${styles.totalValor} ${classeDiscreta}`}>
-            {formatMoney(receitas, moeda)}
-          </span>
-        </button>
-        <button
-          type="button"
-          className={`${styles.total} ${styles.direita}`}
-          onClick={aoAbrirDespesas}
-        >
-          <span className={styles.totalRotulo}>
-            <i className={`${styles.bolinha} ${styles.bolinhaSaida}`} />
-            Despesas
-          </span>
-          <span className={`${styles.totalValor} ${classeDiscreta}`}>
-            {formatMoney(despesas, moeda)}
-          </span>
-        </button>
+        <div className={styles.totais}>
+          <button type="button" className={styles.total} onClick={aoAbrirReceitas}>
+            <span className={styles.totalRotulo}>
+              <i className={`${styles.bolinha} ${styles.bolinhaEntrada}`} />
+              Receitas
+            </span>
+            <span className={`${styles.totalValor} ${classeDiscreta}`}>
+              {formatMoney(receitas, moeda)}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.total} ${styles.direita}`}
+            onClick={aoAbrirDespesas}
+          >
+            <span className={styles.totalRotulo}>
+              <i className={`${styles.bolinha} ${styles.bolinhaSaida}`} />
+              Despesas
+            </span>
+            <span className={`${styles.totalValor} ${classeDiscreta}`}>
+              {formatMoney(despesas, moeda)}
+            </span>
+          </button>
+        </div>
       </div>
     </QuadroResumo>
   );

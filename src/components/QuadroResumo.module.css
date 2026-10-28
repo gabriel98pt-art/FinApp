@@ -3,6 +3,8 @@
    telas. */
 .quadro {
   composes: vidro from "../styles/vidro.module.css";
+  display: flex;
+  flex-direction: column;
   padding: 20px 20px 18px;
 }
 
