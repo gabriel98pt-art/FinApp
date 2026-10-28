@@ -66,3 +66,9 @@ Decisão (a tela tem quadro, cartões/contas e transferências): padrão de list
 Painel s4: título, quadro (Gasto do mês…) e as 5 abas (a pílula rola na horizontal se não couber); s8: aviso de sincronização e o conteúdo da aba. Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H10 — TVDE (painel: hero, resumo e abas)
+
+Decisão (hero + quadro + abas): painel s4 empilha os três (o hero e o quadro são cartões da mesma largura, bordas alinhadas); s8 = conteúdo da aba (Semanas, Meses, Períodos, Extras e definições). Azul do TVDE mantido nos destaques. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.

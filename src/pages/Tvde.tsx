@@ -376,53 +376,62 @@ export default function Tvde() {
   }
 
   return (
-    <Pagina titulo="TVDE">
-      {calcDestaque && destaqueN !== null ? (
-        <div className={styles.hero}>
-          <p className={styles.heroRotulo}>
-            Lucro — Semana {destaqueN} ({rotuloDaSemana(cfg.inicioSemana1, destaqueN)})
-            {semanas[String(destaqueN)]?.teste ? " · TESTE" : ""}
-          </p>
-          <p className={styles.heroValor}>{eur(calcDestaque.lucro)}</p>
-          <div className={styles.heroChips}>
-            <span>{semanas[String(destaqueN)]?.horas || 0}h</span>
-            <span>
-              {calcDestaque.ganhosPorHora !== null ? `${eur(calcDestaque.ganhosPorHora)}/h` : "—"}
-            </span>
-            <span>{semanas[String(destaqueN)]?.viag || 0} viagens</span>
-            <span>
-              {calcDestaque.eurPorViagem !== null ? `${eur(calcDestaque.eurPorViagem)}/viag.` : "—"}
-            </span>
-          </div>
-        </div>
-      ) : null}
+    <Pagina
+      titulo="TVDE"
+      painel={
+        <>
+          {calcDestaque && destaqueN !== null ? (
+            <div className={styles.hero}>
+              <p className={styles.heroRotulo}>
+                Lucro — Semana {destaqueN} ({rotuloDaSemana(cfg.inicioSemana1, destaqueN)})
+                {semanas[String(destaqueN)]?.teste ? " · TESTE" : ""}
+              </p>
+              <p className={styles.heroValor}>{eur(calcDestaque.lucro)}</p>
+              <div className={styles.heroChips}>
+                <span>{semanas[String(destaqueN)]?.horas || 0}h</span>
+                <span>
+                  {calcDestaque.ganhosPorHora !== null
+                    ? `${eur(calcDestaque.ganhosPorHora)}/h`
+                    : "—"}
+                </span>
+                <span>{semanas[String(destaqueN)]?.viag || 0} viagens</span>
+                <span>
+                  {calcDestaque.eurPorViagem !== null
+                    ? `${eur(calcDestaque.eurPorViagem)}/viag.`
+                    : "—"}
+                </span>
+              </div>
+            </div>
+          ) : null}
 
-      <Kpis>
-        <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="tvde" />
-        <KpiCard rotulo="Média/semana" valor={eur(t.mediaSemana)} />
-        <KpiCard rotulo="Média €/hora" valor={t.mediaPorHora ? eur(t.mediaPorHora) : "—"} />
-        {/* No fim e sem cor: ao lado do "Lucro total" eram dois valores
+          <Kpis>
+            <KpiCard rotulo="Lucro total" valor={eur(t.lucro)} tom="tvde" />
+            <KpiCard rotulo="Média/semana" valor={eur(t.mediaSemana)} />
+            <KpiCard rotulo="Média €/hora" valor={t.mediaPorHora ? eur(t.mediaPorHora) : "—"} />
+            {/* No fim e sem cor: ao lado do "Lucro total" eram dois valores
             grandes e coloridos a disputar a mesma atenção. */}
-        <KpiCard rotulo="Líquido (− Seg. Social)" valor={eur(t.lucroLiquido)} />
-      </Kpis>
+            <KpiCard rotulo="Líquido (− Seg. Social)" valor={eur(t.lucroLiquido)} />
+          </Kpis>
 
-      <div className={styles.abas} role="tablist" {...propsLista}>
-        {ABAS.map(([id, nome]) => (
-          <button
-            key={id}
-            role="tab"
-            id={idAba(id)}
-            aria-selected={aba === id}
-            aria-controls={idPainelAba(id)}
-            {...propsAba(id)}
-            className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
-            onClick={() => setAba(id)}
-          >
-            {nome}
-          </button>
-        ))}
-      </div>
-
+          <div className={styles.abas} role="tablist" {...propsLista}>
+            {ABAS.map(([id, nome]) => (
+              <button
+                key={id}
+                role="tab"
+                id={idAba(id)}
+                aria-selected={aba === id}
+                aria-controls={idPainelAba(id)}
+                {...propsAba(id)}
+                className={`${styles.abaBotao} ${aba === id ? styles.abaAtiva : ""}`}
+                onClick={() => setAba(id)}
+              >
+                {nome}
+              </button>
+            ))}
+          </div>
+        </>
+      }
+    >
       <AbaTransicao aba={aba}>
         {aba === "semanas" && (
           <>
