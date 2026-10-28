@@ -577,23 +577,28 @@ export default function Parcelas() {
   );
 
   return (
-    <Pagina titulo="Parcelas">
-      <Kpis pagina="parcelas">
-        <KpiCard
-          rotulo="Total do mês"
-          valor={formatMoney(totalDoMes, moeda)}
-          sub={
-            totalQuitadasNoMes > 0
-              ? `inclui ${semQuebra(formatMoney(totalQuitadasNoMes, moeda))} quitado`
-              : undefined
-          }
-          tom="acento"
-        />
-        <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
-        <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
-        <KpiCard rotulo="Parcelas ativas" valor={String(ativas.length)} />
-      </Kpis>
-
+    <Pagina
+      titulo="Parcelas"
+      painel={
+        <>
+          <Kpis pagina="parcelas">
+            <KpiCard
+              rotulo="Total do mês"
+              valor={formatMoney(totalDoMes, moeda)}
+              sub={
+                totalQuitadasNoMes > 0
+                  ? `inclui ${semQuebra(formatMoney(totalQuitadasNoMes, moeda))} quitado`
+                  : undefined
+              }
+              tom="acento"
+            />
+            <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
+            <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
+            <KpiCard rotulo="Parcelas ativas" valor={String(ativas.length)} />
+          </Kpis>
+        </>
+      }
+    >
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Compras parceladas ({ativas.length})</h3>
         <div className={styles.acoesCabecalho}>

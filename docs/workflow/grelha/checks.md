@@ -48,3 +48,9 @@ Painel s4: título, quadro de resumo e a linha Mês/Semana + seletor de semana +
 Painel s4: título e quadro (Entradas/Saídas/Saldo); lista s8: contagem + filtro + extrato por dia (e o paginador). Sticky como em Despesas. Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H7 — Parcelas (padrão de lista)
+
+Painel s4: título e quadro (Total do mês, Falta pagar, Restante, Parcelas ativas); s8: cabeçalho com filtro e +, cartões, Quitadas e Serviços de parcelamento. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
