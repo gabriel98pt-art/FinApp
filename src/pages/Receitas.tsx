@@ -12,6 +12,7 @@ import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "../utils
 import { removerReceita } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
 import { useUidSessao } from "../hooks/useUidSessao";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useReceitasStore } from "../stores/lancamentosStore";
@@ -118,68 +119,77 @@ export default function Receitas() {
   // dominante é justamente o que interessa saber, e quanto ela pesa.
   const maiorFonte = agruparPorChave(doMes(contadas, mes), (r) => r.fonte)[0] ?? null;
 
+  const largo = useMediaQuery("(min-width: 1024px)");
+  const seletorVisao = (
+    <SeletorVisao valor={visao} aoMudar={setVisao}>
+      {visao === "semana" && (
+        <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+      )}
+      <Botao variante="texto" className={styles.adicionar} onClick={() => abrirRegistro("receita")}>
+        <Plus size={15} aria-hidden /> Adicionar
+      </Botao>
+    </SeletorVisao>
+  );
+
   return (
-    <Pagina titulo="Receitas">
-      <Kpis pagina="receitas">
-        {/* `chave` fixa: o rótulo muda de texto com a visão, mas a escolha de
+    <Pagina
+      titulo="Receitas"
+      painel={
+        <>
+          <Kpis pagina="receitas">
+            {/* `chave` fixa: o rótulo muda de texto com a visão, mas a escolha de
             "KPIs no mobile" (constants/kpis.ts) casa por esta chave — igual
             ao cartão irmão em Despesas. */}
-        <KpiCard
-          rotulo={porSemana ? "Total da semana" : "Total do mês"}
-          chave="Total do mês"
-          valor={formatMoney(porSemana ? totalPeriodo : totalMes, moeda)}
-          sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
-          tom="verde"
-        />
-        <KpiCard
-          rotulo="Maior fonte"
-          valor={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : "—"}
-          sub={maiorFonte ? `${maiorFonte.nome} · ${maiorFonte.pct}%` : "sem receitas no mês"}
-        />
-        {/* Do lado da receita, subir é bom — o verde/vermelho é o contrário do
+            <KpiCard
+              rotulo={porSemana ? "Total da semana" : "Total do mês"}
+              chave="Total do mês"
+              valor={formatMoney(porSemana ? totalPeriodo : totalMes, moeda)}
+              sub={porSemana && semanaAtual ? rotuloDaSemana(semanaAtual) : undefined}
+              tom="verde"
+            />
+            <KpiCard
+              rotulo="Maior fonte"
+              valor={maiorFonte ? formatMoney(maiorFonte.valor, moeda) : "—"}
+              sub={maiorFonte ? `${maiorFonte.nome} · ${maiorFonte.pct}%` : "sem receitas no mês"}
+            />
+            {/* Do lado da receita, subir é bom — o verde/vermelho é o contrário do
             mesmo cartão em Despesas. */}
-        <KpiCard
-          rotulo={`vs ${nomeDoMes(mesAnterior)}`}
-          // O rótulo muda com o mês; a escolha de destaque casa pela chave.
-          chave="vs mês passado"
-          valor={variacao === null ? (totalMes > 0 ? "Novo" : "—") : rotuloVariacao(variacao)}
-          sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
-          tom={variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "verde" : "vermelho"}
-        />
-        <KpiCard
-          rotulo="Média (3 meses)"
-          valor={media ? formatMoney(media.media, moeda) : "—"}
-          sub={
-            media
-              ? media.meses < 3
-                ? `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de dados`
-                : undefined
-              : "sem meses anteriores"
-          }
-          // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um
-          // dado contextual, não um sinal de bom/mau (achado da auditoria).
-          tom="neutro"
-        />
-      </Kpis>
-
+            <KpiCard
+              rotulo={`vs ${nomeDoMes(mesAnterior)}`}
+              // O rótulo muda com o mês; a escolha de destaque casa pela chave.
+              chave="vs mês passado"
+              valor={variacao === null ? (totalMes > 0 ? "Novo" : "—") : rotuloVariacao(variacao)}
+              sub={semQuebra(`era ${formatMoney(totalMesAnterior, moeda)}`)}
+              tom={
+                variacao === null || variacao === 0 ? "neutro" : variacao > 0 ? "verde" : "vermelho"
+              }
+            />
+            <KpiCard
+              rotulo="Média (3 meses)"
+              valor={media ? formatMoney(media.media, moeda) : "—"}
+              sub={
+                media
+                  ? media.meses < 3
+                    ? `só ${media.meses} ${media.meses === 1 ? "mês" : "meses"} de dados`
+                    : undefined
+                  : "sem meses anteriores"
+              }
+              // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é um
+              // dado contextual, não um sinal de bom/mau (achado da auditoria).
+              tom="neutro"
+            />
+          </Kpis>
+          {largo && seletorVisao}
+        </>
+      }
+    >
       <section className={styles.secao} aria-label="Lançamentos">
         <div className={styles.cabecalhoSecao}>
           <h3 className={styles.tituloSecao}>Lançamentos</h3>
           <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
         </div>
 
-        <SeletorVisao valor={visao} aoMudar={setVisao}>
-          {visao === "semana" && (
-            <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-          )}
-          <Botao
-            variante="texto"
-            className={styles.adicionar}
-            onClick={() => abrirRegistro("receita")}
-          >
-            <Plus size={15} aria-hidden /> Adicionar
-          </Botao>
-        </SeletorVisao>
+        {!largo && seletorVisao}
 
         <ListaLancamentos
           /* key: trocar de mês, de ordem ou de semana remonta a lista e volta

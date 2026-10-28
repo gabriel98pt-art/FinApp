@@ -36,3 +36,9 @@ Faixa do aviso de categorias (span 12, some se não houver aviso: a célula vazi
 ## H15 — o menos de verdade nas variações e nos valores
 
 `rotuloVariacao` passa a escrever "−8%" (U+2212) e `formatMoney` escreve os valores negativos como "−€ 731,00" (antes "€ -731,00"), o padrão do app. Cobre todas as telas que usam estas duas funções (Despesas "vs setembro", Receitas, Transações "Saldo", Planejamento "Restam", Cartões…). O resumo que vai para a IA (copilotoResumo) mantém o hífen de sempre (texto simples). Testes atualizados: calculos, Planejamento, Transações (a linha do extrato também é "−€ 42,50", o teste aceita as duas e confirma que "€ -42,50" já não existe). Não mexi na cor do "Total do mês" de Despesas (à espera do Gabriel).
+
+## H5 — Receitas (padrão de lista)
+
+Painel s4: título, quadro de resumo e a linha Mês/Semana + seletor de semana + Adicionar (esta só passa do cartão da lista para o painel a partir de 1024px; no telemóvel fica onde estava). Lista s8: título Lançamentos, seletor de ordem e lançamentos. Sticky como em Despesas (≥720px de altura). Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
