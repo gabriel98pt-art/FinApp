@@ -206,6 +206,16 @@
   gap: 10px;
 }
 
+/* Nas telas largas os cartões ficam dois a dois dentro das 8 colunas da lista
+   (cada um ocupa 4 da grelha de 12), com o mesmo intervalo de 16px, para as
+   bordas alinharem com o resto da página. */
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
 .quadro {
   composes: vidro from "../styles/vidro.module.css";
   display: flex;

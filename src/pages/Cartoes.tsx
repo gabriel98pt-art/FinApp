@@ -618,34 +618,43 @@ export default function Cartoes() {
   }
 
   return (
-    <Pagina titulo="Cartões">
-      <Kpis pagina="cartoes">
-        {/* O rótulo sozinho deixa supor que é o que se gastou no mês; é a
+    <Pagina
+      titulo="Cartões"
+      painel={
+        <>
+          <Kpis pagina="cartoes">
+            {/* O rótulo sozinho deixa supor que é o que se gastou no mês; é a
             fatura DESTE mês, que cobra o ciclo do mês anterior. */}
-        <KpiCard
-          rotulo="A pagar este mês"
-          // A escolha de KPIs em Definições é guardada por este texto: mudar
-          // só o rótulo visível deixaria de casar com quem já escolheu este
-          // cartão, e a página cairia nos 2 primeiros. `chave` mantém o nome
-          // antigo do lado dos dados, onde ninguém o lê.
-          chave="Devido no mês"
-          valor={formatMoney(totalDevido, cfg.currency)}
-          sub={`ciclo de ${rotuloMes(cicloDaFatura(mes))}`}
-          tom="acento"
-        />
-        <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
-        <KpiCard rotulo="Restante" valor={formatMoney(totalRestante, cfg.currency)} tom="amarelo" />
-        <KpiCard
-          rotulo="Saldo em contas"
-          valor={formatMoney(saldoEmContas, cfg.currency)}
-          // Era "laranja" — a cor do TVDE (--lrj), que por design não é uma
-          // das 5 personalizáveis em Definições. "Saldo em contas" não tem
-          // nada a ver com TVDE; "acento" combina com "A pagar este mês" ao
-          // lado, outro total informativo (achado da auditoria de Design).
-          tom="acento"
-        />
-      </Kpis>
-
+            <KpiCard
+              rotulo="A pagar este mês"
+              // A escolha de KPIs em Definições é guardada por este texto: mudar
+              // só o rótulo visível deixaria de casar com quem já escolheu este
+              // cartão, e a página cairia nos 2 primeiros. `chave` mantém o nome
+              // antigo do lado dos dados, onde ninguém o lê.
+              chave="Devido no mês"
+              valor={formatMoney(totalDevido, cfg.currency)}
+              sub={`ciclo de ${rotuloMes(cicloDaFatura(mes))}`}
+              tom="acento"
+            />
+            <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
+            <KpiCard
+              rotulo="Restante"
+              valor={formatMoney(totalRestante, cfg.currency)}
+              tom="amarelo"
+            />
+            <KpiCard
+              rotulo="Saldo em contas"
+              valor={formatMoney(saldoEmContas, cfg.currency)}
+              // Era "laranja" — a cor do TVDE (--lrj), que por design não é uma
+              // das 5 personalizáveis em Definições. "Saldo em contas" não tem
+              // nada a ver com TVDE; "acento" combina com "A pagar este mês" ao
+              // lado, outro total informativo (achado da auditoria de Design).
+              tom="acento"
+            />
+          </Kpis>
+        </>
+      }
+    >
       {/* Compacta: os cartões e as faturas continuam a valer e a ser úteis —
           o que se perdeu foi a garantia de que os valores estão completos. */}
       {erroValores && <ErroSincronizacao compacto mensagem="Alguns valores não sincronizaram" />}
