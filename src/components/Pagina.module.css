@@ -50,6 +50,15 @@
   }
 }
 
+/* Página de uma coluna só (um formulário): centrada e com largura máxima. */
+@media (min-width: 768px) {
+  .estreita {
+    width: 100%;
+    max-width: 720px;
+    margin-inline: auto;
+  }
+}
+
 /* Título + um controlo da página: em linha nos ecrãs largos, empilhados no
    telemóvel. */
 .cabecalhoPagina {

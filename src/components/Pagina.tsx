@@ -12,6 +12,7 @@ export default function Pagina({
   tituloVisivel = true,
   acao,
   painel,
+  estreita = false,
   children,
 }: {
   titulo: string;
@@ -25,6 +26,9 @@ export default function Pagina({
    *  (título, painel, conteúdo); a partir de 1024px o painel ocupa 4 colunas
    *  da grelha, colado ao topo, e o conteúdo as outras 8. */
   painel?: ReactNode;
+  /** Formulário de uma coluna (Definições): a partir de 768px fica centrado, com
+   *  no máximo ~720px, em vez de esticar pela largura toda. */
+  estreita?: boolean;
   children?: ReactNode;
 }) {
   const h2 = (
@@ -42,7 +46,7 @@ export default function Pagina({
     );
   }
   return (
-    <section className={styles.pagina}>
+    <section className={`${styles.pagina} ${estreita ? styles.estreita : ""}`}>
       {acao ? (
         <div className={styles.cabecalhoPagina}>
           {h2}

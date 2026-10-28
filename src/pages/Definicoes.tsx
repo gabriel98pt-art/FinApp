@@ -177,7 +177,7 @@ export default function Definicoes() {
   if (!uid) return null;
 
   return (
-    <Pagina titulo="Definições">
+    <Pagina titulo="Definições" estreita>
       <SettingsSection titulo="Geral">
         <SettingsSwitchRow
           titulo="Módulo TVDE"
