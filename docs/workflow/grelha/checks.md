@@ -90,3 +90,9 @@ Orçamento: quadro s4 | OrcamentoCard s8. Metas: linha 1 quadro s4 | meta do mê
 Formulário de uma coluna: Pagina estreita (largura máxima 720px, centrada, título incluído) a partir de 768px. Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H14 — Importar (formulário estreito + revisão 6|6)
+
+Entrada (formulário de uma coluna): Pagina estreita (720px centrada). Revisão (mestre-detalhe) ≥1024px: lista s6 | editor s6 na grelha de 12 (antes 40% / 1fr), editor sticky abaixo do cabeçalho (--topo-conteudo) com max-height da janela. Capturas da revisão (extrato analisado): grelha-importar-revisao-*.png. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.

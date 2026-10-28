@@ -774,13 +774,19 @@
 
 /* ——— Mestre-detalhe (desktop largo) ——— */
 
-/* A lista fica com ~40% (nunca menos de 340px) e o editor ocupa o resto da
-   largura: a revisão usa a tela toda, em vez de uma coluna estreita. */
+/* A lista e o editor dividem a largura da grelha em duas metades (6 + 6): a
+   revisão usa a tela toda, em vez de uma coluna estreita. */
 .mestreDetalhe {
   display: grid;
-  grid-template-columns: minmax(340px, 40%) minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px;
   align-items: start;
+}
+
+/* Na grelha de 12 colunas: a lista com 6 e o editor com 6 (nunca estreito
+   demais), com as bordas alinhadas com o resto das páginas. */
+.mestreDetalhe > * {
+  grid-column: span 6;
 }
 
 /* O editor acompanha o scroll da lista: fica à vista enquanto se percorrem as
@@ -788,8 +794,8 @@
 .painelEditor {
   composes: vidro from "../styles/vidro.module.css";
   position: sticky;
-  top: 16px;
-  max-height: calc(100dvh - 32px);
+  top: var(--topo-conteudo);
+  max-height: calc(100dvh - var(--topo-conteudo) - 16px);
   overflow-y: auto;
   padding: 16px;
 }

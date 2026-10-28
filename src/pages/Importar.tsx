@@ -27,7 +27,7 @@ export default function Importar() {
   const mestreDetalhe = useMediaQuery(MESTRE_DETALHE);
 
   return (
-    <Pagina titulo="Importar">
+    <Pagina titulo="Importar" estreita={linhas === null || linhas.length === 0}>
       {/* Escape hatch sempre visível: o rascunho fica guardado entre trocas de
           aba e até um refresh (ver `importacaoStore`), então precisa de uma
           saída igualmente sempre à mão — sem isto, um extrato que ficasse num
