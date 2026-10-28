@@ -78,3 +78,9 @@ Decisão (hero + quadro + abas): painel s4 empilha os três (o hero e o quadro s
 Linha 1: quadro de resumo s4 | botão + e calendário do mês s8 (mesma altura; o quadro fica no topo); linha 2: Próximos 7 dias s12 com os cartões em 3 colunas de 4 (2 colunas em 768–1023px). Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H12 — Planejamento (grelha 12)
+
+Orçamento: quadro s4 | OrcamentoCard s8. Metas: linha 1 quadro s4 | meta do mês s8; linha 2 fundos s8 (cabeçalho + cartões, 2 por linha) | Últimos 12 meses s4. A ordem do DOM é a do telemóvel (a grelha usa a ordem natural). Nota: o título 'Fundos' fica acima dos cartões dos fundos e a coluna dos Últimos 12 meses começa uns pixels mais alto (o cabeçalho dos fundos não é um cartão); as bordas dos CARTÕES alinham à esquerda e à direita. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.

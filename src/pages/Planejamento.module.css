@@ -310,3 +310,9 @@
   padding: 12px;
   font-size: var(--fs-title);
 }
+
+/* A coluna dos fundos (título + cartões) empilha com o mesmo intervalo da
+   grelha; os cartões dos fundos ficam a 1 coluna dentro das 8. */
+.colunaFundos {
+  gap: 16px;
+}

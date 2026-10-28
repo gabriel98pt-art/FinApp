@@ -38,6 +38,7 @@ import { calcularMetaMensal, poupancaMeses, taxaPoupanca, totalFundos } from "..
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
 import { idAba, idPainelAba } from "../utils/abas";
+import g from "../styles/grelha.module.css";
 import styles from "./Planejamento.module.css";
 
 type Aba = "orcamento" | "metas";
@@ -247,215 +248,231 @@ export default function Planejamento() {
 
       <AbaTransicao aba={aba}>
         {aba === "orcamento" && (
-          <>
-            <Kpis pagina="planejamento">
-              <KpiCard
-                rotulo="Total"
-                valor={definido ? formatMoney(totalPlanejado, moeda) : "Definir"}
-                sub={definido ? "planeado por mês" : "quanto pretende gastar por mês"}
-                tom="acento"
-                aoClicar={() => setFolhaTotal(true)}
-              />
-              <KpiCard
-                rotulo="Restam"
-                valor={definido ? formatMoney(restam, moeda) : "—"}
-                sub={definido && restam < 0 ? "passou do plano" : undefined}
-                tom={definido && restam < 0 ? "vermelho" : "verde"}
-              />
-              <KpiCard
-                rotulo="% usado"
-                valor={definido ? `${pctUsado}%` : "—"}
-                tom={definido && pctUsado > 100 ? "vermelho" : "neutro"}
-              />
-              <KpiCard
-                rotulo="Valor/dia"
-                valor={
-                  definido ? formatMoney(Math.round(totalPlanejado / diasDoMes(mes)), moeda) : "—"
-                }
-                sub={definido ? `${diasDoMes(mes)} dias no mês` : undefined}
-                // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é
-                // um dado contextual, não um sinal de bom/mau (achado da
-                // auditoria de Design).
-                tom="neutro"
-              />
-            </Kpis>
+          <div className={g.grelha}>
+            <div className={`${g.celula} ${g.s4}`}>
+              <Kpis pagina="planejamento">
+                <KpiCard
+                  rotulo="Total"
+                  valor={definido ? formatMoney(totalPlanejado, moeda) : "Definir"}
+                  sub={definido ? "planeado por mês" : "quanto pretende gastar por mês"}
+                  tom="acento"
+                  aoClicar={() => setFolhaTotal(true)}
+                />
+                <KpiCard
+                  rotulo="Restam"
+                  valor={definido ? formatMoney(restam, moeda) : "—"}
+                  sub={definido && restam < 0 ? "passou do plano" : undefined}
+                  tom={definido && restam < 0 ? "vermelho" : "verde"}
+                />
+                <KpiCard
+                  rotulo="% usado"
+                  valor={definido ? `${pctUsado}%` : "—"}
+                  tom={definido && pctUsado > 100 ? "vermelho" : "neutro"}
+                />
+                <KpiCard
+                  rotulo="Valor/dia"
+                  valor={
+                    definido ? formatMoney(Math.round(totalPlanejado / diasDoMes(mes)), moeda) : "—"
+                  }
+                  sub={definido ? `${diasDoMes(mes)} dias no mês` : undefined}
+                  // Era "laranja" (cor exclusiva do TVDE) — "neutro" porque é
+                  // um dado contextual, não um sinal de bom/mau (achado da
+                  // auditoria de Design).
+                  tom="neutro"
+                />
+              </Kpis>
+            </div>
 
-            <OrcamentoCard />
-          </>
+            <div className={`${g.celula} ${g.s8}`}>
+              <OrcamentoCard />
+            </div>
+          </div>
         )}
 
         {aba === "metas" && (
-          <>
-            <Kpis pagina="metas">
-              <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, moeda)} tom="acento" />
-              <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupancaMes}%`} tom="verde" />
-              <KpiCard
-                rotulo="Total em Fundos"
-                valor={formatMoney(fundosAtual, moeda)}
-                tom="acento"
-              />
-              <KpiCard
-                rotulo="Poupado (12m)"
-                valor={formatMoney(poupado12m, moeda)}
-                // Era "amarelo" — destoava de "Taxa de Poupança" ao lado,
-                // sempre verde (achado da auditoria de Design: as duas KPIs
-                // de poupança desta MESMA tela usavam tons diferentes). Sem
-                // condicional: `poupancaMeses` já é `Math.max(0, ...)` por
-                // mês, nunca fica negativo — verde fixo é o tom correto, não
-                // só o mais conveniente.
-                tom="verde"
-              />
-            </Kpis>
+          <div className={g.grelha}>
+            <div className={`${g.celula} ${g.s4}`}>
+              <Kpis pagina="metas">
+                <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, moeda)} tom="acento" />
+                <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupancaMes}%`} tom="verde" />
+                <KpiCard
+                  rotulo="Total em Fundos"
+                  valor={formatMoney(fundosAtual, moeda)}
+                  tom="acento"
+                />
+                <KpiCard
+                  rotulo="Poupado (12m)"
+                  valor={formatMoney(poupado12m, moeda)}
+                  // Era "amarelo" — destoava de "Taxa de Poupança" ao lado,
+                  // sempre verde (achado da auditoria de Design: as duas KPIs
+                  // de poupança desta MESMA tela usavam tons diferentes). Sem
+                  // condicional: `poupancaMeses` já é `Math.max(0, ...)` por
+                  // mês, nunca fica negativo — verde fixo é o tom correto, não
+                  // só o mais conveniente.
+                  tom="verde"
+                />
+              </Kpis>
+            </div>
 
-            <div className={styles.cardMeta}>
-              <div className={styles.cardMetaTopo}>
-                {/* O mês do TÍTULO é o mesmo que gerou os números por baixo dele
+            <div className={`${g.celula} ${g.s8}`}>
+              <div className={styles.cardMeta}>
+                <div className={styles.cardMetaTopo}>
+                  {/* O mês do TÍTULO é o mesmo que gerou os números por baixo dele
                     (o do seletor do header), nunca o mês real: com julho
                     escolhido, o cartão dizia "Meta — Agosto 2026" por cima de
                     receitas, despesas e saldo de julho. */}
-                <p className={styles.cardMetaTitulo}>Meta — {rotuloMes(mes)}</p>
-                <span
-                  className={`${styles.badge} ${meta.atingiu ? styles.badgeOk : styles.badgeAlerta}`}
-                >
-                  {badgeIcone && createElement(badgeIcone, { size: 13, "aria-hidden": true })}
-                  {badgeTexto}
-                </span>
-              </div>
-              <div className={styles.cardMetaGrid}>
-                <div>
-                  <p
-                    className={`${styles.saldoGrande} ${meta.atingiu ? styles.verde : styles.vermelho}`}
+                  <p className={styles.cardMetaTitulo}>Meta — {rotuloMes(mes)}</p>
+                  <span
+                    className={`${styles.badge} ${meta.atingiu ? styles.badgeOk : styles.badgeAlerta}`}
                   >
-                    {formatMoney(meta.saldo, moeda)}
-                  </p>
-                  <p className={styles.cardMetaSub}>
-                    de {formatMoney(meta.meta, moeda)} · {meta.pct}%
-                  </p>
-                  <div className={styles.barra}>
-                    <div
-                      className={`${styles.preenchido} ${meta.atingiu ? styles.preenchidoOk : ""}`}
-                      style={{ width: `${meta.pct}%` }}
-                    />
-                  </div>
+                    {badgeIcone && createElement(badgeIcone, { size: 13, "aria-hidden": true })}
+                    {badgeTexto}
+                  </span>
                 </div>
-                <div className={styles.cardMetaLinhas}>
-                  <div className={styles.linhaValor}>
-                    <span>Receitas</span>
-                    <span className={styles.verde}>{formatMoney(meta.receitas, moeda)}</span>
-                  </div>
-                  <div className={styles.linhaValor}>
-                    <span>Despesas</span>
-                    <span className={styles.vermelho}>{formatMoney(meta.despesas, moeda)}</span>
-                  </div>
-                  <div className={`${styles.linhaValor} ${styles.linhaSaldo}`}>
-                    <span>Saldo</span>
-                    <span className={meta.atingiu ? styles.verde : styles.vermelho}>
+                <div className={styles.cardMetaGrid}>
+                  <div>
+                    <p
+                      className={`${styles.saldoGrande} ${meta.atingiu ? styles.verde : styles.vermelho}`}
+                    >
                       {formatMoney(meta.saldo, moeda)}
-                    </span>
+                    </p>
+                    <p className={styles.cardMetaSub}>
+                      de {formatMoney(meta.meta, moeda)} · {meta.pct}%
+                    </p>
+                    <div className={styles.barra}>
+                      <div
+                        className={`${styles.preenchido} ${meta.atingiu ? styles.preenchidoOk : ""}`}
+                        style={{ width: `${meta.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.cardMetaLinhas}>
+                    <div className={styles.linhaValor}>
+                      <span>Receitas</span>
+                      <span className={styles.verde}>{formatMoney(meta.receitas, moeda)}</span>
+                    </div>
+                    <div className={styles.linhaValor}>
+                      <span>Despesas</span>
+                      <span className={styles.vermelho}>{formatMoney(meta.despesas, moeda)}</span>
+                    </div>
+                    <div className={`${styles.linhaValor} ${styles.linhaSaldo}`}>
+                      <span>Saldo</span>
+                      <span className={meta.atingiu ? styles.verde : styles.vermelho}>
+                        {formatMoney(meta.saldo, moeda)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className={styles.cabecalho}>
-              <h3 className={styles.subtitulo}>
-                Fundos{" "}
-                {fundos.length > 0 &&
-                  `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
-              </h3>
-              <button
-                className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
-                aria-label="Novo fundo"
-                onClick={abrirNovoFundo}
-              >
-                <Plus size={16} aria-hidden />
-              </button>
-            </div>
+            <div className={`${g.celula} ${g.s8} ${styles.colunaFundos}`}>
+              <div className={styles.cabecalho}>
+                <h3 className={styles.subtitulo}>
+                  Fundos{" "}
+                  {fundos.length > 0 &&
+                    `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
+                </h3>
+                <button
+                  className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
+                  aria-label="Novo fundo"
+                  onClick={abrirNovoFundo}
+                >
+                  <Plus size={16} aria-hidden />
+                </button>
+              </div>
 
-            {erro && fundos.length > 0 && <ErroSincronizacao compacto />}
+              {erro && fundos.length > 0 && <ErroSincronizacao compacto />}
 
-            {erro && fundos.length === 0 ? (
-              <ErroSincronizacao />
-            ) : carregado && fundos.length === 0 ? (
-              <EstadoVazio
-                Icone={Target}
-                mensagem="Nenhum fundo criado"
-                sub="Adicione um fundo de poupança com o botão + aqui em cima."
-              />
-            ) : (
-              <div className={styles.fundos}>
-                {fundos.map((f) => {
-                  const pct = f.alvo > 0 ? Math.min(100, Math.round((f.atual / f.alvo) * 100)) : 0;
-                  const falta = Math.max(0, f.alvo - f.atual);
+              {erro && fundos.length === 0 ? (
+                <ErroSincronizacao />
+              ) : carregado && fundos.length === 0 ? (
+                <EstadoVazio
+                  Icone={Target}
+                  mensagem="Nenhum fundo criado"
+                  sub="Adicione um fundo de poupança com o botão + aqui em cima."
+                />
+              ) : (
+                <div className={styles.fundos}>
+                  {fundos.map((f) => {
+                    const pct =
+                      f.alvo > 0 ? Math.min(100, Math.round((f.atual / f.alvo) * 100)) : 0;
+                    const falta = Math.max(0, f.alvo - f.atual);
 
-                  let diasRestantes: number | null = null;
-                  if (f.prazo) {
-                    diasRestantes = diasEntre(hoje, f.prazo);
-                  }
-                  let projecao: string | null = null;
-                  if (diasRestantes !== null && diasRestantes > 0 && falta > 0) {
-                    const mesesRest = Math.max(1, Math.ceil(diasRestantes / 30));
-                    projecao = `≈ ${formatMoney(Math.ceil(falta / mesesRest), moeda)}/mês necessários`;
-                  }
+                    let diasRestantes: number | null = null;
+                    if (f.prazo) {
+                      diasRestantes = diasEntre(hoje, f.prazo);
+                    }
+                    let projecao: string | null = null;
+                    if (diasRestantes !== null && diasRestantes > 0 && falta > 0) {
+                      const mesesRest = Math.max(1, Math.ceil(diasRestantes / 30));
+                      projecao = `≈ ${formatMoney(Math.ceil(falta / mesesRest), moeda)}/mês necessários`;
+                    }
 
-                  return (
-                    <div key={f.id} className={styles.fundoCard}>
-                      <div className={styles.fundoTopo}>
-                        <p className={styles.fundoNome}>{f.nome}</p>
+                    return (
+                      <div key={f.id} className={styles.fundoCard}>
+                        <div className={styles.fundoTopo}>
+                          <p className={styles.fundoNome}>{f.nome}</p>
+                          <button
+                            className={styles.remover}
+                            onClick={() => {
+                              void (async () => {
+                                if (!(await confirmar(`Excluir o fundo "${f.nome}"?`))) return;
+                                await removerFundo(uid, f.id)
+                                  .then(() => mostrarToast("Fundo excluído"))
+                                  .catch(() => mostrarToast("Não foi possível excluir."));
+                              })();
+                            }}
+                            aria-label="Excluir fundo"
+                          >
+                            <X size={16} aria-hidden />
+                          </button>
+                        </div>
+                        <div className={styles.barra}>
+                          <div className={`${styles.preenchido}`} style={{ width: `${pct}%` }} />
+                        </div>
+                        <div className={styles.fundoStat}>
+                          <span className={styles.fundoAtual}>{formatMoney(f.atual, moeda)}</span>
+                          <span className={styles.cardMetaSub}>
+                            {" "}
+                            / {formatMoney(f.alvo, moeda)}
+                          </span>
+                          <span className={styles.fundoPct}>{pct}%</span>
+                        </div>
+                        {falta > 0 ? (
+                          <p className={styles.fundoFalta}>
+                            Em falta: <strong>{formatMoney(falta, moeda)}</strong>
+                            {f.prazo ? ` · ${f.prazo.slice(8, 10)}/${f.prazo.slice(5, 7)}` : ""}
+                          </p>
+                        ) : (
+                          <p className={styles.fundoAtingido}>Meta atingida!</p>
+                        )}
+                        {projecao && <p className={styles.fundoProj}>{projecao}</p>}
                         <button
-                          className={styles.remover}
+                          className={styles.contribuirBotao}
                           onClick={() => {
-                            void (async () => {
-                              if (!(await confirmar(`Excluir o fundo "${f.nome}"?`))) return;
-                              await removerFundo(uid, f.id)
-                                .then(() => mostrarToast("Fundo excluído"))
-                                .catch(() => mostrarToast("Não foi possível excluir."));
-                            })();
+                            setContribValor(null);
+                            setContribuindo(f.id);
                           }}
-                          aria-label="Excluir fundo"
                         >
-                          <X size={16} aria-hidden />
+                          <Plus size={15} aria-hidden /> Contribuir
                         </button>
                       </div>
-                      <div className={styles.barra}>
-                        <div className={`${styles.preenchido}`} style={{ width: `${pct}%` }} />
-                      </div>
-                      <div className={styles.fundoStat}>
-                        <span className={styles.fundoAtual}>{formatMoney(f.atual, moeda)}</span>
-                        <span className={styles.cardMetaSub}> / {formatMoney(f.alvo, moeda)}</span>
-                        <span className={styles.fundoPct}>{pct}%</span>
-                      </div>
-                      {falta > 0 ? (
-                        <p className={styles.fundoFalta}>
-                          Em falta: <strong>{formatMoney(falta, moeda)}</strong>
-                          {f.prazo ? ` · ${f.prazo.slice(8, 10)}/${f.prazo.slice(5, 7)}` : ""}
-                        </p>
-                      ) : (
-                        <p className={styles.fundoAtingido}>Meta atingida!</p>
-                      )}
-                      {projecao && <p className={styles.fundoProj}>{projecao}</p>}
-                      <button
-                        className={styles.contribuirBotao}
-                        onClick={() => {
-                          setContribValor(null);
-                          setContribuindo(f.id);
-                        }}
-                      >
-                        <Plus size={15} aria-hidden /> Contribuir
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-            {/* "Últimos 12 meses", e não "Resumo Anual": o Início mostra o MESMO
+            <div className={`${g.celula} ${g.s4}`}>
+              {/* "Últimos 12 meses", e não "Resumo Anual": o Início mostra o MESMO
                 quadro com uma janela mais curta (6 meses, ancorada no mês do
                 seletor). Chamar os dois de "Resumo Anual" punha dois totais
                 diferentes com o mesmo nome em telas vizinhas, sem nada que
                 explicasse a diferença. Agora cada título diz a janela que soma. */}
-            <ResumoAnual meses={12} titulo="Últimos 12 meses" />
-          </>
+              <ResumoAnual meses={12} titulo="Últimos 12 meses" />
+            </div>
+          </div>
         )}
       </AbaTransicao>
 
