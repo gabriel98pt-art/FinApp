@@ -9,6 +9,33 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 28/10/2026 (grelha alinhada nos ecrãs largos)
+
+- **Tudo alinhado.** Nos ecrãs grandes (a partir de 1024px) as páginas usam
+  uma grelha de 12 colunas: cada cartão ocupa uma largura fixa (metade, dois
+  terços e um terço, ou um terço cada), por isso as bordas da esquerda e da
+  direita alinham de cima a baixo e os cartões da mesma fila têm a mesma
+  altura. Entre 768 e 1023px são 2 colunas; no telemóvel nada mudou.
+- **Início e Análise.** Na Início, o aviso de categorias passa para uma faixa
+  por cima, o Resultado e o A pagar ficam lado a lado, os Últimos movimentos
+  com as Categorias e o Copiloto numa faixa no fim. Na Análise, a taxa e a
+  comparação com a média ficam à esquerda e o gráfico ocupa as duas alturas.
+- **Páginas de lista** (Despesas, Receitas, Transações, Parcelas, Cartões,
+  Veículo e TVDE): um painel à esquerda com o resumo e os controlos, que fica
+  colado por baixo do cabeçalho enquanto a lista rola, e a lista à direita.
+  Calendário, Planejamento e Importar usam a grelha de 12 (Importar na revisão:
+  lista e editor em duas metades). Definições, que é um formulário, fica
+  centrada com no máximo 720px.
+- **Largura.** O conteúdo pára nos 1320px, encostado à barra lateral, e o
+  cabeçalho acompanha. A barra lateral começa agora no topo do conteúdo, e o
+  botão "+" é terracota e maior do que a aba selecionada.
+- **Pequenos acertos.** Os sinais de menos passam a ser o "−" de verdade ("−8%",
+  "−€ 731"), a taxa de poupança da Análise mostra valores negativos, e as
+  Metas passam a contar a taxa pelo dinheiro que de facto entrou e saiu, como
+  a Início.
+
+---
+
 ## 27/10/2026 (página Análise)
 
 - **Nova página Análise.** Fica no menu "Mais" do telemóvel e na barra lateral
