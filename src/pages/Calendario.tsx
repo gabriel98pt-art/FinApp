@@ -46,6 +46,7 @@ import { hojeIso, mesAtual, rotuloMes, somarDias, somarMeses } from "../utils/ca
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import type { Cents, YearMonth } from "../types";
+import g from "../styles/grelha.module.css";
 import styles from "./Calendario.module.css";
 import Botao from "../components/Botao";
 
@@ -217,142 +218,150 @@ export default function Calendario() {
 
   return (
     <Pagina titulo="Calendário">
-      <Kpis>
-        <KpiCard
-          rotulo={`A pagar em ${rotuloMes(mes)}`}
-          valor={formatMoney(aPagarNoMes, moeda)}
-          sub={
-            qtdNoMes === 0
-              ? "nada por vencer neste mês"
-              : `${qtdNoMes} compromisso${qtdNoMes > 1 ? "s" : ""} em aberto`
-          }
-          // Era "laranja" (cor exclusiva do TVDE, sem relação com o
-          // Calendário) — "amarelo" alinha com "Vence em 7 dias" logo ao
-          // lado: mesmo tipo de aviso (dinheiro por pagar), só que numa
-          // janela mais larga (achado da auditoria de Design).
-          tom="amarelo"
-        />
-        <KpiCard
-          rotulo="Vence em 7 dias"
-          valor={formatMoney(aPagar7, moeda)}
-          sub={
-            qtd7 === 0
-              ? "nada vence até lá"
-              : `${qtd7} compromisso${qtd7 > 1 ? "s" : ""} até ${limite7.slice(8, 10)}/${limite7.slice(5, 7)}`
-          }
-          tom="amarelo"
-        />
-      </Kpis>
+      <div className={g.grelha}>
+        <div className={`${g.celula} ${g.s4}`}>
+          <Kpis>
+            <KpiCard
+              rotulo={`A pagar em ${rotuloMes(mes)}`}
+              valor={formatMoney(aPagarNoMes, moeda)}
+              sub={
+                qtdNoMes === 0
+                  ? "nada por vencer neste mês"
+                  : `${qtdNoMes} compromisso${qtdNoMes > 1 ? "s" : ""} em aberto`
+              }
+              // Era "laranja" (cor exclusiva do TVDE, sem relação com o
+              // Calendário) — "amarelo" alinha com "Vence em 7 dias" logo ao
+              // lado: mesmo tipo de aviso (dinheiro por pagar), só que numa
+              // janela mais larga (achado da auditoria de Design).
+              tom="amarelo"
+            />
+            <KpiCard
+              rotulo="Vence em 7 dias"
+              valor={formatMoney(aPagar7, moeda)}
+              sub={
+                qtd7 === 0
+                  ? "nada vence até lá"
+                  : `${qtd7} compromisso${qtd7 > 1 ? "s" : ""} até ${limite7.slice(8, 10)}/${limite7.slice(5, 7)}`
+              }
+              tom="amarelo"
+            />
+          </Kpis>
+        </div>
 
-      <div className={styles.linhaMes}>
-        {/* Só o "+": o texto do botão migrou para o aria-label (sweep de
+        <div className={`${g.celula} ${g.s8} ${styles.colunaCal}`}>
+          <div className={styles.linhaMes}>
+            {/* Só o "+": o texto do botão migrou para o aria-label (sweep de
             01/09/2026). Continua exatamente onde sempre esteve, no corpo da
             página — o cabeçalho não recebe botões de criar. */}
-        <Botao
-          variante="primaria"
-          soIcone
-          onClick={() => abrirNovoEvento()}
-          aria-label="Adicionar evento"
-        >
-          <Plus size={18} aria-hidden />
-        </Botao>
-      </div>
-
-      <div className={styles.grid}>
-        <div className={styles.cabecalhoSemana}>
-          {rotulosDiasSemana(cfg.diaInicioSemana).map((d, i) => (
-            <span key={i}>{d}</span>
-          ))}
-        </div>
-        <div className={styles.diasGrid}>
-          {grid.map(({ data, foraDoMes }) => {
-            const temEvento = diasComEvento.has(data);
-            const doDia = vencimentosPorDia.get(data) ?? [];
-            const tipos = [...new Set(doDia.map((v) => v.tipo))];
-            const ehHoje = data === hoje;
-            return (
-              <button
-                key={data}
-                className={`${styles.dia} ${foraDoMes ? styles.diaForaDoMes : ""} ${ehHoje ? styles.diaHoje : ""}`}
-                onClick={() => setDiaSelecionado(data)}
-                // Os pontos que marcam o dia são aria-hidden (são desenho), e o
-                // conteúdo do botão é só o número — ou seja, quem usa leitor de
-                // ecrã ouvia "1, 2, 3…" e não ficava a saber nada do que este
-                // ecrã existe para mostrar: em que dias há algo. "Hoje" e "fora
-                // do mês" também só se viam pela cor.
-                aria-label={[
-                  `Dia ${parseInt(data.slice(8, 10), 10)}`,
-                  foraDoMes ? "de outro mês" : null,
-                  ehHoje ? "hoje" : null,
-                  doDia.length > 0
-                    ? `${doDia.length} vencimento${doDia.length > 1 ? "s" : ""}`
-                    : null,
-                  temEvento ? "com evento" : null,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              >
-                {parseInt(data.slice(8, 10), 10)}
-                <span className={styles.marcadores} aria-hidden>
-                  {temEvento && <span className={styles.pontoEvento} />}
-                  {tipos.map((t) => (
-                    <span key={t} className={`${styles.ponto} ${styles[`ponto_${t}`]}`} />
-                  ))}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className={styles.secao}>
-        {/* h3, como "Despesas fixas", "Carregamentos" e as outras secções do
-            app. O .secaoTitulo já fixa tamanho e peso, então nada muda à vista. */}
-        <h3 className={styles.secaoTitulo}>Próximos 7 dias</h3>
-        {itens7.length === 0 ? (
-          <p className={styles.vazio}>Nada agendado nos próximos 7 dias.</p>
-        ) : (
-          <div className={styles.lista}>
-            {itens7.map((it) => (
-              <div key={it.chave} className={styles.item}>
-                <div>
-                  <p className={styles.itemNome}>
-                    {it.tipo && (
-                      <>
-                        <span
-                          className={`${styles.ponto} ${styles[`ponto_${it.tipo}`]}`}
-                          aria-hidden
-                        />{" "}
-                      </>
-                    )}
-                    {it.titulo}
-                  </p>
-                  <p className={styles.itemDetalhe}>
-                    {it.data.slice(8, 10)}/{it.data.slice(5, 7)}
-                    {it.detalhe ? ` · ${it.detalhe}` : ""}
-                  </p>
-                </div>
-                {it.valor !== undefined && (
-                  <span className={styles.itemValor}>{formatMoney(it.valor, moeda)}</span>
-                )}
-              </div>
-            ))}
+            <Botao
+              variante="primaria"
+              soIcone
+              onClick={() => abrirNovoEvento()}
+              aria-label="Adicionar evento"
+            >
+              <Plus size={18} aria-hidden />
+            </Botao>
           </div>
-        )}
-      </div>
 
-      {erro ? (
-        <ErroSincronizacao sub="O calendário pode estar incompleto — compromissos e eventos podem faltar." />
-      ) : (
-        carregado &&
-        eventos.length === 0 && (
-          <EstadoVazio
-            Icone={CalendarDays}
-            mensagem="Nenhum evento ainda"
-            sub="Toque no + pra agendar o primeiro."
-          />
-        )
-      )}
+          <div className={styles.grid}>
+            <div className={styles.cabecalhoSemana}>
+              {rotulosDiasSemana(cfg.diaInicioSemana).map((d, i) => (
+                <span key={i}>{d}</span>
+              ))}
+            </div>
+            <div className={styles.diasGrid}>
+              {grid.map(({ data, foraDoMes }) => {
+                const temEvento = diasComEvento.has(data);
+                const doDia = vencimentosPorDia.get(data) ?? [];
+                const tipos = [...new Set(doDia.map((v) => v.tipo))];
+                const ehHoje = data === hoje;
+                return (
+                  <button
+                    key={data}
+                    className={`${styles.dia} ${foraDoMes ? styles.diaForaDoMes : ""} ${ehHoje ? styles.diaHoje : ""}`}
+                    onClick={() => setDiaSelecionado(data)}
+                    // Os pontos que marcam o dia são aria-hidden (são desenho), e o
+                    // conteúdo do botão é só o número — ou seja, quem usa leitor de
+                    // ecrã ouvia "1, 2, 3…" e não ficava a saber nada do que este
+                    // ecrã existe para mostrar: em que dias há algo. "Hoje" e "fora
+                    // do mês" também só se viam pela cor.
+                    aria-label={[
+                      `Dia ${parseInt(data.slice(8, 10), 10)}`,
+                      foraDoMes ? "de outro mês" : null,
+                      ehHoje ? "hoje" : null,
+                      doDia.length > 0
+                        ? `${doDia.length} vencimento${doDia.length > 1 ? "s" : ""}`
+                        : null,
+                      temEvento ? "com evento" : null,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  >
+                    {parseInt(data.slice(8, 10), 10)}
+                    <span className={styles.marcadores} aria-hidden>
+                      {temEvento && <span className={styles.pontoEvento} />}
+                      {tipos.map((t) => (
+                        <span key={t} className={`${styles.ponto} ${styles[`ponto_${t}`]}`} />
+                      ))}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className={`${g.celula} ${g.s12}`}>
+          <div className={styles.secao}>
+            {/* h3, como "Despesas fixas", "Carregamentos" e as outras secções do
+            app. O .secaoTitulo já fixa tamanho e peso, então nada muda à vista. */}
+            <h3 className={styles.secaoTitulo}>Próximos 7 dias</h3>
+            {itens7.length === 0 ? (
+              <p className={styles.vazio}>Nada agendado nos próximos 7 dias.</p>
+            ) : (
+              <div className={styles.lista}>
+                {itens7.map((it) => (
+                  <div key={it.chave} className={styles.item}>
+                    <div>
+                      <p className={styles.itemNome}>
+                        {it.tipo && (
+                          <>
+                            <span
+                              className={`${styles.ponto} ${styles[`ponto_${it.tipo}`]}`}
+                              aria-hidden
+                            />{" "}
+                          </>
+                        )}
+                        {it.titulo}
+                      </p>
+                      <p className={styles.itemDetalhe}>
+                        {it.data.slice(8, 10)}/{it.data.slice(5, 7)}
+                        {it.detalhe ? ` · ${it.detalhe}` : ""}
+                      </p>
+                    </div>
+                    {it.valor !== undefined && (
+                      <span className={styles.itemValor}>{formatMoney(it.valor, moeda)}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {erro ? (
+            <ErroSincronizacao sub="O calendário pode estar incompleto — compromissos e eventos podem faltar." />
+          ) : (
+            carregado &&
+            eventos.length === 0 && (
+              <EstadoVazio
+                Icone={CalendarDays}
+                mensagem="Nenhum evento ainda"
+                sub="Toque no + pra agendar o primeiro."
+              />
+            )
+          )}
+        </div>
+      </div>
 
       <BottomSheet
         aberta={diaSelecionado !== null}

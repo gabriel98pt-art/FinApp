@@ -153,6 +153,26 @@
   gap: 8px;
 }
 
+/* Nas telas largas o quadro de resumo e o calendário dividem a primeira linha
+   (4 + 8) e os cartões dos próximos dias ficam em 3 colunas de 4 da grelha. */
+.colunaCal {
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lista {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .item {
   composes: vidro from "../styles/vidro.module.css";
   display: flex;
