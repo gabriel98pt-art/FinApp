@@ -34,7 +34,7 @@ export function GraficoLinhas({ meses, moeda }: { meses: PontoMes[]; moeda: Curr
   const passo = meses.length > 6 ? 2 : 1;
 
   return (
-    <div>
+    <div className={styles.graficoLinhas}>
       <div className={styles.legenda}>
         <span className={styles.legendaItem}>
           <i className={styles.tracoReceitas} aria-hidden />
@@ -185,7 +185,13 @@ export function AnelTaxa({ pct }: { pct: number | null }) {
         transform="rotate(-90 21 21)"
         style={cheio === 0 ? { display: "none" } : undefined}
       />
-      <text className={styles.anelTexto} x={21} y={24.5} textAnchor="middle">
+      <text
+        className={styles.anelTexto}
+        x={21}
+        y={24}
+        textAnchor="middle"
+        style={texto.length > 3 ? { fontSize: "7.6px" } : undefined}
+      >
         {texto}
       </text>
     </svg>

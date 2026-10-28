@@ -99,8 +99,8 @@ describe("Analise", () => {
     const titulos = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(titulos).toEqual([
       "Taxa de poupança",
-      "Agosto vs a sua média",
       "Receitas vs despesas",
+      "Agosto vs a sua média",
       "Gasto por semana",
       "Categorias mês a mês",
       "Maiores gastos do mês",

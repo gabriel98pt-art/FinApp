@@ -1,53 +1,10 @@
-/* A página Análise. Cartões de vidro (styles/vidro.module.css); o do topo, a
-   taxa de poupança, é o cartão de destaque em terracota. Uma coluna no
-   telemóvel (a ordem da prévia), duas a partir de 768px e a grelha do iPad a
-   partir de 1024px: [taxa + vs média | linhas + semanas] e por baixo
-   [categorias | maiores gastos]. */
-.grade {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* No telemóvel as colunas dissolvem-se: os cartões ficam todos numa coluna só,
-   pela ordem do `order` (taxa, linhas, vs média, semanas, categorias, maiores),
-   que é a da prévia. */
-.coluna {
-  display: contents;
-}
-
-.coluna:nth-child(1) > :nth-child(1) {
-  order: 1;
-}
-
-.coluna:nth-child(2) > :nth-child(1) {
-  order: 2;
-}
-
-.coluna:nth-child(1) > :nth-child(2) {
-  order: 3;
-}
-
-.coluna:nth-child(2) > :nth-child(2) {
-  order: 4;
-}
-
-.categorias {
-  order: 5;
-}
-
-.maiores {
-  order: 6;
-}
-
-.nota {
-  order: 7;
-  font-size: 13px;
-  color: var(--mut);
-  text-align: center;
-  padding: 4px 8px;
-}
-
+/* A página Análise na grelha alinhada (styles/grelha.module.css). Cartões de
+   vidro (styles/vidro.module.css); o do topo, a taxa de poupança, é o cartão de
+   destaque em terracota. O DOM tem a ordem do telemóvel (taxa, linhas, vs
+   média, semanas, categorias, maiores gastos); de 768 a 1023px são 2 colunas por
+   essa ordem e a partir de 1024px cada cartão tem o seu lugar fixo: taxa 4 e
+   vs média 4 empilhados à esquerda com o gráfico de linhas (8) a ocupar as duas
+   linhas e, por baixo, semanas 4 | categorias 4 | maiores gastos 4. */
 .cartao {
   composes: vidro from "../styles/vidro.module.css";
   padding: 16px 16px 8px;
@@ -165,44 +122,57 @@
   font-size: 12.5px;
 }
 
-@media (min-width: 768px) {
-  .grade {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-    gap: 14px;
-  }
+.posLinhas,
+.posSemanas {
+  display: flex;
+  flex-direction: column;
+}
 
-  .coluna {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-width: 0;
-  }
+.cresce {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-  .nota {
-    grid-column: 1 / -1;
-  }
+.nota {
+  font-size: 13px;
+  color: var(--mut);
+  text-align: center;
+  padding: 4px 8px;
 }
 
 @media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+  .nota {
+    grid-row: 4;
   }
 
-  .coluna:nth-child(1) {
-    grid-column: 1 / span 2;
+  .posTaxa {
+    grid-column: 1 / span 4;
+    grid-row: 1;
   }
 
-  .coluna:nth-child(2) {
-    grid-column: 3 / span 3;
+  .posVs {
+    grid-column: 1 / span 4;
+    grid-row: 2;
   }
 
-  .categorias {
-    grid-column: 1 / span 3;
+  .posLinhas {
+    grid-column: 5 / span 8;
+    grid-row: 1 / span 2;
   }
 
-  .maiores {
-    grid-column: 4 / span 2;
+  .posSemanas {
+    grid-column: 1 / span 4;
+    grid-row: 3;
+  }
+
+  .posCategorias {
+    grid-column: 5 / span 4;
+    grid-row: 3;
+  }
+
+  .posMaiores {
+    grid-column: 9 / span 4;
+    grid-row: 3;
   }
 }

@@ -39,9 +39,17 @@
   background: var(--blu);
 }
 
+/* O gráfico cresce até à altura do cartão (que estica à da linha da grelha). */
+.graficoLinhas {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .area {
   position: relative;
-  height: 120px;
+  flex: 1 1 120px;
+  min-height: 120px;
   margin-top: 12px;
 }
 
@@ -129,7 +137,8 @@
   display: flex;
   align-items: stretch;
   gap: 10px;
-  height: 120px;
+  flex: 1 1 120px;
+  min-height: 120px;
   margin-top: 14px;
   padding: 0 4px;
 }

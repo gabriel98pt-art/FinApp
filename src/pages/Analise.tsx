@@ -26,6 +26,7 @@ import {
 import { hojeIso, mesAtual, MESES_CURTOS_PT, nomeDoMes } from "../utils/calculos";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { formatMoneyInteiro, formatMoneySinal } from "../utils/money";
+import g from "../styles/grelha.module.css";
 import segmentado from "../styles/segmentado.module.css";
 import styles from "./Analise.module.css";
 
@@ -167,78 +168,80 @@ export default function Analise() {
   return (
     <Pagina titulo="Análise" acao={seletor}>
       {erroDados && <ErroSincronizacao compacto mensagem="Alguns dados não sincronizaram" />}
-      <div className={styles.grade}>
-        <div className={styles.coluna}>
-          <section className={styles.destaque} aria-labelledby="analise-taxa">
-            <AnelTaxa pct={t.atual} />
-            <div className={styles.destaqueTexto}>
-              <h3 id="analise-taxa" className={styles.destaqueTitulo}>
-                Taxa de poupança
-              </h3>
-              <p className={styles.destaqueLinha}>
-                {t.atual === null ? (
-                  "Sem receitas neste mês"
-                ) : t.gastouAMais > 0 ? (
-                  <>Gastou {dinheiroInteiro(t.gastouAMais)} a mais do que recebeu</>
-                ) : (
-                  <>
-                    Guardou {dinheiroInteiro(t.guardou)} de {dinheiroInteiro(t.receitas)}
-                  </>
-                )}
+      <div className={g.grelha}>
+        <section className={`${styles.destaque} ${styles.posTaxa}`} aria-labelledby="analise-taxa">
+          <AnelTaxa pct={t.atual} />
+          <div className={styles.destaqueTexto}>
+            <h3 id="analise-taxa" className={styles.destaqueTitulo}>
+              Taxa de poupança
+            </h3>
+            <p className={styles.destaqueLinha}>
+              {t.atual === null ? (
+                "Sem receitas neste mês"
+              ) : t.gastouAMais > 0 ? (
+                <>Gastou {dinheiroInteiro(t.gastouAMais)} a mais do que recebeu</>
+              ) : (
+                <>
+                  Guardou {dinheiroInteiro(t.guardou)} de {dinheiroInteiro(t.receitas)}
+                </>
+              )}
+            </p>
+            {t.media !== null && (
+              <p className={styles.destaqueNota}>
+                Média dos {nMeses} {nMeses === 1 ? "mês" : "meses"}: {rotuloPct(t.media)}
               </p>
-              {t.media !== null && (
-                <p className={styles.destaqueNota}>
-                  Média dos {nMeses} {nMeses === 1 ? "mês" : "meses"}: {rotuloPct(t.media)}
-                </p>
-              )}
-            </div>
-          </section>
+            )}
+          </div>
+        </section>
 
-          {a.mesesNaMedia > 0 && (
-            <section className={styles.cartao} aria-labelledby="analise-vs">
-              <h3 id="analise-vs" className={styles.titulo}>
-                {nomeMes} vs a sua média
-              </h3>
-              <div className={styles.lista}>
-                {linhaComparacao("Despesas", a.vsMedia.despesas)}
-                {linhaComparacao("Receitas", a.vsMedia.receitas)}
-                {linhaComparacao("Sobra", a.vsMedia.sobra)}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <div className={styles.coluna}>
-          {nMeses >= 2 && (
-            <section className={styles.cartao} aria-labelledby="analise-linhas">
-              <div className={styles.cabecalho}>
-                <h3 id="analise-linhas" className={styles.titulo}>
-                  Receitas vs despesas
-                </h3>
-                <span className={styles.apoio}>{nMeses} meses</span>
-              </div>
-              <GraficoLinhas meses={a.meses} moeda={moeda} />
-            </section>
-          )}
-
-          <section className={styles.cartao} aria-labelledby="analise-semanas">
+        {nMeses >= 2 && (
+          <section
+            className={`${styles.cartao} ${styles.posLinhas}`}
+            aria-labelledby="analise-linhas"
+          >
             <div className={styles.cabecalho}>
-              <h3 id="analise-semanas" className={styles.titulo}>
-                Gasto por semana
+              <h3 id="analise-linhas" className={styles.titulo}>
+                Receitas vs despesas
               </h3>
-              {a.semanas.media !== null && (
-                <span className={styles.apoio}>média {dinheiroInteiro(a.semanas.media)}</span>
-              )}
+              <span className={styles.apoio}>{nMeses} meses</span>
             </div>
-            <div className={classeDiscreta}>
-              <BarrasSemana barras={a.semanas.barras} moeda={moeda} />
+            <GraficoLinhas meses={a.meses} moeda={moeda} />
+          </section>
+        )}
+
+        {a.mesesNaMedia > 0 && (
+          <section className={`${styles.cartao} ${styles.posVs}`} aria-labelledby="analise-vs">
+            <h3 id="analise-vs" className={styles.titulo}>
+              {nomeMes} vs a sua média
+            </h3>
+            <div className={styles.lista}>
+              {linhaComparacao("Despesas", a.vsMedia.despesas)}
+              {linhaComparacao("Receitas", a.vsMedia.receitas)}
+              {linhaComparacao("Sobra", a.vsMedia.sobra)}
             </div>
           </section>
-        </div>
+        )}
+
+        <section
+          className={`${styles.cartao} ${styles.posSemanas}`}
+          aria-labelledby="analise-semanas"
+        >
+          <div className={styles.cabecalho}>
+            <h3 id="analise-semanas" className={styles.titulo}>
+              Gasto por semana
+            </h3>
+            {a.semanas.media !== null && (
+              <span className={styles.apoio}>média {dinheiroInteiro(a.semanas.media)}</span>
+            )}
+          </div>
+          <div className={`${classeDiscreta} ${styles.cresce}`}>
+            <BarrasSemana barras={a.semanas.barras} moeda={moeda} />
+          </div>
+        </section>
 
         {a.categorias.length > 0 && (
           <section
-            className={`${styles.cartao} ${styles.categorias}`}
+            className={`${styles.cartao} ${styles.posCategorias}`}
             aria-labelledby="analise-cat"
           >
             <div className={styles.cabecalho}>
@@ -268,7 +271,7 @@ export default function Analise() {
 
         {a.maioresGastos.length > 0 && (
           <section
-            className={`${styles.cartao} ${styles.maiores}`}
+            className={`${styles.cartao} ${styles.posMaiores}`}
             aria-labelledby="analise-maiores"
           >
             <h3 id="analise-maiores" className={styles.titulo}>
@@ -293,7 +296,7 @@ export default function Analise() {
         )}
 
         {nMeses < 2 && (
-          <p className={styles.nota}>
+          <p className={`${styles.nota} ${g.s12}`}>
             Com mais um mês de histórico aparecem aqui o gráfico e as comparações com a sua média.
           </p>
         )}
