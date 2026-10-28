@@ -42,3 +42,9 @@ Faixa do aviso de categorias (span 12, some se não houver aviso: a célula vazi
 Painel s4: título, quadro de resumo e a linha Mês/Semana + seletor de semana + Adicionar (esta só passa do cartão da lista para o painel a partir de 1024px; no telemóvel fica onde estava). Lista s8: título Lançamentos, seletor de ordem e lançamentos. Sticky como em Despesas (≥720px de altura). Telemóvel 390px igual.
 
 - Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.
+
+## H6 — Transações (padrão de lista)
+
+Painel s4: título e quadro (Entradas/Saídas/Saldo); lista s8: contagem + filtro + extrato por dia (e o paginador). Sticky como em Despesas. Telemóvel 390px igual.
+
+- Capturas: FinApp-capturas/grelha/{antes,depois}-*-{1180,1440,1920}-{escuro,claro}.png, *-1440-claro-webkit.png; telemóvel (390 claro) antes e depois iguais.

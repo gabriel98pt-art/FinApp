@@ -339,24 +339,29 @@ export default function Transacoes() {
   }
 
   return (
-    <Pagina titulo="Transações">
-      {/* Com `pagina`, o mobile — que só cabe 2 dos 3 — deixa de ficar preso a
+    <Pagina
+      titulo="Transações"
+      painel={
+        <>
+          {/* Com `pagina`, o mobile — que só cabe 2 dos 3 — deixa de ficar preso a
           Entradas/Saídas: quem quiser pode trocar um deles pelo Saldo em
           Definições. Sem isto o cartão novo só existiria no desktop. */}
-      <Kpis pagina="transacoes">
-        <KpiCard rotulo="Entradas" valor={formatMoney(entradas, cfg.currency)} tom="verde" />
-        <KpiCard rotulo="Saídas" valor={formatMoney(saidas, cfg.currency)} tom="vermelho" />
-        <KpiCard
-          rotulo="Saldo"
-          valor={formatMoney(saldo, cfg.currency)}
-          sub={filtroAtivo ? "no filtro ativo" : undefined}
-          // "amarelo" era inconsistente com todo o resto do app (Início,
-          // Resumo Anual, Despesas, Receitas, Planejamento): saldo/variação
-          // negativos são sempre "vermelho" (achado da auditoria de Design).
-          tom={saldo >= 0 ? "acento" : "vermelho"}
-        />
-      </Kpis>
-
+          <Kpis pagina="transacoes">
+            <KpiCard rotulo="Entradas" valor={formatMoney(entradas, cfg.currency)} tom="verde" />
+            <KpiCard rotulo="Saídas" valor={formatMoney(saidas, cfg.currency)} tom="vermelho" />
+            <KpiCard
+              rotulo="Saldo"
+              valor={formatMoney(saldo, cfg.currency)}
+              sub={filtroAtivo ? "no filtro ativo" : undefined}
+              // "amarelo" era inconsistente com todo o resto do app (Início,
+              // Resumo Anual, Despesas, Receitas, Planejamento): saldo/variação
+              // negativos são sempre "vermelho" (achado da auditoria de Design).
+              tom={saldo >= 0 ? "acento" : "vermelho"}
+            />
+          </Kpis>
+        </>
+      }
+    >
       <section className={styles.secao} aria-label="Extrato">
         {itens.length > 0 && (
           <div className={styles.cabecalhoSecao}>
