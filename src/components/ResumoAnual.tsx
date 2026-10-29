@@ -5,11 +5,10 @@ import {
   useDespesasStore,
   useReceitasStore,
 } from "../stores/lancamentosStore";
-import { useParcelasStore } from "../stores/parcelasStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
 import type { YearMonth } from "../types";
-import { hojeIso, mesAtual, receitasNosTotais, totalDoMes } from "../utils/calculos";
-import { despesaRealizadaMes, janelaResumoAnual } from "../utils/resumoMensal";
+import { hojeIso, mesAtual } from "../utils/calculos";
+import { janelaResumoAnual, resultadoDoMes } from "../utils/resumoMensal";
 import { formatCents, formatMoney } from "../utils/money";
 import styles from "./ResumoAnual.module.css";
 
@@ -49,20 +48,16 @@ export default function ResumoAnual({
   const receitas = useReceitasStore((s) => s.itens);
   const despesas = useDespesasStore((s) => s.itens);
   const despesasFixas = useDespesasFixasStore((s) => s.itens);
-  const parcelas = useParcelasStore((s) => s.itens);
   const veiculo = useVeiculoStore((s) => s.dados);
 
   const real = mesAtual();
   // O dia de hoje dá precisão de DIA ao mês corrente — sem ele, uma fixa ou
   // parcela em débito automático que só vence dia 27 já contava aqui no dia 18,
-  // e o rodapé deste quadro discordava do KPI "Despesas" logo acima no Início
-  // (que passa `hojeIso()` via `resumoMesCompleto`) e do card de Metas. Era o
-  // único sítio da app a chamar `despesaRealizadaMes` sem ele. Ver
-  // `fixaEfetivamentePaga`/`estaEfetivamentePaga`.
+  // e o rodapé deste quadro discordava do resto. Ver `fixaEfetivamentePaga`.
   const hoje = hojeIso();
 
   // useMemo (achado da auditoria de Performance): cada célula chama
-  // despesaRealizadaMes, que soma os 4 domínios inteiros — para 12 meses
+  // resultadoDoMes, que soma os domínios inteiros — para 12 meses
   // (o quadro de Metas), isso é 12 varreduras completas a cada render,
   // inclusive um toggle sem relação nenhuma com dinheiro, como o modo
   // discreto. As referências dos arrays das stores só mudam quando os dados
@@ -71,14 +66,15 @@ export default function ResumoAnual({
   const celulas = useMemo(
     () =>
       janelaResumoAnual(meses, ate ?? real, real).map(({ ym, futuro }) => {
-        const r = totalDoMes(receitasNosTotais(receitas), ym);
-        const d = futuro
-          ? 0
-          : despesaRealizadaMes(despesas, despesasFixas, parcelas, veiculo, ym, real, hoje);
+        // O mesmo cálculo do "Resultado do mês" do Início e do "Poupado (12m)":
+        // dinheiro que saiu, pela data de cada lançamento.
+        const { receitas: r, despesas: d } = futuro
+          ? { receitas: 0, despesas: 0 }
+          : resultadoDoMes(receitas, despesas, despesasFixas, veiculo, ym, real, hoje);
         const [, mi] = ym.split("-").map(Number);
         return { ym, futuro, receitas: r, despesas: d, saldo: r - d, rotulo: MESES_ABREV[mi - 1] };
       }),
-    [meses, ate, real, receitas, despesas, despesasFixas, parcelas, veiculo, hoje],
+    [meses, ate, real, receitas, despesas, despesasFixas, veiculo, hoje],
   );
 
   const { totalReceitas, totalDespesas } = useMemo(

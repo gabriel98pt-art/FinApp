@@ -11,6 +11,13 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 29/10/2026 (revisão técnica: pequenas correções)
 
+- **"Últimos 12 meses" (Metas) e "Últimos 6 meses" (Início) passam a bater com
+  o "Poupado (12m)".** A tabela mensal contava as parcelas e fixas pelo
+  calendário e o cartão "Poupado (12m)" pelo dinheiro que realmente saiu — num
+  exemplo, um mês com 2.000,00 de salário e uma parcela por pagar dava 1.900,00
+  na tabela e 2.000,00 no cartão. Agora a tabela usa o mesmo cálculo do cartão
+  e do quadro "Resultado do mês": só o que saiu do bolso conta, no mês em que
+  saiu.
 - **Análise: as semanas e os "maiores gastos" passam a somar o mesmo que o
   total do mês.** O total vinha do dinheiro que realmente saiu no mês (como no
   Início), mas as barras das semanas contavam as compras pelo calendário de

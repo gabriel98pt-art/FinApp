@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
-// O Resumo Anual soma o MESMO dinheiro que o KPI "Despesas" do Início e o card
-// de Metas — e tem de chegar ao mesmo número.
+// O Resumo Anual soma o MESMO dinheiro que o quadro "Resultado do mês" do
+// Início, a Análise e o "Poupado (12m)" de Metas (fluxo de caixa: o que saiu
+// no mês, pela data de cada lançamento) — e tem de chegar ao mesmo número.
 //
 // O bug que deu origem a este ficheiro: o componente chamava
 // `despesaRealizadaMes` sem o `hoje`, e era o único sítio da app a fazê-lo.
@@ -12,7 +13,7 @@
 
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { DespesaFixa, Parcela } from "../types";
+import type { DespesaCorrente, DespesaFixa, Parcela, Receita } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, veiculoVazio } from "../testes/dobras";
 
@@ -20,10 +21,12 @@ vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 
 let fixas = lista<DespesaFixa>();
 let parcelas = lista<Parcela>();
+let receitas = lista<Receita>();
+let despesas = lista<DespesaCorrente>();
 
 vi.mock("../stores/lancamentosStore", () => ({
-  useReceitasStore: (s: (e: unknown) => unknown) => s(lista()),
-  useDespesasStore: (s: (e: unknown) => unknown) => s(lista()),
+  useReceitasStore: (s: (e: unknown) => unknown) => s(receitas),
+  useDespesasStore: (s: (e: unknown) => unknown) => s(despesas),
   useDespesasFixasStore: (s: (e: unknown) => unknown) => s(fixas),
 }));
 vi.mock("../stores/parcelasStore", () => ({
@@ -80,6 +83,8 @@ const consola: Parcela = {
 beforeEach(() => {
   fixas = lista<DespesaFixa>();
   parcelas = lista<Parcela>();
+  receitas = lista<Receita>();
+  despesas = lista<DespesaCorrente>();
   vi.useFakeTimers({ toFake: ["Date"] });
 });
 
@@ -102,18 +107,45 @@ describe("ResumoAnual: mês corrente respeita o dia de vencimento", () => {
     expect(despesasDoRodape()).toContain("€ 200,00");
   });
 
-  test("parcela em débito automático fica de fora antes do dia de vencimento", () => {
-    vi.setSystemTime(new Date(2026, 7, 18, 10, 0, 0));
+  test("parcela ainda por pagar não conta: só o dinheiro que saiu", () => {
+    // Em fluxo de caixa uma parcela só conta quando o seu pagamento é lançado
+    // (o espelho `parc`), nunca pelo calendário de parcelas.
+    vi.setSystemTime(new Date(2026, 7, 27, 10, 0, 0));
     parcelas = lista([consola]);
     desenhar();
     expect(despesasDoRodape()).toContain("€ 0,00");
   });
 
-  test("parcela em débito automático entra a partir do dia de vencimento", () => {
-    vi.setSystemTime(new Date(2026, 7, 27, 10, 0, 0));
+  test("a parcela paga conta no mês em que foi paga", () => {
+    vi.setSystemTime(new Date(2026, 8, 5, 10, 0, 0));
     parcelas = lista([consola]);
+    despesas = lista([
+      {
+        id: "e1",
+        descricao: "Consola",
+        valor: 10000,
+        data: "2026-09-02",
+        categoria: "Lazer",
+        origem: "parc",
+        parcelaId: "p1",
+        parcelaMes: "2026-08",
+      },
+    ]);
     desenhar();
     expect(despesasDoRodape()).toContain("€ 100,00");
+  });
+
+  test("o saldo de um mês fechado bate com o do Início: 2.000 de receita e a parcela por pagar", () => {
+    vi.setSystemTime(new Date(2026, 7, 10, 10, 0, 0));
+    receitas = lista([
+      { id: "r1", descricao: "Salário", valor: 200000, data: "2026-07-01", fonte: "Trabalho" },
+    ]);
+    parcelas = lista([
+      { ...consola, id: "p2", primeiroMes: "2026-07", total: 60000, numParcelas: 6 },
+    ]);
+    desenhar();
+    // A parcela de julho nunca foi paga: não é dinheiro que saiu.
+    expect(screen.getByText("Jul").parentElement!.textContent).toContain("+2.000,00");
   });
 
   test("fixa marcada à mão entra mesmo antes do dia", () => {
