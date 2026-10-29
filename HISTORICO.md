@@ -14,6 +14,10 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 - **Veículo: kWh e litros com vírgula.** Na lista de abastecimentos uma carga de
   12,5 kWh aparecia como "12.5 kWh" (com ponto), ao contrário do formulário,
   que já usava vírgula. Agora aparece "12,5 kWh".
+- **Despesas: sem "€ 0,00" no cabeçalho do dia.** Um dia em que todos os
+  lançamentos são espelhos de fixas ou parcelas (que já contam no total do mês
+  de outra forma) mostrava "€ 0,00" ao lado de linhas com valor. O total do
+  dia só aparece agora quando há 2 ou mais lançamentos que entram na soma.
 
 ## 29/10/2026 (pesquisa e período nas Transações)
 

@@ -227,8 +227,10 @@ export default function ListaLancamentos({
               <div key={g.dia} className={styles.dia}>
                 <div className={styles.diaCabecalho}>
                   <h4 className={styles.diaRotulo}>{rotuloDoDia(g.dia)}</h4>
-                  {/* Um movimento só: o total repetiria o valor da linha. */}
-                  {g.itens.length >= 2 && (
+                  {/* Um movimento só: o total repetiria o valor da linha. Conta-se
+                      só o que entra no total — um dia de espelhos de fixa/parcela
+                      daria "€ 0,00" ao lado de linhas com valor. */}
+                  {g.itens.filter((i) => !i.foraDoTotal).length >= 2 && (
                     <span className={styles.diaTotal}>
                       {formatMoney(somar(g.itens.filter((i) => !i.foraDoTotal)), moeda)}
                     </span>

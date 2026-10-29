@@ -93,6 +93,28 @@ describe("ListaLancamentos — por data", () => {
     expect(screen.getByText("Item f")).toBeInTheDocument();
   });
 
+  test("um dia só de itens que não contam nos totais não mostra total (nada de € 0,00)", () => {
+    desenhar({
+      agruparPorDia: true,
+      itens: [
+        item("a", "2026-10-24", 5000, { foraDoTotal: true }),
+        item("b", "2026-10-24", 3000, { foraDoTotal: true }),
+      ],
+    });
+    const dia = screen.getByRole("heading", { name: "Sábado, 24 out" }).parentElement!;
+    expect(within(dia).queryByText("€ 0,00")).not.toBeInTheDocument();
+    expect(screen.getByText("Item a")).toBeInTheDocument();
+  });
+
+  test("um item que conta e outro que não: o total repetiria a linha, por isso não aparece", () => {
+    desenhar({
+      agruparPorDia: true,
+      itens: [item("a", "2026-10-24", 1000), item("f", "2026-10-24", 5000, { foraDoTotal: true })],
+    });
+    const dia = screen.getByRole("heading", { name: "Sábado, 24 out" }).parentElement!;
+    expect(within(dia).queryByText("€ 10,00")).not.toBeInTheDocument();
+  });
+
   test("a data não se repete em cada linha: o cabeçalho já a diz", () => {
     desenhar({ agruparPorDia: true });
     expect(screen.queryByText(/24\/10/)).not.toBeInTheDocument();
