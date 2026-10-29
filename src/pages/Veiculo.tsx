@@ -90,8 +90,8 @@ function agir(acao: () => Promise<unknown>, ok: string) {
  *  o tipo do veículo agora (um híbrido reconfigurado ainda tem histórico das
  *  duas dimensões, e um dado antigo é sempre elétrico). */
 function rotuloQuantidade(c: Abastecimento): string {
-  if (c.kwh !== undefined) return `${c.kwh} kWh`;
-  if (c.litros !== undefined) return `${c.litros} L`;
+  if (c.kwh !== undefined) return `${String(c.kwh).replace(".", ",")} kWh`;
+  if (c.litros !== undefined) return `${String(c.litros).replace(".", ",")} L`;
   return "";
 }
 

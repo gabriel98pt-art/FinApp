@@ -205,6 +205,24 @@ describe("tipo de veículo (item B1)", () => {
   });
 });
 
+describe("unidades", () => {
+  test("kWh e litros com decimais mostram vírgula, como no formulário", async () => {
+    dados = {
+      cargas: [
+        { id: "c1", data: "2026-08-05", kwh: 12.5, precoKwh: 25, custo: 313, local: "Casa" },
+      ],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as unknown as DadosVeiculo;
+    renderVeiculo();
+    await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
+
+    expect(screen.getByText(/12,5 kWh/)).toBeInTheDocument();
+    expect(screen.queryByText(/12\.5/)).not.toBeInTheDocument();
+  });
+});
+
 // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
 // ações (Editar/Excluir), em vez de ir direto pro formulário.
 describe("menu de ações da linha (item 2)", () => {
