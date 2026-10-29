@@ -6,9 +6,10 @@
 //  - taxa de poupança: `taxaPoupanca`, a do KPI de Planejamento → Metas;
 //  - média: `mediaDeMeses`, a do "Média (3 meses)" de Despesas/Receitas — só
 //    conta os meses ANTES do atual e só os que já tinham história;
-//  - semanas: `semanasDoMes`/`naSemana`, as do Calendário e das Despesas;
+//  - semanas: `semanasDoMes`/`naSemana`, as do Calendário e das Despesas,
+//    sobre as mesmas saídas de caixa do total (`gastosDoMes`);
 //  - categorias: `despesaPorCategoriaRegistradaMes`, a da folha "Categorias";
-//  - maiores gastos: `transacoesDoMes`, a fonte dos "Últimos movimentos".
+//  - maiores gastos: as mesmas saídas de caixa (`gastosDoMes`).
 
 import type {
   Cents,
@@ -33,9 +34,8 @@ import {
 } from "./calculos";
 import { despesaPorCategoriaRegistradaMes } from "./despesaPorCategoria";
 import { taxaPoupancaReal } from "./metas";
-import { resultadoDoMes } from "./resumoMensal";
+import { fixasSemEspelho, resultadoDoMes } from "./resumoMensal";
 import { indiceDaSemana, naSemana, rotuloDaSemana, semanasDoMes } from "./semanas";
-import { entraDinheiro, transacoesDoMes, type Transacao } from "./transacoes";
 
 export type PeriodoAnalise = 3 | 6 | 12;
 export const PERIODOS_ANALISE: PeriodoAnalise[] = [3, 6, 12];
@@ -184,24 +184,73 @@ function comparar(
   return { atual, media, ...variarContraMedia(atual, media, subirEPior, soEuros) };
 }
 
-/** Os movimentos de SAÍDA do mês que contam como gasto: sem transferências
- *  entre contas (o dinheiro não saiu de si) nem pagamentos de fatura (as
- *  compras que a formaram já aparecem com a sua própria data) nem reembolsos. */
+/** Uma saída de dinheiro do mês, em fluxo de caixa. */
+interface GastoDeCaixa {
+  chave: string;
+  titulo: string;
+  data: IsoDate;
+  categoria?: string;
+  valor: Cents;
+}
+
+/** As saídas do mês pela data em que o dinheiro saiu — a MESMA base de
+ *  `despesaRegistradaMes` (o total do Início), para as semanas e os maiores
+ *  gastos somarem o mesmo que o total. Sem pagamentos de fatura nem ajustes de
+ *  saldo (as compras que formaram a fatura já contam com a sua própria data);
+ *  os espelhos de parcela e de fixa entram, pela data em que foram pagos; uma
+ *  fixa em débito automático sem espelho entra no dia do vencimento. Transferências
+ *  entre contas nunca foram gasto. */
 function gastosDoMes(
   d: DadosAnalise,
   ym: YearMonth,
   mesReal: YearMonth,
   hoje: IsoDate,
-  nomeDaConta?: (id: string) => string,
-): Transacao[] {
-  const faturas = new Set(d.despesasCorrentes.filter((x) => x.origem === "fat").map((x) => x.id));
-  return transacoesDoMes(d, ym, mesReal, hoje, nomeDaConta).filter(
-    (t) =>
-      t.origem !== "transferencia" &&
-      !(t.origem === "despesa" && faturas.has(t.refId)) &&
-      !entraDinheiro(t) &&
-      t.valor > 0,
-  );
+): GastoDeCaixa[] {
+  const registrada = (x: { origem?: string }) => x.origem !== "fat" && x.origem !== "recon";
+  type Saida = {
+    id: string;
+    descricao?: string;
+    nota?: string;
+    categoria?: string;
+    data: IsoDate;
+    valor: Cents;
+    origem?: string;
+    fixaId?: string;
+    fixaMes?: YearMonth;
+  };
+  const correntes = (lista: Saida[], prefixo: string, categoria?: string) =>
+    lista
+      .filter((x) => registrada(x) && mesDe(x.data) === ym)
+      .map((x) => ({
+        chave: `${prefixo}-${x.id}`,
+        titulo: x.descricao || x.nota || x.categoria || "",
+        data: x.data,
+        categoria: categoria ?? x.categoria,
+        valor: x.valor,
+      }));
+  const fixas = (lista: DespesaFixa[], espelhos: Saida[], categoria?: string) =>
+    fixasSemEspelho(lista, espelhos, ym, mesReal, hoje).map((f) => ({
+      chave: `fixa-${f.id}-${ym}`,
+      titulo: f.descricao,
+      data: diaDoMes(ym, f.diaVencimento),
+      categoria: categoria ?? f.categoria,
+      valor: f.valor,
+    }));
+  return [
+    ...correntes(d.despesasCorrentes, "despesa"),
+    ...fixas(d.despesasFixas, d.despesasCorrentes),
+    ...d.veiculo.cargas
+      .filter((c) => mesDe(c.data) === ym)
+      .map((c) => ({
+        chave: `carga-${c.id}`,
+        titulo: c.local,
+        data: c.data,
+        categoria: "Veículo",
+        valor: c.custo,
+      })),
+    ...correntes(d.veiculo.despesas, "veiculo", "Veículo"),
+    ...fixas(d.veiculo.despesasFixas, d.veiculo.despesas, "Veículo"),
+  ];
 }
 
 function media(valores: number[]): number | null {
@@ -224,7 +273,6 @@ export function analisarMes(
   mesReal: YearMonth,
   hoje: IsoDate,
   periodo: PeriodoAnalise,
-  nomeDaConta?: (id: string) => string,
 ): AnaliseMes {
   const primeiro = primeiroMesDeDados(d);
   const resultado = (ym: YearMonth) =>
@@ -277,7 +325,7 @@ export function analisarMes(
   };
 
   // Semanas do mês, a partir dos mesmos movimentos de saída.
-  const gastos = gastosDoMes(d, mes, mesReal, hoje, nomeDaConta);
+  const gastos = gastosDoMes(d, mes, mesReal, hoje);
   const semanas = semanasDoMes(mes, config.diaInicioSemana);
   const agora = diaDeReferencia(mes, mesReal, hoje);
   const iAtual = indiceDaSemana(semanas, agora);
@@ -312,7 +360,8 @@ export function analisarMes(
     };
   });
 
-  const maioresGastos = [...gastos]
+  const maioresGastos = gastos
+    .filter((t) => t.valor > 0)
     .sort((a, b) => b.valor - a.valor)
     .slice(0, GASTOS_GRANDES)
     .map((t) => ({

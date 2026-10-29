@@ -11,6 +11,12 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 29/10/2026 (revisão técnica: pequenas correções)
 
+- **Análise: as semanas e os "maiores gastos" passam a somar o mesmo que o
+  total do mês.** O total vinha do dinheiro que realmente saiu no mês (como no
+  Início), mas as barras das semanas contavam as compras pelo calendário de
+  parcelas e fixas — num exemplo o total dava 50 e as semanas somavam 250. Agora
+  tudo usa o dinheiro que saiu: uma parcela paga pela fatura aparece no mês em
+  que a fatura foi paga, e o pagamento da fatura em si nunca conta como gasto.
 - **Veículo: kWh e litros com vírgula.** Na lista de abastecimentos uma carga de
   12,5 kWh aparecia como "12.5 kWh" (com ponto), ao contrário do formulário,
   que já usava vírgula. Agora aparece "12,5 kWh".

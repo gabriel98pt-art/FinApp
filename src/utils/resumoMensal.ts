@@ -147,6 +147,20 @@ export function janelaResumoAnual(n: number, ate: YearMonth, mesReal: YearMonth)
  *  tem (ou nunca vai ter) um lançamento com data real. Uma fixa MARCADA À
  *  MÃO depois desta mudança sempre ganha espelho, então cai fora deste
  *  filtro e entra pela via normal, com a data real de quando saiu. */
+export function fixasSemEspelho(
+  fixas: DespesaFixa[],
+  comEspelho: { origem?: string; fixaId?: Id; fixaMes?: YearMonth }[],
+  ym: YearMonth,
+  mesReal: YearMonth,
+  hoje?: IsoDate,
+): DespesaFixa[] {
+  return fixas
+    .filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))
+    .filter(
+      (f) => !comEspelho.some((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym),
+    );
+}
+
 function fixasSemEspelhoNoMes(
   fixas: DespesaFixa[],
   comEspelho: { origem?: string; fixaId?: Id; fixaMes?: YearMonth }[],
@@ -154,12 +168,7 @@ function fixasSemEspelhoNoMes(
   mesReal: YearMonth,
   hoje?: IsoDate,
 ): Cents {
-  return fixas
-    .filter((f) => fixaEfetivamentePaga(f, ym, mesReal, hoje))
-    .filter(
-      (f) => !comEspelho.some((d) => d.origem === "fixa" && d.fixaId === f.id && d.fixaMes === ym),
-    )
-    .reduce((s, f) => s + f.valor, 0);
+  return fixasSemEspelho(fixas, comEspelho, ym, mesReal, hoje).reduce((s, f) => s + f.valor, 0);
 }
 
 /** Despesa do mês, mas em FLUXO DE CAIXA — soma do que foi de fato

@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
-import type { DadosVeiculo, DespesaCorrente, DespesaFixa, Receita, Transferencia } from "../types";
+import type {
+  DadosVeiculo,
+  DespesaCorrente,
+  DespesaFixa,
+  Parcela,
+  Receita,
+  Transferencia,
+} from "../types";
 import { analisarMes, primeiroMesDeDados, variarContraMedia, type DadosAnalise } from "./analise";
 import { mediaDeMeses, receitasNosTotais, totalDoMes } from "./calculos";
 import { calcularMetaMensal, taxaPoupanca } from "./metas";
@@ -328,6 +335,53 @@ describe("analisarMes — semanas, categorias e maiores gastos", () => {
     };
     const a = analisarMes(comRuido, CFG, "2026-10", MES_REAL, HOJE, 6);
     expect(a.maioresGastos.map((g) => g.valor)).toEqual([120000, 30000, 25000]);
+  });
+});
+
+// O total do mês é fluxo de caixa (o do Início). As semanas e os maiores gastos
+// têm de somar o MESMO: antes vinham do extrato por competência e uma compra
+// parcelada de junho aparecia nas semanas de junho (e o dinheiro só saía em julho).
+describe("analisarMes — semanas e maiores gastos na mesma base de caixa do total", () => {
+  const parcela: Parcela = {
+    id: "P",
+    descricao: "TV",
+    total: 60000,
+    numParcelas: 6,
+    primeiroMes: "2026-06",
+    categoria: "Casa",
+    cartao: "Visa",
+    autoDebit: true,
+    pagoPorMes: { "2026-06": "fatura" },
+  };
+  const d = dados({
+    receitas: [rec("r6", "2026-06-01", 200000)],
+    despesasCorrentes: [
+      desp("jantar", "2026-06-10", 5000, "Restaurante"),
+      // O espelho da parcela de junho só nasce em julho, quando a fatura é paga.
+      desp("esp", "2026-07-05", 10000, "Casa", {
+        origem: "parc",
+        parcelaId: "P",
+        parcelaMes: "2026-06",
+      }),
+      // O pagamento da fatura nunca é gasto: as compras já contaram.
+      desp("fat", "2026-07-05", 15000, "Fatura", { origem: "fat" }),
+    ],
+    parcelas: [parcela],
+  });
+  const somaSemanas = (a: ReturnType<typeof analisarMes>) =>
+    a.semanas.barras.reduce((s, b) => s + b.valor, 0);
+
+  test("junho: as semanas somam o total do mês (só o jantar)", () => {
+    const a = analisarMes(d, CFG, "2026-06", "2026-07", "2026-07-20", 3);
+    expect(a.meses[a.meses.length - 1].despesas).toBe(5000);
+    expect(somaSemanas(a)).toBe(5000);
+    expect(a.maioresGastos.map((g) => g.titulo)).toEqual(["Gasto jantar"]);
+  });
+
+  test("julho: as semanas somam o total do mês (o espelho da parcela, não a fatura)", () => {
+    const a = analisarMes(d, CFG, "2026-07", "2026-07", "2026-07-20", 3);
+    expect(a.meses[a.meses.length - 1].despesas).toBe(10000);
+    expect(somaSemanas(a)).toBe(10000);
   });
 });
 

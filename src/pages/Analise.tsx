@@ -24,7 +24,6 @@ import {
   type Variacao,
 } from "../utils/analise";
 import { hojeIso, mesAtual, MESES_CURTOS_PT, nomeDoMes } from "../utils/calculos";
-import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { formatMoneyInteiro, formatMoneySinal } from "../utils/money";
 import g from "../styles/grelha.module.css";
 import segmentado from "../styles/segmentado.module.css";
@@ -70,7 +69,6 @@ export default function Analise() {
         mesAtual(),
         hojeIso(),
         periodo,
-        (id) => nomeAtualDoMetodo(cfg, id),
       ),
     [
       receitas,
