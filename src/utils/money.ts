@@ -48,6 +48,8 @@ export function parseMoney(input: string): Cents | null {
   if (s.startsWith("-")) {
     negative = true;
     s = s.slice(1);
+  } else if (s.startsWith("+")) {
+    s = s.slice(1);
   }
   if (s === "" || /[^0-9.,]/.test(s)) return null;
 

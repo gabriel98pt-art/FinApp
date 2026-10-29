@@ -9,6 +9,18 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 29/10/2026 (valor com sinal de mais na importação)
+
+- **Corrigido: linha do extrato descartada quando o valor vinha com "+".**
+  `parseMoney` sabia tirar um "-" do início de um valor, mas não um "+" — e
+  tanto o parser de texto livre (que lê extratos de PDF reconstruídos) como o
+  de CSV já previam esse sinal no próprio padrão de busca do valor. Um
+  extrato de banco digital que marca os créditos com "+" (ex. "+54,32") fazia
+  `parseMoney` devolver `null` por causa do "+" sobrando, e a linha inteira
+  era descartada em silêncio — a transação simplesmente não entrava no
+  extrato importado. Agora um "+" no início é descartado, igual ao "-", sem
+  mudar o sinal. Teste novo em `money.test.ts`.
+
 ## 28/10/2026 (campo de dinheiro com saldo negativo)
 
 - **Corrigido: ajustar o saldo de uma conta no vermelho.** Quando o saldo

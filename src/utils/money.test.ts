@@ -71,6 +71,12 @@ describe("parseMoney — notação contábil e sinais", () => {
   test("sinal de menos", () => {
     expect(parseMoney("-12,30")).toBe(-1230);
   });
+
+  test("sinal de mais (crédito em extratos de banco digital)", () => {
+    expect(parseMoney("+12,30")).toBe(1230);
+    expect(parseMoney("+1.234,56")).toBe(123456);
+    expect(parseMoney("+54.32")).toBe(5432);
+  });
 });
 
 describe("parseMoney — símbolos de moeda colados", () => {
