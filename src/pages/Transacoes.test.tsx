@@ -7,7 +7,7 @@
 // fica bonita e mente —, por isso fica presa por teste.
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { ConfigConta, DespesaCorrente, Receita } from "../types";
@@ -195,6 +195,52 @@ describe("Transacoes", () => {
     expect(screen.getByText("Salário")).toBeInTheDocument();
     expect(screen.getByText("Mercado")).toBeInTheDocument();
     expect(screen.getByText("2 transações")).toBeInTheDocument();
+  });
+
+  describe("pesquisa e limpar tudo", () => {
+    const duas = () => {
+      receitas = lista([receita()]);
+      despesas = lista([
+        {
+          id: "d1",
+          descricao: "Café da Avó",
+          valor: 450,
+          data: "2026-08-03",
+          categoria: "Alimentação",
+        } as DespesaCorrente,
+      ]);
+    };
+
+    test("pesquisar por descrição ignora acentos e mostra só o que bate", async () => {
+      duas();
+      desenhar();
+      await userEvent.type(screen.getByRole("searchbox", { name: "Pesquisar transações" }), "cafe");
+      expect(screen.getByText("Café da Avó")).toBeInTheDocument();
+      expect(screen.queryByText("Salário")).toBeNull();
+      expect(screen.getByText("1 de 2 transações")).toBeInTheDocument();
+    });
+
+    test("sem resultado: diz que nada bate e Limpar tudo traz a lista de volta", async () => {
+      duas();
+      desenhar();
+      await userEvent.type(screen.getByRole("searchbox", { name: "Pesquisar transações" }), "zzz");
+      expect(screen.getByText("Nenhuma transação com esse filtro")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Limpar tudo" }));
+      expect(screen.getByText("Salário")).toBeInTheDocument();
+      expect(screen.getByText("Café da Avó")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Limpar tudo" })).toBeNull();
+    });
+
+    test("o período corta pelas datas dentro do mês", async () => {
+      duas();
+      desenhar();
+      await userEvent.click(screen.getByRole("button", { name: "Filtrar transações" }));
+      const ate = screen.getByLabelText("Até");
+      fireEvent.change(ate, { target: { value: "2026-08-03" } });
+      expect(screen.getByText("Café da Avó")).toBeInTheDocument();
+      expect(screen.queryByText("Salário")).toBeNull();
+    });
   });
 
   test("reembolso mostra o sinal UMA vez, do lado de quem recebe", () => {

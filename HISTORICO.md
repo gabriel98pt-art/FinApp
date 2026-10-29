@@ -9,6 +9,18 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 29/10/2026 (pesquisa e período nas Transações)
+
+- **Pesquisar transações pela descrição.** Em Cartões há agora um campo de
+  pesquisa por cima da lista de Transações: escreve-se parte do nome (sem
+  importar maiúsculas nem acentos) e a lista mostra só o que bate, olhando
+  também para a nota de cada movimento.
+- **Filtro por período**, dentro do mês que está a ser visto: "De" e "Até"
+  na janela de filtros, que já tinha categoria, receita/despesa e conta.
+  Tudo se combina.
+- **Limpar tudo:** aparece ao lado da contagem ("2 de 14 transações") assim
+  que há pesquisa ou filtro, e repõe a lista inteira de uma vez.
+
 ## 29/10/2026 (Calendário dentro do Planejamento e acertos em Cartões)
 
 - **O Calendário passou a ser uma aba do Planejamento**, ao lado de Orçamento

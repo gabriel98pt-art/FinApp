@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ListTree, Pencil, Trash2 } from "lucide-react";
+import { ListTree, Pencil, Search, Trash2 } from "lucide-react";
 import { EstadoVazio } from "../components/Pagina";
 import BottomSheet from "../components/BottomSheet";
 import ErroSincronizacao from "../components/ErroSincronizacao";
@@ -26,7 +26,7 @@ import { useParcelasStore } from "../stores/parcelasStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useUiStore } from "../stores/uiStore";
 import { useVeiculoStore } from "../stores/veiculoStore";
-import type { Currency } from "../types";
+import type { Currency, IsoDate } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
 import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
@@ -220,6 +220,9 @@ export default function SecaoTransacoes() {
   const categoriaPedida = (location.state as { categoria?: string } | null)?.categoria;
   const [filtroCategoria, setFiltroCategoria] = useState(categoriaPedida ?? "");
   const [filtroConta, setFiltroConta] = useState("");
+  const [busca, setBusca] = useState("");
+  const [deEscolhido, setDe] = useState<IsoDate | "">("");
+  const [ateEscolhido, setAte] = useState<IsoDate | "">("");
 
   const dados: DadosTransacoes = {
     receitas: useReceitasStore((s) => s.itens),
@@ -262,8 +265,21 @@ export default function SecaoTransacoes() {
   );
   // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
   // refletem só o que está visível, não o mês inteiro por baixo dele.
-  const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
-  const filtroAtivo = filtroCategoria !== "" || filtroConta !== "";
+  // O período só vale dentro do mês exibido: ao mudar de mês, datas do mês
+  // anterior deixam de contar em vez de esvaziarem a lista sem explicação.
+  const de = deEscolhido.slice(0, 7) === mes ? deEscolhido : "";
+  const ate = ateEscolhido.slice(0, 7) === mes ? ateEscolhido : "";
+  const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta, { busca, de, ate });
+  const filtroAtivo =
+    filtroCategoria !== "" || filtroConta !== "" || busca.trim() !== "" || de !== "" || ate !== "";
+
+  function limparTudo() {
+    setFiltroCategoria("");
+    setFiltroConta("");
+    setBusca("");
+    setDe("");
+    setAte("");
+  }
 
   // Item 2 do lote de UX/nav: receita/despesa ganham o menu único
   // (Editar/Excluir) — os outros cinco tipos continuam na folha de detalhe
@@ -328,11 +344,18 @@ export default function SecaoTransacoes() {
       <section className={styles.secao} aria-label="Extrato">
         {itens.length > 0 && (
           <div className={styles.cabecalhoSecao}>
-            <h3 className={styles.contagem}>
-              {filtroAtivo
-                ? `${itensFiltrados.length} de ${itens.length} transações`
-                : `${itens.length} transações`}
-            </h3>
+            <div className={styles.tituloLinha}>
+              <h3 className={styles.contagem}>
+                {filtroAtivo
+                  ? `${itensFiltrados.length} de ${itens.length} transações`
+                  : `${itens.length} transações`}
+              </h3>
+              {filtroAtivo && (
+                <button type="button" className={styles.limparTudo} onClick={limparTudo}>
+                  Limpar tudo
+                </button>
+              )}
+            </div>
             <FiltroTransacoes
               categorias={cfg.categoriasDespesa}
               contas={cfg.contasCartoes}
@@ -341,8 +364,27 @@ export default function SecaoTransacoes() {
               filtroConta={filtroConta}
               aoMudarConta={setFiltroConta}
               rotuloConta={(c) => nomeAtualDoMetodo(cfg, c)}
+              mes={mes}
+              de={de}
+              ate={ate}
+              aoMudarPeriodo={(novoDe, novoAte) => {
+                setDe(novoDe);
+                setAte(novoAte);
+              }}
             />
           </div>
+        )}
+        {itens.length > 0 && (
+          <label className={styles.busca}>
+            <Search size={16} aria-hidden />
+            <input
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Pesquisar por descrição"
+              aria-label="Pesquisar transações"
+            />
+          </label>
         )}
 
         {/* Há linhas na tela: faixa fina por cima, elas continuam a valer. */}
@@ -363,12 +405,12 @@ export default function SecaoTransacoes() {
           <EstadoVazio
             Icone={ListTree}
             mensagem="Nenhuma transação com esse filtro"
-            sub="Tente outra categoria ou conta, ou limpe o filtro no ícone acima."
+            sub="Tente outra pesquisa ou filtro, ou use Limpar tudo."
           />
         ) : (
           <ExtratoPaginado
             /* key: trocar de mês ou de filtro é outra lista — volta pra página 1 */
-            key={`${mes}-${filtroCategoria}-${filtroConta}`}
+            key={`${mes}-${filtroCategoria}-${filtroConta}-${busca}-${de}-${ate}`}
             itens={itensFiltrados}
             moeda={cfg.currency}
             nomeDaConta={(id) => nomeAtualDoMetodo(cfg, id)}

@@ -188,3 +188,37 @@
 .limpar:hover {
   background: var(--tint-red-10);
 }
+
+/* Período: dois campos de data, dentro do mês exibido, por baixo das colunas. */
+.periodo {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--brd);
+}
+
+.periodoCampos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.periodoCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: var(--mut);
+  font-size: var(--fs-label);
+}
+
+.periodoCampo input {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  color: var(--txt);
+  font-size: var(--fs-body);
+}

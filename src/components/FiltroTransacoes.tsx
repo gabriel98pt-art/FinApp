@@ -3,6 +3,8 @@ import { Check, ListFilter } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
 import FolhaAncorada from "./FolhaAncorada";
 import { useRadiogroupTeclado } from "../hooks/useRadiogroupTeclado";
+import type { IsoDate, YearMonth } from "../types";
+import { diasDoMes } from "../utils/calculos";
 import { FILTRO_DESPESA, FILTRO_RECEITA, FILTRO_TRANSFERENCIA } from "../utils/transacoes";
 import styles from "./FiltroTransacoes.module.css";
 
@@ -71,7 +73,7 @@ function Secao({
   );
 }
 
-/** Filtro de transações (item novo): categoria — Receita, Despesa (e cada
+/** Filtro de transações (item novo): período (dentro do mês exibido), categoria — Receita, Despesa (e cada
  *  categoria de despesa, que vem direto de `cfg.categoriasDespesa` e por isso
  *  acompanha sozinha qualquer categoria nova criada em Definições — e
  *  Transferência interna — mais conta/cartão, numa folha só. Cada seção é de
@@ -89,6 +91,10 @@ export default function FiltroTransacoes({
   filtroConta,
   aoMudarConta,
   rotuloConta,
+  mes,
+  de,
+  ate,
+  aoMudarPeriodo,
 }: {
   categorias: string[];
   contas: string[];
@@ -99,10 +105,17 @@ export default function FiltroTransacoes({
   /** O nome de hoje de cada conta. As opções são os ids, que é o que fica
    *  gravado no lançamento e o que o filtro compara. */
   rotuloConta?: (v: string) => string;
+  /** O mês exibido: o período só se escolhe dentro dele. */
+  mes: YearMonth;
+  de: IsoDate | "";
+  ate: IsoDate | "";
+  aoMudarPeriodo: (de: IsoDate | "", ate: IsoDate | "") => void;
 }) {
   const [aberta, setAberta] = useState(false);
   const gatilhoRef = useRef<HTMLButtonElement>(null);
-  const ativos = (filtroCategoria ? 1 : 0) + (filtroConta ? 1 : 0);
+  const ativos = (filtroCategoria ? 1 : 0) + (filtroConta ? 1 : 0) + (de || ate ? 1 : 0);
+  const primeiro: IsoDate = `${mes}-01`;
+  const ultimo: IsoDate = `${mes}-${String(diasDoMes(mes)).padStart(2, "0")}`;
 
   const opcoesCategoria = [FILTRO_RECEITA, FILTRO_DESPESA, FILTRO_TRANSFERENCIA, ...categorias];
 
@@ -149,6 +162,31 @@ export default function FiltroTransacoes({
             rotulo={rotuloConta}
           />
         </div>
+        <div className={styles.periodo}>
+          <p className={styles.secaoTitulo}>Período</p>
+          <div className={styles.periodoCampos}>
+            <label className={styles.periodoCampo}>
+              De
+              <input
+                type="date"
+                value={de}
+                min={primeiro}
+                max={ate || ultimo}
+                onChange={(e) => aoMudarPeriodo(e.target.value as IsoDate | "", ate)}
+              />
+            </label>
+            <label className={styles.periodoCampo}>
+              Até
+              <input
+                type="date"
+                value={ate}
+                min={de || primeiro}
+                max={ultimo}
+                onChange={(e) => aoMudarPeriodo(de, e.target.value as IsoDate | "")}
+              />
+            </label>
+          </div>
+        </div>
         {ativos > 0 && (
           <button
             type="button"
@@ -156,6 +194,7 @@ export default function FiltroTransacoes({
             onClick={() => {
               aoMudarCategoria("");
               aoMudarConta("");
+              aoMudarPeriodo("", "");
             }}
           >
             Limpar filtros

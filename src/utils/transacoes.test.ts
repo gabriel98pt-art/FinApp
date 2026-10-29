@@ -861,3 +861,46 @@ describe("entraDinheiro", () => {
     expect(entraDinheiro(transacao({ valor: 0, entrada: true }))).toBe(true);
   });
 });
+
+describe("filtrarTransacoes — pesquisa e período", () => {
+  const t = (chave: string, titulo: string, data: string, nota?: string) =>
+    ({
+      chave,
+      refId: chave,
+      ordemId: chave,
+      origem: "despesa",
+      data,
+      titulo,
+      nota,
+      valor: 100,
+      entrada: false,
+    }) as Transacao;
+  const itens = [
+    t("a", "Café da Avó", "2026-08-03"),
+    t("b", "Supermercado", "2026-08-15", "compras do mês"),
+    t("c", "Cinema", "2026-08-28"),
+  ];
+  const chaves = (r: Transacao[]) => r.map((x) => x.chave);
+
+  it("a pesquisa ignora maiúsculas e acentos e olha título e nota", () => {
+    expect(chaves(filtrarTransacoes(itens, "", "", { busca: "CAFE" }))).toEqual(["a"]);
+    expect(chaves(filtrarTransacoes(itens, "", "", { busca: "avo" }))).toEqual(["a"]);
+    expect(chaves(filtrarTransacoes(itens, "", "", { busca: "  compras " }))).toEqual(["b"]);
+    expect(filtrarTransacoes(itens, "", "", { busca: "xyz" })).toEqual([]);
+  });
+
+  it("o período é inclusivo nas duas pontas e cada uma é opcional", () => {
+    expect(chaves(filtrarTransacoes(itens, "", "", { de: "2026-08-15" }))).toEqual(["b", "c"]);
+    expect(chaves(filtrarTransacoes(itens, "", "", { ate: "2026-08-15" }))).toEqual(["a", "b"]);
+    expect(
+      chaves(filtrarTransacoes(itens, "", "", { de: "2026-08-04", ate: "2026-08-27" })),
+    ).toEqual(["b"]);
+  });
+
+  it("tudo se combina por E lógico", () => {
+    expect(
+      filtrarTransacoes(itens, "Despesa", "", { busca: "cinema", de: "2026-08-20" }),
+    ).toHaveLength(1);
+    expect(filtrarTransacoes(itens, "Receita", "", { busca: "cinema" })).toEqual([]);
+  });
+});

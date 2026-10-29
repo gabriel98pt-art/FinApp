@@ -360,12 +360,41 @@ export function passaFiltroConta(t: Transacao, filtro: string): boolean {
   return !filtro || t.conta === filtro;
 }
 
+/** Pesquisa, ignorando maiúsculas e acentos. */
+const paraBusca = (texto: string) => texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+/** Pesquisa por descrição: bate com o título e com a nota do item. Vazio deixa
+ *  tudo passar. */
+export function passaBusca(t: Transacao, busca: string): boolean {
+  const q = paraBusca(busca.trim());
+  if (!q) return true;
+  return paraBusca(t.titulo).includes(q) || (t.nota !== undefined && paraBusca(t.nota).includes(q));
+}
+
+/** Período dentro do mês exibido: `de` e `ate` são datas inclusivas, cada uma
+ *  opcional. */
+export function passaPeriodo(t: Transacao, de: IsoDate | "", ate: IsoDate | ""): boolean {
+  return (!de || t.data >= de) && (!ate || t.data <= ate);
+}
+
+export interface FiltroExtra {
+  busca?: string;
+  de?: IsoDate | "";
+  ate?: IsoDate | "";
+}
+
+/** Todos os filtros se combinam por E lógico. */
 export function filtrarTransacoes(
   itens: Transacao[],
   filtroCategoria: string,
   filtroConta: string,
+  { busca = "", de = "", ate = "" }: FiltroExtra = {},
 ): Transacao[] {
   return itens.filter(
-    (t) => passaFiltroCategoria(t, filtroCategoria) && passaFiltroConta(t, filtroConta),
+    (t) =>
+      passaFiltroCategoria(t, filtroCategoria) &&
+      passaFiltroConta(t, filtroConta) &&
+      passaBusca(t, busca) &&
+      passaPeriodo(t, de, ate),
   );
 }
