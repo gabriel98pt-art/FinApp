@@ -8,8 +8,11 @@
 // dar o texto novo em `textos`, passando a chave antiga em `chave` no KpiCard.
 // A segunda é a preferida quando a mudança é só de redação.
 //
-// Fora da lista de propósito: Calendário (só tem 2 KPIs) e TVDE (os KPIs
-// mudam conforme o estado da tela) — ficam com o primeiro em destaque.
+// Fora da lista de propósito: Calendário (só tem 2 KPIs), TVDE (os KPIs
+// mudam conforme o estado da tela) — ficam com o primeiro em destaque —, e
+// Cartões, Transações e Parcelas, que desde 29/10/2026 são uma página só sem
+// KPIs. Uma escolha antiga guardada para elas fica inerte em `kpiDestaque`:
+// ninguém a consulta, e nada parte.
 
 export interface KpisDaPagina {
   id: string;
@@ -51,26 +54,8 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     rotulos: ["Meta Mensal", "Taxa de Poupança", "Total em Fundos", "Poupado (12m)"],
   },
   {
-    id: "cartoes",
-    titulo: "Cartões",
-    rotulos: ["Devido no mês", "Pago", "Restante", "Saldo em contas"],
-    // "Devido no mês" soava a cobrança em atraso quando o cartão é só
-    // informativo. A chave fica; o texto passa a ser o neutro.
-    textos: { "Devido no mês": "A pagar este mês" },
-  },
-  {
     id: "veiculo",
     titulo: "Veículo",
     rotulos: ["Gasto do mês", "Abastecimentos", "Despesas", "Km no mês"],
-  },
-  {
-    id: "parcelas",
-    titulo: "Parcelas",
-    rotulos: ["Total do mês", "Falta pagar", "Restante", "Parcelas ativas"],
-  },
-  {
-    id: "transacoes",
-    titulo: "Transações",
-    rotulos: ["Entradas", "Saídas", "Saldo"],
   },
 ];

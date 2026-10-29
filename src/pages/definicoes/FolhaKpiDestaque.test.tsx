@@ -62,10 +62,15 @@ describe("FolhaKpiDestaque", () => {
     expect(screen.queryByRole("radiogroup", { name: "Início" })).not.toBeInTheDocument();
   });
 
-  test("o texto do chip é o da tela, não a chave guardada", () => {
+  test("uma escolha antiga de Cartões fica inerte e nada parte", () => {
+    desenhar({ ...CONFIG_PADRAO, kpiDestaque: { cartoes: "Pago", parcelas: "Falta pagar" } });
+    expect(grupo("Despesas")).toBeInTheDocument();
+  });
+
+  test("Cartões, Transações e Parcelas já não têm KPIs para escolher", () => {
     desenhar();
-    expect(
-      within(grupo("Cartões")).getByRole("radio", { name: "A pagar este mês" }),
-    ).toBeInTheDocument();
+    for (const nome of ["Cartões", "Transações", "Parcelas"]) {
+      expect(screen.queryByRole("radiogroup", { name: nome })).toBeNull();
+    }
   });
 });

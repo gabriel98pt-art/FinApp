@@ -38,10 +38,11 @@ import { calcularMetaMensal, poupancaMeses, taxaPoupanca, totalFundos } from "..
 import { formatMoney } from "../utils/money";
 import { statusOrcamentoMes } from "../utils/orcamento";
 import { idAba, idPainelAba } from "../utils/abas";
+import SecaoCalendario from "./Calendario";
 import g from "../styles/grelha.module.css";
 import styles from "./Planejamento.module.css";
 
-type Aba = "orcamento" | "metas";
+type Aba = "orcamento" | "metas" | "calendario";
 
 /** Fonte única da ordem das abas: a lista desenhada e a ordem que as setas do
  *  teclado percorrem têm de ser a mesma, senão a seta salta para o lado
@@ -49,6 +50,7 @@ type Aba = "orcamento" | "metas";
 const ABAS = [
   ["orcamento", "Orçamento"],
   ["metas", "Metas"],
+  ["calendario", "Calendário"],
 ] as const satisfies readonly (readonly [Aba, string])[];
 
 /** Planejamento — o plano financeiro inteiro numa tela só.
@@ -70,7 +72,9 @@ const ABAS = [
  *    contradizerem a lista logo abaixo.
  *
  *  - **Metas**: a meta de poupança do mês, os fundos ("cofrinhos") e o resumo
- *    dos últimos 12 meses. */
+ *    dos últimos 12 meses.
+ *
+ *  - **Calendário**: o que vence e os eventos do mês (era a página /calendario). */
 export default function Planejamento() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
@@ -474,6 +478,7 @@ export default function Planejamento() {
             </div>
           </div>
         )}
+        {aba === "calendario" && <SecaoCalendario />}
       </AbaTransicao>
 
       {uid && (

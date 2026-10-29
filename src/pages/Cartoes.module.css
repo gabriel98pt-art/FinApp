@@ -318,6 +318,13 @@
   align-items: start;
 }
 
+/* Entre 768 e 1100px a coluna da esquerda precisa de mais largura: 6:6. */
+@media (max-width: 1099px) {
+  .colunas {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  }
+}
+
 .coluna {
   display: flex;
   flex-direction: column;

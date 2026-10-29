@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { CalendarDays, Plus, X } from "lucide-react";
-import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
+import { EstadoVazio, Kpis } from "../components/Pagina";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
@@ -50,7 +50,8 @@ import g from "../styles/grelha.module.css";
 import styles from "./Calendario.module.css";
 import Botao from "../components/Botao";
 
-export default function Calendario() {
+/** A aba Calendário de Planejamento (era a página /calendario). */
+export default function SecaoCalendario() {
   const uid = useUidSessao();
   const confirmar = useConfirmar();
   const moeda = useCfgStore((s) => s.cfg.currency);
@@ -217,7 +218,7 @@ export default function Calendario() {
   }
 
   return (
-    <Pagina titulo="Calendário">
+    <>
       <div className={g.grelha}>
         <div className={`${g.celula} ${g.s4}`}>
           <Kpis>
@@ -467,6 +468,6 @@ export default function Calendario() {
           </Botao>
         </form>
       </BottomSheet>
-    </Pagina>
+    </>
   );
 }

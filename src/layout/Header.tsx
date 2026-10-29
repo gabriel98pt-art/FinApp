@@ -18,7 +18,6 @@ const ROTAS_COM_MES = [
   "/despesas",
   "/cartoes",
   "/veiculo",
-  "/calendario",
   // Planejamento manda no seletor nas duas abas: o teto do mês é do mês
   // escolhido, e a meta de poupança também (foi /metas até serem fundidas).
   "/planejamento",

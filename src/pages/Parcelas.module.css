@@ -1,11 +1,9 @@
+/* Linha 1: título e ações (ordenar, "+"); linha 2: os totais, em texto pequeno. */
 .cabecalho {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  /* No telemóvel nem sempre cabe tudo lado a lado: as ações descem inteiras em
-     vez de espremerem o título em duas linhas. */
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: 2px 8px;
 }
 
 .acoesCabecalho {
@@ -59,6 +57,7 @@
 }
 
 .totais {
+  grid-column: 1 / -1;
   color: var(--mut);
   font-size: var(--fs-label);
   font-variant-numeric: tabular-nums;
@@ -111,11 +110,22 @@
 }
 
 .detalhe {
+  display: flex;
+  min-width: 0;
   color: var(--mut);
   font-size: var(--fs-label);
+  white-space: nowrap;
+}
+
+.cartaoNome {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+/* O valor mensal nunca encolhe nem corta. */
+.porMes {
+  flex: none;
 }
 
 .porPagar {

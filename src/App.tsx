@@ -35,7 +35,6 @@ const Receitas = lazy(() => import("./pages/Receitas"));
 const Despesas = lazy(() => import("./pages/Despesas"));
 const Veiculo = lazy(() => import("./pages/Veiculo"));
 const Cartoes = lazy(() => import("./pages/Cartoes"));
-const Calendario = lazy(() => import("./pages/Calendario"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
 const Analise = lazy(() => import("./pages/Analise"));
 const Tvde = lazy(() => import("./pages/Tvde"));
@@ -112,7 +111,11 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
             <Route path="/veiculo" element={<RotaVeiculo />} />
             <Route path="/cartoes" element={<Cartoes />} />
             <Route path="/parcelas" element={<IrParaCartoes aba="parcelas" />} />
-            <Route path="/calendario" element={<Calendario />} />
+            {/* O Calendário é agora uma aba de Planejamento; a rota antiga leva lá. */}
+            <Route
+              path="/calendario"
+              element={<Navigate to="/planejamento" replace state={{ aba: "calendario" }} />}
+            />
             <Route path="/planejamento" element={<Planejamento />} />
             <Route path="/analise" element={<Analise />} />
             <Route path="/transacoes" element={<IrParaCartoes aba="transacoes" />} />

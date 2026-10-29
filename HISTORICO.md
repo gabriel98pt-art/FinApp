@@ -9,6 +9,19 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 29/10/2026 (Calendário dentro do Planejamento e acertos em Cartões)
+
+- **O Calendário passou a ser uma aba do Planejamento**, ao lado de Orçamento
+  e Metas. O menu fica com 9 entradas e o link antigo e o atalho do Início
+  continuam a levar lá.
+- **Definições:** a escolha do "número em destaque" deixou de oferecer
+  Cartões, Transações e Parcelas, que já não têm esses números. Quem tinha uma
+  escolha guardada para elas não perde nada: fica simplesmente sem efeito.
+- **Cartões:** nos ecrãs grandes o botão Importar some (o quadro tracejado já
+  faz esse papel); o título de Parcelas tem os botões na mesma linha e os
+  totais por baixo; entre 768 e 1100px a coluna da esquerda é mais larga e o
+  valor mensal de uma parcela nunca é cortado (encurta-se o nome do cartão).
+
 ## 29/10/2026 (Cartões ganha Transações, Parcelas e Importar)
 
 - **Menos separadores.** Transações, Parcelas e Importar deixaram de ser

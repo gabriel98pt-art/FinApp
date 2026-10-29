@@ -1,5 +1,4 @@
 import {
-  CalendarDays,
   Car,
   CarTaxiFront,
   ClipboardList,
@@ -18,7 +17,6 @@ export type AbaId =
   | "despesas"
   | "veiculo"
   | "cartoes"
-  | "calendario"
   | "planejamento"
   | "analise"
   | "tvde"
@@ -46,7 +44,6 @@ export const ABAS: AbaDef[] = [
   { id: "despesas", rota: "/despesas", titulo: "Despesas", Icone: TrendingDown },
   { id: "veiculo", rota: "/veiculo", titulo: "Veículo", Icone: Car },
   { id: "cartoes", rota: "/cartoes", titulo: "Cartões", Icone: CreditCard },
-  { id: "calendario", rota: "/calendario", titulo: "Calendário", Icone: CalendarDays },
   // Uma entrada só para o plano inteiro: "Planejamento" e "Metas" eram dois
   // itens do menu a responder à mesma pergunta ("o meu plano está a
   // aguentar?"), e agora são duas abas dentro desta página.
@@ -68,7 +65,6 @@ export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
 /** Tudo o que não tem posição fixa na barra vive no menu "Mais". */
 export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("cartoes"),
-  aba("calendario"),
   aba("planejamento"),
   aba("analise"),
   aba("veiculo"),

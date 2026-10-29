@@ -703,7 +703,8 @@ export default function Cartoes() {
   );
 
   return (
-    <Pagina titulo="Cartões" acao={botaoImportar}>
+    // Nos ecrãs largos o quadro tracejado já faz o papel do botão.
+    <Pagina titulo="Cartões" acao={largo ? undefined : botaoImportar}>
       {/* Compacta: os cartões e as faturas continuam a valer e a ser úteis —
           o que se perdeu foi a garantia de que os valores estão completos. */}
       {erroValores && <ErroSincronizacao compacto mensagem="Alguns valores não sincronizaram" />}

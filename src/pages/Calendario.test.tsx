@@ -66,7 +66,6 @@ afterEach(() => {
 describe("Calendario", () => {
   test("monta e desenha a grelha do mês", () => {
     render(<Calendario />);
-    expect(screen.getByRole("heading", { name: "Calendário" })).toBeInTheDocument();
     // Agosto de 2026 tem 31 dias; a grelha traz também dias vizinhos.
     expect(screen.getAllByRole("button", { name: /^Dia \d+/ }).length).toBeGreaterThanOrEqual(31);
   });

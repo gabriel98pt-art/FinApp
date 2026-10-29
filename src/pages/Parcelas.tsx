@@ -201,9 +201,13 @@ function LinhaParcela({
         <AnelProgresso pagas={pagas} total={total} quitada={quitada} />
         <span className={styles.info}>
           <span className={styles.nome}>{p.descricao}</span>
+          {/* Se faltar espaço encurta-se o nome do cartão, nunca o valor. */}
           <span className={styles.detalhe}>
-            {p.cartao ? `${nomeDoCartao(p.cartao)} · ` : ""}
-            {formatMoney(porMes, moeda)}/mês
+            {p.cartao && <span className={styles.cartaoNome}>{nomeDoCartao(p.cartao)}</span>}
+            <span className={styles.porMes}>
+              {p.cartao ? "\u00a0·\u00a0" : ""}
+              {formatMoney(porMes, moeda)}/mês
+            </span>
           </span>
         </span>
         <span className={styles.porPagar}>
@@ -580,9 +584,6 @@ export default function SecaoParcelas() {
     <section className={styles.secao} aria-label="Parcelas">
       <div className={styles.cabecalho}>
         <h3 className={styles.subtitulo}>Parcelas</h3>
-        <span className={styles.totais}>
-          {formatMoney(totalDoMes, moeda)}/mês · {formatMoney(restanteTotal, moeda)} por pagar
-        </span>
         <div className={styles.acoesCabecalho}>
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
@@ -593,6 +594,9 @@ export default function SecaoParcelas() {
             <Plus size={16} aria-hidden />
           </Botao>
         </div>
+        <span className={styles.totais}>
+          {formatMoney(totalDoMes, moeda)}/mês · {formatMoney(restanteTotal, moeda)} por pagar
+        </span>
       </div>
 
       {erro && parcelas.length > 0 && <ErroSincronizacao compacto />}
