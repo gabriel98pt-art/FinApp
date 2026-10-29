@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ListTree, Pencil, Trash2 } from "lucide-react";
-import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
-import KpiCard from "../components/KpiCard";
+import { EstadoVazio } from "../components/Pagina";
 import BottomSheet from "../components/BottomSheet";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import IconeLinha from "../components/IconeLinha";
@@ -196,7 +195,7 @@ function ExtratoPaginado({
  *  Clicar numa linha abre a folha de edição do tipo quando ela é global
  *  (receita/despesa, pelo Registro rápido) e, nos demais, uma folha de
  *  detalhe com atalho pra tela que gerencia aquele tipo. */
-export default function Transacoes() {
+export default function SecaoTransacoes() {
   const cfg = useCfgStore((s) => s.cfg);
   const mes = useMesVisivelStore((s) => s.mes);
   const navegar = useNavigate();
@@ -264,20 +263,6 @@ export default function Transacoes() {
   // KPIs e lista seguem o filtro — os dois cartões de cima e a contagem
   // refletem só o que está visível, não o mês inteiro por baixo dele.
   const itensFiltrados = filtrarTransacoes(itens, filtroCategoria, filtroConta);
-  // `entraDinheiro`, não `t.entrada`: um reembolso é despesa de valor negativo
-  // (ver utils/transacoes.ts) — sem isto ficava a somar ao lado errado, com o
-  // sinal ao contrário (ex.: reembolso de € 75 entrava em "Saídas: -€ 75,00").
-  const entradas = itensFiltrados
-    .filter((t) => entraDinheiro(t))
-    .reduce((s, t) => s + Math.abs(t.valor), 0);
-  const saidas = itensFiltrados
-    .filter((t) => !entraDinheiro(t))
-    .reduce((s, t) => s + Math.abs(t.valor), 0);
-  // O número que faltava: sobrou ou faltou dinheiro no que está a ser visto.
-  // Derivado das mesmas duas somas acima, portanto segue o filtro tal como
-  // elas. Ficava no lugar dele uma contagem de linhas — que a lista já mostra
-  // logo abaixo, em "N transações".
-  const saldo = entradas - saidas;
   const filtroAtivo = filtroCategoria !== "" || filtroConta !== "";
 
   // Item 2 do lote de UX/nav: receita/despesa ganham o menu único
@@ -339,29 +324,7 @@ export default function Transacoes() {
   }
 
   return (
-    <Pagina
-      titulo="Transações"
-      painel={
-        <>
-          {/* Com `pagina`, o mobile — que só cabe 2 dos 3 — deixa de ficar preso a
-          Entradas/Saídas: quem quiser pode trocar um deles pelo Saldo em
-          Definições. Sem isto o cartão novo só existiria no desktop. */}
-          <Kpis pagina="transacoes">
-            <KpiCard rotulo="Entradas" valor={formatMoney(entradas, cfg.currency)} tom="verde" />
-            <KpiCard rotulo="Saídas" valor={formatMoney(saidas, cfg.currency)} tom="vermelho" />
-            <KpiCard
-              rotulo="Saldo"
-              valor={formatMoney(saldo, cfg.currency)}
-              sub={filtroAtivo ? "no filtro ativo" : undefined}
-              // "amarelo" era inconsistente com todo o resto do app (Início,
-              // Resumo Anual, Despesas, Receitas, Planejamento): saldo/variação
-              // negativos são sempre "vermelho" (achado da auditoria de Design).
-              tom={saldo >= 0 ? "acento" : "vermelho"}
-            />
-          </Kpis>
-        </>
-      }
-    >
+    <>
       <section className={styles.secao} aria-label="Extrato">
         {itens.length > 0 && (
           <div className={styles.cabecalhoSecao}>
@@ -495,6 +458,6 @@ export default function Transacoes() {
           </div>
         )}
       </BottomSheet>
-    </Pagina>
+    </>
   );
 }

@@ -13,7 +13,6 @@ import { MemoryRouter } from "react-router-dom";
 import type { ConfigConta, DespesaCorrente, Receita } from "../types";
 import { comInstituicoes, instituicao } from "../testes/instituicoes";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
-import { KPIS_POR_PAGINA } from "../constants/kpis";
 
 vi.mock("../services/firebase", () => ({ db: {}, auth: {} }));
 
@@ -142,9 +141,9 @@ describe("Transacoes", () => {
     expect(within(secao).getByRole("heading", { name: "1 transações" })).toBeInTheDocument();
   });
 
-  test("monta e mostra o título", () => {
+  test("monta e mostra a secção do extrato", () => {
     desenhar();
-    expect(screen.getByRole("heading", { name: "Transações" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Extrato" })).toBeInTheDocument();
   });
 
   test("mês realmente sem movimento: pode afirmar que está vazio", () => {
@@ -225,63 +224,6 @@ describe("Transacoes", () => {
     expect(container.textContent).toContain("+€ 75,00");
     // A saída antiga, letra por letra — o menos duas vezes.
     expect(container.textContent).not.toContain("−€ -75,00");
-  });
-
-  test("o terceiro KPI é o saldo do que está à vista, não a contagem de linhas", () => {
-    // Contar linhas repetia o "N transações" logo abaixo; o que faltava era
-    // saber se o período fecha acima ou abaixo de zero.
-    receitas = lista([receita()]);
-    despesas = lista([
-      {
-        id: "d1",
-        descricao: "Mercado",
-        valor: 4250,
-        data: "2026-08-03",
-        categoria: "Alimentação",
-      } as DespesaCorrente,
-    ]);
-    desenhar();
-
-    expect(screen.getByText("Saldo")).toBeInTheDocument();
-    expect(screen.queryByText("Movimentações")).not.toBeInTheDocument();
-    // 1850,00 de entrada − 42,50 de saída.
-    expect(screen.getByText("€ 1.807,50")).toBeInTheDocument();
-  });
-
-  test("saldo negativo: gastou-se mais do que entrou no período", () => {
-    despesas = lista([
-      {
-        id: "d1",
-        descricao: "Mercado",
-        valor: 4250,
-        data: "2026-08-03",
-        categoria: "Alimentação",
-      } as DespesaCorrente,
-    ]);
-    desenhar();
-
-    // O saldo (e a linha do extrato, que também é −€ 42,50) com o menos de verdade.
-    expect(screen.getAllByText("−€ 42,50").length).toBeGreaterThan(0);
-    expect(screen.queryByText("€ -42,50")).not.toBeInTheDocument();
-    // Era "amarelo" — inconsistente com todo o resto do app, onde
-    // saldo/variação negativos são sempre "vermelho" (achado da auditoria de
-    // Design). A linha do Saldo é o `div` mais próximo do próprio rótulo.
-    const coluna = screen.getByText("Saldo").closest("div")!;
-    expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--red)");
-  });
-
-  test("os três rótulos são os que Definições oferece para o mobile", () => {
-    // No telemóvel só cabem 2 dos 3 cartões, e sem entrada em KPIS_POR_PAGINA
-    // o Saldo ficava fora do alcance de quem usa o app no telemóvel — não há
-    // sequer onde o escolher. A escolha é casada por TEXTO, então os dois lados
-    // têm de andar juntos (ver `Kpis` em components/Pagina.tsx).
-    desenhar();
-
-    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "transacoes")!.rotulos;
-    expect(esperados).toEqual(["Entradas", "Saídas", "Saldo"]);
-    for (const rotulo of esperados) {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
-    }
   });
 });
 

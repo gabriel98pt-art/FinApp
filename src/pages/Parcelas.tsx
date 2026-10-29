@@ -9,8 +9,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react";
-import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
-import KpiCard from "../components/KpiCard";
+import { EstadoVazio } from "../components/Pagina";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
 import CampoValorDestaque from "../components/CampoValorDestaque";
@@ -36,22 +35,56 @@ import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { mostrarToast } from "../stores/toastStore";
 import type { Cents, Currency, DespesaCorrente, IsoDate, Parcela, YearMonth } from "../types";
 import { hojeIso, mesAtual, rotuloMes } from "../utils/calculos";
-import { formatMoney, semQuebra } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { mensagemDeErroDados } from "../utils/erroDados";
 import {
   mesesNaoPagos,
-  diaVencimentoEfetivo,
-  pagoNoMes,
   parcelaQuitada,
   progressoDaParcela,
   totalParcelasNoMes,
-  valorDaParcela,
+  debitoMensalDaParcela,
+  valorBaseDaParcela,
   valorQuitacao,
 } from "../utils/parcelas";
 import FolhaValoresParcela from "./FolhaValoresParcela";
 import styles from "./Parcelas.module.css";
 import Botao from "../components/Botao";
+
+/** Círculo de progresso "pagas/total" (a prévia aprovada de Cartões). */
+function AnelProgresso({
+  pagas,
+  total,
+  quitada,
+}: {
+  pagas: number;
+  total: number;
+  quitada: boolean;
+}) {
+  const r = 16;
+  const c = 2 * Math.PI * r;
+  return (
+    <span className={styles.anel} aria-hidden>
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r={r} fill="none" className={styles.anelFundo} strokeWidth="4" />
+        <circle
+          cx="20"
+          cy="20"
+          r={r}
+          fill="none"
+          className={quitada ? styles.anelQuitada : styles.anelPreenche}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${(total === 0 ? 0 : pagas / total) * c} ${c}`}
+          transform="rotate(-90 20 20)"
+        />
+      </svg>
+      <b>
+        {pagas}/{total}
+      </b>
+    </span>
+  );
+}
 
 function LinhaParcela({
   p,
@@ -60,7 +93,6 @@ function LinhaParcela({
   aoExcluir,
   mesRef,
   hoje,
-  diaVencimentoFatura,
   nomeDoCartao,
   despesas,
 }: {
@@ -75,7 +107,6 @@ function LinhaParcela({
    *  débito automático (ver `parcelaQuitada`): sem ela, a parcela contava como
    *  quitada já no dia 1 do mês, antes de o cartão ter cobrado de facto. */
   hoje: IsoDate;
-  diaVencimentoFatura: Record<string, number> | undefined;
   /** O que a parcela guarda é o id do cartão, que nunca muda; o nome de hoje
    *  vem daqui, para uma parcela antiga não ficar presa a um nome antigo. */
   nomeDoCartao: (id: string) => string;
@@ -91,9 +122,9 @@ function LinhaParcela({
   const quitada = parcelaQuitada(p, mesRef, hoje);
   const { pagas, total } = progressoDaParcela(p, mesRef, hoje);
   const abertos = mesesNaoPagos(p, mesRef, hoje);
-  // Paga por cartão em débito automático, a parcela vence com a FATURA.
-  const diaVenc = diaVencimentoEfetivo(p, diaVencimentoFatura);
   const proximo = abertos[0];
+  // O que pesa por mês: o do próximo mês em aberto; numa quitada, o da primeira.
+  const porMes = debitoMensalDaParcela(p, mesRef, hoje) || valorBaseDaParcela(p, 0);
 
   async function agir(acao: () => Promise<void>, msg: string) {
     try {
@@ -167,43 +198,24 @@ function LinhaParcela({
         onClick={() => setMenuAberto(true)}
         aria-haspopup="dialog"
       >
-        <span className={styles.topo}>
-          <span className={styles.info}>
-            <span className={styles.nome}>{p.descricao}</span>
-            <span className={styles.detalhe}>
-              {formatMoney(p.total, moeda)}
-              {p.nota ? ` · ${p.nota}` : ""}
-              {p.cartao
-                ? ` · ${nomeDoCartao(p.cartao)}${p.autoDebit ? " (débito autom.)" : ""}`
-                : ""}
-              {diaVenc ? ` · dia ${diaVenc}` : ""}
-            </span>
-          </span>
-          <span className={`${styles.progresso} ${quitada ? styles.quitada : ""}`}>
-            {pagas}/{total}
+        <AnelProgresso pagas={pagas} total={total} quitada={quitada} />
+        <span className={styles.info}>
+          <span className={styles.nome}>{p.descricao}</span>
+          <span className={styles.detalhe}>
+            {p.cartao ? `${nomeDoCartao(p.cartao)} · ` : ""}
+            {formatMoney(porMes, moeda)}/mês
           </span>
         </span>
-
-        {/* A barra era role="progressbar" com aria-valuenow/max, dentro de um
-            <button> — um widget aninhado noutro widget, que os leitores de ecrã
-            expõem mal, e ainda por cima sem nome acessível ("barra de
-            progresso, 3" não diz de quê). O número já está ali ao lado, em
-            texto, no `.progresso` ("3/10"): a barra é o eco visual dele. Sendo
-            eco, o lugar dela é fora da árvore de acessibilidade — assim a linha
-            é anunciada uma vez só, e bem. */}
-        <span className={styles.barra} aria-hidden>
-          <span className={styles.preenchido} style={{ width: `${(pagas / total) * 100}%` }} />
+        <span className={styles.porPagar}>
+          {quitada ? (
+            <span className={styles.quitadaTxt}>quitada</span>
+          ) : (
+            <>
+              {formatMoney(valorQuitacao(p, mesRef, hoje), moeda)}
+              <small>por pagar</small>
+            </>
+          )}
         </span>
-
-        {/* "X de Y em Z": o que sai a seguir, quanto ainda falta ao todo e
-            quando. O `mesRef` no restante é o que trata como já resolvido o mês
-            que saiu sozinho do cartão em débito automático. */}
-        {!quitada && proximo !== undefined && (
-          <span className={styles.proxima}>
-            {formatMoney(valorDaParcela(p, proximo), moeda)} de{" "}
-            {formatMoney(valorQuitacao(p, mesRef, hoje), moeda)} em {rotuloMes(proximo)}
-          </span>
-        )}
       </button>
 
       <MenuAcoesItem
@@ -460,7 +472,8 @@ function FormParcela({
   );
 }
 
-export default function Parcelas() {
+/** A secção de Parcelas de Cartões (era a página /parcelas). */
+export default function SecaoParcelas() {
   const cfg = useCfgStore((s) => s.cfg);
   const moeda = cfg.currency;
   const mesRef = useMesVisivelStore((s) => s.mes);
@@ -540,24 +553,11 @@ export default function Parcelas() {
   // porque dentro do mês do header em curso uma parcela vencendo dia 27 não
   // pode contar como quitada logo no dia 1, antes de o cartão cobrar de
   // facto (mesmo bug já corrigido em `pagoNoMes`/`faltaPagar`, abaixo).
-  const ativas = parcelas.filter((p) => !parcelaQuitada(p, mesRef, hoje));
   const quitadas = parcelas.filter((p) => parcelaQuitada(p, mesRef, hoje));
-  // "Total do mês" e "Falta pagar" são a mesma conta partida em dois, os dois
-  // olhando só para o mês exibido. "Restante" já é outra coisa: a dívida de
-  // TODAS as compras parceladas, de todos os meses — o que ainda falta pagar
-  // no total, não só neste mês.
+  // "/mês" é o total do mês exibido (inclui as quitadas, que vivem na folha
+  // "Quitadas"); "por pagar" é a dívida de TODAS as compras parceladas.
   const totalDoMes = totalParcelasNoMes(parcelas, mesRef);
-  const pagoEsteMes = pagoNoMes(parcelas, mesRef, mesAtual(), hoje);
-  const faltaPagar = totalDoMes - pagoEsteMes;
   const restanteTotal = parcelas.reduce((s, p) => s + valorQuitacao(p, mesRef, hoje), 0);
-  // "Total do mês" soma TODAS as parcelas cujo plano cobre o mês exibido —
-  // inclusive as já quitadas, que a lista principal não mostra (vivem na folha
-  // "Quitadas", fechada por padrão). Sem dizer isto, o KPI mostrava € 300,00 e
-  // a lista à vista só somava € 180,00, sem nada que explicasse a diferença.
-  // Fatia do total que vem das quitadas: é ela que está fora da vista. Conta o
-  // valor, e não o número delas, para não bater de frente com o "Quitadas (N)"
-  // do rodapé, que conta as de TODOS os meses.
-  const totalQuitadasNoMes = totalParcelasNoMes(quitadas, mesRef);
 
   const ativasVisiveis = parcelasVisiveis(
     parcelas,
@@ -577,30 +577,12 @@ export default function Parcelas() {
   );
 
   return (
-    <Pagina
-      titulo="Parcelas"
-      painel={
-        <>
-          <Kpis pagina="parcelas">
-            <KpiCard
-              rotulo="Total do mês"
-              valor={formatMoney(totalDoMes, moeda)}
-              sub={
-                totalQuitadasNoMes > 0
-                  ? `inclui ${semQuebra(formatMoney(totalQuitadasNoMes, moeda))} quitado`
-                  : undefined
-              }
-              tom="acento"
-            />
-            <KpiCard rotulo="Falta pagar" valor={formatMoney(faltaPagar, moeda)} tom="vermelho" />
-            <KpiCard rotulo="Restante" valor={formatMoney(restanteTotal, moeda)} tom="amarelo" />
-            <KpiCard rotulo="Parcelas ativas" valor={String(ativas.length)} />
-          </Kpis>
-        </>
-      }
-    >
+    <section className={styles.secao} aria-label="Parcelas">
       <div className={styles.cabecalho}>
-        <h3 className={styles.subtitulo}>Compras parceladas ({ativas.length})</h3>
+        <h3 className={styles.subtitulo}>Parcelas</h3>
+        <span className={styles.totais}>
+          {formatMoney(totalDoMes, moeda)}/mês · {formatMoney(restanteTotal, moeda)} por pagar
+        </span>
         <div className={styles.acoesCabecalho}>
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
@@ -636,7 +618,6 @@ export default function Parcelas() {
               aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
               hoje={hoje}
-              diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
               despesas={despesas}
             />
@@ -673,7 +654,6 @@ export default function Parcelas() {
               aoExcluir={(item) => void excluirDaLista(item)}
               mesRef={mesRef}
               hoje={hoje}
-              diaVencimentoFatura={cfg.diaVencimentoFatura}
               nomeDoCartao={(id) => nomeAtualDoMetodo(cfg, id)}
               despesas={despesas}
             />
@@ -728,6 +708,6 @@ export default function Parcelas() {
         editando={editando}
         despesas={despesas}
       />
-    </Pagina>
+    </section>
   );
 }

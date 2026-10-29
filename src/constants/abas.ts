@@ -5,12 +5,9 @@ import {
   ClipboardList,
   CreditCard,
   House,
-  ListTree,
-  Layers,
   Settings,
   TrendingDown,
   TrendingUp,
-  Upload,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import IconeAnalise from "../components/IconeAnalise";
@@ -21,12 +18,9 @@ export type AbaId =
   | "despesas"
   | "veiculo"
   | "cartoes"
-  | "parcelas"
   | "calendario"
   | "planejamento"
   | "analise"
-  | "transacoes"
-  | "importar"
   | "tvde"
   | "definicoes";
 
@@ -52,15 +46,12 @@ export const ABAS: AbaDef[] = [
   { id: "despesas", rota: "/despesas", titulo: "Despesas", Icone: TrendingDown },
   { id: "veiculo", rota: "/veiculo", titulo: "Veículo", Icone: Car },
   { id: "cartoes", rota: "/cartoes", titulo: "Cartões", Icone: CreditCard },
-  { id: "parcelas", rota: "/parcelas", titulo: "Parcelas", Icone: Layers },
   { id: "calendario", rota: "/calendario", titulo: "Calendário", Icone: CalendarDays },
   // Uma entrada só para o plano inteiro: "Planejamento" e "Metas" eram dois
   // itens do menu a responder à mesma pergunta ("o meu plano está a
   // aguentar?"), e agora são duas abas dentro desta página.
   { id: "planejamento", rota: "/planejamento", titulo: "Planejamento", Icone: ClipboardList },
   { id: "analise", rota: "/analise", titulo: "Análise", Icone: IconeAnalise },
-  { id: "transacoes", rota: "/transacoes", titulo: "Transações", Icone: ListTree },
-  { id: "importar", rota: "/importar", titulo: "Importar", Icone: Upload },
   { id: "tvde", rota: "/tvde", titulo: "TVDE", Icone: CarTaxiFront },
   { id: "definicoes", rota: "/definicoes", titulo: "Definições", Icone: Settings },
 ];
@@ -76,14 +67,11 @@ export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
 
 /** Tudo o que não tem posição fixa na barra vive no menu "Mais". */
 export const ABAS_MENU_MAIS: AbaDef[] = [
-  aba("transacoes"),
   aba("cartoes"),
   aba("calendario"),
   aba("planejamento"),
   aba("analise"),
   aba("veiculo"),
-  aba("parcelas"),
-  aba("importar"),
   aba("tvde"),
   aba("definicoes"),
 ];

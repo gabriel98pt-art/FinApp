@@ -52,35 +52,44 @@
   color: var(--txt);
 }
 
-.lista {
-  composes: listaLegivel from "../styles/listas.module.css";
+.secao {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.totais {
+  color: var(--mut);
+  font-size: var(--fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Uma só superfície de vidro com as parcelas em linhas finas, como a lista de
+   cartões da mesma página (prévia aprovada de 28/10). */
+.lista {
+  composes: vidro from "../styles/vidro.module.css";
+  display: flex;
+  flex-direction: column;
+  padding: 2px 14px;
 }
 
 .parcela {
-  composes: vidro from "../styles/vidro.module.css";
-  padding: 14px 16px;
+  min-height: 56px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
 }
 
-.topo {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+.parcela + .parcela {
+  border-top: 1px solid var(--linha);
 }
 
-/* Corpo clicável do cartão: abre a caixa de edição (item 7). As ações
-   Pagar/Quitar continuam botões irmãos, fora dele. */
+/* Corpo clicável: abre o menu de ações da parcela. */
 .corpo {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   width: 100%;
+  min-height: 56px;
   color: var(--txt);
   text-align: left;
 }
@@ -90,54 +99,78 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .nome {
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--fs-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .detalhe {
   color: var(--mut);
   font-size: var(--fs-label);
-}
-
-/* Contador e barra são INFORMAÇÃO, e repetem-se em cada linha da lista: em
-   acento, N parcelas enchiam a tela de cor e tiravam força ao "+ Nova parcela",
-   que é a ação da tela. O verde do `.quitada` continua — aí quer mesmo dizer
-   "esta acabou". */
-.progresso {
-  font-weight: 800;
-  font-size: var(--fs-title);
-  font-variant-numeric: tabular-nums;
-  color: var(--mut);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.quitada {
-  color: var(--grn);
+.porPagar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.barra {
-  display: block;
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--s2);
-  overflow: hidden;
-}
-
-.preenchido {
-  height: 100%;
-  border-radius: var(--r-pill);
-  background: var(--mut);
-  /* scaleX distorceria o raio de cápsula das pontas numa barra de 6-9px, e
-     o custo de layout de uma barra sem conteúdo é irrelevante. */
-  transition: width var(--dur-enter-lg) var(--ease-enter); /* impeccable-disable-line layout-transition */
-}
-
-.proxima {
+.porPagar small {
+  font-size: var(--fs-micro);
+  font-weight: 400;
   color: var(--mut);
-  font-size: var(--fs-body);
+}
+
+.quitadaTxt {
+  color: var(--grn);
+  font-size: var(--fs-label);
+}
+
+.anel {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+
+.anel svg {
+  display: block;
+}
+
+.anel b {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt);
+}
+
+.anelFundo {
+  stroke: var(--linha);
+}
+
+.anelPreenche {
+  stroke: var(--blu);
+}
+
+.anelQuitada {
+  stroke: var(--grn);
 }
 
 .acoes {
@@ -217,14 +250,6 @@
   color: var(--red);
   font-size: var(--fs-body);
   text-align: center;
-}
-
-.preenchido {
-  display: block;
-}
-
-.proxima {
-  display: block;
 }
 
 /* Gestão da lista de intermediadores — mesmo desenho da lista de locais de

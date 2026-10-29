@@ -197,96 +197,180 @@
   font-size: var(--fs-body);
 }
 
-/* Lista de quadros, um por conta/cartão — débito e crédito (item 13).
-   Uma coluna em qualquer largura: cada conta ocupa a linha inteira, não
-   lado a lado no desktop. */
-.grade {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-/* Nas telas largas os cartões ficam dois a dois dentro das 8 colunas da lista
-   (cada um ocupa 4 da grelha de 12), com o mesmo intervalo de 16px, para as
-   bordas alinharem com o resto da página. */
-@media (min-width: 1024px) {
-  .grade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-}
-
-.quadro {
-  composes: vidro from "../styles/vidro.module.css";
-  display: flex;
-  flex-direction: column;
+.botaoImportar {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  padding: 14px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--brd);
+  background: var(--s1);
   color: var(--txt);
-  text-align: left;
-  transition:
-    transform var(--dur-exit) var(--ease-exit),
-    box-shadow var(--dur-exit) var(--ease-exit);
+  font-size: var(--fs-body);
+  font-weight: 600;
 }
 
-.quadro:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sh-card-hi);
-  transition:
-    transform var(--dur-enter) var(--ease-enter),
-    box-shadow var(--dur-enter) var(--ease-enter);
-}
-
-.quadroTopo {
+.cabecalhoContas {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 6px;
 }
 
-.tipoBadge {
-  flex: none;
-  font-size: var(--fs-micro);
-  font-weight: 700;
+.rotuloContas {
   color: var(--mut);
-  background: var(--s2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+
+.minibotao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 10px;
   border-radius: var(--r-pill);
-  padding: 3px 8px;
-}
-
-/* Rótulo da manchete do quadro ("Saldo atual", "Fatura de julho · a pagar").
-   Colado ao número que descreve — daí o gap negativo contra o `gap: 6px` da
-   coluna: os dois são uma coisa só, e o resto do quadro respira à volta. */
-.quadroRotulo {
+  background: var(--s2);
+  color: var(--blu-txt);
   font-size: var(--fs-label);
   font-weight: 600;
-  color: var(--mut);
-  margin-bottom: -4px;
 }
 
-/* A manchete: o saldo da conta, ou o que falta pagar da fatura fechada. Estava
-   aqui o gasto do mês — o número que menos compromete — enquanto o saldo ia
-   para a linha cinzenta de baixo. */
-.quadroValor {
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: var(--track-display);
-  font-variant-numeric: tabular-nums;
+/* Cartões e contas em linhas finas, numa só superfície de vidro. */
+.contas {
+  composes: vidro from "../styles/vidro.module.css";
+  display: flex;
+  flex-direction: column;
+  padding: 2px 14px;
 }
 
-/* Entre o valor grande e a nota: pesa mais do que a contagem de transações,
-   menos do que a manchete. */
-.quadroEstado {
-  font-size: var(--fs-body);
-  font-weight: 600;
+.conta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
   color: var(--txt);
-  opacity: 0.72;
-  font-variant-numeric: tabular-nums;
+  text-align: left;
 }
 
-.quadroNota {
-  font-size: var(--fs-label);
+.conta + .conta {
+  border-top: 1px solid var(--linha);
+}
+
+.contaIcone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--s2);
   color: var(--mut);
+}
+
+.contaTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.contaNome {
+  font-weight: 600;
+  font-size: var(--fs-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contaSub {
+  color: var(--mut);
+  font-size: var(--fs-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contaValor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.contaValor small {
+  font-size: var(--fs-micro);
+  font-weight: 400;
+  color: var(--mut);
+}
+
+/* iPad/Mac: cartões, parcelas e importar à esquerda, transações à direita. As
+   proporções são fluidas (5:7) — sem larguras fixas, sem rolar na horizontal. */
+.colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Quadro pequeno de importar: arrasta-se o ficheiro ou clica-se para o
+   escolher. */
+.soltar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1.5px dashed var(--blu);
+  border-radius: var(--r-card);
+  color: var(--mut);
+  font-size: var(--fs-label);
+  text-align: center;
+  cursor: pointer;
+}
+
+.soltar b {
+  color: var(--blu-txt);
+  font-size: var(--fs-body);
+}
+
+.soltarArrastando {
+  background: color-mix(in srgb, var(--blu) 10%, transparent);
+}
+
+.soltarOk {
+  color: var(--grn);
+}
+
+.soltarErro {
+  color: var(--red);
+}
+
+.arquivoOculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.importarExplica {
+  color: var(--mut);
+  font-size: var(--fs-body);
+  margin-bottom: 12px;
 }
 
 /* Folha de detalhes da conta */

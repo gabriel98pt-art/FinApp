@@ -9,6 +9,22 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 29/10/2026 (Cartões ganha Transações, Parcelas e Importar)
+
+- **Menos separadores.** Transações, Parcelas e Importar deixaram de ser
+  páginas: vivem dentro de Cartões. O menu passa de 13 para 10 entradas. Os
+  links e atalhos antigos continuam a funcionar e levam à secção certa.
+- **Cartões e contas em linhas finas**, sempre no topo, com um botão
+  Esconder/Mostrar que o app lembra. Crédito mostra a fatura e as datas de
+  fecho e vencimento, quando existem; débito mostra o saldo de hoje.
+- **No iPhone**, por baixo ficam as abas Transações e Parcelas. **No iPad e
+  Mac** não há abas: à esquerda cartões, parcelas e um quadro de importar
+  (arrasta-se o ficheiro), à direita as transações.
+- **Parcelas** num formato novo: círculo 3/6, nome, "cartão · valor/mês" e à
+  direita quanto falta pagar.
+- **Importar** é um botão pequeno ao lado do título. Abre uma janela com a
+  mesma revisão de sempre — nada entra sem confirmar.
+
 ## 29/10/2026 (valor com sinal de mais na importação)
 
 - **Corrigido: linha do extrato descartada quando o valor vinha com "+".**

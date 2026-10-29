@@ -6,7 +6,9 @@
 // a menos, coisa que só se descobre no mês seguinte.
 
 import { afterAll, describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render as renderRtl, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import type { ReactElement } from "react";
 import type { ConfigConta, DespesaCorrente, Transferencia } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import { lista, listaComErro, veiculoVazio } from "../testes/dobras";
@@ -69,6 +71,10 @@ vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => 
 
 const Cartoes = (await import("./Cartoes")).default;
 
+// Cartões lê o `state` da rota (as rotas antigas de Transações/Parcelas/Importar
+// redirecionam para cá).
+const render = (ui: ReactElement) => renderRtl(<MemoryRouter>{ui}</MemoryRouter>);
+
 // O mês exibido está fixo em agosto/2026 nos mocks; o relógio tem de o
 // acompanhar, senão "(em formação)" — que compara o mês exibido com o de hoje —
 // mudava de resposta conforme o dia em que a suíte corre.
@@ -84,10 +90,21 @@ beforeEach(() => {
 });
 
 describe("Cartoes", () => {
-  test("monta e mostra os KPIs da fatura", () => {
+  test("monta e mostra a lista de cartões e contas", () => {
     render(<Cartoes />);
     expect(screen.getByRole("heading", { name: "Cartões" })).toBeInTheDocument();
-    expect(screen.getByText("A pagar este mês")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cartões e contas" })).toBeInTheDocument();
+  });
+
+  test("Esconder recolhe a lista numa linha e Mostrar traz-a de volta", () => {
+    render(<Cartoes />);
+    fireEvent.click(screen.getByRole("button", { name: /Esconder/ }));
+    expect(
+      screen.queryByRole("button", { name: new RegExp(CARTAO.replace(/[()]/g, ".")) }),
+    ).toBeNull();
+    expect(screen.getByRole("heading", { name: /1 escondidos/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Mostrar/ }));
+    expect(screen.getByRole("button", { name: /Fatura/ })).toBeInTheDocument();
   });
 
   test("sem contas configuradas: convida a adicionar a primeira", () => {
@@ -96,23 +113,27 @@ describe("Cartoes", () => {
     expect(screen.getByText("Nenhuma conta ou cartão")).toBeInTheDocument();
   });
 
-  test("com conta: mostra o quadro dela", () => {
+  test("com conta: mostra a linha dela", () => {
     render(<Cartoes />);
-    // O quadro é o botão que abre os detalhes. (Nada de `new RegExp(nome)`: os
+    // A linha é o botão que abre os detalhes. (Nada de `new RegExp(nome)`: os
     // parênteses do nome virariam grupo de captura e deixavam de casar com o
     // literal.)
-    const quadros = screen
+    const linhas = screen
       .getAllByRole("button")
-      .filter((b) => b.textContent?.includes(CARTAO) && b.textContent?.includes("crédito"));
-    expect(quadros).toHaveLength(1);
+      .filter((b) => b.textContent?.includes(CARTAO) && b.textContent?.includes("Fatura"));
+    expect(linhas).toHaveLength(1);
   });
 
-  // 01/09/2026: a seção "Cartões e contas" (pílulas + menu "⋯" + dias de
-  // fatura) saiu daqui inteira para Definições. Esta tela ficou só com o que
-  // se LÊ — KPIs, quadros, faturas e transferências.
+  test("crédito mostra o fecho e o vencimento quando existem", () => {
+    cfg = { ...cfg, diaFechamentoFatura: { [CARTAO]: 5 }, diaVencimentoFatura: { [CARTAO]: 12 } };
+    render(<Cartoes />);
+    expect(screen.getByText("Fatura · fecha dia 5 · vence dia 12")).toBeInTheDocument();
+  });
+
+  // 01/09/2026: a gestão das contas (pílulas + menu "⋯" + dias de fatura) saiu
+  // daqui inteira para Definições. Esta tela ficou só com o que se LÊ.
   test("não gere mais contas: a seção e as ações dela saíram da tela", () => {
     render(<Cartoes />);
-    expect(screen.queryByText("Cartões e contas")).toBeNull();
     expect(screen.queryByRole("button", { name: `Ações de ${CARTAO}` })).toBeNull();
     expect(screen.queryByLabelText(/Dia de fechamento da fatura/)).toBeNull();
     expect(screen.queryByLabelText(/Dia de vencimento da fatura/)).toBeNull();
@@ -164,20 +185,19 @@ describe("Cartoes", () => {
       },
     ]);
     render(<Cartoes />);
-    const quadro = screen
+    const linha = screen
       .getAllByRole("button")
-      .find((b) => b.textContent?.includes("Fatura de agosto 2026 · a pagar"))!;
-    expect(quadro.textContent).toContain("Fatura de agosto 2026 · a pagar€ 100,00");
-    // O valor leva espaços sem quebra (não parte a meio numa linha estreita).
-    expect(quadro.textContent?.replace(/\u00a0/g, " ")).toContain(
-      "Fatura de setembro 2026 (em formação): € 25,00",
-    );
+      .find((b) => b.textContent?.includes(CARTAO) && b.textContent?.includes("a pagar"))!;
+    expect(linha.textContent?.replace(/\u00a0/g, " ")).toContain("€ 100,00a pagar");
+    // Abrir a linha diz de que fatura é cada valor.
+    fireEvent.click(linha);
+    expect(screen.getByText("Fatura de agosto 2026")).toBeInTheDocument();
+    expect(screen.getByText("Fatura de setembro 2026 (em formação)")).toBeInTheDocument();
   });
 
-  // A hierarquia invertida do quadro de débito: o movimento do mês (−57,00 no
-  // exemplo da auditoria) vinha grande e o saldo de 4.657,00 pequeno, o que faz
-  // uma conta com dinheiro parecer negativa.
-  test("na conta de débito o saldo é a manchete e o gasto do mês o detalhe", () => {
+  // A conta de débito mostra o SALDO (4.657,00 no exemplo da auditoria), nunca o
+  // movimento do mês (−57,00), que fazia uma conta com dinheiro parecer negativa.
+  test("na conta de débito a linha mostra o saldo de hoje", () => {
     cfg = {
       ...CONFIG_PADRAO,
       contasCartoes: [CONTA],
@@ -195,35 +215,10 @@ describe("Cartoes", () => {
       },
     ]);
     render(<Cartoes />);
-    const quadro = screen
+    const linha = screen
       .getAllByRole("button")
-      .find((b) => b.textContent?.includes("Saldo atual"))!;
-    // O saldo vem antes do gasto no texto do quadro — é ele a manchete.
-    expect(quadro.textContent?.replace(/\u00a0/g, " ")).toMatch(
-      /Saldo atual€ 4\.657,00Gasto em agosto 2026: € 57,00/,
-    );
-  });
-
-  test("gasto negativo do mês é dito como devolução, não como saldo a menos", () => {
-    cfg = {
-      ...CONFIG_PADRAO,
-      contasCartoes: [CONTA],
-      tipoCartao: { [CONTA]: "debit" },
-      saldosIniciais: { [CONTA]: 100000 },
-    };
-    despesas = lista<DespesaCorrente>([
-      {
-        id: "d1",
-        descricao: "Reembolso do jantar",
-        valor: -7500,
-        data: "2026-08-16",
-        categoria: "Restaurante",
-        contaCartao: CONTA,
-        origem: "reemb",
-      },
-    ]);
-    render(<Cartoes />);
-    expect(screen.getByText("Devolvido em agosto 2026: € 75,00")).toBeInTheDocument();
+      .find((b) => b.textContent?.includes("Saldo de hoje"))!;
+    expect(linha.textContent?.replace(/\u00a0/g, " ")).toContain("€ 4.657,00");
   });
 
   // O centro da Fase C: renomear passou a mexer num campo só (o nome da
@@ -250,12 +245,12 @@ describe("Cartoes", () => {
       ]);
     });
 
-    test("o quadro da conta mostra o nome novo", () => {
+    test("a linha da conta mostra o nome novo", () => {
       render(<Cartoes />);
-      const quadro = screen
+      const linha = screen
         .getAllByRole("button")
-        .find((b) => b.textContent?.includes("crédito") && b.textContent?.includes("Gold Novo"));
-      expect(quadro).toBeDefined();
+        .find((b) => b.textContent?.includes("Fatura") && b.textContent?.includes("Gold Novo"));
+      expect(linha).toBeDefined();
       expect(screen.queryByText(CARTAO)).toBeNull();
     });
 

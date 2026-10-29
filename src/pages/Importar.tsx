@@ -1,7 +1,6 @@
 import { CircleCheck, Upload } from "lucide-react";
-import Pagina, { EstadoVazio } from "../components/Pagina";
-import { useMediaQuery } from "../hooks/useMediaQuery";
-import { useImportacao } from "./importar/useImportacao";
+import { EstadoVazio } from "../components/Pagina";
+import type { useImportacao } from "./importar/useImportacao";
 import ImportacaoEntrada from "./importar/ImportacaoEntrada";
 import ImportacaoResumo from "./importar/ImportacaoResumo";
 import ImportacaoToolbar from "./importar/ImportacaoToolbar";
@@ -11,23 +10,19 @@ import ConfirmacaoImportacao from "./importar/ConfirmacaoImportacao";
 import { plural } from "./importar/agrupamento";
 import styles from "./Importar.module.css";
 
-/** A partir desta largura a revisão é mestre-detalhe (lista + editor lado a
- *  lado). Abaixo, a linha abre por baixo dela. 1024px é onde, já com a barra
- *  lateral, sobra largura para as duas colunas sem apertar nenhuma. */
-const MESTRE_DETALHE = "(min-width: 1024px)";
-
-/** Página Importar: só monta os pedaços. Toda a lógica e a ligação às stores
- *  vivem em `useImportacao`; os componentes de `./importar/` só recebem props.
+/** O fluxo de importar, hoje dentro da folha aberta a partir de Cartões (era a
+ *  página /importar). Só monta os pedaços: toda a lógica e a ligação às stores
+ *  vivem em `useImportacao`, que quem abre a folha chama UMA vez — o quadro de
+ *  arrastar de Cartões e esta folha partilham o mesmo estado. A revisão é
+ *  sempre em linha: a folha não tem largura para lista + editor lado a lado.
  *
  *  Fluxo único: escolher o extrato → revisão → confirmação → sucesso (com
  *  desfazer). */
-export default function Importar() {
-  const imp = useImportacao();
+export default function FluxoImportar({ imp }: { imp: ReturnType<typeof useImportacao> }) {
   const { linhas } = imp;
-  const mestreDetalhe = useMediaQuery(MESTRE_DETALHE);
 
   return (
-    <Pagina titulo="Importar" estreita={linhas === null || linhas.length === 0}>
+    <>
       {/* Escape hatch sempre visível: o rascunho fica guardado entre trocas de
           aba e até um refresh (ver `importacaoStore`), então precisa de uma
           saída igualmente sempre à mão — sem isto, um extrato que ficasse num
@@ -112,7 +107,7 @@ export default function Importar() {
 
           <RevisaoImportacao
             linhas={linhas}
-            modo={mestreDetalhe ? "detalhe" : "inline"}
+            modo="inline"
             filtro={imp.filtro}
             cfg={imp.cfg}
             cargasVeiculo={imp.cargasVeiculo}
@@ -147,6 +142,6 @@ export default function Importar() {
         onMarcarParaApagar={imp.marcarParaApagar}
         onImportarMesmoAssim={imp.importarMesmoAssim}
       />
-    </Pagina>
+    </>
   );
 }

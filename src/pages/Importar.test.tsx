@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-// Importar é a tela onde a pessoa decide o que entra nas contas dela a partir
+// O fluxo de importar (folha de Cartões) é onde a pessoa decide o que entra nas contas dela a partir
 // de um extrato. Os selos de confiança e os filtros são o que orienta essa
 // decisão — e os filtros foram o quarto sítio a receber o padrão de abas.
 
@@ -70,7 +70,14 @@ vi.mock("../hooks/useConfirmar", () => ({ useConfirmar: () => vi.fn(async () => 
 const mostrarToast = vi.hoisted(() => vi.fn());
 vi.mock("../stores/toastStore", () => ({ mostrarToast }));
 
-const Importar = (await import("./Importar")).default;
+const FluxoImportar = (await import("./Importar")).default;
+const { useImportacao } = await import("./importar/useImportacao");
+
+/** Como em Cartões: quem abre a folha chama o hook uma vez e passa-o ao fluxo. */
+function Importar() {
+  const imp = useImportacao();
+  return <FluxoImportar imp={imp} />;
+}
 const { confirmarImportacao } = await import("../services/importacaoService");
 
 /** Constrói a linha com a própria `analisarLinha` em vez de a inventar à mão.
@@ -132,7 +139,6 @@ describe("Importar", () => {
   test("monta e mostra a área de escolher o extrato", () => {
     linhas = null;
     render(<Importar />);
-    expect(screen.getByRole("heading", { name: "Importar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Carregar arquivo/ })).toBeInTheDocument();
   });
 

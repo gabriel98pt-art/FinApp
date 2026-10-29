@@ -50,14 +50,14 @@ describe("MobileNav — módulo Veículo", () => {
     cfg = { ...CONFIG_PADRAO, showVeiculo: false };
     desenhar();
     expect(screen.queryByRole("link", { name: /Veículo/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Transações/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Cartões/ })).toBeInTheDocument();
   });
 });
 
 describe("MobileNav — menu Mais", () => {
   test("fechado por omissão: o menu é inert", () => {
     desenhar();
-    const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
+    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
     expect(menu).toHaveAttribute("inert");
   });
 
@@ -65,7 +65,7 @@ describe("MobileNav — menu Mais", () => {
     desenhar();
     fireEvent.click(screen.getByRole("button", { name: "Mais abas" }));
 
-    const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
+    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
     expect(menu).not.toHaveAttribute("inert");
   });
 
@@ -75,7 +75,7 @@ describe("MobileNav — menu Mais", () => {
     const veu = container.querySelector('[aria-hidden="true"]')!;
     fireEvent.click(veu);
 
-    const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
+    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
     expect(menu).toHaveAttribute("inert");
   });
 });
@@ -86,7 +86,7 @@ describe("MobileNav — menu Mais", () => {
 describe("MobileNav — ações de desfazer/refazer", () => {
   test("estão no menu Mais, e no mesmo <div> das abas (é dele que vem o inert)", () => {
     desenhar();
-    const menu = screen.getByRole("link", { name: /Transações/ }).closest("div")!;
+    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
     expect(menu).toContainElement(screen.getByRole("button", { name: "Desfazer" }));
     expect(menu).toContainElement(screen.getByRole("button", { name: "Refazer" }));
   });

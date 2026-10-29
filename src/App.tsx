@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Login from "./pages/Login";
 import { useAuthStore } from "./stores/authStore";
@@ -18,6 +18,15 @@ import { useCapturarErros } from "./hooks/useCapturarErros";
 // Login (nunca chega a AppShell) incluía tudo isso — 606 KB de JS medidos ao
 // vivo, boa parte deles nem usados. Lazy como as páginas: só entra no
 // carregamento inicial de quem já está logado.
+/** Transações, Parcelas e Importar passaram a viver dentro de Cartões. As rotas
+ *  antigas continuam a existir e levam à aba certa, levando junto o state que
+ *  quem navegou mandou (ex.: a categoria do donut) — links guardados, o sino
+ *  de notificações e os atalhos antigos não partem. */
+function IrParaCartoes({ aba, importar }: { aba?: "transacoes" | "parcelas"; importar?: boolean }) {
+  const { state } = useLocation();
+  return <Navigate to="/cartoes" replace state={{ ...(state as object | null), aba, importar }} />;
+}
+
 const AppShell = lazy(() => import("./layout/AppShell"));
 
 // Lazy loading por página (seção 8 — performance)
@@ -26,12 +35,9 @@ const Receitas = lazy(() => import("./pages/Receitas"));
 const Despesas = lazy(() => import("./pages/Despesas"));
 const Veiculo = lazy(() => import("./pages/Veiculo"));
 const Cartoes = lazy(() => import("./pages/Cartoes"));
-const Parcelas = lazy(() => import("./pages/Parcelas"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Planejamento = lazy(() => import("./pages/Planejamento"));
 const Analise = lazy(() => import("./pages/Analise"));
-const Transacoes = lazy(() => import("./pages/Transacoes"));
-const Importar = lazy(() => import("./pages/Importar"));
 const Tvde = lazy(() => import("./pages/Tvde"));
 const Definicoes = lazy(() => import("./pages/Definicoes"));
 
@@ -105,11 +111,11 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
             <Route path="/despesas" element={<Despesas />} />
             <Route path="/veiculo" element={<RotaVeiculo />} />
             <Route path="/cartoes" element={<Cartoes />} />
-            <Route path="/parcelas" element={<Parcelas />} />
+            <Route path="/parcelas" element={<IrParaCartoes aba="parcelas" />} />
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/planejamento" element={<Planejamento />} />
             <Route path="/analise" element={<Analise />} />
-            <Route path="/transacoes" element={<Transacoes />} />
+            <Route path="/transacoes" element={<IrParaCartoes aba="transacoes" />} />
             {/* Metas passou a ser uma aba de Planejamento (as duas telas
                 respondiam à mesma pergunta). A rota antiga continua a existir
                 e leva à aba certa — links guardados, o ecrã inicial do PWA e
@@ -118,7 +124,7 @@ function Conteudo({ status }: { status: ReturnType<typeof useAuthStore.getState>
               path="/metas"
               element={<Navigate to="/planejamento" replace state={{ aba: "metas" }} />}
             />
-            <Route path="/importar" element={<Importar />} />
+            <Route path="/importar" element={<IrParaCartoes importar />} />
             <Route path="/tvde" element={<RotaTvde />} />
             <Route path="/definicoes" element={<Definicoes />} />
             <Route path="*" element={<Navigate to="/" replace />} />

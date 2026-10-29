@@ -45,7 +45,14 @@ vi.mock("../../services/importacaoService", async (original) => ({
   apagarExistentes: (...a: unknown[]) => apagarExistentes(...a),
 }));
 
-const Importar = (await import("../Importar")).default;
+const FluxoImportar = (await import("../Importar")).default;
+const { useImportacao } = await import("./useImportacao");
+
+/** Como em Cartões: quem abre a folha chama o hook uma vez e passa-o ao fluxo. */
+function Importar() {
+  const imp = useImportacao();
+  return <FluxoImportar imp={imp} />;
+}
 const { useImportacaoStore } = await import("../../stores/importacaoStore");
 const { useHistoricoStore } = await import("../../stores/historicoStore");
 
@@ -230,29 +237,9 @@ describe("duplicatas: excluir o existente é secundário e pede confirmação pr
   });
 });
 
+// A revisão em mestre-detalhe (lista + editor lado a lado) deixou de ser usada: a
+// importação vive numa folha de Cartões, sem largura para as duas colunas.
 describe("composição por largura", () => {
-  test("desktop: mestre-detalhe — o editor da primeira linha de Atenção já aberto ao lado", async () => {
-    simularLargura(true);
-    cfg = { ...CONFIG_PADRAO, contasCartoes: ["Revolut"] };
-    useImportacaoStore
-      .getState()
-      .setLinhas([linha({}, 1), { ...linha({ descricao: "FARMACIA" }, 2), acao: "skip" }]);
-    render(<Importar />);
-
-    expect(screen.getByRole("group", { name: "Editar MERCADO CONTINENTE" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /MERCADO CONTINENTE.*Falta conta/ })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-
-    // Escolher a conta não faz a linha fugir do grupo a meio da edição.
-    await userEvent.click(screen.getByRole("button", { name: "Conta ou cartão" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Revolut" }));
-    expect(screen.getByRole("button", { name: /^MERCADO CONTINENTE/ })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Editar MERCADO CONTINENTE" })).toBeInTheDocument();
-    expect(useImportacaoStore.getState().linhas?.[0].contaEscolhida).toBe("Revolut");
-  });
-
   test("telemóvel: a linha abre por baixo dela, uma de cada vez", async () => {
     cfg = { ...CONFIG_PADRAO, contasCartoes: ["Revolut"] };
     useImportacaoStore.getState().setLinhas([linha({}, 1), linha({ descricao: "FARMACIA" }, 2)]);

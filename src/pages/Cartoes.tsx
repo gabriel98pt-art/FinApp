@@ -1,7 +1,18 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowLeftRight, CreditCard, Pencil, Plus, Trash2, X } from "lucide-react";
-import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
-import KpiCard from "../components/KpiCard";
+import {
+  ArrowLeftRight,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Landmark,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import { useLocation } from "react-router-dom";
+import Pagina, { EstadoVazio } from "../components/Pagina";
 import BottomSheet from "../components/BottomSheet";
 import CampoMoeda from "../components/CampoMoeda";
 import CampoValorDestaque from "../components/CampoValorDestaque";
@@ -17,7 +28,9 @@ import {
   removerTransferencia,
 } from "../services/lancamentosService";
 import { useConfirmar } from "../hooks/useConfirmar";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useUidSessao } from "../hooks/useUidSessao";
+import { useCartoesVistaStore } from "../stores/cartoesVistaStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import {
@@ -37,7 +50,6 @@ import type {
   Id,
   Parcela,
   Transferencia,
-  YearMonth,
 } from "../types";
 import {
   doMes,
@@ -59,9 +71,14 @@ import {
   type DadosContas,
   type ResumoConta,
 } from "../utils/contas";
-import { formatMoney, semQuebra } from "../utils/money";
+import { formatMoney } from "../utils/money";
 import { debitoDaMesmaInstituicao, nomeAtualDoMetodo } from "../utils/instituicoes";
+import FluxoImportar from "./Importar";
+import { useImportacao } from "./importar/useImportacao";
+import SecaoParcelas from "./Parcelas";
+import SecaoTransacoes from "./Transacoes";
 import styles from "./Cartoes.module.css";
+import segmentado from "../styles/segmentado.module.css";
 import Botao from "../components/Botao";
 
 /** Controles de fatura do cartão de crédito — agora vivem DENTRO da folha de
@@ -200,64 +217,6 @@ function ControlesFatura({
   );
 }
 
-/** As duas leituras de um quadro de conta, já na ordem certa de leitura.
- *
- *  A manchete é sempre a POSIÇÃO REAL — quanto a conta tem (débito) ou quanto
- *  se deve mesmo agora (crédito) —, e o movimento do período fica em segundo
- *  plano. Estava ao contrário: o quadro da Conta Principal punha em destaque o
- *  gasto do mês (ex. "€ -57,00") e escondia o saldo de "€ 4.657,00" numa linha
- *  cinzenta, o que faz uma conta com quatro mil euros parecer negativa.
- *
- *  E cada número passa a dizer de que janela de tempo é. Um cartão de crédito
- *  tem duas faturas vivas ao mesmo tempo e elas nunca batem certo: a do mês
- *  exibido (ciclo do mês anterior, já fechada — é a que se paga agora) e a do
- *  mês seguinte, que os gastos do mês exibido ainda estão a formar. Sem rótulo,
- *  eram dois números soltos a competir pelo mesmo nome de "fatura". */
-function leiturasDoQuadro(
-  r: ResumoConta,
-  fatura: FaturaCalculada | null,
-  faturaSeguinte: FaturaCalculada | null,
-  mes: YearMonth,
-  moeda: Currency,
-): { rotulo: string; valor: string; tom: string; secundario: string } {
-  const proximo = somarMeses(mes, 1);
-
-  if (r.tipo === "credit") {
-    const devido = fatura?.devido ?? 0;
-    const restante = fatura?.restante ?? 0;
-    // "Em formação" só enquanto o ciclo não fechou: olhando para um mês
-    // passado, a fatura seguinte já está fechada há muito.
-    const emFormacao = mes >= mesAtual();
-    return {
-      rotulo:
-        devido > 0 && restante === 0
-          ? `Fatura de ${rotuloMes(mes)} · paga`
-          : `Fatura de ${rotuloMes(mes)} · a pagar`,
-      valor: formatMoney(restante, moeda),
-      tom: restante > 0 ? styles.amarelo : styles.verde,
-      secundario: `Fatura de ${rotuloMes(proximo)}${emFormacao ? " (em formação)" : ""}: ${semQuebra(
-        formatMoney(faturaSeguinte?.devido ?? 0, moeda),
-      )}`,
-    };
-  }
-
-  return {
-    rotulo: "Saldo atual",
-    valor: formatMoney(r.saldoAtual, moeda),
-    // Positivo fica no cinza normal do texto: quem precisa de aviso é o saldo
-    // negativo, não o que está em ordem.
-    tom: r.saldoAtual < 0 ? styles.vermelho : "",
-    secundario:
-      r.gastoMes > 0
-        ? `Gasto em ${rotuloMes(mes)}: ${semQuebra(formatMoney(r.gastoMes, moeda))}`
-        : r.gastoMes < 0
-          ? // Gasto negativo é dinheiro que voltou (reembolso, estorno) — chamar
-            // isso de "gasto de −57,00" era pedir para ser lido como dívida.
-            `Devolvido em ${rotuloMes(mes)}: ${formatMoney(-r.gastoMes, moeda)}`
-          : `Sem gastos em ${rotuloMes(mes)}`,
-  };
-}
-
 /** Uma linha de transferência — item 2 do lote de UX/nav (30/08): a linha
  *  inteira abre o menu único (Editar/Excluir), em vez de ir direto pro
  *  formulário. */
@@ -323,8 +282,25 @@ function calcularPagamentos(fatura: FaturaCalculada) {
   return pagamentosDaFatura(cfg.faturasPagas?.[fatura.cartao]?.[fatura.mes]);
 }
 
+/** Do tamanho de um iPad em pé para cima não há abas: tudo fica à vista. */
+const ECRA_LARGO = "(min-width: 768px)";
+
 export default function Cartoes() {
   const uid = useUidSessao();
+  const largo = useMediaQuery(ECRA_LARGO);
+  // Transações, Parcelas e Importar eram páginas; as rotas antigas levam aqui
+  // com o `state` que diz qual abrir (ver `IrParaCartoes` em App.tsx).
+  const pedido = useLocation().state as {
+    aba?: "transacoes" | "parcelas";
+    importar?: boolean;
+  } | null;
+  const [aba, setAba] = useState<"transacoes" | "parcelas">(pedido?.aba ?? "transacoes");
+  const [importarAberto, setImportarAberto] = useState(pedido?.importar === true);
+  // Uma só instância: o quadro de arrastar e a folha partilham o mesmo estado.
+  const imp = useImportacao();
+  const arquivoRef = useRef<HTMLInputElement>(null);
+  const contasEscondidas = useCartoesVistaStore((s) => s.contasEscondidas);
+  const alternarContas = useCartoesVistaStore((s) => s.alternarContas);
   const confirmar = useConfirmar();
   const cfg = useCfgStore((s) => s.cfg);
   const cfgCarregada = useCfgStore((s) => s.carregado);
@@ -466,14 +442,6 @@ export default function Cartoes() {
     resumoAberto?.tipo === "credit"
       ? (faturasSeguintes.find((f) => f.cartao === resumoAberto.conta) ?? null)
       : null;
-  const totalDevido = faturas.reduce((s, f) => s + f.devido, 0);
-  const totalPago = faturas.reduce((s, f) => s + f.pago, 0);
-  const totalRestante = faturas.reduce((s, f) => s + f.restante, 0);
-  // Soma do saldo de caixa das contas de débito — cartões de crédito não têm
-  // saldo próprio, só fatura (já coberta por Devido/Pago/Restante acima).
-  const saldoEmContas = resumos
-    .filter((r) => r.tipo !== "credit")
-    .reduce((s, r) => s + r.saldoAtual, 0);
 
   function abrirNovaTransferencia() {
     setTfEditandoId(null);
@@ -617,44 +585,125 @@ export default function Cartoes() {
     }
   }
 
-  return (
-    <Pagina
-      titulo="Cartões"
-      painel={
-        <>
-          <Kpis pagina="cartoes">
-            {/* O rótulo sozinho deixa supor que é o que se gastou no mês; é a
-            fatura DESTE mês, que cobra o ciclo do mês anterior. */}
-            <KpiCard
-              rotulo="A pagar este mês"
-              // A escolha de KPIs em Definições é guardada por este texto: mudar
-              // só o rótulo visível deixaria de casar com quem já escolheu este
-              // cartão, e a página cairia nos 2 primeiros. `chave` mantém o nome
-              // antigo do lado dos dados, onde ninguém o lê.
-              chave="Devido no mês"
-              valor={formatMoney(totalDevido, cfg.currency)}
-              sub={`ciclo de ${rotuloMes(cicloDaFatura(mes))}`}
-              tom="acento"
-            />
-            <KpiCard rotulo="Pago" valor={formatMoney(totalPago, cfg.currency)} tom="verde" />
-            <KpiCard
-              rotulo="Restante"
-              valor={formatMoney(totalRestante, cfg.currency)}
-              tom="amarelo"
-            />
-            <KpiCard
-              rotulo="Saldo em contas"
-              valor={formatMoney(saldoEmContas, cfg.currency)}
-              // Era "laranja" — a cor do TVDE (--lrj), que por design não é uma
-              // das 5 personalizáveis em Definições. "Saldo em contas" não tem
-              // nada a ver com TVDE; "acento" combina com "A pagar este mês" ao
-              // lado, outro total informativo (achado da auditoria de Design).
-              tom="acento"
-            />
-          </Kpis>
-        </>
-      }
+  const botaoImportar = (
+    <button type="button" className={styles.botaoImportar} onClick={() => setImportarAberto(true)}>
+      <Upload size={15} aria-hidden /> Importar
+    </button>
+  );
+
+  const contas = (
+    <section aria-label="Cartões e contas">
+      <div className={styles.cabecalhoContas}>
+        <h3 className={styles.rotuloContas}>
+          Cartões e contas
+          {contasEscondidas ? ` · ${resumos.length} escondidos` : ""}
+        </h3>
+        <button
+          type="button"
+          className={styles.minibotao}
+          onClick={alternarContas}
+          aria-expanded={!contasEscondidas}
+        >
+          {contasEscondidas ? "Mostrar" : "Esconder"}
+          {contasEscondidas ? (
+            <ChevronDown size={14} aria-hidden />
+          ) : (
+            <ChevronUp size={14} aria-hidden />
+          )}
+        </button>
+      </div>
+      {!contasEscondidas && (
+        <div className={styles.contas}>
+          {resumos.map((r) => {
+            const fatura = faturas.find((f) => f.cartao === r.conta) ?? null;
+            const credito = r.tipo === "credit";
+            const fecha = cfg.diaFechamentoFatura?.[r.conta];
+            const vence = cfg.diaVencimentoFatura?.[r.conta];
+            const paga = (fatura?.devido ?? 0) > 0 && (fatura?.restante ?? 0) === 0;
+            return (
+              <button
+                key={r.conta}
+                type="button"
+                className={styles.conta}
+                onClick={() => setContaAberta(r.conta)}
+              >
+                <span className={styles.contaIcone} aria-hidden>
+                  {credito ? <CreditCard size={16} /> : <Landmark size={16} />}
+                </span>
+                <span className={styles.contaTexto}>
+                  <span className={styles.contaNome}>{nomeDe(r.conta)}</span>
+                  <span className={styles.contaSub}>
+                    {credito
+                      ? `Fatura${fecha ? ` · fecha dia ${fecha}` : ""}${vence ? ` · vence dia ${vence}` : ""}`
+                      : "Saldo de hoje"}
+                  </span>
+                </span>
+                <span
+                  className={`${styles.contaValor} ${!credito && r.saldoAtual < 0 ? styles.vermelho : ""}`}
+                >
+                  {formatMoney(credito ? (fatura?.restante ?? 0) : r.saldoAtual, cfg.currency)}
+                  {credito && <small>{paga ? "paga" : "a pagar"}</small>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+
+  const quadroImportar = (
+    <div
+      role="button"
+      tabIndex={0}
+      className={`${styles.soltar} ${imp.arrastando ? styles.soltarArrastando : ""}`}
+      onClick={() => arquivoRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          arquivoRef.current?.click();
+        }
+      }}
+      onDragOver={imp.aoArrastarPorCima}
+      onDragLeave={imp.aoSairDoArrasto}
+      onDrop={(e) => {
+        imp.aoSoltar(e);
+        setImportarAberto(true);
+      }}
+      aria-busy={imp.lendoPdf}
     >
+      <Upload size={16} aria-hidden />
+      <b>Importar extrato</b>
+      {imp.lendoPdf ? (
+        <span>A ler o ficheiro…</span>
+      ) : imp.arrastando ? (
+        <span>Solte para importar</span>
+      ) : imp.mostrandoImportado ? (
+        <span className={styles.soltarOk}>✓ Importado</span>
+      ) : imp.linhas !== null && imp.linhas.length === 0 ? (
+        <span className={styles.soltarErro}>Nenhuma linha reconhecida — tente outro ficheiro</span>
+      ) : imp.linhas !== null ? (
+        <span>Há uma importação por rever — clique para continuar</span>
+      ) : (
+        <span>Arraste o ficheiro do banco para aqui ou clique para escolher</span>
+      )}
+      <input
+        ref={arquivoRef}
+        type="file"
+        accept=".csv,.txt,.pdf,text/csv,text/plain,application/pdf"
+        className={styles.arquivoOculto}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => {
+          imp.aoCarregarArquivo(e);
+          setImportarAberto(true);
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <Pagina titulo="Cartões" acao={botaoImportar}>
       {/* Compacta: os cartões e as faturas continuam a valer e a ser úteis —
           o que se perdeu foi a garantia de que os valores estão completos. */}
       {erroValores && <ErroSincronizacao compacto mensagem="Alguns valores não sincronizaram" />}
@@ -667,44 +716,43 @@ export default function Cartoes() {
           // formulário saíram desta tela e a instrução tem de dizer para onde.
           sub="Crie a primeira em Definições → Contas e cartões."
         />
-      ) : (
-        <div className={styles.grade}>
-          {resumos.map((r) => {
-            const leituras = leiturasDoQuadro(
-              r,
-              faturas.find((f) => f.cartao === r.conta) ?? null,
-              faturasSeguintes.find((f) => f.cartao === r.conta) ?? null,
-              mes,
-              cfg.currency,
-            );
-            return (
-              <button
-                key={r.conta}
-                className={styles.quadro}
-                onClick={() => setContaAberta(r.conta)}
-              >
-                <span className={styles.quadroTopo}>
-                  <span className={styles.nome}>{nomeDe(r.conta)}</span>
-                  <span className={styles.tipoBadge}>
-                    {r.tipo === "credit" ? "crédito" : "débito"}
-                  </span>
-                </span>
-                {/* Manchete: o saldo da conta, ou o que falta pagar da fatura
-                    já fechada. O rótulo vem ANTES do número — sem ele, um
-                    valor de cartão não diz de que fatura é. */}
-                <span className={styles.quadroRotulo}>{leituras.rotulo}</span>
-                <span className={`${styles.quadroValor} ${leituras.tom}`}>{leituras.valor}</span>
-                {/* Segunda leitura, de propósito mais pequena: o movimento do
-                    período, que ainda não é uma obrigação a pagar. */}
-                <span className={styles.quadroEstado}>{leituras.secundario}</span>
-                <span className={styles.quadroNota}>
-                  {r.transacoesMes} {r.transacoesMes === 1 ? "transação" : "transações"} em{" "}
-                  {rotuloMes(mes)}
-                </span>
-              </button>
-            );
-          })}
+      ) : largo ? (
+        // iPad/Mac: sem abas. À esquerda cartões, parcelas e importar; à
+        // direita as transações. Proporções fluidas, sem larguras fixas.
+        <div className={styles.colunas}>
+          <div className={styles.coluna}>
+            {contas}
+            <SecaoParcelas />
+            {quadroImportar}
+          </div>
+          <div className={styles.coluna}>
+            <SecaoTransacoes />
+          </div>
         </div>
+      ) : (
+        <>
+          {contas}
+          <div className={segmentado.abas} role="tablist" aria-label="Transações e parcelas">
+            {(
+              [
+                ["transacoes", "Transações"],
+                ["parcelas", "Parcelas"],
+              ] as const
+            ).map(([id, nome]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={aba === id}
+                className={`${segmentado.abaBotao} ${aba === id ? segmentado.abaAtiva : ""}`}
+                onClick={() => setAba(id)}
+              >
+                {nome}
+              </button>
+            ))}
+          </div>
+          {aba === "transacoes" ? <SecaoTransacoes /> : <SecaoParcelas />}
+        </>
       )}
 
       <div className={styles.cabecalhoLista}>
@@ -978,6 +1026,18 @@ export default function Cartoes() {
             </button>
           )}
         </form>
+      </BottomSheet>
+
+      <BottomSheet
+        aberta={importarAberto}
+        aoFechar={() => setImportarAberto(false)}
+        titulo="Importar extrato"
+      >
+        <p className={styles.importarExplica}>
+          Traz os movimentos do banco para o app, sem os escrever um a um. Antes de importar, revê
+          tudo: nada entra sem confirmares.
+        </p>
+        <FluxoImportar imp={imp} />
       </BottomSheet>
     </Pagina>
   );
