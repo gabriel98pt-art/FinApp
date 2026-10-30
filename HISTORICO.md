@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Planejamento → Metas: num mês que ainda não começou o selo da meta diz
+  «Ainda não começou» (antes dizia «Fora da meta», como se já tivesse
+  falhado).
 - Planejamento → Metas: a taxa de poupança mostra «—» quando o mês não tem
   receitas (antes mostrava 0%, que se lê como «não poupou»). Em défice
   continua 0%.

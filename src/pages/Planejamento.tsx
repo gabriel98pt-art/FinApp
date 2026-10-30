@@ -225,9 +225,11 @@ export default function Planejamento() {
     ? meta.atingiu
       ? "Atingido"
       : "Não atingido"
-    : meta.atingiu
-      ? "Na meta"
-      : "Fora da meta";
+    : mes > real
+      ? "Ainda não começou"
+      : meta.atingiu
+        ? "Na meta"
+        : "Fora da meta";
 
   return (
     <Pagina titulo="Planejamento">

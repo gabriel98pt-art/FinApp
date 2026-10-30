@@ -390,6 +390,13 @@ describe("aba Metas", () => {
     expect(coluna.style.getPropertyValue("--_cor")).toBe("var(--grn)");
   });
 
+  test("mês futuro: o selo diz que ainda não começou, não «Fora da meta»", async () => {
+    mesVisivel = "2099-01";
+    await montarNasMetas();
+    expect(screen.getByText("Ainda não começou")).toBeInTheDocument();
+    expect(screen.queryByText("Fora da meta")).not.toBeInTheDocument();
+  });
+
   test("sem fundos: estado vazio que ensina como criar o primeiro", async () => {
     await montarNasMetas();
     expect(screen.getByText("Nenhum fundo criado")).toBeInTheDocument();
