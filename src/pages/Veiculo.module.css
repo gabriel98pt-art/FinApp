@@ -317,3 +317,16 @@
   border-radius: var(--r-sm);
   padding: 7px 12px;
 }
+
+/* Caixa de marcação simples dentro das folhas (ex.: «Recarga da frota»). */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-body);
+  color: var(--txt);
+}
+
+.checkbox input {
+  width: auto;
+}

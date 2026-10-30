@@ -320,6 +320,7 @@ export default function Veiculo() {
   const [cgConta, setCgConta] = useState("");
   const [cgSessao, setCgSessao] = useState("");
   const [cgNota, setCgNota] = useState("");
+  const [cgFrota, setCgFrota] = useState(false);
   const [cgData, setCgData] = useState(hojeIso());
   // O kWh/litros preenche-se sozinho a partir do custo, mas assim que o
   // usuário lhe toca deixa de ser recalculado — o palpite não pode apagar o
@@ -363,6 +364,8 @@ export default function Veiculo() {
     setCgConta(c.contaCartao ?? "");
     setCgSessao(c.sessao ?? "");
     setCgNota(c.nota ?? "");
+    setCgFrota(c.frota === true);
+    setCgFrota(c.frota === true);
     setCgData(c.data);
     // Num abastecimento já gravado a quantidade é dado, não palpite: não se
     // mexe nela até o usuário mudar o local de propósito.
@@ -424,6 +427,7 @@ export default function Veiculo() {
       contaCartao: cgConta || undefined,
       sessao: cgSessao.trim() || undefined,
       nota: cgNota.trim() || undefined,
+      frota: cgFrota || undefined,
     };
     try {
       await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
@@ -806,7 +810,7 @@ export default function Veiculo() {
                       key={c.id}
                       nome={c.local}
                       /* Data primeiro (01/09), igual a ListaLancamentos. */
-                      detalhe={`${c.data.slice(8, 10)}/${c.data.slice(5, 7)} · ${rotuloQuantidade(c)} · ${formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/${c.kwh !== undefined ? "kWh" : "L"}${c.sessao ? ` · ${c.sessao}` : ""}`}
+                      detalhe={`${c.data.slice(8, 10)}/${c.data.slice(5, 7)} · ${rotuloQuantidade(c)} · ${formatMoney(c.precoKwh ?? c.precoLitro ?? 0, cfg.currency)}/${c.kwh !== undefined ? "kWh" : "L"}${c.sessao ? ` · ${c.sessao}` : ""}${c.frota ? " · frota" : ""}`}
                       valor={formatMoney(c.custo, cfg.currency)}
                       aoEditar={() => abrirEdicaoCarga(c)}
                       aoExcluir={() => void excluirCargaDaLista(c.id)}
@@ -1124,6 +1128,14 @@ export default function Veiculo() {
           <label className={styles.campo}>
             Descrição (opcional)
             <input value={cgNota} onChange={(e) => setCgNota(e.target.value)} />
+          </label>
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={cgFrota}
+              onChange={(e) => setCgFrota(e.target.checked)}
+            />
+            Recarga da frota
           </label>
           <Botao type="submit" variante="submeter">
             Salvar alterações

@@ -27,6 +27,7 @@
 // real que o pagamento criou, e só cai no `diaVencimento` se esse lançamento
 // faltar.
 
+import { cargasProprias } from "./cargasProprias";
 import type {
   Cents,
   DadosVeiculo,
@@ -277,7 +278,7 @@ export function transacoesDoMes(
     });
   }
 
-  for (const c of dados.veiculo.cargas) {
+  for (const c of cargasProprias(dados.veiculo.cargas)) {
     if (mesDe(c.data) !== ym) continue;
     itens.push({
       chave: `carga-${c.id}`,

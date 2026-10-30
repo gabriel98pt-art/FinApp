@@ -9,6 +9,7 @@
 //     Se um lançamento novo entrar num ciclo já pago, a fatura volta a mostrar
 //     restante > 0 (reabre de forma visível), em vez de manter valor velho.
 
+import { cargasProprias } from "./cargasProprias";
 import type {
   Abastecimento,
   Cents,
@@ -223,7 +224,7 @@ export function calcularFaturaAutomatica(
   const transferencias = dados.transferencias
     .filter((t) => t.de === cartao && mesDoCiclo(t.data, diaFechamento) === ciclo)
     .reduce((s, t) => s + t.valor, 0);
-  const cargas = (dados.cargas ?? [])
+  const cargas = cargasProprias(dados.cargas ?? [])
     .filter((c) => c.contaCartao === cartao && mesDoCiclo(c.data, diaFechamento) === ciclo)
     .reduce((s, c) => s + c.custo, 0);
   const veiculo = (dados.despesasVeiculo ?? [])

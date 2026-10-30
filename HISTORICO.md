@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Veículo: a carga ganha o interruptor «Recarga da frota». Quando ligado, a
+  recarga fica registada mas não entra no gasto, nas faturas, no saldo das
+  contas, no extrato nem na sugestão de recarga própria do TVDE.
 - Transações: o pagamento de uma fatura de cartão traz a etiqueta «Pagamento
   de fatura» na linha, em vez da categoria «Cartão de Crédito».
 - Calendário: os dias dos meses vizinhos que aparecem na grelha (por exemplo

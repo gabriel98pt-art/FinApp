@@ -117,6 +117,7 @@ export default function RegistroRapido() {
   const [data, setData] = useState(hojeIso());
   const [etiqueta, setEtiqueta] = useState(""); // fonte (receita) ou categoria (despesa)
   const [conta, setConta] = useState(""); // conta/cartão (opcional)
+  const [frota, setFrota] = useState(false); // carga paga pela frota: fora do gasto
   const [kwh, setKwh] = useState(""); // só abastecimento elétrico
   const [litros, setLitros] = useState(""); // só abastecimento a combustível
   // Só um veículo híbrido pergunta — elétrico/combustão puro só tem uma
@@ -253,6 +254,7 @@ export default function RegistroRapido() {
         setData(hojeIso());
         setEtiqueta("");
         setConta("");
+        setFrota(false);
         setKwh("");
         setLitros("");
         setDimensaoCarga("eletrico");
@@ -426,6 +428,7 @@ export default function RegistroRapido() {
           custo,
           local,
           contaCartao: conta || undefined,
+          ...(frota ? { frota: true } : {}),
         });
       } else if (tipo === "despesaVeiculo") {
         await criarDespesaVeiculo(uid, {
@@ -800,6 +803,19 @@ export default function RegistroRapido() {
         {/* Depois do Valor, não antes: o valor é o que mais importa decidir
             primeiro num registo rápido, a descrição só nomeia o que já foi
             digitado (achado do Gabriel, 30/08). */}
+        {tipo === "carga" && (
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={frota}
+            className={`${styles.marcacao} ${frota ? styles.marcacaoAtiva : ""}`}
+            onClick={() => setFrota(!frota)}
+          >
+            {frota ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
+            Recarga da frota
+          </button>
+        )}
+
         {tipo !== "carga" && (
           <label className={styles.campo}>
             Descrição

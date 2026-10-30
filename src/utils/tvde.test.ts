@@ -171,6 +171,19 @@ describe("recargaPropriaDaSemana", () => {
     expect(recargaPropriaDaSemana(cargas, "2026-06-29", 2)).toBe(4000);
   });
 
+  it("a recarga da frota não entra na sugestão de recarga própria", () => {
+    expect(
+      recargaPropriaDaSemana(
+        [
+          { data: "2026-07-07", custo: 1500 },
+          { data: "2026-07-08", custo: 8000, frota: true },
+        ],
+        "2026-06-29",
+        2,
+      ),
+    ).toBe(1500);
+  });
+
   it("devolve 0 quando não há carga na semana", () => {
     expect(recargaPropriaDaSemana(cargas, "2026-06-29", 9)).toBe(0);
     expect(recargaPropriaDaSemana([], "2026-06-29", 1)).toBe(0);

@@ -25,6 +25,7 @@
 // já pago por FORA da fatura (ver `pagarMesParcela`) é excluído de
 // `correntesMes`, mesma razão do espelho de fixa.
 
+import { cargasProprias } from "./cargasProprias";
 import type {
   Abastecimento,
   Cents,
@@ -157,7 +158,7 @@ export function resumoDaConta(
   const parcelasMes = parcelasDoMes(dados.parcelas ?? [], conta, mes);
   const saidasMes = dados.transferencias.filter((t) => t.de === conta && mesDe(t.data) === mes);
   const entradasMes = dados.transferencias.filter((t) => t.para === conta && mesDe(t.data) === mes);
-  const cargasMes = (dados.cargas ?? []).filter(
+  const cargasMes = cargasProprias(dados.cargas ?? []).filter(
     (c) => c.contaCartao === conta && mesDe(c.data) === mes,
   );
   const veiculoMes = (dados.despesasVeiculo ?? []).filter(
@@ -206,7 +207,9 @@ export function resumoDaConta(
     dados.transferencias.filter((t) => t.de === conta).reduce((s, t) => s + t.valor, 0) -
     fixasPagas(dados.despesasFixas, conta, mesReferenciaPagas, hoje) -
     fixasPagas(dados.despesasFixasVeiculo, conta, mesReferenciaPagas, hoje) -
-    (dados.cargas ?? []).filter((c) => c.contaCartao === conta).reduce((s, c) => s + c.custo, 0) -
+    cargasProprias(dados.cargas ?? [])
+      .filter((c) => c.contaCartao === conta)
+      .reduce((s, c) => s + c.custo, 0) -
     (dados.despesasVeiculo ?? [])
       .filter((d) => d.contaCartao === conta && d.origem !== "fixa")
       .reduce((s, d) => s + d.valor, 0);

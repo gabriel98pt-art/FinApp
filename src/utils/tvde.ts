@@ -39,13 +39,15 @@ export function fimDaSemana(inicioSemana1: IsoDate, n: number): Date {
  *  que sai do bolso e já está registrada em Veículo → Carregamentos; a de
  *  frota continua manual, vinda do relatório do dono (item 9). */
 export function recargaPropriaDaSemana(
-  cargas: { data: IsoDate; custo: Cents }[],
+  cargas: { data: IsoDate; custo: Cents; frota?: boolean }[],
   inicioSemana1: IsoDate,
   n: number,
 ): Cents {
   const de = paraIso(inicioDaSemana(inicioSemana1, n));
   const ate = paraIso(fimDaSemana(inicioSemana1, n));
-  return cargas.filter((c) => c.data >= de && c.data <= ate).reduce((soma, c) => soma + c.custo, 0);
+  return cargas
+    .filter((c) => !c.frota && c.data >= de && c.data <= ate)
+    .reduce((soma, c) => soma + c.custo, 0);
 }
 
 /** MÊS DE PAGAMENTO da semana: o mês onde cai início+7 dias — sempre o mês

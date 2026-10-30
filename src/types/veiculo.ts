@@ -38,6 +38,10 @@ export interface Abastecimento {
   contaCartao?: string;
   /** Descrição livre, separada do nome curto em `local`. */
   nota?: string;
+  /** Recarga paga pela frota (do relatório do dono): fica registada, mas não
+   *  é gasto do próprio — fora dos totais, das contas, das faturas e da
+   *  sugestão de "recarga própria" do TVDE. */
+  frota?: boolean;
 }
 
 /** Registro de quilometragem (antigo `veh.km`). */

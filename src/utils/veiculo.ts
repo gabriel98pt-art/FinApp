@@ -10,11 +10,14 @@ import type {
   IsoDate,
   YearMonth,
 } from "../types";
+import { cargasProprias } from "./cargasProprias";
 import { despesasNosTotais, doMes, mesDe, totalDoMes } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
-  return veiculo.cargas.filter((c) => mesDe(c.data) === ym).reduce((s, c) => s + c.custo, 0);
+  return cargasProprias(veiculo.cargas)
+    .filter((c) => mesDe(c.data) === ym)
+    .reduce((s, c) => s + c.custo, 0);
 }
 
 export function totalDespesasVeiculoMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
@@ -78,7 +81,7 @@ export function totalVeiculoGeral(
   mesReferencia?: YearMonth,
   hoje?: IsoDate,
 ): Cents {
-  const cargas = veiculo.cargas.reduce((s, c) => s + c.custo, 0);
+  const cargas = cargasProprias(veiculo.cargas).reduce((s, c) => s + c.custo, 0);
   // Mesma exclusão de totalDespesasVeiculoMes: o espelho de fixa não conta
   // aqui, senão soma duas vezes com o `fixas` logo abaixo.
   const despesas = despesasNosTotais(veiculo.despesas).reduce((s, d) => s + d.valor, 0);

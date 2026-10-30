@@ -11,6 +11,7 @@
 // cima de uma resposta que a camada 1 conseguiu dar — o número calculado aqui
 // vale sempre mais do que texto gerado.
 
+import { cargasProprias } from "./cargasProprias";
 import type {
   Cents,
   ConfigConta,
@@ -596,7 +597,7 @@ function totalCartaoMes(ctx: ContextoCopiloto, cartao: string, ym: YearMonth): C
     total += valorDaParcela(p, ym);
   }
 
-  total += ctx.veiculo.cargas
+  total += cargasProprias(ctx.veiculo.cargas)
     .filter((c) => c.contaCartao === cartao && mesDe(c.data) === ym)
     .reduce((s, c) => s + c.custo, 0);
   // despesasNosTotais, não ctx.veiculo.despesas cru: uma fixa do veículo paga

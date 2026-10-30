@@ -58,6 +58,31 @@ describe("transacoesDoMes", () => {
     expect(t[0].entrada).toBe(false);
   });
 
+  it("uma recarga da frota não aparece no extrato: não saiu do bolso", () => {
+    const t = transacoesDoMes(
+      {
+        ...vazio,
+        veiculo: {
+          ...VEICULO_VAZIO,
+          cargas: [
+            { id: "c1", data: "2026-07-12", kwh: 30, precoKwh: 20, custo: 600, local: "Galp" },
+            {
+              id: "c2",
+              data: "2026-07-13",
+              kwh: 30,
+              precoKwh: 20,
+              custo: 600,
+              local: "Frota",
+              frota: true,
+            },
+          ],
+        },
+      },
+      "2026-07",
+    );
+    expect(t.map((x) => x.chave)).toEqual(["carga-c1"]);
+  });
+
   it("no mesmo dia, intercala pela ordem real de entrada — não agrupa por tipo", () => {
     // O bug relatado: o desempate comparava a `chave` inteira ("despesa-x",
     // "fixa-x", "parcela-x"), e o prefixo do tipo dominava o localeCompare —

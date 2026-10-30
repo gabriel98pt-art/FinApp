@@ -11,6 +11,7 @@
 //  - categorias: `despesaPorCategoriaRegistradaMes`, a da folha "Categorias";
 //  - maiores gastos: as mesmas saídas de caixa (`gastosDoMes`).
 
+import { cargasProprias } from "./cargasProprias";
 import type {
   Cents,
   DadosVeiculo,
@@ -239,7 +240,7 @@ function gastosDoMes(
   return [
     ...correntes(d.despesasCorrentes, "despesa"),
     ...fixas(d.despesasFixas, d.despesasCorrentes),
-    ...d.veiculo.cargas
+    ...cargasProprias(d.veiculo.cargas)
       .filter((c) => mesDe(c.data) === ym)
       .map((c) => ({
         chave: `carga-${c.id}`,

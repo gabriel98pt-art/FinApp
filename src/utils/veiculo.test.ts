@@ -69,6 +69,16 @@ describe("totalCargasMes / totalDespesasVeiculoMes", () => {
   });
 });
 
+describe("recarga da frota fica fora do gasto", () => {
+  test("não entra no total do mês nem no acumulado", () => {
+    const v = veiculo({
+      cargas: [carga({ id: "a", custo: 1000 }), carga({ id: "b", custo: 4000, frota: true })],
+    });
+    expect(totalCargasMes(v, "2026-07")).toBe(1000);
+    expect(totalVeiculoGeral(v)).toBe(1000);
+  });
+});
+
 describe("contribuicaoFixasVeiculoMes — corrente parcial vs fechado total", () => {
   test("mês corrente: só conta fixas marcadas pagas", () => {
     const v = veiculo({
