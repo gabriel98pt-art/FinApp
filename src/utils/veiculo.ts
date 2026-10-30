@@ -118,9 +118,9 @@ export function precoKwhDoLocal(cargas: Abastecimento[], local: string): Cents |
 }
 
 /** Quantos kWh dá aquele custo àquele preço, já no formato do campo: vírgula
- *  decimal e 3 casas — a terceira faz diferença numa carga pequena. */
+ *  decimal e 2 casas, como em todo o kWh do app. */
 export function kwhPeloCusto(custo: Cents, precoKwh: Cents): string {
-  return (custo / precoKwh).toFixed(3).replace(".", ",");
+  return (custo / precoKwh).toFixed(2).replace(".", ",");
 }
 
 /** Preço por litro do abastecimento a combustível mais recente feito neste
@@ -135,9 +135,9 @@ export function precoLitroDoLocal(cargas: Abastecimento[], local: string): Cents
 }
 
 /** Quantos litros dá aquele custo àquele preço — mesmo formato de
- *  `kwhPeloCusto` (vírgula decimal, 3 casas). */
+ *  `kwhPeloCusto` (vírgula decimal, 2 casas). */
 export function litrosPeloCusto(custo: Cents, precoLitro: Cents): string {
-  return (custo / precoLitro).toFixed(3).replace(".", ",");
+  return (custo / precoLitro).toFixed(2).replace(".", ",");
 }
 
 /** A despesa comum que nasce de uma recarga classificada por engano.

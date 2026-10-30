@@ -86,12 +86,12 @@ function agir(acao: () => Promise<unknown>, ok: string) {
     .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
 }
 
-/** "12,5 kWh" ou "34,2 L" — o que o abastecimento TEM decide a unidade, não
+/** "12,50 kWh" ou "34,20 L" — o que o abastecimento TEM decide a unidade, não
  *  o tipo do veículo agora (um híbrido reconfigurado ainda tem histórico das
  *  duas dimensões, e um dado antigo é sempre elétrico). */
 function rotuloQuantidade(c: Abastecimento): string {
-  if (c.kwh !== undefined) return `${String(c.kwh).replace(".", ",")} kWh`;
-  if (c.litros !== undefined) return `${String(c.litros).replace(".", ",")} L`;
+  if (c.kwh !== undefined) return `${c.kwh.toFixed(2).replace(".", ",")} kWh`;
+  if (c.litros !== undefined) return `${c.litros.toFixed(2).replace(".", ",")} L`;
   return "";
 }
 
@@ -981,7 +981,7 @@ export default function Veiculo() {
                 <EstadoVazio
                   Icone={Gauge}
                   mensagem={`Nenhum registo de km em ${rotuloMes(mes)}`}
-                  sub="Anote o conta-quilómetros para acompanhar o consumo."
+                  sub="Anote os km de cada viagem ou semana."
                 />
               ) : (
                 [...kmVisiveis]

@@ -89,7 +89,7 @@ function LinhaTransacao({
           <span className={styles.titulo}>{t.titulo}</span>
           <span className={styles.detalhe}>
             {[
-              t.pagamentoFatura ? "Pagamento de fatura" : t.categoria,
+              t.pagamentoFatura ? "Pagamento de fatura" : t.combustivel ? "Carga" : t.categoria,
               t.nota,
               t.conta ? nomeDaConta(t.conta) : "",
             ]

@@ -78,6 +78,9 @@ export interface Transacao {
   /** O lançamento é o pagamento de uma fatura de cartão (origem 'fat'): o
    *  dinheiro saiu da conta, mas não é um gasto novo. */
   pagamentoFatura?: boolean;
+  /** Carga que é abastecimento a combustível (só litros): a linha diz «Carga»,
+   *  sem o «Elétrica». A categoria interna não muda (cor e ícone dependem dela). */
+  combustivel?: boolean;
 }
 
 /** Para que lado o dinheiro andou de facto — o que decide o sinal e a cor da
@@ -292,6 +295,7 @@ export function transacoesDoMes(
       nota: c.nota,
       valor: c.custo,
       entrada: false,
+      ...(c.kwh === undefined && c.litros !== undefined ? { combustivel: true } : {}),
     });
   }
 

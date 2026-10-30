@@ -289,9 +289,9 @@ describe("precoKwhDoLocal / kwhPeloCusto — adivinhar os kWh pelo custo", () =>
     expect(precoKwhDoLocal([carga({ local: "Casa", precoKwh: 0 })], "Casa")).toBeUndefined();
   });
 
-  test("o kWh sai com vírgula e três casas", () => {
-    expect(kwhPeloCusto(768, 24)).toBe("32,000");
-    expect(kwhPeloCusto(1000, 33)).toBe("30,303");
+  test("o kWh sai com vírgula e duas casas", () => {
+    expect(kwhPeloCusto(768, 24)).toBe("32,00");
+    expect(kwhPeloCusto(1000, 33)).toBe("30,30");
   });
 
   // Um posto pode servir os dois tipos (veículo híbrido) — o preço por kWh
@@ -338,8 +338,8 @@ describe("precoLitroDoLocal / litrosPeloCusto — item B1, mesma lógica pro com
     expect(precoLitroDoLocal(cargas, "Posto Misto")).toBe(170);
   });
 
-  test("os litros saem com vírgula e três casas", () => {
-    expect(litrosPeloCusto(6600, 165)).toBe("40,000");
-    expect(litrosPeloCusto(5000, 172)).toBe("29,070");
+  test("os litros saem com vírgula e duas casas", () => {
+    expect(litrosPeloCusto(6600, 165)).toBe("40,00");
+    expect(litrosPeloCusto(5000, 172)).toBe("29,07");
   });
 });

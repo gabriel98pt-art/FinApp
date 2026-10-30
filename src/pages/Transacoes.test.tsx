@@ -44,9 +44,10 @@ vi.mock("../stores/parcelasStore", () => ({
   useParcelasStore: (s: (e: unknown) => unknown) => s(vazias),
 }));
 
+const SEM_VEICULO = { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] };
+let veiculoDados: unknown = SEM_VEICULO;
 vi.mock("../stores/veiculoStore", () => ({
-  useVeiculoStore: (s: (e: unknown) => unknown) =>
-    s({ dados: { cargas: [], despesas: [], despesasFixas: [], quilometragem: [] }, ...vazias }),
+  useVeiculoStore: (s: (e: unknown) => unknown) => s({ dados: veiculoDados, ...vazias }),
 }));
 
 let cfg: ConfigConta = CONFIG_PADRAO;
@@ -79,6 +80,7 @@ const desenhar = () =>
 beforeEach(() => {
   receitas = lista<Receita>();
   despesas = lista<DespesaCorrente>();
+  veiculoDados = SEM_VEICULO;
   vazias = lista();
   cfg = CONFIG_PADRAO;
   removerReceita.mockClear();
@@ -267,6 +269,21 @@ describe("Transacoes", () => {
     expect(screen.getByText(/^Pagamento de fatura/)).toBeInTheDocument();
     // Um gasto normal continua com a sua categoria.
     expect(screen.getByText(/^Alimentação/)).toBeInTheDocument();
+  });
+
+  test("uma carga a combustível diz «Carga», uma elétrica «Carga Elétrica»", () => {
+    veiculoDados = {
+      cargas: [
+        { id: "c1", data: "2026-08-04", litros: 40, precoLitro: 165, custo: 6600, local: "Galp" },
+        { id: "c2", data: "2026-08-05", kwh: 30, precoKwh: 20, custo: 600, local: "Casa" },
+      ],
+      despesas: [],
+      despesasFixas: [],
+      quilometragem: [],
+    } as never;
+    desenhar();
+    expect(screen.getByText(/^Carga ·|^Carga$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Carga Elétrica/)).toBeInTheDocument();
   });
 
   test("reembolso mostra o sinal UMA vez, do lado de quem recebe", () => {

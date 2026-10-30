@@ -200,7 +200,7 @@ describe("tipo de veículo (item B1)", () => {
     renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
-    expect(screen.getByText(/42 L/)).toBeInTheDocument();
+    expect(screen.getByText(/42,00 L/)).toBeInTheDocument();
     expect(screen.queryByText(/kWh/)).not.toBeInTheDocument();
   });
 });
@@ -218,7 +218,7 @@ describe("unidades", () => {
     renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
-    expect(screen.getByText(/12,5 kWh/)).toBeInTheDocument();
+    expect(screen.getByText(/12,50 kWh/)).toBeInTheDocument();
     expect(screen.queryByText(/12\.5/)).not.toBeInTheDocument();
   });
 });

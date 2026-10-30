@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Veículo: kWh e litros sempre com 2 casas decimais (na lista e no palpite a
+  partir do custo); o estado vazio dos km diz «Anote os km de cada viagem ou
+  semana.»; uma carga a combustível aparece como «Carga» no extrato.
 - TVDE: «Faturamento» passa a «Faturação» e as gorjetas dizem «(não entram
   no lucro)», em vez de «(anotação)».
 - TVDE: os cartões passam a «Lucro (sem testes)» e «Líquido» — o primeiro
