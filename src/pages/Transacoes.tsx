@@ -88,7 +88,13 @@ function LinhaTransacao({
         <span className={styles.texto}>
           <span className={styles.titulo}>{t.titulo}</span>
           <span className={styles.detalhe}>
-            {[t.categoria, t.nota, t.conta ? nomeDaConta(t.conta) : ""].filter(Boolean).join(" · ")}
+            {[
+              t.pagamentoFatura ? "Pagamento de fatura" : t.categoria,
+              t.nota,
+              t.conta ? nomeDaConta(t.conta) : "",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </span>
         {/* Aqui entram e saem coisas na mesma lista, por isso o sinal fica nos

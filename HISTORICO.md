@@ -11,6 +11,8 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Transações: o pagamento de uma fatura de cartão traz a etiqueta «Pagamento
+  de fatura» na linha, em vez da categoria «Cartão de Crédito».
 - Calendário: os dias dos meses vizinhos que aparecem na grelha (por exemplo
   1 de novembro a ver outubro) passam a mostrar os pontos e os vencimentos
   desse dia, como os totais já contavam.

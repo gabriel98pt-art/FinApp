@@ -74,6 +74,9 @@ export interface Transacao {
   valor: Cents;
   /** true = entra dinheiro (verde); false = sai (vermelho). */
   entrada: boolean;
+  /** O lançamento é o pagamento de uma fatura de cartão (origem 'fat'): o
+   *  dinheiro saiu da conta, mas não é um gasto novo. */
+  pagamentoFatura?: boolean;
 }
 
 /** Para que lado o dinheiro andou de facto — o que decide o sinal e a cor da
@@ -179,6 +182,7 @@ export function transacoesDoMes(
       nota: d.nota,
       valor: d.valor,
       entrada: false,
+      ...(d.origem === "fat" ? { pagamentoFatura: true } : {}),
     });
   }
 

@@ -243,6 +243,32 @@ describe("Transacoes", () => {
     });
   });
 
+  test("o pagamento de uma fatura traz a etiqueta «Pagamento de fatura»", () => {
+    despesas = lista([
+      {
+        id: "f1",
+        descricao: "Cartão de Crédito Visa",
+        valor: 15000,
+        data: "2026-08-05",
+        categoria: "Cartão de Crédito",
+        contaCartao: "Conta",
+        origem: "fat",
+        nota: "Ref. 2026-08",
+      } as DespesaCorrente,
+      {
+        id: "d1",
+        descricao: "Mercado",
+        valor: 4250,
+        data: "2026-08-03",
+        categoria: "Alimentação",
+      } as DespesaCorrente,
+    ]);
+    desenhar();
+    expect(screen.getByText(/^Pagamento de fatura/)).toBeInTheDocument();
+    // Um gasto normal continua com a sua categoria.
+    expect(screen.getByText(/^Alimentação/)).toBeInTheDocument();
+  });
+
   test("reembolso mostra o sinal UMA vez, do lado de quem recebe", () => {
     // Um reembolso é uma despesa de valor NEGATIVO (utils/reembolsos.ts). A
     // linha somava o prefixo da direção ao menos do próprio número e saía
