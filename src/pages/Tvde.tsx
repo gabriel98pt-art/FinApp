@@ -72,12 +72,12 @@ const ABAS = [
 ] as const satisfies readonly (readonly [AbaTvde, string])[];
 
 const CAMPOS_DINHEIRO = [
-  ["fat", "Faturamento"],
+  ["fat", "Faturação"],
   ["port", "Portagens"],
   ["alu", "Aluguel"],
   ["recF", "Recarga frota"],
   ["extra", "Extra"],
-  ["gorj", "Gorjetas (anotação)"],
+  ["gorj", "Gorjetas (não entram no lucro)"],
   ["recP", "Recarga própria"],
 ] as const;
 
@@ -554,7 +554,7 @@ export default function Tvde() {
           <div className={styles.tabela}>
             <div className={`${styles.linhaTab} ${styles.linhaCab}`}>
               <span>Período</span>
-              <span>Faturamento</span>
+              <span>Faturação</span>
               <span>Receita</span>
               <span>Lucro</span>
             </div>

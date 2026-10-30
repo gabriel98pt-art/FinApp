@@ -11,6 +11,8 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- TVDE: «Faturamento» passa a «Faturação» e as gorjetas dizem «(não entram
+  no lucro)», em vez de «(anotação)».
 - TVDE: os cartões passam a «Lucro (sem testes)» e «Líquido» — o primeiro
   diz que não conta as semanas de teste, o segundo já é o lucro menos a
   Segurança Social.
