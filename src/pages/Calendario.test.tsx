@@ -154,7 +154,7 @@ describe("KPIs do Calendário", () => {
 
     expect(screen.getByText("A pagar em agosto 2026")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "€ 35,90" })).toBeInTheDocument();
-    expect(screen.getByText("Vence em 7 dias")).toBeInTheDocument();
+    expect(screen.getByText("Vence até 19/08")).toBeInTheDocument();
     // Só a de dia 15 cabe na janela — a de dia 20 fica de fora. Aparece duas
     // vezes: no KPI e na lista de "Próximos 7 dias", que agora usa a mesma
     // fonte de dados.
@@ -180,6 +180,6 @@ describe("KPIs do Calendário", () => {
     expect(screen.getByRole("img", { name: "€ 0,00" })).toBeInTheDocument();
     expect(screen.getAllByText("€ 0,00")).toHaveLength(1);
     expect(screen.getByText("nada por vencer neste mês")).toBeInTheDocument();
-    expect(screen.getByText("nada vence até lá")).toBeInTheDocument();
+    expect(screen.getByText("nada a vencer")).toBeInTheDocument();
   });
 });

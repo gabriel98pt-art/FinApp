@@ -231,19 +231,15 @@ export default function SecaoCalendario() {
                   : `${qtdNoMes} compromisso${qtdNoMes > 1 ? "s" : ""} em aberto`
               }
               // Era "laranja" (cor exclusiva do TVDE, sem relação com o
-              // Calendário) — "amarelo" alinha com "Vence em 7 dias" logo ao
+              // Calendário) — "amarelo" alinha com "Vence até…" logo ao
               // lado: mesmo tipo de aviso (dinheiro por pagar), só que numa
               // janela mais larga (achado da auditoria de Design).
               tom="amarelo"
             />
             <KpiCard
-              rotulo="Vence em 7 dias"
+              rotulo={`Vence até ${limite7.slice(8, 10)}/${limite7.slice(5, 7)}`}
               valor={formatMoney(aPagar7, moeda)}
-              sub={
-                qtd7 === 0
-                  ? "nada vence até lá"
-                  : `${qtd7} compromisso${qtd7 > 1 ? "s" : ""} até ${limite7.slice(8, 10)}/${limite7.slice(5, 7)}`
-              }
+              sub={qtd7 === 0 ? "nada a vencer" : `${qtd7} compromisso${qtd7 > 1 ? "s" : ""}`}
               tom="amarelo"
             />
           </Kpis>
