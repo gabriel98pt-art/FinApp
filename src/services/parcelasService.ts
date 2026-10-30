@@ -61,6 +61,28 @@ export function espelhosDoMes(p: Parcela, mes: YearMonth, despesas: DespesaCorre
  *  "parc", mesmo parcelaId/parcelaMes) recebe o valor novo NA MESMA escrita —
  *  parcela e lançamento nunca divergem. Mês pago sem espelho (débito
  *  automático: o valor real está na fatura do cartão) só grava o ajuste. */
+/** Grava `valor` nos espelhos de um mês. Com mais de um (pagamentos parciais de
+ *  fatura), os dos pagamentos parciais ficam como estão e o que falta para o
+ *  valor novo vai para o espelho da quitação — a soma é sempre `valor`. */
+function gravarValorNosEspelhos(
+  espelhos: DespesaCorrente[],
+  valor: Cents,
+  atualizacoes: Record<string, unknown>,
+) {
+  const parciais = espelhos.filter((d) => d.fatPagId);
+  const resto = espelhos.filter((d) => !d.fatPagId);
+  if (parciais.length === 0 || resto.length === 0) {
+    espelhos.forEach((d) => {
+      atualizacoes[`despesasCorrentes/${d.id}/valor`] = valor;
+    });
+    return;
+  }
+  const jaContado = parciais.reduce((s, d) => s + d.valor, 0);
+  resto.forEach((d, i) => {
+    atualizacoes[`despesasCorrentes/${d.id}/valor`] = i === 0 ? Math.max(0, valor - jaContado) : 0;
+  });
+}
+
 export async function definirValorDoMes(
   uid: string,
   p: Parcela,
@@ -72,9 +94,7 @@ export async function definirValorDoMes(
   const atualizacoes: Record<string, unknown> = {
     [`parcelas/${p.id}/overridePorMes/${mes}`]: valor,
   };
-  espelhosDoMes(p, mes, despesas).forEach((d) => {
-    atualizacoes[`despesasCorrentes/${d.id}/valor`] = valor;
-  });
+  gravarValorNosEspelhos(espelhosDoMes(p, mes, despesas), valor, atualizacoes);
   await update(ref(db, raiz(uid)), atualizacoes);
 }
 
@@ -93,9 +113,7 @@ export async function limparValorDoMes(
   const idx = mesesDaParcela(p).indexOf(mes);
   if (idx >= 0) {
     const automatico = valorBaseDaParcela(p, idx);
-    espelhosDoMes(p, mes, despesas).forEach((d) => {
-      atualizacoes[`despesasCorrentes/${d.id}/valor`] = automatico;
-    });
+    gravarValorNosEspelhos(espelhosDoMes(p, mes, despesas), automatico, atualizacoes);
   }
   await update(ref(db, raiz(uid)), atualizacoes);
 }

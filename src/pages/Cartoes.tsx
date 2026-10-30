@@ -537,6 +537,7 @@ export default function Cartoes() {
         pagamentosAtuais: calcularPagamentos(pagando),
         devido: pagando.devido,
         parcelas,
+        despesas,
       });
       const quitou = valor >= pagando.restante;
       mostrarToast(quitou ? "✓ Fatura paga" : "✓ Pagamento parcial registrado");

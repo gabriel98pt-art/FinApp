@@ -92,6 +92,11 @@ export interface DespesaCorrente extends LancamentoBase {
    *  01/09/2026) — mesmo par que `parcelaId`/`parcelaMes`, um mês por vez. */
   fixaId?: Id;
   fixaMes?: YearMonth;
+  /** Espelho de parcela criado por um pagamento PARCIAL de fatura: aponta para
+   *  o pagamento (o seu id é o do lançamento 'fat'), para o apagar com ele. A
+   *  quitação que vem depois cria o espelho do que ficou por contar, sem este
+   *  campo. */
+  fatPagId?: Id;
   /** Num reembolso (origem 'reemb'): a despesa que este valor reduz.
    *
    *  OPCIONAL de propósito, ao contrário do `parcelaId`: às vezes o reembolso

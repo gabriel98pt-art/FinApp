@@ -305,6 +305,7 @@ export async function confirmarImportacao(
           ctx.diaFechamentoFatura?.[p.cartao],
         ),
         parcelas: ctx.parcelas,
+        despesas: ctx.dados.despesasCorrentes,
       });
     }
   });

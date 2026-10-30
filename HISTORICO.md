@@ -11,6 +11,10 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Cartões: um pagamento parcial de fatura já conta, na proporção, a parcela
+  em débito automático no mês em que o dinheiro saiu (antes só aparecia
+  quando a fatura era quitada). Ao quitar conta só o que falta; remover um
+  pagamento remove o que ele contou.
 - Veículo: a carga ganha o interruptor «Recarga da frota». Quando ligado, a
   recarga fica registada mas não entra no gasto, nas faturas, no saldo das
   contas, no extrato nem na sugestão de recarga própria do TVDE.

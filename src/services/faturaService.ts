@@ -33,6 +33,9 @@ export interface ContextoPagamento {
   devido: Cents;
   /** Todas as parcelas da conta — para quitar as autoDebit do ciclo. */
   parcelas: Parcela[];
+  /** Lançamentos já gravados: dão os espelhos de pagamentos parciais anteriores,
+   *  para o que falta contar na quitação não ser contado duas vezes. */
+  despesas?: DespesaCorrente[];
   /** Dia em que o pagamento foi mesmo feito. Omitido = hoje, como sempre foi —
    *  quem regista no próprio dia não precisa de mexer nisto. Serve para acertar
    *  pagamentos passados: sem isto, todos ficavam com a data em que foram
@@ -82,25 +85,50 @@ export async function pagarFatura(uid: string, ctx: ContextoPagamento) {
 
   const restanteApos =
     ctx.devido - (ctx.pagamentosAtuais.reduce((s, p) => s + p.valor, 0) + ctx.valor);
-  if (restanteApos <= 0) {
-    for (const p of ctx.parcelas) {
-      if (p.cartao !== ctx.cartao || !p.autoDebit) continue;
-      if (!mesesDaParcela(p).includes(ciclo) || p.pagoPorMes[ciclo]) continue;
-      atualizacoes[`parcelas/${p.id}/pagoPorMes/${ciclo}`] = "fatura";
-      const idx = mesesDaParcela(p).indexOf(ciclo) + 1;
-      const lancamentoParcela: Omit<DespesaCorrente, "id"> = {
-        descricao: p.descricao,
-        valor: valorDaParcela(p, ciclo),
-        data: dataPagamento,
-        categoria: p.categoria ?? "Parcelas",
-        origem: "parc",
-        nota: `${idx}ª de ${p.numParcelas} — via fatura`,
-        parcelaId: p.id,
-        parcelaMes: ciclo,
-      };
-      const parcDcId = push(ref(db, `${raiz(uid)}/despesasCorrentes`)).key!;
-      atualizacoes[`despesasCorrentes/${parcDcId}`] = semIndefinidos(lancamentoParcela);
-    }
+  const quita = restanteApos <= 0;
+  // As parcelas em débito automático deste ciclo que ainda não foram resolvidas
+  // pela fatura. O dinheiro delas só aparecia nos totais quando a fatura era
+  // quitada; um pagamento parcial já tirou dinheiro da conta e ficava invisível.
+  const emAberto = ctx.parcelas.filter(
+    (p) =>
+      p.cartao === ctx.cartao &&
+      p.autoDebit &&
+      mesesDaParcela(p).includes(ciclo) &&
+      !p.pagoPorMes[ciclo],
+  );
+  const jaContado = (p: Parcela) =>
+    (ctx.despesas ?? [])
+      .filter(
+        (d) => d.origem === "parc" && d.parcelaId === p.id && d.parcelaMes === ciclo && d.fatPagId,
+      )
+      .reduce((s, d) => s + d.valor, 0);
+  for (const p of emAberto) {
+    const total = valorDaParcela(p, ciclo);
+    const falta = Math.max(0, total - jaContado(p));
+    // Parcial: a parte proporcional ao que se pagou da fatura; quitação: o resto.
+    const valor = quita
+      ? falta
+      : ctx.devido > 0
+        ? Math.min(falta, Math.round((total * ctx.valor) / ctx.devido))
+        : 0;
+    const idx = mesesDaParcela(p).indexOf(ciclo) + 1;
+    if (quita) atualizacoes[`parcelas/${p.id}/pagoPorMes/${ciclo}`] = "fatura";
+    if (valor <= 0) continue;
+    const lancamentoParcela: Omit<DespesaCorrente, "id"> = {
+      descricao: p.descricao,
+      valor,
+      data: dataPagamento,
+      categoria: p.categoria ?? "Parcelas",
+      origem: "parc",
+      nota: quita
+        ? `${idx}ª de ${p.numParcelas} — via fatura`
+        : `${idx}ª de ${p.numParcelas} — pagamento parcial da fatura`,
+      parcelaId: p.id,
+      parcelaMes: ciclo,
+      ...(quita ? {} : { fatPagId: dcId }),
+    };
+    const parcDcId = push(ref(db, `${raiz(uid)}/despesasCorrentes`)).key!;
+    atualizacoes[`despesasCorrentes/${parcDcId}`] = semIndefinidos(lancamentoParcela);
   }
 
   await update(ref(db, raiz(uid)), atualizacoes);
@@ -134,6 +162,8 @@ function reverterQuitacaoDeParcelas(
       d.origem === "parc" &&
       d.parcelaMes === ciclo &&
       d.parcelaId &&
+      // Os espelhos de pagamentos parciais vão com o pagamento deles.
+      !d.fatPagId &&
       idsQuitadosPelaFatura.has(d.parcelaId)
     ) {
       atualizacoes[`despesasCorrentes/${d.id}`] = null;
@@ -160,6 +190,8 @@ export async function removerPagamentoFatura(
     [`despesasCorrentes/${pagamento.id}`]: null,
     [`cfg/faturasPagas/${cartao}/${mes}`]: restantes.length ? { pagamentos: restantes } : null,
   };
+  for (const d of despesas)
+    if (d.fatPagId === pagamento.id) atualizacoes[`despesasCorrentes/${d.id}`] = null;
   const aindaQuitada = restantes.reduce((s, p) => s + p.valor, 0) >= devido;
   if (!aindaQuitada) reverterQuitacaoDeParcelas(cartao, mes, parcelas, despesas, atualizacoes);
   await update(ref(db, raiz(uid)), atualizacoes);
@@ -180,6 +212,9 @@ export async function reabrirFatura(
     [`cfg/faturasPagas/${cartao}/${mes}`]: null,
   };
   for (const p of pagamentos) atualizacoes[`despesasCorrentes/${p.id}`] = null;
+  const ids = new Set(pagamentos.map((p) => p.id));
+  for (const d of despesas)
+    if (d.fatPagId && ids.has(d.fatPagId)) atualizacoes[`despesasCorrentes/${d.id}`] = null;
   reverterQuitacaoDeParcelas(cartao, mes, parcelas, despesas, atualizacoes);
   await update(ref(db, raiz(uid)), atualizacoes);
 }

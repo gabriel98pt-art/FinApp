@@ -1160,6 +1160,7 @@ describe("pagamento da fatura do cartão", () => {
       pagamentosAtuais: [],
       devido: 0,
       parcelas: [],
+      despesas: [],
     });
     // Nada no lote das despesas: quem cria o lançamento é o pagarFatura, com
     // origem "fat" — fora dos totais de despesa, porque a compra já contou.

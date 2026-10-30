@@ -138,7 +138,61 @@ describe("pagarFatura", () => {
     await s.pagarFatura(UID, ctx({ valor: 10000, devido: 20000, parcelas: [parcelaAuto] }));
 
     expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBeUndefined();
-    expect(lancamentos()).toHaveLength(1); // só o do pagamento
+  });
+
+  test("pagamento parcial conta já a parte proporcional da parcela, no mês em que saiu", async () => {
+    // Fatura de 200,00 com a parcela de 100,00; paga 100,00 (metade): conta 50,00.
+    await s.pagarFatura(
+      UID,
+      ctx({ valor: 10000, devido: 20000, parcelas: [parcelaAuto], data: "2026-08-05" }),
+    );
+
+    expect(lancamentos()).toHaveLength(2); // o pagamento e o espelho proporcional
+    const espelho = lancamentos()
+      .map(([, v]) => v as Record<string, unknown>)
+      .find((l) => l.origem === "parc")!;
+    expect(espelho).toMatchObject({
+      valor: 5000,
+      data: "2026-08-05",
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+    });
+    expect(espelho.contaCartao).toBeUndefined();
+    // O espelho aponta para o pagamento (é por aí que se apaga com ele).
+    const [chavePag] = lancamentos().find(([, v]) => (v as { origem: string }).origem === "fat")!;
+    expect(espelho.fatPagId).toBe(chavePag.replace("despesasCorrentes/", ""));
+  });
+
+  test("a quitação depois do parcial conta só o que falta: o total da parcela nunca passa do valor", async () => {
+    const parcialAntes = {
+      id: "e1",
+      descricao: "Portátil",
+      valor: 5000,
+      data: "2026-08-05",
+      categoria: "Tecnologia",
+      origem: "parc" as const,
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+      fatPagId: "pag1",
+    };
+    await s.pagarFatura(
+      UID,
+      ctx({
+        valor: 10000,
+        devido: 20000,
+        pagamentosAtuais: [{ id: "pag1", data: "2026-08-05", valor: 10000, de: "Conta à ordem" }],
+        parcelas: [parcelaAuto],
+        despesas: [parcialAntes],
+      }),
+    );
+
+    expect(updates[0].mudancas[`parcelas/p1/pagoPorMes/${CICLO}`]).toBe("fatura");
+    const espelho = lancamentos()
+      .map(([, v]) => v as Record<string, unknown>)
+      .find((l) => l.origem === "parc")!;
+    // 100,00 da parcela − 50,00 já contados no parcial.
+    expect(espelho.valor).toBe(5000);
+    expect(espelho.fatPagId).toBeUndefined();
   });
 
   test("pagamento que quita marca a parcela autoDebit do ciclo e cria o lançamento dela", async () => {
@@ -258,6 +312,60 @@ describe("removerPagamentoFatura", () => {
     expect(updates[0].mudancas[`cfg/faturasPagas/Cartão Gold/${MES_FATURA}`]).toEqual({
       pagamentos: [outro],
     });
+  });
+
+  test("removendo um pagamento parcial, o espelho proporcional vai com ele; o da quitação fica fora do apagar parcial", async () => {
+    const espelhoParcial = {
+      id: "e1",
+      descricao: "Portátil",
+      valor: 5000,
+      data: "2026-08-05",
+      categoria: "Tecnologia",
+      origem: "parc" as const,
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+      fatPagId: "dc1",
+    };
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagamento,
+      [pagamento],
+      20000,
+      [parcelaAuto],
+      [espelhoParcial],
+    );
+    expect(updates[0].mudancas["despesasCorrentes/dc1"]).toBeNull();
+    expect(updates[0].mudancas["despesasCorrentes/e1"]).toBeNull();
+  });
+
+  test("remover o pagamento que quitou desfaz só o espelho da quitação e deixa o do parcial", async () => {
+    const parcial = {
+      id: "e1",
+      descricao: "Portátil",
+      valor: 5000,
+      data: "2026-08-05",
+      categoria: "Tecnologia",
+      origem: "parc" as const,
+      parcelaId: "p1",
+      parcelaMes: CICLO,
+      fatPagId: "dc1",
+    };
+    const quitacao = { ...parcial, id: "e2", fatPagId: undefined, data: "2026-08-20" };
+    const pagQuita: PagamentoFatura = { ...pagamento, id: "dc2", valor: 15000 };
+    await s.removerPagamentoFatura(
+      UID,
+      "Cartão Gold",
+      MES_FATURA,
+      pagQuita,
+      [pagamento, pagQuita],
+      20000,
+      [{ ...parcelaAuto, pagoPorMes: { [CICLO]: "fatura" } }],
+      [parcial, quitacao],
+    );
+    expect(updates[0].mudancas["despesasCorrentes/e2"]).toBeNull();
+    expect(updates[0].mudancas["despesasCorrentes/e1"]).toBeUndefined();
   });
 
   test("removendo o último pagamento, a fatura volta a não ter registo nenhum", async () => {
