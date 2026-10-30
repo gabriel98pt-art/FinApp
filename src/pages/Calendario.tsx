@@ -33,7 +33,6 @@ import {
   type Vencimento,
 } from "../utils/vencimentos";
 import {
-  diasComEventoNoMes,
   diasDoGrid,
   eventosComValor,
   eventosDoDia,
@@ -88,7 +87,7 @@ export default function SecaoCalendario() {
 
   const hoje = hojeIso();
   const grid = diasDoGrid(mes, cfg.diaInicioSemana);
-  const diasComEvento = diasComEventoNoMes(eventos, mes);
+  const diasComEvento = new Set(eventos.map((e) => e.data));
   const doMesAtual = eventosDoMes(eventos, mes);
   const proximos7 = proximosEventos(eventos, hoje, 7);
   const eventosDoDiaSel = diaSelecionado ? eventosDoDia(eventos, diaSelecionado) : [];
@@ -129,7 +128,13 @@ export default function SecaoCalendario() {
     ];
   }
   const vencimentos = vencimentosDoMes(mes);
-  const vencimentosPorDia = porDia(vencimentos);
+  // A grelha mostra também dias dos meses vizinhos: com os vencimentos deles os
+  // pontos e o detalhe do dia batem com o que os KPIs já somam.
+  const vencimentosPorDia = porDia([
+    ...vencimentosDoMes(somarMeses(mes, -1)),
+    ...vencimentos,
+    ...vencimentosDoMes(somarMeses(mes, 1)),
+  ]);
   const vencimentosDoDiaSel = diaSelecionado ? (vencimentosPorDia.get(diaSelecionado) ?? []) : [];
 
   // Os dois KPIs somam DINHEIRO a vencer, não contam eventos. Antes contavam só

@@ -163,6 +163,16 @@ describe("KPIs do Calendário", () => {
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
+  test("as células dos meses vizinhos também mostram os vencimentos", () => {
+    // Agosto de 2026 acaba a 31/08 e a grelha vai até 06/09: o dia 1 de
+    // setembro é uma célula «de outro mês» e tem de mostrar a fixa que vence aí.
+    fixas = lista([netflix("f1", 1, 2000)]);
+    render(<Calendario />);
+    expect(
+      screen.getByRole("button", { name: "Dia 1, de outro mês, 1 vencimento" }),
+    ).toBeInTheDocument();
+  });
+
   test("evento manual com valor entra na soma; sem valor, não", () => {
     eventos = lista<EventoCalendario>([
       { id: "e1", titulo: "IUC", data: "2026-08-14", valor: 12000 },

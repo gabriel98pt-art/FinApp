@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Calendário: os dias dos meses vizinhos que aparecem na grelha (por exemplo
+  1 de novembro a ver outubro) passam a mostrar os pontos e os vencimentos
+  desse dia, como os totais já contavam.
 - Calendário: o cartão «Vence em 7 dias» passa a «Vence até dd/mm» (a janela
   sempre começou hoje e acabava na data que já aparecia por baixo; agora a
   data está logo no título).
