@@ -571,7 +571,7 @@ export default function Despesas() {
               erro={erroDespesas}
               tom="vermelho"
               moeda={moeda}
-              /* "Soma desta lista", e não "Total <mês>": este rodapé conta só
+              /* "Soma das despesas do dia a dia", e não "Total <mês>": este rodapé conta só
                  as despesas CORRENTES do período — o que está mesmo à vista
                  nesta aba — enquanto o KPI "Total do mês" lá em cima conta
                  também fixas, parcelas e veículo. Chamar os dois de "Total"
@@ -580,8 +580,8 @@ export default function Despesas() {
                  as linhas do período, não só da página aberta do paginador.) */
               rotuloTotal={
                 visao === "semana" && semanaAtual
-                  ? `Soma desta lista · ${rotuloDaSemana(semanaAtual)}`
-                  : `Soma desta lista · ${rotuloMes(mes)}`
+                  ? `Soma das despesas do dia a dia · ${rotuloDaSemana(semanaAtual)}`
+                  : `Soma das despesas do dia a dia · ${rotuloMes(mes)}`
               }
               /* A lista mostra pagamento de fatura e espelho de parcela, mas o
                  rodapé soma só o que conta nos totais — igual aos KPIs acima. */

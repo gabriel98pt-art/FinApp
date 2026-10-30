@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Despesas: o rodapé da lista passa a «Soma das despesas do dia a dia», para
+  não se confundir com o «Total do mês» (que inclui fixas, parcelas e
+  veículo).
 - Veículo: kWh e litros sempre com 2 casas decimais (na lista e no palpite a
   partir do custo); o estado vazio dos km diz «Anote os km de cada viagem ou
   semana.»; uma carga a combustível aparece como «Carga» no extrato.
