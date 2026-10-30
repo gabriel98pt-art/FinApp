@@ -259,7 +259,10 @@ export default function Planejamento() {
             <div className={`${g.celula} ${g.s4}`}>
               <Kpis pagina="planejamento">
                 <KpiCard
-                  rotulo="Total"
+                  rotulo="Total dos tetos"
+                  // A escolha em Definições casa por este texto; o nome de
+                  // dentro continua a ser o de sempre (ver constants/kpis.ts).
+                  chave="Total"
                   valor={definido ? formatMoney(totalPlanejado, moeda) : "Definir"}
                   sub={definido ? "planeado por mês" : "quanto pretende gastar por mês"}
                   tom="acento"

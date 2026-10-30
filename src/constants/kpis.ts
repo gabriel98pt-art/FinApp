@@ -47,6 +47,7 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     id: "planejamento",
     titulo: "Planejamento — Orçamento",
     rotulos: ["Total", "Restam", "% usado", "Valor/dia"],
+    textos: { Total: "Total dos tetos" },
   },
   {
     id: "metas",

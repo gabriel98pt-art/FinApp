@@ -198,10 +198,13 @@ describe("KPIs do plano mensal", () => {
     cfg = { ...CONFIG_PADRAO, orcamentoTotalMensal: 100000 };
     montar();
 
-    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "planejamento")!.rotulos;
+    const pagina = KPIS_POR_PAGINA.find((p) => p.id === "planejamento")!;
+    const esperados = pagina.rotulos;
     expect(esperados).toHaveLength(4);
     for (const rotulo of esperados) {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
+      // O texto mostrado pode diferir da chave (`textos`): o primeiro cartão
+      // chama-se «Total dos tetos» mas guarda-se como «Total».
+      expect(screen.getByText(pagina.textos?.[rotulo] ?? rotulo)).toBeInTheDocument();
     }
   });
 
