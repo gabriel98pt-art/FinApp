@@ -351,3 +351,11 @@
 .colunaFundos > * {
   flex: 0 0 auto;
 }
+
+/* Os tetos das categorias passam do total definido: aviso só quando há conflito. */
+.avisoTotal {
+  margin-top: 8px;
+  color: var(--red);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}

@@ -11,6 +11,9 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ## 30/10/2026 (revisão de textos e comportamento)
 
+- Planejamento → Orçamento: quando os tetos das categorias somam mais do que
+  o total definido aparece por baixo dos números «Passou do total em € X».
+  Sem conflito não aparece nada.
 - Planejamento → Orçamento: o primeiro cartão passa de «Total» a «Total dos
   tetos», para não se confundir com o total do mês (a escolha guardada em
   Definições continua a funcionar).

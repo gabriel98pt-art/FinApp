@@ -120,6 +120,7 @@ export default function Planejamento() {
     [despesas, parcelas, cfg.orcamentos, mes, real, hoje],
   );
   const gastoTotal = status.reduce((s, c) => s + c.gasto, 0);
+  const somaTetos = status.reduce((s, c) => s + c.teto, 0);
   const totalPlanejado = cfg.orcamentoTotalMensal;
 
   // Enquanto não houver total definido, os três cartões de cálculo não têm
@@ -291,6 +292,13 @@ export default function Planejamento() {
                   tom="neutro"
                 />
               </Kpis>
+              {/* Só quando há conflito: os tetos das categorias somam mais do
+                  que o total definido — o plano contradiz-se. */}
+              {definido && somaTetos > totalPlanejado && (
+                <p className={styles.avisoTotal} role="status">
+                  Passou do total em {formatMoney(somaTetos - totalPlanejado, moeda)}
+                </p>
+              )}
             </div>
 
             <div className={`${g.celula} ${g.s8}`}>

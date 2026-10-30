@@ -208,6 +208,26 @@ describe("KPIs do plano mensal", () => {
     }
   });
 
+  test("os tetos somam mais do que o total: aviso por baixo dos números; sem conflito, nada", () => {
+    cfg = {
+      ...CONFIG_PADRAO,
+      orcamentoTotalMensal: 100000,
+      orcamentos: { Alimentação: 80000, Lazer: 50000 },
+    };
+    montar();
+    expect(screen.getByText(/Passou do total em/)).toHaveTextContent("€ 300,00");
+  });
+
+  test("tetos dentro do total: sem aviso", () => {
+    cfg = {
+      ...CONFIG_PADRAO,
+      orcamentoTotalMensal: 100000,
+      orcamentos: { Alimentação: 30000 },
+    };
+    montar();
+    expect(screen.queryByText(/Passou do total/)).not.toBeInTheDocument();
+  });
+
   test("sem total definido: convida a definir, e não inventa números", () => {
     // A primeira vez que a pessoa abre a tela. Zero seria uma resposta errada;
     // ausência de resposta é a resposta certa.
