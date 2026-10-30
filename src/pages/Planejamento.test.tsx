@@ -362,6 +362,23 @@ describe("aba Metas", () => {
     }
   });
 
+  test("taxa de poupança sem receitas no mês: traço, não 0%", async () => {
+    await montarNasMetas();
+    const coluna = screen.getByText("Taxa de Poupança").closest("div")!;
+    expect(within(coluna).getByText("—")).toBeInTheDocument();
+    expect(within(coluna).queryByText("0%")).not.toBeInTheDocument();
+  });
+
+  test("em défice com receitas a taxa continua 0%", async () => {
+    receitas = lista([
+      { id: "r1", descricao: "Salário", valor: 100000, data: "2026-08-01", fonte: "Trabalho" },
+    ]);
+    despesas = lista([despesa(150000)]);
+    await montarNasMetas();
+    const coluna = screen.getByText("Taxa de Poupança").closest("div")!;
+    expect(within(coluna).getByText("0%")).toBeInTheDocument();
+  });
+
   test("Poupado (12m) é verde, como Taxa de Poupança ao lado", async () => {
     // Achado da auditoria de Design: era "amarelo" fixo, destoando da Taxa
     // de Poupança (sempre verde) na MESMA tela. Sempre verde é o tom certo

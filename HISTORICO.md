@@ -9,6 +9,12 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 30/10/2026 (revisão de textos e comportamento)
+
+- Planejamento → Metas: a taxa de poupança mostra «—» quando o mês não tem
+  receitas (antes mostrava 0%, que se lê como «não poupou»). Em défice
+  continua 0%.
+
 ## 29/10/2026 (revisão técnica: pequenas correções)
 
 - **"Últimos 12 meses" (Metas) e "Últimos 6 meses" (Início) passam a bater com

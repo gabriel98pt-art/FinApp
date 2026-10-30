@@ -152,7 +152,8 @@ export default function Planejamento() {
     real,
     hoje,
   );
-  const taxaPoupancaMes = taxaPoupanca(meta.receitas, meta.saldo) ?? 0;
+  // Sem receitas não há percentagem: traço, e não um 0% que se lê como "não poupou".
+  const taxaPoupancaMes = taxaPoupanca(meta.receitas, meta.saldo);
 
   const [novoAberto, setNovoAberto] = useState(false);
   const [nome, setNome] = useState("");
@@ -298,7 +299,11 @@ export default function Planejamento() {
             <div className={`${g.celula} ${g.s4}`}>
               <Kpis pagina="metas">
                 <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, moeda)} tom="acento" />
-                <KpiCard rotulo="Taxa de Poupança" valor={`${taxaPoupancaMes}%`} tom="verde" />
+                <KpiCard
+                  rotulo="Taxa de Poupança"
+                  valor={taxaPoupancaMes === null ? "—" : `${taxaPoupancaMes}%`}
+                  tom="verde"
+                />
                 <KpiCard
                   rotulo="Total em Fundos"
                   valor={formatMoney(fundosAtual, moeda)}
