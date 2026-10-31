@@ -59,7 +59,7 @@ describe("receitasNosTotais — espelho de despesasNosTotais", () => {
     expect(totalDoMes(receitasNosTotais([salario, ajuste]), "2026-07")).toBe(200000);
   });
 
-  test("só 'recon' é excluído: 'fat' e 'parc' são casos da despesa, não da receita", () => {
+  test("só 'recon' é eliminado: 'fat' e 'parc' são casos da despesa, não da receita", () => {
     const comOutraOrigem = [
       { valor: 100, data: "2026-07-02", origem: "fat" },
       { valor: 200, data: "2026-07-03", origem: "parc" },

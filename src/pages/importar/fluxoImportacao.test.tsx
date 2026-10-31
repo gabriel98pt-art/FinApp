@@ -155,8 +155,8 @@ describe("contagem do botão = o que de facto é gravado", () => {
   });
 });
 
-describe("duplicatas: excluir o existente é secundário e pede confirmação própria", () => {
-  test("'Importar mesmo assim' mantém os dois — nada é excluído", async () => {
+describe("duplicatas: eliminar o existente é secundário e pede confirmação própria", () => {
+  test("'Importar mesmo assim' mantém os dois — nada é eliminado", async () => {
     useImportacaoStore.getState().setLinhas([dupMarcada()]);
     render(<Importar />);
 
@@ -172,13 +172,13 @@ describe("duplicatas: excluir o existente é secundário e pede confirmação pr
     expect(apagarExistentes).not.toHaveBeenCalled();
   });
 
-  test("'Excluir o existente…' só pede confirmação; cancelar não marca nada", async () => {
+  test("'Eliminar o existente…' só pede confirmação; cancelar não marca nada", async () => {
     useImportacaoStore.getState().setLinhas([dupMarcada()]);
     render(<Importar />);
 
     await userEvent.click(screen.getByRole("button", { name: "Importar 1" }));
     const dups = await folhaDuplicatas();
-    await userEvent.click(within(dups).getByRole("button", { name: "Excluir o existente…" }));
+    await userEvent.click(within(dups).getByRole("button", { name: "Eliminar o existente…" }));
     expect(
       within(dups).getByText(
         "Isto apaga o lançamento que já está registado. Não dá para desfazer só por aqui.",
@@ -202,10 +202,10 @@ describe("duplicatas: excluir o existente é secundário e pede confirmação pr
 
     await userEvent.click(screen.getByRole("button", { name: "Importar 1" }));
     const dups = await folhaDuplicatas();
-    await userEvent.click(within(dups).getByRole("button", { name: "Excluir o existente…" }));
-    await userEvent.click(within(dups).getByRole("button", { name: "Sim, excluir o existente" }));
+    await userEvent.click(within(dups).getByRole("button", { name: "Eliminar o existente…" }));
+    await userEvent.click(within(dups).getByRole("button", { name: "Sim, eliminar o existente" }));
     expect(
-      within(dups).getByText("O lançamento já registado vai ser excluído."),
+      within(dups).getByText("O lançamento já registado vai ser eliminado."),
     ).toBeInTheDocument();
     await userEvent.click(within(dups).getByRole("button", { name: "Importar mesmo assim" }));
 
@@ -213,7 +213,7 @@ describe("duplicatas: excluir o existente é secundário e pede confirmação pr
     // são duas linhas diferentes.
     const folha = await folhaConfirmacao();
     expect(within(folha).getByText("1 fica de fora (não será importado).")).toBeInTheDocument();
-    expect(within(folha).getByText("1 lançamento existente será excluído.")).toBeInTheDocument();
+    expect(within(folha).getByText("1 lançamento existente será eliminado.")).toBeInTheDocument();
     expect(apagarExistentes).not.toHaveBeenCalled();
 
     await userEvent.click(within(folha).getByRole("button", { name: "Importar 1" }));
@@ -227,8 +227,8 @@ describe("duplicatas: excluir o existente é secundário e pede confirmação pr
 
     await userEvent.click(screen.getByRole("button", { name: "Importar 1" }));
     const dups = await folhaDuplicatas();
-    await userEvent.click(within(dups).getByRole("button", { name: "Excluir o existente…" }));
-    await userEvent.click(within(dups).getByRole("button", { name: "Sim, excluir o existente" }));
+    await userEvent.click(within(dups).getByRole("button", { name: "Eliminar o existente…" }));
+    await userEvent.click(within(dups).getByRole("button", { name: "Sim, eliminar o existente" }));
     await userEvent.click(within(dups).getByRole("button", { name: "Manter o existente" }));
     await userEvent.click(within(dups).getByRole("button", { name: "Importar mesmo assim" }));
 

@@ -208,9 +208,9 @@ describe("confirmar sem sessão (#7)", () => {
   });
 });
 
-describe("arquivo CSV com erro (#10)", () => {
-  function carregar(r: { current: ReturnType<typeof useImportacao> }, arquivo: File) {
-    const evento = { target: { files: [arquivo], value: "x" } };
+describe("ficheiro CSV com erro (#10)", () => {
+  function carregar(r: { current: ReturnType<typeof useImportacao> }, ficheiro: File) {
+    const evento = { target: { files: [ficheiro], value: "x" } };
     act(() => r.current.aoCarregarArquivo(evento as unknown as ChangeEvent<HTMLInputElement>));
   }
 
@@ -219,12 +219,12 @@ describe("arquivo CSV com erro (#10)", () => {
     const { result } = renderHook(() => useImportacao());
     carregar(result, new File([CSV], "extrato.csv", { type: "text/csv" }));
     await vi.waitFor(() =>
-      expect(mostrarToast).toHaveBeenCalledWith("Não foi possível ler este arquivo CSV."),
+      expect(mostrarToast).toHaveBeenCalledWith("Não foi possível ler este ficheiro CSV."),
     );
     expect(result.current.linhas).toBeNull();
   });
 
-  test("falha de leitura do arquivo vira toast de erro", () => {
+  test("falha de leitura do ficheiro vira toast de erro", () => {
     class LeitorQueFalha {
       result: string | null = null;
       error = new Error("ilegível");
@@ -237,7 +237,7 @@ describe("arquivo CSV com erro (#10)", () => {
     vi.stubGlobal("FileReader", LeitorQueFalha);
     const { result } = renderHook(() => useImportacao());
     carregar(result, new File([CSV], "extrato.csv", { type: "text/csv" }));
-    expect(mostrarToast).toHaveBeenCalledWith("Não foi possível ler este arquivo CSV.");
+    expect(mostrarToast).toHaveBeenCalledWith("Não foi possível ler este ficheiro CSV.");
   });
 
   test("CSV válido continua a ser analisado", async () => {

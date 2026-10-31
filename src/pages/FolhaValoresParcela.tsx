@@ -76,13 +76,13 @@ export default function FolhaValoresParcela({
     });
   }
 
-  async function salvar(mes: YearMonth, valor: Cents) {
+  async function guardar(mes: YearMonth, valor: Cents) {
     try {
       await definirValorDoMes(uid, p, mes, valor, despesas);
       esquecerRascunho(mes);
       mostrarToast(`✓ ${rotuloMes(mes)}: ${formatMoney(valor, moeda)}`);
     } catch {
-      mostrarToast("Não foi possível salvar. Tente de novo.");
+      mostrarToast("Não foi possível guardar. Tente de novo.");
     }
   }
 
@@ -92,7 +92,7 @@ export default function FolhaValoresParcela({
       esquecerRascunho(mes);
       mostrarToast(`✓ ${rotuloMes(mes)} volta ao valor automático`);
     } catch {
-      mostrarToast("Não foi possível salvar. Tente de novo.");
+      mostrarToast("Não foi possível guardar. Tente de novo.");
     }
   }
 
@@ -123,7 +123,7 @@ export default function FolhaValoresParcela({
                   className={styles.linhaEdicao}
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (podeSalvar) void salvar(m, emEdicao);
+                    if (podeSalvar) void guardar(m, emEdicao);
                   }}
                 >
                   <CampoMoeda
@@ -136,9 +136,9 @@ export default function FolhaValoresParcela({
                     type="submit"
                     variante="texto"
                     disabled={!podeSalvar}
-                    aria-label={`Salvar ${rotulo}`}
+                    aria-label={`Guardar ${rotulo}`}
                   >
-                    Salvar
+                    Guardar
                   </Botao>
                 </form>
                 {pago && (
@@ -146,7 +146,7 @@ export default function FolhaValoresParcela({
                     {espelhosDoMes(p, m, despesas).length > 0
                       ? "Já pago — ajustar aqui também corrige o lançamento em Despesas."
                       : p.autoDebit
-                        ? "Já pago via débito automático — ajustar aqui só muda o cálculo da parcela, não a fatura do cartão."
+                        ? "Já pago via débito direto — ajustar aqui só muda o cálculo da parcela, não a fatura do cartão."
                         : "Já pago, sem lançamento ligado em Despesas — ajustar aqui só muda o cálculo da parcela."}
                   </span>
                 )}

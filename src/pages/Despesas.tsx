@@ -220,7 +220,7 @@ export default function Despesas() {
   function editar(id: string) {
     const item = itens.find((d) => d.id === id);
     if (item?.origem === "fat") {
-      mostrarToast("Pagamento de fatura — gerencie na tela Cartões.");
+      mostrarToast("Pagamento de fatura — gerencie no ecrã Cartões.");
       return;
     }
     // Valor, data e descrição de um pagamento de parcela ficam travados (têm
@@ -258,16 +258,16 @@ export default function Despesas() {
   async function excluirDespesa(id: string) {
     const item = itens.find((d) => d.id === id);
     if (item?.origem === "fat") {
-      mostrarToast("Pagamento de fatura — gerencie na tela Cartões.");
+      mostrarToast("Pagamento de fatura — gerencie no ecrã Cartões.");
       return;
     }
     if (item?.origem === "parc") {
-      mostrarToast("Lançamento de parcela — gerencie na tela Parcelas.");
+      mostrarToast("Lançamento de parcela — gerencie no ecrã Parcelas.");
       return;
     }
     if (!item) return;
-    if (!(await confirmar(`Excluir "${item.descricao}"?`))) return;
-    await agir(() => removerDespesa(uid, id), "Despesa excluída");
+    if (!(await confirmar(`Eliminar "${item.descricao}"?`))) return;
+    await agir(() => removerDespesa(uid, id), "Despesa eliminada");
   }
 
   // ---- caixa de despesa fixa (criar/editar na mesma folha — itens 2 e 7) ----
@@ -369,7 +369,7 @@ export default function Despesas() {
   async function excluirFixa() {
     const atual = despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${atual.descricao}"?`))) return;
     setDfAberta(false);
     await encerrarFixa(atual);
   }
@@ -378,7 +378,7 @@ export default function Despesas() {
   // edição estar aberta, ao contrário de `excluirFixa` acima (essa continua
   // a servir o botão "Excluir" de DENTRO da folha).
   async function excluirFixaDaLista(f: DespesaFixa) {
-    if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${f.descricao}"?`))) return;
     await encerrarFixa(f);
   }
 
@@ -666,8 +666,8 @@ export default function Despesas() {
                         <span
                           className={styles.marcaAutoDebit}
                           role="img"
-                          aria-label="débito automático"
-                          title="Débito automático"
+                          aria-label="débito direto"
+                          title="Débito direto"
                         >
                           <RotateCw size={12} aria-hidden />
                         </span>
@@ -726,7 +726,7 @@ export default function Despesas() {
         titulo={dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
       >
         <form className={styles.formFolha} onSubmit={salvarFixa}>
-          {/* Valor em destaque e em primeiro, como no Registro Rápido: o
+          {/* Valor em destaque e em primeiro, como no Registo Rápido: o
               "quanto por mês" é o que define uma fixa. Saiu da linha dupla que
               partilhava com o dia do vencimento — o campo grande não cabe em
               meia largura, e o dia é uma pergunta bem menor. */}
@@ -786,7 +786,7 @@ export default function Despesas() {
               <input type="month" value={dfFim} onChange={(e) => setDfFim(e.target.value)} />
             </label>
           </div>
-          {/* Mesmo botão-marcação do parcelamento no Registro Rápido. Aqui é só
+          {/* Mesmo botão-marcação do parcelamento no Registo Rápido. Aqui é só
               uma anotação: a fixa já entra na fatura por ser de cartão de
               crédito, ligar ou desligar isto não move nenhum total. */}
           <button
@@ -797,14 +797,14 @@ export default function Despesas() {
             onClick={() => setDfAutoDebit(!dfAutoDebit)}
           >
             {dfAutoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
-            Débito automático
+            Débito direto
           </button>
           <Botao type="submit" variante="submeter">
-            {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
+            {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
-              Excluir despesa fixa
+              Eliminar despesa fixa
             </button>
           )}
         </form>
@@ -835,7 +835,7 @@ export default function Despesas() {
               rotuloVazio="Sem cartão"
             />
             <Botao type="submit" variante="submeter">
-              Salvar
+              Guardar
             </Botao>
           </form>
         )}

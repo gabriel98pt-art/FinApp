@@ -133,7 +133,7 @@ export default function MobileNav() {
               fecharMais();
               abrirMenuRegistro();
             }}
-            aria-label="Registro rápido"
+            aria-label="Registo rápido"
           >
             <Plus size={26} strokeWidth={2.5} aria-hidden />
           </button>

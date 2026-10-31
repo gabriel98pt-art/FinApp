@@ -43,10 +43,10 @@ async function confirmarRestauracao() {
 
 /** Simula `e.clipboardData.files` — jsdom não cria `ClipboardEvent` com
  *  ficheiros sozinho, então a lista de ficheiros é forjada por cima. */
-function colar(arquivo?: File) {
+function colar(ficheiro?: File) {
   const evento = new Event("paste", { bubbles: true, cancelable: true }) as ClipboardEvent;
   Object.defineProperty(evento, "clipboardData", {
-    value: arquivo ? { files: [arquivo] } : { files: [] },
+    value: ficheiro ? { files: [ficheiro] } : { files: [] },
   });
   window.dispatchEvent(evento);
 }
@@ -60,10 +60,10 @@ describe("FolhaBackup — colar ficheiro (⌘V)", () => {
   test("colar um ficheiro mostra o resumo e importa só depois de confirmar", async () => {
     render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
 
-    const arquivo = new File(['{"versao":1,"dados":{}}'], "backup.json", {
+    const ficheiro = new File(['{"versao":1,"dados":{}}'], "backup.json", {
       type: "application/json",
     });
-    colar(arquivo);
+    colar(ficheiro);
 
     await screen.findByRole("button", { name: "Restaurar backup" });
     expect(importarBackup).not.toHaveBeenCalled();
@@ -83,10 +83,10 @@ describe("FolhaBackup — colar ficheiro (⌘V)", () => {
   test("com a folha fechada, colar não importa nada", () => {
     render(<FolhaBackup uid="u1" aberta={false} aoFechar={() => {}} />);
 
-    const arquivo = new File(['{"versao":1,"dados":{}}'], "backup.json", {
+    const ficheiro = new File(['{"versao":1,"dados":{}}'], "backup.json", {
       type: "application/json",
     });
-    colar(arquivo);
+    colar(ficheiro);
 
     expect(screen.queryByRole("button", { name: "Restaurar backup" })).toBeNull();
     expect(importarBackup).not.toHaveBeenCalled();
@@ -98,16 +98,16 @@ describe("FolhaBackup — colar ficheiro (⌘V)", () => {
 // aceita arrastar e soltar o arquivo direto na caixa.
 describe("FolhaBackup — arrastar e soltar ficheiro", () => {
   function zona() {
-    return screen.getByText(/Arraste o arquivo de backup aqui/).parentElement!;
+    return screen.getByText(/Arraste o ficheiro de backup aqui/).parentElement!;
   }
 
   test("soltar um ficheiro mostra o resumo e importa depois de confirmar", async () => {
     render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
 
-    const arquivo = new File(['{"versao":1,"dados":{}}'], "backup.json", {
+    const ficheiro = new File(['{"versao":1,"dados":{}}'], "backup.json", {
       type: "application/json",
     });
-    fireEvent.drop(zona(), { dataTransfer: { types: ["Files"], files: [arquivo] } });
+    fireEvent.drop(zona(), { dataTransfer: { types: ["Files"], files: [ficheiro] } });
 
     await confirmarRestauracao();
     await vi.waitFor(() => expect(importarBackup).toHaveBeenCalledWith("u1", expect.any(String)));
@@ -125,12 +125,12 @@ describe("FolhaBackup — arrastar e soltar ficheiro", () => {
 
 describe("FolhaBackup — validar antes de confirmar", () => {
   function soltar(conteudo: string) {
-    const arquivo = new File([conteudo], "backup.json", { type: "application/json" });
-    const zona = screen.getByText(/Arraste o arquivo de backup aqui/).parentElement!;
-    fireEvent.drop(zona, { dataTransfer: { types: ["Files"], files: [arquivo] } });
+    const ficheiro = new File([conteudo], "backup.json", { type: "application/json" });
+    const zona = screen.getByText(/Arraste o ficheiro de backup aqui/).parentElement!;
+    fireEvent.drop(zona, { dataTransfer: { types: ["Files"], files: [ficheiro] } });
   }
 
-  test("arquivo válido: resumo com data, lançamentos, contas e categorias", async () => {
+  test("ficheiro válido: resumo com data, lançamentos, contas e categorias", async () => {
     render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
 
     soltar(
@@ -152,7 +152,7 @@ describe("FolhaBackup — validar antes de confirmar", () => {
     expect(importarBackup).not.toHaveBeenCalled();
   });
 
-  test("arquivo inválido: mostra o motivo específico e não oferece restaurar", async () => {
+  test("ficheiro inválido: mostra o motivo específico e não oferece restaurar", async () => {
     render(<FolhaBackup uid="u1" aberta aoFechar={() => {}} />);
 
     soltar(JSON.stringify({ versao: 1, dados: { receitas: [{ descricao: "x" }] } }));
@@ -179,7 +179,7 @@ describe("FolhaBackup — validar antes de confirmar", () => {
     soltar(JSON.stringify({ versao: 1, dados: {} }));
     fireEvent.click(await screen.findByRole("button", { name: "Cancelar" }));
 
-    expect(screen.getByText(/Arraste o arquivo de backup aqui/)).toBeTruthy();
+    expect(screen.getByText(/Arraste o ficheiro de backup aqui/)).toBeTruthy();
     expect(importarBackup).not.toHaveBeenCalled();
   });
 
@@ -207,6 +207,6 @@ describe("FolhaBackup — validar antes de confirmar", () => {
     await confirmarRestauracao();
 
     await vi.waitFor(() => expect(mostrarToast).toHaveBeenCalledWith("✓ Backup restaurado"));
-    expect(await screen.findByText(/Arraste o arquivo de backup aqui/)).toBeTruthy();
+    expect(await screen.findByText(/Arraste o ficheiro de backup aqui/)).toBeTruthy();
   });
 });

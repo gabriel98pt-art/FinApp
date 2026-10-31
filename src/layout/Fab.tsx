@@ -11,7 +11,7 @@ export default function Fab() {
   const abrirMenuRegistro = useUiStore((s) => s.abrirMenuRegistro);
 
   return (
-    <button className={styles.fab} onClick={() => abrirMenuRegistro()} aria-label="Registro rápido">
+    <button className={styles.fab} onClick={() => abrirMenuRegistro()} aria-label="Registo rápido">
       <Plus size={26} strokeWidth={2.5} aria-hidden />
     </button>
   );

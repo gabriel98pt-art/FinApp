@@ -238,7 +238,7 @@ function LinhaTransferencia({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
-    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
   ];
 
   const nome = `${nomeDe(t.de)} → ${nomeDe(t.para)}`;
@@ -489,7 +489,7 @@ export default function Cartoes() {
         mostrarToast("✓ Transferência atualizada");
       } else {
         await criarTransferencia(uid, dados);
-        mostrarToast("✓ Transferência registrada");
+        mostrarToast("✓ Transferência registada");
       }
       setTfAberta(false);
     } catch {
@@ -499,12 +499,12 @@ export default function Cartoes() {
 
   async function excluirTransferencia() {
     if (!tfEditandoId) return;
-    if (!(await confirmar("Excluir esta transferência?"))) return;
+    if (!(await confirmar("Eliminar esta transferência?"))) return;
     const id = tfEditandoId;
     setTfAberta(false);
     try {
       await removerTransferencia(uid, id);
-      mostrarToast("Transferência excluída");
+      mostrarToast("Transferência eliminada");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
     }
@@ -512,10 +512,10 @@ export default function Cartoes() {
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha.
   async function excluirTransferenciaDaLista(t: Transferencia) {
-    if (!(await confirmar("Excluir esta transferência?"))) return;
+    if (!(await confirmar("Eliminar esta transferência?"))) return;
     try {
       await removerTransferencia(uid, t.id);
-      mostrarToast("Transferência excluída");
+      mostrarToast("Transferência eliminada");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
     }
@@ -540,10 +540,10 @@ export default function Cartoes() {
         despesas,
       });
       const quitou = valor >= pagando.restante;
-      mostrarToast(quitou ? "✓ Fatura paga" : "✓ Pagamento parcial registrado");
+      mostrarToast(quitou ? "✓ Fatura paga" : "✓ Pagamento parcial registado");
       setPagando(null);
     } catch {
-      mostrarToast("Não foi possível registrar o pagamento.");
+      mostrarToast("Não foi possível registar o pagamento.");
     }
   }
 
@@ -923,7 +923,7 @@ export default function Cartoes() {
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
             )}
             <Botao type="submit" variante="submeter" disabled={contasDebito.length === 0}>
-              Registrar pagamento
+              Registar pagamento
             </Botao>
           </form>
         )}
@@ -946,7 +946,7 @@ export default function Cartoes() {
               <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} placeholder="automático" />
             </label>
             <Botao type="submit" variante="submeter">
-              Salvar
+              Guardar
             </Botao>
           </form>
         )}
@@ -973,7 +973,7 @@ export default function Cartoes() {
               bater com o do banco.
             </p>
             <Botao type="submit" variante="submeter">
-              Salvar
+              Guardar
             </Botao>
           </form>
         )}
@@ -1016,7 +1016,7 @@ export default function Cartoes() {
             />
           </label>
           <Botao type="submit" variante="submeter">
-            {tfEditandoId ? "Salvar alterações" : "Registrar transferência"}
+            {tfEditandoId ? "Guardar alterações" : "Registar transferência"}
           </Botao>
           {tfEditandoId && (
             <button
@@ -1024,7 +1024,7 @@ export default function Cartoes() {
               className={styles.excluir}
               onClick={() => void excluirTransferencia()}
             >
-              Excluir transferência
+              Eliminar transferência
             </button>
           )}
         </form>

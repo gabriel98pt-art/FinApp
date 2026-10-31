@@ -34,7 +34,7 @@ export default function AppShell() {
         refIndicador={refIndicador}
         refIcone={refIcone}
       />
-      {/* O gesto vive só na tela principal: folhas e modais estão fora deste
+      {/* O gesto vive só no ecrã principal: folhas e modais estão fora deste
           <main>, então puxar dentro delas não dispara nada. */}
       <main ref={refConteudo} className={styles.conteudo} {...manipuladores}>
         <Suspense fallback={null}>

@@ -120,7 +120,7 @@ function FormSemana({
     setTeste(existente?.teste ?? false);
   }
 
-  async function salvar(e: FormEvent) {
+  async function guardar(e: FormEvent) {
     e.preventDefault();
     if (n === null || !uid) return;
     const semana: SemanaTvde = {
@@ -145,11 +145,11 @@ function FormSemana({
     }
     try {
       await salvarSemana(uid, n, semana);
-      mostrarToast(`✓ Semana ${n} salva`);
+      mostrarToast(`✓ Semana ${n} guardada`);
       aoFechar();
       setChave(null);
     } catch {
-      mostrarToast("Não foi possível salvar.");
+      mostrarToast("Não foi possível guardar.");
     }
   }
 
@@ -162,7 +162,7 @@ function FormSemana({
       }}
       titulo={n !== null ? `Semana ${n} · ${rotuloDaSemana(dados.cfg.inicioSemana1, n)}` : ""}
     >
-      <form className={styles.form} onSubmit={salvar}>
+      <form className={styles.form} onSubmit={guardar}>
         {CAMPOS_DINHEIRO.map(([k, nome]) => (
           <label key={k} className={styles.campoLinha}>
             <span>
@@ -192,7 +192,7 @@ function FormSemana({
           </label>
         </div>
         <button type="submit" className={styles.salvar}>
-          Salvar semana
+          Guardar semana
         </button>
         {existente && (
           <button
@@ -202,19 +202,19 @@ function FormSemana({
               void (async () => {
                 if (n === null) return;
                 if (dados.lancamentos[String(n)]) {
-                  mostrarToast("Desfaça o lançamento antes de excluir a semana.");
+                  mostrarToast("Desfaça o lançamento antes de eliminar a semana.");
                   return;
                 }
-                if (!(await confirmar(`Excluir a semana ${n}?`))) return;
+                if (!(await confirmar(`Eliminar a semana ${n}?`))) return;
                 aoFechar();
                 setChave(null);
                 await removerSemana(uid, n)
-                  .then(() => mostrarToast("Semana excluída"))
+                  .then(() => mostrarToast("Semana eliminada"))
                   .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
               })();
             }}
           >
-            Excluir semana
+            Eliminar semana
           </button>
         )}
       </form>
@@ -256,7 +256,7 @@ function LinhaSemana({
     lancada
       ? { rotulo: "Desfazer lançamento", Icone: RotateCcw, onClick: aoDesfazerLancamento }
       : { rotulo: "Lançar receita", Icone: Check, onClick: aoLancarReceita },
-    { rotulo: "Excluir", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+    { rotulo: "Eliminar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
   ];
 
   return (
@@ -369,11 +369,11 @@ export default function Tvde() {
   // com lançamento nas finanças ainda de pé).
   async function excluirSemanaDaLista(nSem: number) {
     if (lancamentos[String(nSem)]) {
-      mostrarToast("Desfaça o lançamento antes de excluir a semana.");
+      mostrarToast("Desfaça o lançamento antes de eliminar a semana.");
       return;
     }
-    if (!(await confirmar(`Excluir a semana ${nSem}?`))) return;
-    await agir(() => removerSemana(uid, nSem), "Semana excluída");
+    if (!(await confirmar(`Eliminar a semana ${nSem}?`))) return;
+    await agir(() => removerSemana(uid, nSem), "Semana eliminada");
   }
 
   return (
@@ -457,7 +457,7 @@ export default function Tvde() {
             ) : carregado && numeros.length === 0 ? (
               <EstadoVazio
                 Icone={CarTaxiFront}
-                mensagem="Nenhuma semana registrada"
+                mensagem="Nenhuma semana registada"
                 sub={`A semana atual é a ${semanaAtualN} (${rotuloDaSemana(cfg.inicioSemana1, semanaAtualN)}).`}
               />
             ) : (
@@ -600,7 +600,7 @@ export default function Tvde() {
                     onChange={(e) =>
                       void agir(
                         () => salvarConfigTvde(uid, { contaReceita: e.target.value }),
-                        "✓ Conta destino salva",
+                        "✓ Conta destino guardada",
                       )
                     }
                   >
@@ -624,7 +624,7 @@ export default function Tvde() {
               <p className={styles.blocoTitulo}>Fonte da receita</p>
               <p className={styles.blocoNota}>
                 Qual fonte usar ao lançar a receita da semana (TVDE) nas finanças — evita duplicar
-                categoria com uma fonte que você já usa.
+                categoria com uma fonte que já usa.
               </p>
               <div className={styles.linhaDupla}>
                 <select
@@ -633,7 +633,7 @@ export default function Tvde() {
                   onChange={(e) =>
                     void agir(
                       () => salvarConfigTvde(uid, { fonteReceita: e.target.value }),
-                      "✓ Fonte da receita salva",
+                      "✓ Fonte da receita guardada",
                     )
                   }
                 >
@@ -654,7 +654,7 @@ export default function Tvde() {
                 const v = segValor ?? 0;
                 void agir(
                   () => definirSegMes(uid, segMes, v === 0 ? null : v),
-                  v === 0 ? "Seg. Social removida" : "✓ Seg. Social registrada",
+                  v === 0 ? "Seg. Social removida" : "✓ Seg. Social registada",
                 );
                 setSegValor(null);
               }}
@@ -672,7 +672,7 @@ export default function Tvde() {
                 />
                 <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
                 <button type="submit" className={styles.botaoMini}>
-                  Salvar
+                  Guardar
                 </button>
               </div>
               {Object.entries(segPorMes).length > 0 && (
@@ -740,11 +740,11 @@ export default function Tvde() {
                           onClick={(e) => {
                             e.preventDefault();
                             void (async () => {
-                              if (!(await confirmar(`Excluir "${d.descricao}"?`))) return;
-                              await agir(() => removerDespesaTvde(uid, d.id), "Despesa excluída");
+                              if (!(await confirmar(`Eliminar "${d.descricao}"?`))) return;
+                              await agir(() => removerDespesaTvde(uid, d.id), "Despesa eliminada");
                             })();
                           }}
-                          aria-label={`Excluir ${d.descricao}`}
+                          aria-label={`Eliminar ${d.descricao}`}
                         >
                           <X size={16} aria-hidden />
                         </button>

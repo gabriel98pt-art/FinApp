@@ -55,7 +55,7 @@ export default function PainelCoresApp({
     try {
       await definirCorApp(uid, tema, token, cor);
     } catch {
-      mostrarToast("Não foi possível salvar a cor.");
+      mostrarToast("Não foi possível guardar a cor.");
     }
   }
 

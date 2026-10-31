@@ -543,7 +543,7 @@ describe("BUG 1/2 (não reproduzir): destino único de cada lançamento nos tota
   });
 });
 
-describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém marca", () => {
+describe("fixaEfetivamentePaga — a fixa em débito direto que ninguém marca", () => {
   function fixa(extra: Partial<DespesaFixa> = {}): DespesaFixa {
     return {
       id: "f1",
@@ -562,7 +562,7 @@ describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém ma
     expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(false);
   });
 
-  test("no cartão em débito automático conta sem marcação, até ao mês de referência", () => {
+  test("no cartão em débito direto conta sem marcação, até ao mês de referência", () => {
     const f = fixa({ contaCartao: CARTAO, autoDebit: true, inicio: "2026-01" });
     expect(fixaEfetivamentePaga(f, "2026-06", "2026-08")).toBe(true);
     expect(fixaEfetivamentePaga(f, "2026-08", "2026-08")).toBe(true);
@@ -586,7 +586,7 @@ describe("fixaEfetivamentePaga — a fixa em débito automático que ninguém ma
   });
 
   // Quem chama nem sempre filtra pelo plano antes (o extrato percorre todas).
-  test("fora do plano da fixa não conta, mesmo em débito automático", () => {
+  test("fora do plano da fixa não conta, mesmo em débito direto", () => {
     const f = fixa({ contaCartao: CARTAO, autoDebit: true, inicio: "2026-05", fim: "2026-07" });
     expect(fixaEfetivamentePaga(f, "2026-04", "2026-08")).toBe(false);
     expect(fixaEfetivamentePaga(f, "2026-05", "2026-08")).toBe(true);
@@ -712,7 +712,7 @@ describe("despesa fixa sem dia de vencimento", () => {
     expect(fixaEfetivamentePaga(fixa(), "2026-06", "2026-07", "2026-07-01")).toBe(true);
   });
 
-  test("marcada à mão conta sempre, mesmo sem dia e sem débito automático", () => {
+  test("marcada à mão conta sempre, mesmo sem dia e sem débito direto", () => {
     const f = fixa({
       autoDebit: undefined,
       contaCartao: undefined,
@@ -721,7 +721,7 @@ describe("despesa fixa sem dia de vencimento", () => {
     expect(fixaEfetivamentePaga(f, "2026-07")).toBe(true);
   });
 
-  test("sem débito automático e sem marcação, nunca se dá por paga sozinha", () => {
+  test("sem débito direto e sem marcação, nunca se dá por paga sozinha", () => {
     // Quem paga à mão decide quando pagou — o app não pode presumir.
     const f = fixa({ autoDebit: undefined, contaCartao: undefined });
     expect(fixaEfetivamentePaga(f, "2026-07", "2026-07", "2026-07-31")).toBe(false);

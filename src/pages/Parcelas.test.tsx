@@ -85,14 +85,14 @@ describe("Parcelas", () => {
 
   test("sem nada: mostra o estado vazio", () => {
     render(<Parcelas />);
-    expect(screen.getByText("Nenhuma compra parcelada")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma compra em prestações")).toBeInTheDocument();
   });
 
   test("sincronização caída e sem dados: avisa em vez de dizer que está vazio", () => {
     estado = { itens: [], carregado: true, erro: true };
     render(<Parcelas />);
 
-    expect(screen.queryByText("Nenhuma compra parcelada")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nenhuma compra em prestações")).not.toBeInTheDocument();
     expect(screen.getByText(/Não foi possível sincronizar/)).toBeInTheDocument();
   });
 
@@ -112,7 +112,7 @@ describe("Parcelas", () => {
     estado = { itens: [quitada()], carregado: true, erro: false };
     render(<Parcelas />);
 
-    expect(screen.queryByText("Nenhuma compra parcelada")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nenhuma compra em prestações")).not.toBeInTheDocument();
     expect(screen.getByText(/Tudo liquidado/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Liquidadas \(1\)/ })).toBeInTheDocument();
   });
@@ -148,14 +148,14 @@ describe("Parcelas", () => {
     expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
   });
 
-  test("o menu da linha também oferece Editar e Excluir", async () => {
+  test("o menu da linha também oferece Editar e Eliminar", async () => {
     estado = { itens: [parcela()], carregado: true, erro: false };
     render(<Parcelas />);
 
     await userEvent.click(screen.getByText("Portátil"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
   });
 
   test("pagar tudo avisa que quita a compra inteira e não dá para desfazer", async () => {
@@ -245,7 +245,7 @@ describe("Parcelas", () => {
 
       const campo = within(folha).getByLabelText(/Valor de julho/i);
       await userEvent.type(campo, "{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}9500");
-      await userEvent.click(within(folha).getByRole("button", { name: /Salvar julho/i }));
+      await userEvent.click(within(folha).getByRole("button", { name: /Guardar julho/i }));
 
       expect(definirValorDoMes).toHaveBeenCalledTimes(1);
       expect(definirValorDoMes).toHaveBeenCalledWith(
@@ -291,7 +291,7 @@ describe("Parcelas", () => {
       parcelaMes: "2026-06",
     };
 
-    test("mês pago também é editável e salvar repassa as despesas ao serviço", async () => {
+    test("mês pago também é editável e guardar repassa as despesas ao serviço", async () => {
       useDespesasStore.setState({ itens: [espelhoJunho] });
       estado = { itens: [comJunhoPago()], carregado: true, erro: false };
       render(<Parcelas />);
@@ -299,7 +299,7 @@ describe("Parcelas", () => {
 
       const campo = within(folha).getByLabelText(/Valor de junho/i);
       await userEvent.type(campo, "{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}5333");
-      await userEvent.click(within(folha).getByRole("button", { name: /Salvar junho/i }));
+      await userEvent.click(within(folha).getByRole("button", { name: /Guardar junho/i }));
 
       expect(definirValorDoMes).toHaveBeenCalledWith(
         "u1",
@@ -321,7 +321,7 @@ describe("Parcelas", () => {
       ).toBeInTheDocument();
     });
 
-    test("mês pago por débito automático, sem espelho: avisa que a fatura não muda", async () => {
+    test("mês pago por débito direto, sem espelho: avisa que a fatura não muda", async () => {
       estado = {
         // 6 meses: o débito automático já cobrou junho e julho, mas a compra
         // continua ativa (com 3 meses ficava toda quitada e saía da lista).
@@ -333,7 +333,7 @@ describe("Parcelas", () => {
       const folha = await abrirFolha();
 
       expect(within(folha).getByLabelText(/Valor de junho/i)).toBeInTheDocument();
-      expect(within(folha).getAllByText(/via débito automático/i).length).toBeGreaterThan(0);
+      expect(within(folha).getAllByText(/via débito direto/i).length).toBeGreaterThan(0);
       expect(within(folha).queryByText(/também corrige o lançamento/i)).not.toBeInTheDocument();
     });
 
@@ -358,7 +358,7 @@ describe("Parcelas", () => {
       );
     });
 
-    test("soma dos meses diferente do total avisa, sem impedir de salvar", async () => {
+    test("soma dos meses diferente do total avisa, sem impedir de guardar", async () => {
       estado = {
         itens: [comJunhoPago({ overridePorMes: { "2026-08": 9500 } })],
         carregado: true,
@@ -370,7 +370,7 @@ describe("Parcelas", () => {
       expect(within(folha).getByText(/abaixo do total da compra/i)).toBeInTheDocument();
       const campo = within(folha).getByLabelText(/Valor de julho/i);
       await userEvent.type(campo, "1");
-      expect(within(folha).getByRole("button", { name: /Salvar julho/i })).toBeEnabled();
+      expect(within(folha).getByRole("button", { name: /Guardar julho/i })).toBeEnabled();
     });
   });
 });

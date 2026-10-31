@@ -60,7 +60,7 @@ export default function FolhaOrcamentoTotal({
   // escrever qualquer valor — uma afirmação falsa sobre um total que nem existe.
   const porAlocar = valor === null ? null : valor - somaTetos;
 
-  async function salvar(e: FormEvent) {
+  async function guardar(e: FormEvent) {
     e.preventDefault();
     if (valor !== null && valor < 0) return mostrarToast("O total não pode ser negativo.");
     setSalvando(true);
@@ -69,7 +69,7 @@ export default function FolhaOrcamentoTotal({
       mostrarToast(valor === null || valor === 0 ? "Total removido" : "✓ Total definido");
       fechar();
     } catch {
-      mostrarToast("Não foi possível salvar o total.");
+      mostrarToast("Não foi possível guardar o total.");
     } finally {
       setSalvando(false);
     }
@@ -77,13 +77,13 @@ export default function FolhaOrcamentoTotal({
 
   return (
     <BottomSheet aberta={aberta} aoFechar={fechar} titulo="Total planeado por mês" tamanho="grande">
-      <form className={styles.form} onSubmit={salvar}>
+      <form className={styles.form} onSubmit={guardar}>
         <label className={styles.campo}>
           Quanto pretende gastar por mês
           <CampoMoeda valor={valor} aoMudar={setValor} disabled={salvando} />
         </label>
         <Botao type="submit" variante="submeter" disabled={salvando}>
-          {salvando ? "Aguarde…" : "Salvar"}
+          {salvando ? "Aguarde…" : "Guardar"}
         </Botao>
       </form>
 

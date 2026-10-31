@@ -291,15 +291,15 @@ export default function Veiculo() {
 
   async function excluirKm() {
     if (!kmEditandoId) return;
-    if (!(await confirmar("Excluir este registo de km?"))) return;
+    if (!(await confirmar("Eliminar este registo de km?"))) return;
     const id = kmEditandoId;
     setKmAberta(false);
-    await agir(() => removerKm(uid, id), "Registo excluído");
+    await agir(() => removerKm(uid, id), "Registo eliminado");
   }
 
   async function excluirKmDaLista(id: Id) {
-    if (!(await confirmar("Excluir este registo de km?"))) return;
-    await agir(() => removerKm(uid, id), "Registo excluído");
+    if (!(await confirmar("Eliminar este registo de km?"))) return;
+    await agir(() => removerKm(uid, id), "Registo eliminado");
   }
 
   // ---- caixa de abastecimento (só edita — ver comentário mais abaixo) ----
@@ -434,7 +434,7 @@ export default function Veiculo() {
       mostrarToast("✓ Abastecimento atualizado");
       setCgAberta(false);
     } catch {
-      mostrarToast("Não foi possível salvar.");
+      mostrarToast("Não foi possível guardar.");
     }
   }
 
@@ -483,17 +483,17 @@ export default function Veiculo() {
 
   async function excluirCarga() {
     if (!cgEditandoId) return;
-    if (!(await confirmar("Excluir este abastecimento?"))) return;
+    if (!(await confirmar("Eliminar este abastecimento?"))) return;
     const id = cgEditandoId;
     setCgAberta(false);
-    await agir(() => removerCarga(uid, id), "Abastecimento excluído");
+    await agir(() => removerCarga(uid, id), "Abastecimento eliminado");
   }
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha,
   // direto — sem passar pela edição primeiro.
   async function excluirCargaDaLista(id: Id) {
-    if (!(await confirmar("Excluir este abastecimento?"))) return;
-    await agir(() => removerCarga(uid, id), "Abastecimento excluído");
+    if (!(await confirmar("Eliminar este abastecimento?"))) return;
+    await agir(() => removerCarga(uid, id), "Abastecimento eliminado");
   }
 
   // ---- caixa de despesa variável do veículo (criar/editar) ----
@@ -551,15 +551,15 @@ export default function Veiculo() {
 
   async function excluirDespesa() {
     if (!dvEditandoId) return;
-    if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
+    if (!(await confirmar("Eliminar esta despesa do veículo?"))) return;
     const id = dvEditandoId;
     setDvAberta(false);
-    await agir(() => removerDespesaVeiculo(uid, id), "Despesa excluída");
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa eliminada");
   }
 
   async function excluirDespesaDaLista(id: Id) {
-    if (!(await confirmar("Excluir esta despesa do veículo?"))) return;
-    await agir(() => removerDespesaVeiculo(uid, id), "Despesa excluída");
+    if (!(await confirmar("Eliminar esta despesa do veículo?"))) return;
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa eliminada");
   }
 
   // ---- caixa de despesa fixa do veículo (criar/editar) ----
@@ -633,13 +633,13 @@ export default function Veiculo() {
   async function excluirFixa() {
     const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!(await confirmar(`Excluir "${atual.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${atual.descricao}"?`))) return;
     setDfAberta(false);
     await encerrarFixa(atual);
   }
 
   async function excluirFixaDaLista(f: DespesaFixa) {
-    if (!(await confirmar(`Excluir "${f.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${f.descricao}"?`))) return;
     await encerrarFixa(f);
   }
 
@@ -753,7 +753,7 @@ export default function Veiculo() {
             </div>
 
             {/* Item B1: a motorização decide que campos o formulário (aqui e
-                no registro rápido) mostra — elétrico só kWh, combustão só
+                no registo rápido) mostra — elétrico só kWh, combustão só
                 litros, híbrido os dois. Aqui é só leitura: escolhe-se uma vez
                 em Definições › Veículo, e é lá que se muda. Sem esta linha, um
                 formulário que só pede litros não explicava porquê. */}
@@ -1001,7 +1001,7 @@ export default function Veiculo() {
           </>
         )}
 
-        {/* Caixa de abastecimento: só edita — criar é pelo registro rápido
+        {/* Caixa de abastecimento: só edita — criar é pelo registo rápido
             global (item A2, itens 2, 5, 7, 16, 17) */}
       </AbaTransicao>
       <BottomSheet
@@ -1059,7 +1059,7 @@ export default function Veiculo() {
             </button>
           </div>
           {/* Padrão "Quanto?" (01/09): o valor deixa de ser um campo igual aos
-              outros e passa a abrir o formulário, como no Registro Rápido —
+              outros e passa a abrir o formulário, como no Registo Rápido —
               mesmo componente, mesma ordem (valor primeiro, o resto depois).
               O rótulo acompanha o modo escolhido acima, tal como lá. */}
           <CampoValorDestaque
@@ -1138,15 +1138,15 @@ export default function Veiculo() {
             Recarga da frota
           </label>
           <Botao type="submit" variante="submeter">
-            Salvar alterações
+            Guardar alterações
           </Botao>
           <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
-            Excluir abastecimento
+            Eliminar abastecimento
           </button>
         </form>
       </BottomSheet>
 
-      {/* Caixa de despesa do veículo: só edita — criar é pelo registro rápido
+      {/* Caixa de despesa do veículo: só edita — criar é pelo registo rápido
           global (item A2) */}
       <BottomSheet aberta={dvAberta} aoFechar={() => setDvAberta(false)} titulo="Editar despesa">
         <form className={styles.formFolha} onSubmit={salvarDespesa}>
@@ -1174,10 +1174,10 @@ export default function Veiculo() {
             />
           </label>
           <Botao type="submit" variante="submeter">
-            Salvar alterações
+            Guardar alterações
           </Botao>
           <button type="button" className={styles.excluir} onClick={() => void excluirDespesa()}>
-            Excluir despesa
+            Eliminar despesa
           </button>
         </form>
       </BottomSheet>
@@ -1189,7 +1189,7 @@ export default function Veiculo() {
         titulo={dfEditandoId ? "Editar despesa fixa" : "Nova despesa fixa"}
       >
         <form className={styles.formFolha} onSubmit={salvarFixa}>
-          {/* Valor em destaque e em primeiro, como no Registro Rápido: saiu da
+          {/* Valor em destaque e em primeiro, como no Registo Rápido: saiu da
               linha dupla que partilhava com o dia do vencimento — o campo
               grande não cabe em meia largura, e o dia é uma pergunta menor. */}
           <CampoValorDestaque
@@ -1219,11 +1219,11 @@ export default function Veiculo() {
             />
           </label>
           <Botao type="submit" variante="submeter">
-            {dfEditandoId ? "Salvar alterações" : "Criar fixa"}
+            {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
-              Excluir despesa fixa
+              Eliminar despesa fixa
             </button>
           )}
         </form>
@@ -1251,11 +1251,11 @@ export default function Veiculo() {
             <input value={kmNota} onChange={(e) => setKmNota(e.target.value)} />
           </label>
           <Botao type="submit" variante="submeter">
-            {kmEditandoId ? "Salvar alterações" : "Registar"}
+            {kmEditandoId ? "Guardar alterações" : "Registar"}
           </Botao>
           {kmEditandoId && (
             <button type="button" className={styles.excluir} onClick={() => void excluirKm()}>
-              Excluir registo
+              Eliminar registo
             </button>
           )}
         </form>

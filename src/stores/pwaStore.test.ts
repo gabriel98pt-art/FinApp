@@ -60,13 +60,13 @@ describe("recarregarQuandoLivre", () => {
   // O caso relatado: abrir o atalho do iPhone, a atualização chegar sozinha
   // uns segundos depois, e o Registro Rápido já ter algo digitado que se
   // perdia no reload sem aviso nenhum.
-  test("sem o Registro Rápido aberto, recarrega na hora", () => {
+  test("sem o Registo Rápido aberto, recarrega na hora", () => {
     const recarregar = vi.fn();
     recarregarQuandoLivre(recarregar, 10_000);
     expect(recarregar).toHaveBeenCalledTimes(1);
   });
 
-  test("com o Registro Rápido aberto, espera fechar antes de recarregar", async () => {
+  test("com o Registo Rápido aberto, espera fechar antes de recarregar", async () => {
     useUiStore.setState({ registroAberto: true });
     const recarregar = vi.fn();
 

@@ -111,7 +111,7 @@ function LinhaLancamento({
         acoes={[
           { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(item.id) },
           {
-            rotulo: "Excluir",
+            rotulo: "Eliminar",
             Icone: Trash2,
             onClick: () => aoExcluir(item.id),
             tone: "perigo",
@@ -219,7 +219,7 @@ export default function ListaLancamentos({
         // que a lista estava a carregar nem que tinha acabado — a troca de
         // "Carregando…" pelas linhas acontecia em silêncio.
         <p className={styles.vazio} role="status">
-          Carregando…
+          A carregar…
         </p>
       ) : itens.length === 0 ? (
         <EstadoVazio Icone={vazioIcone} mensagem={vazio} sub={vazioSub} />

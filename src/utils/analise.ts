@@ -207,7 +207,7 @@ function gastosDoMes(
   mesReal: YearMonth,
   hoje: IsoDate,
 ): GastoDeCaixa[] {
-  const registrada = (x: { origem?: string }) => x.origem !== "fat" && x.origem !== "recon";
+  const registada = (x: { origem?: string }) => x.origem !== "fat" && x.origem !== "recon";
   type Saida = {
     id: string;
     descricao?: string;
@@ -221,7 +221,7 @@ function gastosDoMes(
   };
   const correntes = (lista: Saida[], prefixo: string, categoria?: string) =>
     lista
-      .filter((x) => registrada(x) && mesDe(x.data) === ym)
+      .filter((x) => registada(x) && mesDe(x.data) === ym)
       .map((x) => ({
         chave: `${prefixo}-${x.id}`,
         titulo: x.descricao || x.nota || x.categoria || "",

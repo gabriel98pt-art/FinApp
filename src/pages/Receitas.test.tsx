@@ -82,7 +82,7 @@ describe("Receitas", () => {
     estadoReceitas = { itens: [], carregado: false, erro: false };
     render(<Receitas />);
 
-    expect(screen.getByText("Carregando…")).toBeInTheDocument();
+    expect(screen.getByText("A carregar…")).toBeInTheDocument();
     expect(screen.queryByText(/Nenhuma receita/)).not.toBeInTheDocument();
   });
 
@@ -163,13 +163,13 @@ describe("Receitas", () => {
     expect(abrirRegistro).toHaveBeenCalledWith("receita", "r1");
   });
 
-  test("Excluir no menu de ações pede confirmação e remove a receita", async () => {
+  test("Eliminar no menu de ações pede confirmação e remove a receita", async () => {
     estadoReceitas = { itens: [receita()], carregado: true, erro: false };
     render(<Receitas />);
 
     await userEvent.click(screen.getByText("Salário"));
-    const excluir = await screen.findByRole("button", { name: "Excluir" });
-    await userEvent.click(excluir);
+    const eliminar = await screen.findByRole("button", { name: "Eliminar" });
+    await userEvent.click(eliminar);
 
     await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));
   });

@@ -226,7 +226,7 @@ describe("unidades", () => {
 // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
 // ações (Editar/Excluir), em vez de ir direto pro formulário.
 describe("menu de ações da linha (item 2)", () => {
-  test("tocar num abastecimento abre o menu com Editar e Excluir", async () => {
+  test("tocar num abastecimento abre o menu com Editar e Eliminar", async () => {
     dados = {
       cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
       despesas: [],
@@ -239,10 +239,10 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(screen.getByText("Galp"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
   });
 
-  test("Excluir no menu remove o abastecimento direto, sem abrir a edição", async () => {
+  test("Eliminar no menu remove o abastecimento direto, sem abrir a edição", async () => {
     dados = {
       cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
       despesas: [],
@@ -253,7 +253,7 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
     await userEvent.click(screen.getByText("Galp"));
-    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => expect(removerCarga).toHaveBeenCalledWith("u1", "c1"));
   });
@@ -284,7 +284,7 @@ describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
     await userEvent.type(campoValor, "{Backspace}{Backspace}{Backspace}0");
     await waitFor(() => expect(campoValor).toHaveValue("0,00"));
 
-    await userEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await userEvent.click(screen.getByRole("button", { name: "Guardar alterações" }));
 
     await waitFor(() => expect(atualizarCarga).toHaveBeenCalledTimes(1));
     const [, dados_] = atualizarCarga.mock.calls[0] as unknown as [unknown, { custo: number }];

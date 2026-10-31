@@ -109,7 +109,7 @@ describe("statusOrcamentoMes — seção 4.8", () => {
 
   // Ninguém marca uma parcela em débito automático — sem tratar isso, ela
   // nunca contava contra o orçamento no mês corrente.
-  test("mês corrente: parcela em débito automático conta sem marcação", () => {
+  test("mês corrente: parcela em débito direto conta sem marcação", () => {
     const p: Parcela[] = [
       {
         id: "p1",
@@ -296,7 +296,7 @@ describe("statusOrcamentoMes — precisão de dia no mês corrente", () => {
     expect(status("2026-07-31")).toBe(10000);
   });
 
-  test("sem débito automático continua a depender da marcação", () => {
+  test("sem débito direto continua a depender da marcação", () => {
     const p = parcelaAuto({ autoDebit: false });
     expect(statusOrcamentoMes([], [p], { Lazer: 5000 }, MES, MES, "2026-07-25")[0].gasto).toBe(0);
   });

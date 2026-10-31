@@ -72,7 +72,7 @@ function LinhaTransacao({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
-    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
   ];
 
   return (
@@ -301,13 +301,13 @@ export default function SecaoTransacoes() {
 
   async function excluirTransacao(t: Transacao) {
     if (!uid) return;
-    if (!(await confirmar(`Excluir "${t.titulo}"?`))) return;
+    if (!(await confirmar(`Eliminar "${t.titulo}"?`))) return;
     try {
       if (t.origem === "receita") await removerReceita(uid, t.refId);
       else if (t.origem === "despesa") await removerDespesa(uid, t.refId);
-      mostrarToast(t.origem === "receita" ? "Receita excluída" : "Despesa excluída");
+      mostrarToast(t.origem === "receita" ? "Receita eliminada" : "Despesa eliminada");
     } catch {
-      mostrarToast("Não foi possível excluir. Tente de novo.");
+      mostrarToast("Não foi possível eliminar. Tente de novo.");
     }
   }
 
@@ -393,7 +393,7 @@ export default function SecaoTransacoes() {
           </label>
         )}
 
-        {/* Há linhas na tela: faixa fina por cima, elas continuam a valer. */}
+        {/* Há linhas no ecrã: faixa fina por cima, elas continuam a valer. */}
         {erro && itensFiltrados.length > 0 && <ErroSincronizacao compacto />}
 
         {erro && itens.length === 0 ? (

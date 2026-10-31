@@ -448,13 +448,13 @@ export default function Planejamento() {
                             className={styles.remover}
                             onClick={() => {
                               void (async () => {
-                                if (!(await confirmar(`Excluir o fundo "${f.nome}"?`))) return;
+                                if (!(await confirmar(`Eliminar o fundo "${f.nome}"?`))) return;
                                 await removerFundo(uid, f.id)
-                                  .then(() => mostrarToast("Fundo excluído"))
-                                  .catch(() => mostrarToast("Não foi possível excluir."));
+                                  .then(() => mostrarToast("Fundo eliminado"))
+                                  .catch(() => mostrarToast("Não foi possível eliminar."));
                               })();
                             }}
-                            aria-label="Excluir fundo"
+                            aria-label="Eliminar fundo"
                           >
                             <X size={16} aria-hidden />
                           </button>

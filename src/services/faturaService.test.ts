@@ -133,7 +133,7 @@ describe("pagarFatura", () => {
     expect(pagas.pagamentos[0].id).toBe(id);
   });
 
-  test("pagamento parcial NÃO quita as parcelas em débito automático", async () => {
+  test("pagamento parcial NÃO quita as parcelas em débito direto", async () => {
     // Devido 200,00, pago 100,00 — sobra metade, a fatura continua aberta.
     await s.pagarFatura(UID, ctx({ valor: 10000, devido: 20000, parcelas: [parcelaAuto] }));
 

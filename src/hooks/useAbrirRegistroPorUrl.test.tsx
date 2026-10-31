@@ -35,7 +35,7 @@ beforeEach(() => {
 });
 
 describe("useAbrirRegistroPorUrl", () => {
-  test("?registro=despesa abre o registro rápido no tipo certo", () => {
+  test("?registro=despesa abre o registo rápido no tipo certo", () => {
     renderComUrl("/?registro=despesa");
     expect(abrirRegistro).toHaveBeenCalledWith("despesa");
   });

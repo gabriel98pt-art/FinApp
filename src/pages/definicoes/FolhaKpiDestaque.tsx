@@ -28,7 +28,7 @@ export default function FolhaKpiDestaque({
     try {
       await atualizarConfig(uid, { kpiDestaque: { ...cfg.kpiDestaque, [paginaId]: chave } });
     } catch {
-      mostrarToast("Não foi possível salvar.");
+      mostrarToast("Não foi possível guardar.");
     }
   }
 

@@ -92,7 +92,7 @@ describe("notificacoesDeParcelas", () => {
   });
 
   // `proximoMesEmAberto` já trata o débito automático como resolvido.
-  test("parcela em débito automático no cartão não entra", () => {
+  test("parcela em débito direto no cartão não entra", () => {
     const p = parcela({ diaVencimento: 10, cartao: CARTAO, autoDebit: true });
     expect(notificacoesDeParcelas([p], HOJE, MES, { [CARTAO]: 10 })).toHaveLength(0);
   });
@@ -120,7 +120,7 @@ describe("notificacoesDeFixas", () => {
   });
 
   // Ela sai do cartão sozinha: não é pendência de ninguém.
-  test("fixa em débito automático nunca entra, mesmo com o dia passado", () => {
+  test("fixa em débito direto nunca entra, mesmo com o dia passado", () => {
     const f = fixa({ diaVencimento: 5, contaCartao: CARTAO, autoDebit: true, inicio: "2026-01" });
     expect(notificacoesDeFixas([f], HOJE, MES)).toHaveLength(0);
   });

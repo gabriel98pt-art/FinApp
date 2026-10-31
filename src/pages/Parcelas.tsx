@@ -187,7 +187,7 @@ function LinhaParcela({
           },
         ]
       : []),
-    { rotulo: "Excluir", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
+    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
   ];
 
   return (
@@ -297,7 +297,7 @@ function FormParcela({
     setErro(null);
   }
 
-  async function salvar(e: FormEvent) {
+  async function guardar(e: FormEvent) {
     e.preventDefault();
     const total = totalTexto;
     const numParcelas = parseInt(num, 10);
@@ -333,25 +333,25 @@ function FormParcela({
       setSemeadoPara(null);
       aoFechar();
     } catch {
-      setErro("Não foi possível salvar. Tente de novo.");
+      setErro("Não foi possível guardar. Tente de novo.");
     }
   }
 
-  async function excluir() {
+  async function eliminar() {
     if (!editando) return;
     if (
       !(await confirmar(
-        `Excluir a parcela "${editando.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+        `Eliminar a parcela "${editando.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
       ))
     )
       return;
     try {
       await excluirParcela(uid, editando, despesas);
-      mostrarToast("Parcela excluída");
+      mostrarToast("Parcela eliminada");
       setSemeadoPara(null);
       aoFechar();
     } catch {
-      setErro("Não foi possível excluir. Tente de novo.");
+      setErro("Não foi possível eliminar. Tente de novo.");
     }
   }
 
@@ -364,7 +364,7 @@ function FormParcela({
       }}
       titulo={editando ? "Editar parcela" : "Nova parcela"}
     >
-      <form className={styles.form} onSubmit={salvar}>
+      <form className={styles.form} onSubmit={guardar}>
         {/* O total da compra é o centro do formulário, não "mais um campo" a
             meia largura ao lado do nº de parcelas (item 4 do lote de UX/nav,
             30/08). Saiu da linha dupla porque o campo grande não cabe em meia
@@ -441,12 +441,12 @@ function FormParcela({
           rotuloVazio="Sem cartão"
         />
         <Seletor
-          rotulo="Serviço de parcelamento (opcional)"
+          rotulo="Serviço de prestações (opcional)"
           valor={intermediador}
           opcoes={cfg.intermediadoresParcelamento}
           aoMudar={setIntermediador}
           rotuloVazio="Nenhum serviço"
-          aviso="Nenhum serviço guardado ainda — adicione um na lista no fim da tela."
+          aviso="Nenhum serviço guardado ainda — adicione um na lista no fim do ecrã."
         />
         {cartaoCredito && (
           <label className={styles.checkbox}>
@@ -455,7 +455,7 @@ function FormParcela({
               checked={autoDebit}
               onChange={(e) => setAutoDebit(e.target.checked)}
             />
-            Débito automático — entra na fatura do cartão
+            Débito direto — entra na fatura do cartão
           </label>
         )}
         {erro !== null && (
@@ -464,11 +464,11 @@ function FormParcela({
           </p>
         )}
         <Botao type="submit" variante="submeter">
-          {editando ? "Salvar alterações" : "Criar parcela"}
+          {editando ? "Guardar alterações" : "Criar parcela"}
         </Botao>
         {editando && (
-          <Botao variante="perigo" onClick={() => void excluir()}>
-            Excluir parcela
+          <Botao variante="perigo" onClick={() => void eliminar()}>
+            Eliminar parcela
           </Botao>
         )}
       </form>
@@ -538,15 +538,15 @@ export default function SecaoParcelas() {
   async function excluirDaLista(p: Parcela) {
     if (
       !(await confirmar(
-        `Excluir a parcela "${p.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+        `Eliminar a parcela "${p.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
       ))
     )
       return;
     try {
       await excluirParcela(uid, p, despesas);
-      mostrarToast("Parcela excluída");
+      mostrarToast("Parcela eliminada");
     } catch {
-      mostrarToast("Não foi possível excluir. Tente de novo.");
+      mostrarToast("Não foi possível eliminar. Tente de novo.");
     }
   }
 
@@ -588,7 +588,7 @@ export default function SecaoParcelas() {
           {parcelas.length > 1 && (
             <SeletorOrdemFolha valor={ordem} linhas={LINHAS_ORDEM_PARCELA} aoMudar={setOrdem} />
           )}
-          {/* Só o "+" (01/09) — o título ao lado já diz "Compras parceladas".
+          {/* Só o "+" (01/09) — o título ao lado já diz "Compras em prestações".
               O texto inteiro vive no aria-label. */}
           <Botao variante="primaria" soIcone aria-label="Adicionar parcela" onClick={abrirNova}>
             <Plus size={18} aria-hidden />
@@ -606,7 +606,7 @@ export default function SecaoParcelas() {
       ) : carregado && parcelas.length === 0 ? (
         <EstadoVazio
           Icone={Layers}
-          mensagem="Nenhuma compra parcelada"
+          mensagem="Nenhuma compra em prestações"
           sub="Crie uma parcela para acompanhar o progresso mês a mês."
         />
       ) : ativasVisiveis.length === 0 && quitadas.length > 0 ? (
@@ -671,11 +671,11 @@ export default function SecaoParcelas() {
           Definições — mesma razão dos locais de carregamento estarem no
           Veículo: é conceito deste domínio, não configuração geral.
           No código continuam a chamar-se "intermediadores" (é o nome do campo
-          guardado); na tela ninguém diz isso, daí o texto ser outro. */}
+          guardado); no ecrã ninguém diz isso, daí o texto ser outro. */}
       <form className={styles.gerir} onSubmit={adicionarIntermediador}>
-        <p className={styles.gerirTitulo}>Serviços de parcelamento</p>
+        <p className={styles.gerirTitulo}>Serviços de prestações</p>
         <p className={styles.gerirNota}>
-          Empresas que dividem a compra em prestações por você, quando o parcelamento não é do
+          Empresas que dividem a compra em prestações, quando o pagamento em prestações não é do
           cartão (ex.: Klarna).
         </p>
         {cfg.intermediadoresParcelamento.length > 0 && (
@@ -698,7 +698,7 @@ export default function SecaoParcelas() {
         <div className={styles.gerirLinha}>
           <input
             placeholder="Nome (ex. Klarna)"
-            aria-label="Nome do serviço de parcelamento"
+            aria-label="Nome do serviço de prestações"
             value={novoIntermediador}
             onChange={(e) => setNovoIntermediador(e.target.value)}
           />

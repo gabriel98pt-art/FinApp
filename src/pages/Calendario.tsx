@@ -218,7 +218,7 @@ export default function SecaoCalendario() {
       setTitulo("");
       setValorTexto(null);
     } catch {
-      mostrarToast("Não foi possível salvar.");
+      mostrarToast("Não foi possível guardar.");
     }
   }
 
@@ -410,13 +410,13 @@ export default function SecaoCalendario() {
                     className={styles.remover}
                     onClick={() => {
                       void (async () => {
-                        if (!(await confirmar(`Excluir "${e.titulo}"?`))) return;
+                        if (!(await confirmar(`Eliminar "${e.titulo}"?`))) return;
                         await removerEvento(uid, e.id)
-                          .then(() => mostrarToast("Evento excluído"))
-                          .catch(() => mostrarToast("Não foi possível excluir."));
+                          .then(() => mostrarToast("Evento eliminado"))
+                          .catch(() => mostrarToast("Não foi possível eliminar."));
                       })();
                     }}
-                    aria-label="Excluir evento"
+                    aria-label="Eliminar evento"
                   >
                     <X size={16} aria-hidden />
                   </button>
@@ -438,7 +438,7 @@ export default function SecaoCalendario() {
 
       <BottomSheet aberta={novoAberto} aoFechar={() => setNovoAberto(false)} titulo="Novo evento">
         <form className={styles.form} onSubmit={salvarEvento}>
-          {/* Valor em destaque e em primeiro, como no Registro Rápido e nas
+          {/* Valor em destaque e em primeiro, como no Registo Rápido e nas
               outras folhas do app (CampoValorDestaque). Aqui é opcional — um
               evento pode ser só um lembrete —, e o rótulo diz isso. */}
           <CampoValorDestaque

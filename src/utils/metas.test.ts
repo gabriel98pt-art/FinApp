@@ -100,7 +100,7 @@ describe("calcularMetaMensal — mês corrente parcial vs. mês fechado total (P
     expect(m.saldo).toBe(200000);
   });
 
-  test("mês corrente: fixa em débito automático só conta depois do dia de vencimento", () => {
+  test("mês corrente: fixa em débito direto só conta depois do dia de vencimento", () => {
     const fixaAutoDebit: DespesaFixa = {
       id: "fa1",
       descricao: "Streaming",

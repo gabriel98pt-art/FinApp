@@ -29,7 +29,7 @@ describe("ErrorBoundary", () => {
     expect(screen.getByText("Conteúdo normal")).toBeInTheDocument();
   });
 
-  test("com erro: mostra a mensagem crua na tela, não só 'Algo correu mal'", () => {
+  test("com erro: mostra a mensagem crua no ecrã, não só 'Algo correu mal'", () => {
     // Silencia o console.error do próprio React/ErrorBoundary neste teste —
     // é esperado, o boundary existe exactamente para isto.
     const consoleErro = vi.spyOn(console, "error").mockImplementation(() => {});

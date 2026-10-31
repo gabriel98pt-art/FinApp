@@ -58,7 +58,7 @@ export default function ImportacaoEntrada({
         Colar ou carregar extrato
       </p>
       <p id="importar-entrada-sub" className={styles.entradaSub}>
-        O PDF ou CSV do banco entra por <strong>Carregar arquivo</strong>. Texto copiado de uma
+        O PDF ou CSV do banco entra por <strong>Carregar ficheiro</strong>. Texto copiado de uma
         folha de cálculo entra por <strong>Colar texto</strong>.
       </p>
 
@@ -73,7 +73,7 @@ export default function ImportacaoEntrada({
           ) : (
             <Upload size={15} aria-hidden />
           )}{" "}
-          {lendoPdf ? "Lendo…" : "Carregar arquivo"}
+          {lendoPdf ? "Lendo…" : "Carregar ficheiro"}
         </button>
         {!caixaAberta && (
           <button className={styles.botao} onClick={() => setColando(true)} disabled={lendoPdf}>
@@ -131,7 +131,7 @@ export default function ImportacaoEntrada({
       {/* Área de arrastar, discreta: só onde há rato para arrastar. */}
       {!semMouse && (
         <p className={styles.entradaSoltar} aria-hidden>
-          ou arraste o arquivo para aqui
+          ou arraste o ficheiro para aqui
         </p>
       )}
       <p id="importar-entrada-formatos" className={styles.entradaFormatos}>

@@ -56,21 +56,21 @@ beforeEach(() => {
 describe("exportarBackup", () => {
   test("embrulha os dados com versão e data", async () => {
     valorLido = { cfg: { currency: "EUR" } };
-    const arquivo = JSON.parse(await s.exportarBackup(UID));
+    const ficheiro = JSON.parse(await s.exportarBackup(UID));
 
-    expect(arquivo.versao).toBe(1);
-    expect(arquivo.dados).toEqual({ cfg: { currency: "EUR" } });
+    expect(ficheiro.versao).toBe(1);
+    expect(ficheiro.dados).toEqual({ cfg: { currency: "EUR" } });
     // A data serve para quem tem cinco ficheiros na pasta saber qual é o mais
     // recente sem os abrir.
-    expect(new Date(arquivo.exportadoEm).getTime()).not.toBeNaN();
+    expect(new Date(ficheiro.exportadoEm).getTime()).not.toBeNaN();
   });
 
   test("conta vazia exporta um objecto, não null", async () => {
     // O RTDB devolve null quando não há nada. Guardar `dados: null` faria a
     // importação seguinte falhar na validação — um backup que não se restaura.
     valorLido = null;
-    const arquivo = JSON.parse(await s.exportarBackup(UID));
-    expect(arquivo.dados).toEqual({});
+    const ficheiro = JSON.parse(await s.exportarBackup(UID));
+    expect(ficheiro.dados).toEqual({});
   });
 
   test("sai indentado, para ser legível por um humano", async () => {
@@ -169,9 +169,9 @@ describe("importarBackup: o que passa", () => {
     // O par tem de fechar: um ficheiro exportado hoje tem de ser restaurável
     // amanhã, sem passos manuais pelo meio.
     valorLido = { cfg: { currency: "BRL" }, parcelas: { p1: { descricao: "TV" } } };
-    const arquivo = await s.exportarBackup(UID);
+    const ficheiro = await s.exportarBackup(UID);
 
-    await s.importarBackup(UID, arquivo);
+    await s.importarBackup(UID, ficheiro);
 
     expect(sets.at(-1)!.valor).toEqual(valorLido);
   });
@@ -181,7 +181,7 @@ describe("importarBackup: cópia de segurança antes de sobrescrever", () => {
   const BACKUP = JSON.stringify({
     versao: 1,
     exportadoEm: "2026-08-12T10:00:00.000Z",
-    dados: { receitas: { r9: { descricao: "Do arquivo" } } },
+    dados: { receitas: { r9: { descricao: "Do ficheiro" } } },
   });
 
   test("lê o estado atual, grava o snapshot, e SÓ DEPOIS sobrescreve a conta", async () => {
@@ -208,7 +208,7 @@ describe("importarBackup: cópia de segurança antes de sobrescrever", () => {
     // E a conta ficou com o conteúdo do arquivo, não com o antigo.
     expect(sets.at(-1)).toEqual({
       caminho: RAIZ,
-      valor: { receitas: { r9: { descricao: "Do arquivo" } } },
+      valor: { receitas: { r9: { descricao: "Do ficheiro" } } },
     });
   });
 
@@ -228,7 +228,7 @@ describe("importarBackup: cópia de segurança antes de sobrescrever", () => {
     expect(sets).toHaveLength(0);
   });
 
-  test("arquivo inválido não chega sequer a ler nem a gravar o snapshot", async () => {
+  test("ficheiro inválido não chega sequer a ler nem a gravar o snapshot", async () => {
     await s.importarBackup(UID, JSON.stringify({ versao: 2, dados: {} })).catch(() => {});
     await s.importarBackup(UID, JSON.stringify({ dados: { receitas: [] } })).catch(() => {});
     expect(operacoes).toEqual([]);
@@ -288,11 +288,11 @@ describe("restaurarSnapshotDeSeguranca", () => {
 });
 
 describe("validarArquivoBackup", () => {
-  const arquivo = (x: unknown) => JSON.stringify(x);
+  const ficheiro = (x: unknown) => JSON.stringify(x);
 
   test("aceita um backup completo e devolve o resumo", () => {
     const r = s.validarArquivoBackup(
-      arquivo({
+      ficheiro({
         versao: 1,
         exportadoEm: "2026-08-12T10:00:00.000Z",
         dados: {
@@ -329,13 +329,13 @@ describe("validarArquivoBackup", () => {
 
   test("conta antiga sem `instituicoes` conta pelas contasCartoes", () => {
     const r = s.validarArquivoBackup(
-      arquivo({ versao: 1, dados: { cfg: { contasCartoes: ["A", "B"] } } }),
+      ficheiro({ versao: 1, dados: { cfg: { contasCartoes: ["A", "B"] } } }),
     );
     expect(r.ok && r.resumo.contas).toBe(2);
   });
 
   test("sem cfg nem data: resumo com nulos, não inventa números", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: {} }));
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: {} }));
     expect(r).toEqual({
       ok: true,
       dados: {},
@@ -344,17 +344,17 @@ describe("validarArquivoBackup", () => {
   });
 
   test("sem `versao` é lido como versão 1 (formato de sempre)", () => {
-    expect(s.validarArquivoBackup(arquivo({ dados: {} })).ok).toBe(true);
+    expect(s.validarArquivoBackup(ficheiro({ dados: {} })).ok).toBe(true);
   });
 
-  test("data inválida vira null em vez de 'Invalid Date' na tela", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, exportadoEm: "ontem", dados: {} }));
+  test("data inválida vira null em vez de 'Invalid Date' no ecrã", () => {
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, exportadoEm: "ontem", dados: {} }));
     expect(r.ok && r.resumo.exportadoEm).toBeNull();
   });
 
   test("recusa versão diferente de 1", () => {
     for (const versao of [2, 0, "1", null]) {
-      const r = s.validarArquivoBackup(arquivo({ versao, dados: {} }));
+      const r = s.validarArquivoBackup(ficheiro({ versao, dados: {} }));
       expect(r.ok).toBe(false);
       expect(!r.ok && r.erro).toMatch(/Versão de backup não suportada/);
     }
@@ -371,7 +371,7 @@ describe("validarArquivoBackup", () => {
       "transferencias",
     ]) {
       for (const mau of [[{ descricao: "x" }], 5, "texto", true, null]) {
-        const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { [colecao]: mau } }));
+        const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: { [colecao]: mau } }));
         expect(r.ok, `${colecao} = ${JSON.stringify(mau)}`).toBe(false);
         // A mensagem diz QUAL coleção — "Backup inválido" sozinho não ajuda.
         expect(!r.ok && r.erro).toContain(colecao);
@@ -387,7 +387,7 @@ describe("validarArquivoBackup", () => {
     for (const sub of ["cargas", "despesas", "despesasFixas", "quilometragem"]) {
       for (const mau of [[{ descricao: "x" }], 5, "texto", true, null]) {
         const r = s.validarArquivoBackup(
-          arquivo({ versao: 1, dados: { veiculo: { [sub]: mau } } }),
+          ficheiro({ versao: 1, dados: { veiculo: { [sub]: mau } } }),
         );
         expect(r.ok, `veiculo.${sub} = ${JSON.stringify(mau)}`).toBe(false);
         expect(!r.ok && r.erro).toContain(`veiculo/${sub}`);
@@ -396,26 +396,26 @@ describe("validarArquivoBackup", () => {
   });
 
   test("recusa `veiculo` que não seja objeto", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { veiculo: [] } }));
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: { veiculo: [] } }));
     expect(r.ok).toBe(false);
   });
 
   test("recusa `tvde.despesas` que venha como array ou primitivo", () => {
     for (const mau of [[{ descricao: "x" }], 5, "texto", true, null]) {
-      const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { tvde: { despesas: mau } } }));
+      const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: { tvde: { despesas: mau } } }));
       expect(r.ok, `tvde.despesas = ${JSON.stringify(mau)}`).toBe(false);
       expect(!r.ok && r.erro).toContain("tvde/despesas");
     }
   });
 
   test("recusa `tvde` que não seja objeto", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { tvde: [] } }));
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: { tvde: [] } }));
     expect(r.ok).toBe(false);
   });
 
   test("aceita `veiculo` e `tvde` bem formados", () => {
     const r = s.validarArquivoBackup(
-      arquivo({
+      ficheiro({
         versao: 1,
         dados: {
           veiculo: {
@@ -432,25 +432,25 @@ describe("validarArquivoBackup", () => {
   });
 
   test("recusa cfg que não seja objeto", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: { cfg: [] } }));
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: { cfg: [] } }));
     expect(r.ok).toBe(false);
   });
 
   test("recusa `dados` em forma de array", () => {
-    const r = s.validarArquivoBackup(arquivo({ versao: 1, dados: [] }));
+    const r = s.validarArquivoBackup(ficheiro({ versao: 1, dados: [] }));
     expect(!r.ok && r.erro).toMatch(/Formato de backup não reconhecido/);
   });
 
   test("mantém as mensagens antigas para JSON inválido e sem `dados`", () => {
     const a = s.validarArquivoBackup("{");
-    const b = s.validarArquivoBackup(arquivo({ versao: 1 }));
+    const b = s.validarArquivoBackup(ficheiro({ versao: 1 }));
     expect(!a.ok && a.erro).toMatch(/não é um JSON válido/);
     expect(!b.ok && b.erro).toMatch(/Formato de backup não reconhecido/);
   });
 
   test("importarBackup lança exatamente o erro da validação", async () => {
     await expect(
-      s.importarBackup(UID, arquivo({ versao: 1, dados: { parcelas: [] } })),
+      s.importarBackup(UID, ficheiro({ versao: 1, dados: { parcelas: [] } })),
     ).rejects.toThrow(/parcelas/);
     expect(sets).toHaveLength(0);
   });

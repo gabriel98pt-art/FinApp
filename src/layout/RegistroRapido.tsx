@@ -353,7 +353,7 @@ export default function RegistroRapido() {
         ).find((s) => s.categoria === etiqueta)
       : undefined;
 
-  async function salvar(e: FormEvent) {
+  async function guardar(e: FormEvent) {
     e.preventDefault();
     if (!uid) return;
 
@@ -545,7 +545,7 @@ export default function RegistroRapido() {
             ? "✓ Virou receita"
             : "✓ Virou despesa"
           : editando
-            ? "Alterações salvas"
+            ? "Alterações guardadas"
             : tipo === "receita"
               ? "Receita adicionada"
               : tipo === "despesa" && parcelada
@@ -558,23 +558,23 @@ export default function RegistroRapido() {
       );
       fecharRegistro();
     } catch {
-      setErro("Não foi possível salvar. Tente de novo.");
+      setErro("Não foi possível guardar. Tente de novo.");
     } finally {
       setSalvando(false);
     }
   }
 
-  async function excluir() {
+  async function eliminar() {
     if (!uid || !editando) return;
-    if (!(await confirmar(`Excluir "${editando.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${editando.descricao}"?`))) return;
     setSalvando(true);
     try {
       if (tipo === "receita") await removerReceita(uid, editando.id);
       else await removerDespesa(uid, editando.id);
-      mostrarToast("Lançamento excluído");
+      mostrarToast("Lançamento eliminado");
       fecharRegistro();
     } catch {
-      setErro("Não foi possível excluir. Tente de novo.");
+      setErro("Não foi possível eliminar. Tente de novo.");
     } finally {
       setSalvando(false);
     }
@@ -600,7 +600,7 @@ export default function RegistroRapido() {
           : undefined
       }
     >
-      <form className={styles.form} onSubmit={salvar}>
+      <form className={styles.form} onSubmit={guardar}>
         {/* Ajuste A do lote de 30/08: o seletor de tipo (Despesa/Receita/
             Veículo) saiu daqui — quem escolhe o tipo agora é o menu do "+"
             (item 1, MenuRegistroRapido), antes desta folha existir. A
@@ -750,7 +750,7 @@ export default function RegistroRapido() {
         )}
 
         {/* Item 4 do lote de UX/nav, e ajuste C (30/08 — mesmo tratamento nas
-            3 "páginas" do Registro Rápido, Despesa/Receita/Veículo): o Valor
+            3 "páginas" do Registo Rápido, Despesa/Receita/Veículo): o Valor
             ganha destaque — label pequeno em cima, número grande/centralizado
             embaixo, verde quando é receita (nunca fora dela — ver a regra
             "verde só em Receita", categoriaVisual.ts). Na carga o rótulo
@@ -1017,7 +1017,7 @@ export default function RegistroRapido() {
               >
                 {numParcelas}x ·{" "}
                 {modoValorParcela === "parcela" ? "valor da parcela" : "valor total"}
-                {autoDebit ? " · débito automático" : ""} — tocar para ajustar
+                {autoDebit ? " · débito direto" : ""} — tocar para ajustar
               </button>
             )}
           </div>
@@ -1031,25 +1031,25 @@ export default function RegistroRapido() {
 
         <div className={styles.acoes}>
           <Botao type="submit" variante="submeter" disabled={salvando}>
-            {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Adicionar"}
+            {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Adicionar"}
           </Botao>
 
           {editando && (
-            <button type="button" className={styles.excluir} onClick={excluir} disabled={salvando}>
-              Excluir lançamento
+            <button type="button" className={styles.excluir} onClick={eliminar} disabled={salvando}>
+              Eliminar lançamento
             </button>
           )}
         </div>
       </form>
 
-      {/* Folha do parcelamento — empilhada sobre a do Registro Rápido, como o
+      {/* Folha do parcelamento — empilhada sobre a do Registo Rápido, como o
           calendário do SeletorData. Os campos estão ligados ao mesmo estado do
           formulário, então "Confirmar" não grava nada por si — só fecha a
           folha e volta pro resumo, já com o que foi preenchido aqui. */}
       <BottomSheet
         aberta={folhaParcelamento}
         aoFechar={() => setFolhaParcelamento(false)}
-        titulo="Parcelamento"
+        titulo="Prestações"
         nivel={1}
       >
         <div className={styles.folhaParcelamento}>
@@ -1069,7 +1069,7 @@ export default function RegistroRapido() {
             onClick={() => setAutoDebitEscolhido(!autoDebit)}
           >
             {autoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
-            Débito automático — entra na fatura do cartão
+            Débito direto — entra na fatura do cartão
           </button>
 
           <Seletor
@@ -1083,7 +1083,7 @@ export default function RegistroRapido() {
           />
 
           <div className={styles.campo}>
-            <span>Como você sabe o valor</span>
+            <span>Como sabe o valor</span>
             {/* Segmentado subordinado, como a sub-escolha do Veículo — e NÃO o
                 seletor de tipo: aquele tira o fundo do estado ativo de uma cor
                 de categoria aplicada inline (Despesa/Receita/Veículo), que aqui
@@ -1093,7 +1093,7 @@ export default function RegistroRapido() {
             <div
               className={`${styles.subTipos} ${styles.alternadorValor}`}
               role="radiogroup"
-              aria-label="Como você sabe o valor"
+              aria-label="Como sabe o valor"
               ref={rgComoValorRef}
               onKeyDown={aoTeclarComoValor}
             >

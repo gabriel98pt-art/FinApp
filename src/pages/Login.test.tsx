@@ -34,7 +34,7 @@ async function preencherEEnviar(email = "eu@exemplo.pt", senha = "senha1234") {
   if (screen.queryByLabelText("Senha")) {
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: senha } });
   }
-  fireEvent.click(screen.getByRole("button", { name: /Entrar|Cadastrar|Enviar link/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Entrar|Registar|Enviar link/ }));
 }
 
 describe("Login", () => {

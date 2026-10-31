@@ -78,7 +78,7 @@ export default function FolhaCategorias({
     try {
       await definirIconeCategoria(uid, alvo, icone);
     } catch {
-      mostrarToast("Não foi possível salvar o ícone.");
+      mostrarToast("Não foi possível guardar o ícone.");
     }
   }
 
@@ -89,7 +89,7 @@ export default function FolhaCategorias({
     try {
       await definirCorCategoria(uid, alvo, cor);
     } catch {
-      mostrarToast("Não foi possível salvar a cor.");
+      mostrarToast("Não foi possível guardar a cor.");
     }
   }
 

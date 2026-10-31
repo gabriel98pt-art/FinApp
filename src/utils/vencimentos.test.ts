@@ -59,7 +59,7 @@ describe("vencimentosDeFixas", () => {
     expect(vencimentosDeFixas([f], "2026-07")).toHaveLength(0);
   });
 
-  it("com mesReferencia/hoje, fixa em débito automático some depois do vencimento", () => {
+  it("com mesReferencia/hoje, fixa em débito direto some depois do vencimento", () => {
     const f = fixa({ diaVencimento: 8, contaCartao: "AB Gold", autoDebit: true });
     expect(vencimentosDeFixas([f], "2026-07", "2026-07", "2026-07-05")).toHaveLength(1);
     expect(vencimentosDeFixas([f], "2026-07", "2026-07", "2026-07-08")).toHaveLength(0);
@@ -96,7 +96,7 @@ describe("vencimentosDeParcelas", () => {
     expect(vencimentosDeParcelas([p], "2026-07")).toHaveLength(0);
   });
 
-  it("com mesReferencia/hoje, parcela em débito automático some depois do vencimento", () => {
+  it("com mesReferencia/hoje, parcela em débito direto some depois do vencimento", () => {
     const p = parcela({ diaVencimento: 10, cartao: "AB Gold", autoDebit: true });
     expect(vencimentosDeParcelas([p], "2026-07", undefined, "2026-07", "2026-07-05")).toHaveLength(
       1,
@@ -205,7 +205,7 @@ describe("naJanela", () => {
 describe("foraDaFatura", () => {
   const tipos = { Visa: "credit", Maestro: "debit" } as const;
 
-  it("fixa num cartão de crédito sai, com ou sem débito automático — a fatura já a soma", () => {
+  it("fixa num cartão de crédito sai, com ou sem débito direto — a fatura já a soma", () => {
     const f = [
       fixa({ id: "a", contaCartao: "Visa", autoDebit: true }),
       fixa({ id: "b", contaCartao: "Visa" }),
@@ -218,12 +218,12 @@ describe("foraDaFatura", () => {
     expect(foraDaFatura(f, [], tipos).fixas.map((x) => x.id)).toEqual(["a", "b"]);
   });
 
-  it("parcela em débito automático num cartão de crédito sai", () => {
+  it("parcela em débito direto num cartão de crédito sai", () => {
     const p = [parcela({ id: "a", cartao: "Visa", autoDebit: true })];
     expect(foraDaFatura([], p, tipos).parcelas).toEqual([]);
   });
 
-  it("parcela de crédito SEM débito automático, de débito ou sem cartão fica", () => {
+  it("parcela de crédito SEM débito direto, de débito ou sem cartão fica", () => {
     const p = [
       parcela({ id: "a", cartao: "Visa" }),
       parcela({ id: "b", cartao: "Maestro", autoDebit: true }),

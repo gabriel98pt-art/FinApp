@@ -38,7 +38,7 @@ export default function FolhaNotificacoes({
     try {
       await atualizarConfig(uid, { notificacoesAtivas: novos });
     } catch {
-      mostrarToast("Não foi possível salvar.");
+      mostrarToast("Não foi possível guardar.");
     }
   }
 

@@ -13,7 +13,7 @@ import styles from "./ErroSincronizacao.module.css";
  *  isso de raiz — os dados locais persistidos voltam na hora. */
 export default function ErroSincronizacao({
   mensagem = "Não foi possível sincronizar",
-  sub = "O que está na tela pode estar desatualizado.",
+  sub = "O que está no ecrã pode estar desatualizado.",
   compacto = false,
 }: {
   mensagem?: string;

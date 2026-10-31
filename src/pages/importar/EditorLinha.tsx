@@ -330,8 +330,8 @@ export default function EditorLinha({
         ) : (
           <>
             {/* De que conta ou cartão saiu/entrou este dinheiro. Sendo cartão
-                de crédito, é isto que faz o lançamento contar pra fatura dele.
-                Havendo conta cadastrada, deixar em branco trava a confirmação
+                de crédito, é isto que faz o lançamento contar para a fatura dele.
+                Havendo conta registada, deixar em branco trava a confirmação
                 (ver `incompletas` em useImportacao). */}
             <Campo rotulo="Conta ou cartão" idMensagem={msg("conta")} pendencia={de("conta")}>
               <Seletor

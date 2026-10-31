@@ -72,7 +72,7 @@ export default function FolhaVeiculo({
     try {
       await definirCorCategoria(uid, "Veículo", cor);
     } catch {
-      mostrarToast("Não foi possível salvar a cor.");
+      mostrarToast("Não foi possível guardar a cor.");
     }
   }
 
@@ -86,7 +86,7 @@ export default function FolhaVeiculo({
     try {
       await definirIconeCategoria(uid, "Veículo", icone);
     } catch {
-      mostrarToast("Não foi possível salvar o ícone.");
+      mostrarToast("Não foi possível guardar o ícone.");
     }
   }
 
@@ -98,7 +98,7 @@ export default function FolhaVeiculo({
         onChange={() => void alternarModulo()}
       />
       <p className={styles.nota}>
-        Desligado, o Veículo sai da navegação e do registro rápido. Nada é apagado: voltar a ligar
+        Desligado, o Veículo sai da navegação e do registo rápido. Nada é apagado: voltar a ligar
         devolve tudo como estava.
       </p>
 

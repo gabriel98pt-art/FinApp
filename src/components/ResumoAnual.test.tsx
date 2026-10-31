@@ -93,14 +93,14 @@ afterEach(() => {
 });
 
 describe("ResumoAnual: mês corrente respeita o dia de vencimento", () => {
-  test("fixa em débito automático fica de fora antes do dia de vencimento", () => {
+  test("fixa em débito direto fica de fora antes do dia de vencimento", () => {
     vi.setSystemTime(new Date(2026, 7, 18, 10, 0, 0));
     fixas = lista([seguro]);
     desenhar();
     expect(despesasDoRodape()).toContain("€ 0,00");
   });
 
-  test("fixa em débito automático entra a partir do dia de vencimento", () => {
+  test("fixa em débito direto entra a partir do dia de vencimento", () => {
     vi.setSystemTime(new Date(2026, 7, 27, 10, 0, 0));
     fixas = lista([seguro]);
     desenhar();

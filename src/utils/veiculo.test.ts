@@ -90,14 +90,14 @@ describe("contribuicaoFixasVeiculoMes — corrente parcial vs fechado total", ()
     expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07")).toBe(4500);
   });
 
-  test("mês corrente: fixa do veículo em débito automático conta sem marcação", () => {
+  test("mês corrente: fixa do veículo em débito direto conta sem marcação", () => {
     const v = veiculo({
       despesasFixas: [fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true })],
     });
     expect(contribuicaoFixasVeiculoMes(v, "2026-07", "2026-07")).toBe(4500);
   });
 
-  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+  test("com `hoje`, débito direto só entra depois do dia de vencimento", () => {
     const v = veiculo({
       despesasFixas: [
         fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 }),
@@ -160,14 +160,14 @@ describe("totalVeiculoGeral — acumulado de todos os tempos", () => {
 
   // Ninguém marca uma fixa em débito automático — mesmo tratamento de
   // totalFixasGeral (utils/despesasFixas.ts).
-  test("sem mesReferencia, débito automático não conta — comportamento antigo", () => {
+  test("sem mesReferencia, débito direto não conta — comportamento antigo", () => {
     const v = veiculo({
       despesasFixas: [fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true })],
     });
     expect(totalVeiculoGeral(v)).toBe(0);
   });
 
-  test("com mesReferencia, débito automático conta todos os meses ativos até lá", () => {
+  test("com mesReferencia, débito direto conta todos os meses ativos até lá", () => {
     const v = veiculo({
       despesasFixas: [
         fixa({ valor: 4500, contaCartao: "AB Gold (C)", autoDebit: true, inicio: "2026-06" }),

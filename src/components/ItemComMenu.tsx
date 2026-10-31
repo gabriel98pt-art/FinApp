@@ -41,7 +41,7 @@ export default function ItemComMenu({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
-    { rotulo: "Excluir", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+    { rotulo: "Eliminar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
   ];
 
   return (

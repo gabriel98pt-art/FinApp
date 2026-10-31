@@ -212,16 +212,16 @@ export function useImportacao() {
 
   /** O ficheiro pode chegar de três sítios — o botão de sempre, arrastado para
    *  a caixa, ou colado — e daqui para a frente o caminho é o mesmo. */
-  function processarArquivo(arquivo: File) {
+  function processarArquivo(ficheiro: File) {
     // PDF vai por outro caminho: lê-se em binário e a extração é assíncrona
     // (carrega o PDF.js sob demanda e percorre as páginas), daí o aviso de
     // espera — um extrato de vários meses leva um instante.
-    if (/\.pdf$/i.test(arquivo.name) || arquivo.type === "application/pdf") {
+    if (/\.pdf$/i.test(ficheiro.name) || ficheiro.type === "application/pdf") {
       setLendoPdf(true);
       mostrarToast("Lendo o PDF…");
       void (async () => {
         try {
-          analisar(await extrairExtratoPdf(await arquivo.arrayBuffer()));
+          analisar(await extrairExtratoPdf(await ficheiro.arrayBuffer()));
         } catch (erro) {
           // O toast não pode despejar o erro em cima do usuário, mas sem ele
           // ficar registado em lado nenhum um relato de "não abriu" não dá
@@ -243,7 +243,7 @@ export function useImportacao() {
     const falhouCsv = (erro: unknown) => {
       // Mesmo motivo do PDF acima: o toast fica curto, o erro fica registado.
       console.error("Falha ao ler extrato em CSV:", erro);
-      mostrarToast("Não foi possível ler este arquivo CSV.");
+      mostrarToast("Não foi possível ler este ficheiro CSV.");
     };
     leitor.onload = () => {
       let brutas: LinhaExtrato[];
@@ -256,15 +256,15 @@ export function useImportacao() {
       analisar(brutas);
     };
     leitor.onerror = () => falhouCsv(leitor.error);
-    leitor.readAsText(arquivo);
+    leitor.readAsText(ficheiro);
   }
 
   function aoCarregarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
+    const ficheiro = e.target.files?.[0];
     // Limpar antes de processar: sem isto, escolher o mesmo ficheiro outra vez
     // não dispara `change` nenhum.
     e.target.value = "";
-    if (arquivo) processarArquivo(arquivo);
+    if (ficheiro) processarArquivo(ficheiro);
   }
 
   /** Só se acende para ficheiros: arrastar texto ou uma seleção dentro da
@@ -292,17 +292,17 @@ export function useImportacao() {
     if (!temFicheiro(e.dataTransfer)) return;
     e.preventDefault();
     setArrastando(false);
-    const arquivo = e.dataTransfer.files[0];
-    if (arquivo) processarArquivo(arquivo);
+    const ficheiro = e.dataTransfer.files[0];
+    if (ficheiro) processarArquivo(ficheiro);
   }
 
   function aoColar(e: React.ClipboardEvent) {
-    const arquivo = e.clipboardData?.files?.[0];
+    const ficheiro = e.clipboardData?.files?.[0];
     // Sem ficheiro é texto a ser colado: sair do caminho e deixar o textarea
     // fazer o que sempre fez (colar um CSV de uma folha de cálculo).
-    if (!arquivo) return;
+    if (!ficheiro) return;
     e.preventDefault();
-    processarArquivo(arquivo);
+    processarArquivo(ficheiro);
   }
 
   /** Botão "Colar", que existe por causa do iPhone. O ⌘V/onPaste acima só
@@ -318,7 +318,7 @@ export function useImportacao() {
    *  peso visual reduzido — ver `semMouse` em `ImportacaoEntrada`. */
   async function colarDoClipboard() {
     if (!navigator.clipboard?.readText) {
-      mostrarToast("Este navegador não deixa colar por botão — usa Carregar arquivo.");
+      mostrarToast("Este navegador não deixa colar por botão — usa Carregar ficheiro.");
       return;
     }
     try {
@@ -326,14 +326,14 @@ export function useImportacao() {
       if (!lido.trim()) {
         // Caso típico no iPhone: o que está copiado é o ficheiro em si (PDF),
         // não texto. A área de transferência existe, mas vem vazia de texto.
-        mostrarToast("Nada de texto copiado. Se for um PDF, usa Carregar arquivo.");
+        mostrarToast("Nada de texto copiado. Se for um PDF, usa Carregar ficheiro.");
         return;
       }
       setTexto(lido);
       mostrarToast("Texto colado — confere e toca em Analisar.");
     } catch {
       // Permissão negada, ou fora de HTTPS.
-      mostrarToast("Não deu para ler o que está copiado — usa Carregar arquivo.");
+      mostrarToast("Não deu para ler o que está copiado — usa Carregar ficheiro.");
     }
   }
 

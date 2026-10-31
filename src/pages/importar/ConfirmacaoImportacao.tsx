@@ -102,8 +102,8 @@ export default function ConfirmacaoImportacao({
           {nApagar > 0 && (
             <p className={styles.resumoFinalApagar}>
               {nApagar === 1
-                ? "1 lançamento existente será excluído."
-                : `${nApagar} lançamentos existentes serão excluídos.`}
+                ? "1 lançamento existente será eliminado."
+                : `${nApagar} lançamentos existentes serão eliminados.`}
               {temFixas && " Nas despesas fixas, o mês volta a ficar a pagar."}
             </p>
           )}

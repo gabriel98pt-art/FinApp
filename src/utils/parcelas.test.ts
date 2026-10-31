@@ -134,12 +134,12 @@ describe("contribuicaoParcelasMes — mesma regra das fixas (mês corrente vs. f
 
   // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
   // aparece para ela. Sem isto, o mês corrente ficava sempre de fora do total.
-  test("mês corrente: parcela em débito automático conta sem marcação", () => {
+  test("mês corrente: parcela em débito direto conta sem marcação", () => {
     const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
     expect(contribuicaoParcelasMes([p], "2026-07", "2026-07")).toBe(1866);
   });
 
-  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+  test("com `hoje`, débito direto só entra depois do dia de vencimento", () => {
     const p = parcela({
       cartao: "AB Gold (C)",
       autoDebit: true,
@@ -189,7 +189,7 @@ describe("totalParcelasNoMes / pagoNoMes — os KPIs da tela Parcelas", () => {
     expect(pagoNoMes([p], "2027-01", "2027-01")).toBe(0);
   });
 
-  test("débito automático no cartão conta como pago sem marcação, até ao mês de referência", () => {
+  test("débito direto no cartão conta como pago sem marcação, até ao mês de referência", () => {
     const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
     expect(pagoNoMes([p], "2026-07", "2026-08")).toBe(1866);
     expect(pagoNoMes([p], "2026-07", "2026-07")).toBe(1866);
@@ -235,7 +235,7 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
     expect(totalParcelasGeral([parcela()])).toBe(0);
   });
 
-  test("sem mesReferencia, débito automático não conta — comportamento antigo", () => {
+  test("sem mesReferencia, débito direto não conta — comportamento antigo", () => {
     const p = parcela({ cartao: "AB Gold (C)", autoDebit: true, pagoPorMes: {} });
     expect(totalParcelasGeral([p])).toBe(0);
   });
@@ -243,7 +243,7 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
   // O plano da parcela é sempre finito (ao contrário da fixa em aberto), então
   // não há o problema de "não saber até onde recuar": com mesReferencia, todo
   // mês do plano até lá conta, mesmo sem marcação nenhuma.
-  test("com mesReferencia, débito automático conta todos os meses do plano até lá", () => {
+  test("com mesReferencia, débito direto conta todos os meses do plano até lá", () => {
     const p = parcela({
       cartao: "AB Gold (C)",
       autoDebit: true,
@@ -285,7 +285,7 @@ describe("totalParcelasGeral — acumulado de todos os tempos", () => {
   });
 });
 
-describe("totalDaCompra — os dois modos do Registro Rápido", () => {
+describe("totalDaCompra — os dois modos do Registo Rápido", () => {
   test("modo total: o valor informado é o total, tal e qual", () => {
     expect(totalDaCompra(5599, 3, "total")).toBe(5599);
   });
@@ -305,7 +305,7 @@ describe("totalDaCompra — os dois modos do Registro Rápido", () => {
   });
 });
 
-describe("parcela paga por cartão em débito automático", () => {
+describe("parcela paga por cartão em débito direto", () => {
   const noCartao: Parcela = {
     id: "p1",
     descricao: "Portátil",
@@ -407,7 +407,7 @@ describe("diaVencimentoEfetivo", () => {
     diaVencimento: 3,
   };
 
-  test("em débito automático vence com a fatura do cartão, não no dia próprio", () => {
+  test("em débito direto vence com a fatura do cartão, não no dia próprio", () => {
     const p = { ...base, cartao: "AB Gold (C)", autoDebit: true };
     expect(diaVencimentoEfetivo(p, { "AB Gold (C)": 15 })).toBe(15);
   });
@@ -499,7 +499,7 @@ describe("resto de centavos quando o total não divide certo", () => {
   });
 });
 
-describe("quitação antecipada de parcela em débito automático", () => {
+describe("quitação antecipada de parcela em débito direto", () => {
   const auto = () =>
     parcela({
       total: 30000,

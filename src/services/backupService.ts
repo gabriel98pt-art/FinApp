@@ -87,7 +87,7 @@ export interface ResumoBackup {
 export type ResultadoValidacao =
   { ok: true; dados: Record<string, unknown>; resumo: ResumoBackup } | { ok: false; erro: string };
 
-const ERRO_JSON = "Arquivo não é um JSON válido.";
+const ERRO_JSON = "Ficheiro não é um JSON válido.";
 const ERRO_FORMATO = "Formato de backup não reconhecido.";
 
 function ehObjeto(v: unknown): v is Record<string, unknown> {
@@ -134,26 +134,26 @@ export function validarArquivoBackup(json: string): ResultadoValidacao {
   }
 
   if ("cfg" in dadosObj && !ehObjeto(dadosObj.cfg)) {
-    return { ok: false, erro: "O arquivo tem as configurações (“cfg”) num formato inesperado." };
+    return { ok: false, erro: "O ficheiro tem as configurações (“cfg”) num formato inesperado." };
   }
   for (const colecao of COLECOES_MAPA) {
     if (colecao in dadosObj && !ehObjeto(dadosObj[colecao])) {
       return {
         ok: false,
-        erro: `O arquivo tem “${colecao}” num formato inesperado (deveria ser um mapa de itens por id).`,
+        erro: `O ficheiro tem “${colecao}” num formato inesperado (deveria ser um mapa de itens por id).`,
       };
     }
   }
 
   if ("veiculo" in dadosObj) {
     if (!ehObjeto(dadosObj.veiculo)) {
-      return { ok: false, erro: "O arquivo tem “veiculo” num formato inesperado." };
+      return { ok: false, erro: "O ficheiro tem “veiculo” num formato inesperado." };
     }
     for (const sub of SUBCOLECOES_VEICULO) {
       if (sub in dadosObj.veiculo && !ehObjeto(dadosObj.veiculo[sub])) {
         return {
           ok: false,
-          erro: `O arquivo tem “veiculo/${sub}” num formato inesperado (deveria ser um mapa de itens por id).`,
+          erro: `O ficheiro tem “veiculo/${sub}” num formato inesperado (deveria ser um mapa de itens por id).`,
         };
       }
     }
@@ -161,12 +161,12 @@ export function validarArquivoBackup(json: string): ResultadoValidacao {
 
   if ("tvde" in dadosObj) {
     if (!ehObjeto(dadosObj.tvde)) {
-      return { ok: false, erro: "O arquivo tem “tvde” num formato inesperado." };
+      return { ok: false, erro: "O ficheiro tem “tvde” num formato inesperado." };
     }
     if ("despesas" in dadosObj.tvde && !ehObjeto(dadosObj.tvde.despesas)) {
       return {
         ok: false,
-        erro: "O arquivo tem “tvde/despesas” num formato inesperado (deveria ser um mapa de itens por id).",
+        erro: "O ficheiro tem “tvde/despesas” num formato inesperado (deveria ser um mapa de itens por id).",
       };
     }
   }
@@ -202,12 +202,12 @@ async function lerDadosAtuais(uid: string): Promise<Record<string, unknown>> {
 }
 
 export async function exportarBackup(uid: string): Promise<string> {
-  const arquivo: ArquivoBackup = {
+  const ficheiro: ArquivoBackup = {
     versao: 1,
     exportadoEm: new Date().toISOString(),
     dados: await lerDadosAtuais(uid),
   };
-  return JSON.stringify(arquivo, null, 2);
+  return JSON.stringify(ficheiro, null, 2);
 }
 
 /** Grava os dados ATUAIS da conta no slot de segurança. Lança se falhar —

@@ -98,7 +98,7 @@ describe("pagarMesParcela", () => {
     expect(lancamentoCriado().contaCartao).toBe("Cartão Gold");
   });
 
-  test("débito automático: sai SEM cartão, senão a fatura contava duas vezes", async () => {
+  test("débito direto: sai SEM cartão, senão a fatura contava duas vezes", async () => {
     await s.pagarMesParcela(UID, { ...parcela, autoDebit: true }, "2026-08");
     expect(lancamentoCriado()).not.toHaveProperty("contaCartao");
   });
@@ -174,7 +174,7 @@ describe("quitarParcela", () => {
     const l = lancamentoCriado();
     expect(l.valor).toBe(20000);
     expect(l.parcelaMes).toBe("quit");
-    expect(l.descricao).toBe("Portátil (quitação)");
+    expect(l.descricao).toBe("Portátil (liquidação)");
   });
 
   test("pagamento direto — sem cartão", async () => {
@@ -200,7 +200,7 @@ describe("quitarParcela", () => {
   // DÉBITO AUTOMÁTICO cobrava segunda vez tudo o que já tinha saído pela
   // fatura: ela nunca é marcada à mão (o botão "Pagar mês" nem lhe aparece),
   // portanto "sem marcação" era lido como "em aberto" desde o primeiro mês.
-  describe("parcela em débito automático", () => {
+  describe("parcela em débito direto", () => {
     /** 1.200,00 € em 12× de 100,00 €, a começar em fevereiro. */
     const auto: Parcela = {
       ...parcela,
@@ -227,7 +227,7 @@ describe("quitarParcela", () => {
 
     test("a nota conta as parcelas que a quitação cobre, não o plano inteiro", async () => {
       await s.quitarParcela(UID, auto, "2026-08");
-      expect(lancamentoCriado().nota).toBe("Quitação antecipada — 5 parcela(s)");
+      expect(lancamentoCriado().nota).toBe("Liquidação antecipada — 5 parcela(s)");
     });
 
     test("depois do último mês não há nada a quitar", async () => {
@@ -394,7 +394,7 @@ describe("definirValorDoMes / limparValorDoMes", () => {
       expect(updates[0].mudancas["despesasCorrentes/d2/valor"]).toBe(3334);
     });
 
-    test("sem despesa espelho (ex.: débito automático): só grava o ajuste", async () => {
+    test("sem despesa espelho (ex.: débito direto): só grava o ajuste", async () => {
       const auto = { ...parcela, autoDebit: true } as Parcela;
       await s.definirValorDoMes(UID, auto, "2026-10", 5371, despesas);
       expect(updates[0].mudancas).toEqual({ "parcelas/p1/overridePorMes/2026-10": 5371 });

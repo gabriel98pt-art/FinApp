@@ -107,7 +107,7 @@ describe("proximoVencimento — mais cedo primeiro, quitada no fim", () => {
       expect(ordenar([semDia, comDia], "proximoVencimento")).toEqual(["comDia", "semDia"]);
     });
 
-    test("em débito automático, usa o dia da fatura do cartão, não o diaVencimento cru", () => {
+    test("em débito direto, usa o dia da fatura do cartão, não o diaVencimento cru", () => {
       const auto = parcela({
         id: "auto",
         ...mesmoMes,

@@ -22,12 +22,12 @@ type EtapaRestauracao =
   | { tipo: "invalido"; erro: string }
   | { tipo: "valido"; json: string; resumo: ResumoBackup };
 
-function lerComoTexto(arquivo: File): Promise<string> {
+function lerComoTexto(ficheiro: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const leitor = new FileReader();
     leitor.onload = () => resolve(String(leitor.result ?? ""));
-    leitor.onerror = () => reject(leitor.error ?? new Error("Falha ao ler o arquivo."));
-    leitor.readAsText(arquivo);
+    leitor.onerror = () => reject(leitor.error ?? new Error("Falha ao ler o ficheiro."));
+    leitor.readAsText(ficheiro);
   });
 }
 
@@ -90,7 +90,7 @@ export default function FolhaBackup({
     }
   }
 
-  const processarArquivo = useCallback(async (arquivo: File) => {
+  const processarArquivo = useCallback(async (ficheiro: File) => {
     // Com uma restauração a correr, um arquivo novo não pode trocar o que
     // está a ser gravado nem o resumo que a pessoa confirmou.
     if (importandoRef.current) return;
@@ -98,10 +98,10 @@ export default function FolhaBackup({
     setEtapa({ tipo: "verificando" });
     let texto: string;
     try {
-      texto = await lerComoTexto(arquivo);
+      texto = await lerComoTexto(ficheiro);
     } catch {
       if (minhaLeitura === leituraAtual.current)
-        setEtapa({ tipo: "invalido", erro: "Não foi possível ler o arquivo." });
+        setEtapa({ tipo: "invalido", erro: "Não foi possível ler o ficheiro." });
       return;
     }
     if (minhaLeitura !== leituraAtual.current) return;
@@ -140,9 +140,9 @@ export default function FolhaBackup({
   }
 
   function aoEscolherArquivo(e: ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
+    const ficheiro = e.target.files?.[0];
     e.target.value = "";
-    if (arquivo) void processarArquivo(arquivo);
+    if (ficheiro) void processarArquivo(ficheiro);
   }
 
   /** Só se acende para ficheiros: arrastar texto ou uma seleção dentro da
@@ -166,8 +166,8 @@ export default function FolhaBackup({
     if (!temFicheiro(e.dataTransfer)) return;
     e.preventDefault();
     setArrastando(false);
-    const arquivo = e.dataTransfer.files[0];
-    if (arquivo) void processarArquivo(arquivo);
+    const ficheiro = e.dataTransfer.files[0];
+    if (ficheiro) void processarArquivo(ficheiro);
   }
 
   // Colar o ficheiro copiado (ex. do Finder/Explorer) direto na folha, sem
@@ -179,10 +179,10 @@ export default function FolhaBackup({
   useEffect(() => {
     if (!aberta) return;
     function aoColar(e: ClipboardEvent) {
-      const arquivo = e.clipboardData?.files?.[0];
-      if (!arquivo) return;
+      const ficheiro = e.clipboardData?.files?.[0];
+      if (!ficheiro) return;
       e.preventDefault();
-      void processarArquivo(arquivo);
+      void processarArquivo(ficheiro);
     }
     window.addEventListener("paste", aoColar);
     return () => window.removeEventListener("paste", aoColar);
@@ -192,7 +192,7 @@ export default function FolhaBackup({
 
   return (
     <BottomSheet aberta={aberta} aoFechar={fechar} titulo="Backup">
-      <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um arquivo.</p>
+      <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um ficheiro.</p>
       <div className={styles.linhaAdicionar}>
         <button className={styles.botaoPequeno} onClick={() => void exportar()}>
           <Download size={14} aria-hidden /> Exportar dados
@@ -224,14 +224,14 @@ export default function FolhaBackup({
         >
           <Upload size={20} aria-hidden />
           <p className={styles.dropzoneBackupTexto}>
-            Arraste o arquivo de backup aqui, cole com ⌘V/Ctrl+V, ou
+            Arraste o ficheiro de backup aqui, cole com ⌘V/Ctrl+V, ou
           </p>
           <button
             className={styles.botaoPequeno}
             onClick={() => arquivoRef.current?.click()}
             disabled={etapa.tipo === "verificando"}
           >
-            {etapa.tipo === "verificando" ? "Verificando…" : "Escolher arquivo"}
+            {etapa.tipo === "verificando" ? "Verificando…" : "Escolher ficheiro"}
           </button>
           <input
             ref={arquivoRef}

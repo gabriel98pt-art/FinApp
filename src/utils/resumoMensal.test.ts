@@ -121,7 +121,7 @@ describe("despesaRealizadaMes — o total do app tem que incluir fixas gerais e 
 
   // O bug relatado: uma parcela em débito automático que vence dia 27 já
   // contava como despesa realizada no dia 8. `hoje` dá precisão de dia.
-  test("com `hoje`, débito automático só conta como realizada depois do dia de vencimento", () => {
+  test("com `hoje`, débito direto só conta como realizada depois do dia de vencimento", () => {
     const p: Parcela[] = [
       {
         id: "p1",
@@ -410,7 +410,7 @@ describe("despesaRegistradaMes — fluxo de caixa, não cronograma", () => {
   // `pagoPorMes` — `fixaEfetivamentePaga` calcula "paga" pelo dia de
   // vencimento, sem ninguém nunca clicar em nada. Sem este caso, ela nunca
   // entrava no fluxo de caixa, mesmo com o dinheiro já tendo saído sozinho.
-  test("fixa em débito automático conta pelo dia de vencimento, mesmo sem pagoPorMes", () => {
+  test("fixa em débito direto conta pelo dia de vencimento, mesmo sem pagoPorMes", () => {
     const fixas: DespesaFixa[] = [
       {
         id: "f1",

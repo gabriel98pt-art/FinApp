@@ -32,7 +32,7 @@ describe("contribuicaoFixasMes — corrente parcial vs fechado total", () => {
   });
 
   // Ninguém marca uma fixa em débito automático — a promessa é não ter de mexer.
-  test("mês corrente: fixa em débito automático no cartão conta sem marcação", () => {
+  test("mês corrente: fixa em débito direto no cartão conta sem marcação", () => {
     const fixas = [
       fixa({ id: "f1", valor: 45000, contaCartao: "AB Gold (C)", autoDebit: true }),
       fixa({ id: "f2", valor: 999, pagoPorMes: {} }), // sem cartão: continua a precisar
@@ -42,7 +42,7 @@ describe("contribuicaoFixasMes — corrente parcial vs fechado total", () => {
 
   // O bug: uma fixa que vence dia 27 contava já no dia 1 — `hoje` dá precisão
   // de dia ao mês corrente.
-  test("com `hoje`, débito automático só entra depois do dia de vencimento", () => {
+  test("com `hoje`, débito direto só entra depois do dia de vencimento", () => {
     const fixas = [
       fixa({ valor: 45000, contaCartao: "AB Gold (C)", autoDebit: true, diaVencimento: 27 }),
     ];
@@ -74,7 +74,7 @@ describe("totalFixasGeral — acumulado de todos os tempos", () => {
   });
 });
 
-describe("totalFixasGeral com fixa em débito automático", () => {
+describe("totalFixasGeral com fixa em débito direto", () => {
   const CARTAO = "AB Gold (C)";
 
   test("conta todos os meses do plano até hoje, sem marcação nenhuma", () => {

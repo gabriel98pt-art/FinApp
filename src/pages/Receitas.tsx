@@ -51,12 +51,12 @@ export default function Receitas() {
   async function excluirReceita(id: string) {
     const item = itens.find((r) => r.id === id);
     if (!item) return;
-    if (!(await confirmar(`Excluir "${item.descricao}"?`))) return;
+    if (!(await confirmar(`Eliminar "${item.descricao}"?`))) return;
     try {
       await removerReceita(uid, id);
-      mostrarToast("Receita excluída");
+      mostrarToast("Receita eliminada");
     } catch {
-      mostrarToast("Não foi possível excluir. Tente de novo.");
+      mostrarToast("Não foi possível eliminar. Tente de novo.");
     }
   }
 

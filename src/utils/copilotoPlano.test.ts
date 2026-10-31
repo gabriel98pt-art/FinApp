@@ -290,7 +290,7 @@ describe("buildFinanceSnapshot", () => {
   // utils/fatura.ts) — por isso o seu vencimento cai no MESMO dia da própria
   // fatura. Somar a parcela (como "parcela") E a fatura (que já a contém)
   // nos próximos 30 dias contava o mesmo dinheiro duas vezes.
-  test("parcela em débito automático não é contada duas vezes (parcela + fatura)", () => {
+  test("parcela em débito direto não é contada duas vezes (parcela + fatura)", () => {
     const cfg = cfgCom({
       contasCartoes: ["Cartao"],
       tipoCartao: { Cartao: "credit" },

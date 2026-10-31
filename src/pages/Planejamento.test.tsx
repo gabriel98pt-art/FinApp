@@ -337,7 +337,7 @@ describe("folha do total planeado", () => {
     cfg = { ...CONFIG_PADRAO, orcamentoTotalMensal: 100000 };
     montar();
     await abrir();
-    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
 
     expect(definirOrcamentoTotal).toHaveBeenCalledWith("u1", 100000);
   });

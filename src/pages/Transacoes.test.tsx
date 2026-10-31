@@ -173,7 +173,7 @@ describe("Transacoes", () => {
     expect(screen.getByText(/Não foi possível sincronizar/)).toBeInTheDocument();
   });
 
-  test("com linhas na tela, o aviso é a faixa fina e as linhas ficam", () => {
+  test("com linhas no ecrã, o aviso é a faixa fina e as linhas ficam", () => {
     receitas = { itens: [receita()], carregado: true, erro: true };
     desenhar();
 
@@ -319,27 +319,27 @@ describe("Transacoes", () => {
 // Item 2 do lote de UX/nav (30/08): receita/despesa ganham o menu único
 // (Editar/Excluir) — os outros cinco tipos continuam na folha "Abrir em X".
 describe("menu de ações da linha (item 2)", () => {
-  test("tocar numa linha de receita abre o menu com Editar e Excluir", async () => {
+  test("tocar numa linha de receita abre o menu com Editar e Eliminar", async () => {
     receitas = lista([receita()]);
     desenhar();
 
     await userEvent.click(screen.getByText("Salário"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
   });
 
-  test("Excluir no menu remove a receita direto, sem abrir formulário", async () => {
+  test("Eliminar no menu remove a receita direto, sem abrir formulário", async () => {
     receitas = lista([receita()]);
     desenhar();
 
     await userEvent.click(screen.getByText("Salário"));
-    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));
   });
 
-  test("Excluir no menu remove a despesa direto", async () => {
+  test("Eliminar no menu remove a despesa direto", async () => {
     despesas = lista([
       {
         id: "d1",
@@ -352,7 +352,7 @@ describe("menu de ações da linha (item 2)", () => {
     desenhar();
 
     await userEvent.click(screen.getByText("Mercado"));
-    await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
 
     await waitFor(() => expect(removerDespesa).toHaveBeenCalledWith("u1", "d1"));
   });

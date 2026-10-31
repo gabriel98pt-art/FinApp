@@ -316,7 +316,7 @@ describe("transacoesDoMes", () => {
     expect(transacoesDoMes({ ...vazio, despesasFixas: [fixa] }, "2026-08")).toHaveLength(0);
   });
 
-  it("fixa em débito automático no cartão entra sem ninguém a marcar", () => {
+  it("fixa em débito direto no cartão entra sem ninguém a marcar", () => {
     const fixa = {
       id: "f2",
       descricao: "Seguro",
@@ -359,7 +359,7 @@ describe("transacoesDoMes", () => {
 
   // O bug relatado: MEO vence dia 27 e aparecia no extrato já no dia 1 de
   // agosto, com data no futuro. `hoje` dá precisão de dia ao mês corrente.
-  it("com `hoje`, fixa em débito automático só entra no extrato depois do dia de vencimento", () => {
+  it("com `hoje`, fixa em débito direto só entra no extrato depois do dia de vencimento", () => {
     const fixa = {
       id: "f3",
       descricao: "MEO",
@@ -419,7 +419,7 @@ describe("transacoesDoMes", () => {
     // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
     // aparece para ela. Sem o mesReferencia, ela nunca entrava no extrato,
     // mesmo já tendo saído sozinha do cartão.
-    it("em débito automático entra sem marcação, dado o mês de referência", () => {
+    it("em débito direto entra sem marcação, dado o mês de referência", () => {
       const auto: Parcela = {
         ...sofa,
         cartao: "AB Gold (C)",
@@ -433,7 +433,7 @@ describe("transacoesDoMes", () => {
       expect(t[0].data).toBe("2026-08-20");
     });
 
-    it("em débito automático, sem mesReferencia, comportamento antigo — não entra", () => {
+    it("em débito direto, sem mesReferencia, comportamento antigo — não entra", () => {
       const auto: Parcela = {
         ...sofa,
         cartao: "AB Gold (C)",
@@ -447,7 +447,7 @@ describe("transacoesDoMes", () => {
     // O bug relatado: uma parcela em débito automático que vence dia 27
     // aparecia no extrato já no dia 1, com data no futuro (27/08 antes de o
     // dia chegar). `hoje` dá precisão de dia ao mês corrente.
-    it("com `hoje`, débito automático só entra no extrato depois do dia de vencimento", () => {
+    it("com `hoje`, débito direto só entra no extrato depois do dia de vencimento", () => {
       const auto: Parcela = {
         ...sofa,
         cartao: "AB Gold (C)",

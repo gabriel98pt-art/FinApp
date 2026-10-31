@@ -121,7 +121,7 @@ describe("liquidoDaDespesa", () => {
   });
 });
 
-describe("o reembolso flui pelos totais em vez de ser excluído", () => {
+describe("o reembolso flui pelos totais em vez de ser eliminado", () => {
   test("despesasNosTotais deixa passar 'reemb'", () => {
     // Ao contrário de 'fat', 'recon' e 'parc', que são excluídos por não serem
     // despesa real ou por já contarem noutro sítio, o reembolso EXISTE para
@@ -136,7 +136,7 @@ describe("o reembolso flui pelos totais em vez de ser excluído", () => {
     expect(total).toBe(2500);
   });
 
-  test("os outros três continuam excluídos", () => {
+  test("os outros três continuam eliminados", () => {
     const fat: DespesaCorrente = { ...jantar, id: "f1", origem: "fat" };
     const recon: DespesaCorrente = { ...jantar, id: "rc1", origem: "recon" };
     const parc: DespesaCorrente = { ...jantar, id: "p1", origem: "parc" };

@@ -141,8 +141,8 @@ export default function FolhaContasCartoes({
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Contas e cartões">
       <p className={styles.nota}>
-        Cada conta ou cartão fica disponível em Transações, Registro Rápido e nos filtros por conta.
-        A tela de Cartões passou a mostrar só os saldos e as faturas.
+        Cada conta ou cartão fica disponível em Transações, Registo Rápido e nos filtros por conta.
+        O ecrã de Cartões passou a mostrar só os saldos e as faturas.
       </p>
 
       {cfg.contasCartoes.length > 0 && (
@@ -180,7 +180,7 @@ export default function FolhaContasCartoes({
                   </button>
                 </div>
                 {/* Só o cartão de crédito tem fatura, e é o dia dela que manda
-                    também nas parcelas em débito automático. */}
+                    também nas parcelas em débito direto. */}
                 {credito && (
                   <div className={styles.diasFatura}>
                     <label className={styles.campoDia}>

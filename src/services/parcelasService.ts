@@ -167,12 +167,12 @@ export async function quitarParcela(
   snapshotHistorico();
   const total = valorQuitacao(p, mesReferencia, hoje);
   const lancamento: Omit<DespesaCorrente, "id"> = {
-    descricao: `${p.descricao} (quitação)`,
+    descricao: `${p.descricao} (liquidação)`,
     valor: total,
     data: hojeIso(),
     categoria: p.categoria ?? "Parcelas",
     origem: "parc",
-    nota: `Quitação antecipada — ${abertos.length} parcela(s)`,
+    nota: `Liquidação antecipada — ${abertos.length} parcela(s)`,
     parcelaId: p.id,
     parcelaMes: "quit",
   };

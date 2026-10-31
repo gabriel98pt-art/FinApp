@@ -83,7 +83,7 @@ export default function ModalDuplicatas({
                     <p className={styles.revisaoExcluirAviso}>
                       {fixa
                         ? "O mês desta despesa fixa vai voltar a ficar por pagar."
-                        : "O lançamento já registado vai ser excluído."}
+                        : "O lançamento já registado vai ser eliminado."}
                     </p>
                     <button
                       type="button"
@@ -97,7 +97,7 @@ export default function ModalDuplicatas({
                   <div
                     className={styles.revisaoConfirmar}
                     role="group"
-                    aria-label="Confirmar exclusão"
+                    aria-label="Confirmar eliminação"
                   >
                     <p>
                       {fixa
@@ -113,7 +113,7 @@ export default function ModalDuplicatas({
                           setAConfirmar(null);
                         }}
                       >
-                        {fixa ? "Sim, desmarcar o mês" : "Sim, excluir o existente"}
+                        {fixa ? "Sim, desmarcar o mês" : "Sim, eliminar o existente"}
                       </button>
                       <button
                         type="button"
@@ -130,7 +130,7 @@ export default function ModalDuplicatas({
                     className={styles.linkPerigo}
                     onClick={() => setAConfirmar(l.id)}
                   >
-                    {fixa ? "Desmarcar o mês pago…" : "Excluir o existente…"}
+                    {fixa ? "Desmarcar o mês pago…" : "Eliminar o existente…"}
                   </button>
                 )}
               </div>

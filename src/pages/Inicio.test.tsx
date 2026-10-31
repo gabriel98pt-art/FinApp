@@ -175,7 +175,7 @@ describe("Inicio", () => {
     expect(screen.getByText(/Alguns dados não sincronizaram/)).toBeInTheDocument();
   });
 
-  test("o aviso é a faixa fina — o resultado do mês continua na tela", () => {
+  test("o aviso é a faixa fina — o resultado do mês continua no ecrã", () => {
     // Compacto e não a caixa cheia: os números continuam a valer, o que caiu
     // foi a actualização.
     receitas = listaComErro<Receita>();
@@ -383,7 +383,7 @@ describe("Inicio", () => {
       expect(screen.getByText("amanhã")).toBeInTheDocument();
     });
 
-    test("parcela em débito automático num cartão de crédito não aparece: já está na fatura", () => {
+    test("parcela em débito direto num cartão de crédito não aparece: já está na fatura", () => {
       cfgTeste = {
         ...CONFIG_PADRAO,
         contasCartoes: ["Visa"],

@@ -69,7 +69,7 @@ function FormTeto({
     aoFechar();
   }
 
-  async function salvar(e: FormEvent) {
+  async function guardar(e: FormEvent) {
     e.preventDefault();
     const alvo = editando ? categoriaFixa : categoria;
     if (!alvo) return mostrarToast("Escolha uma categoria.");
@@ -80,7 +80,7 @@ function FormTeto({
       mostrarToast(editando ? "✓ Teto atualizado" : "✓ Teto definido");
       fechar();
     } catch {
-      mostrarToast("Não foi possível salvar o teto.");
+      mostrarToast("Não foi possível guardar o teto.");
     } finally {
       setSalvando(false);
     }
@@ -136,7 +136,7 @@ function FormTeto({
         </div>
       )}
 
-      <form className={styles.form} onSubmit={salvar}>
+      <form className={styles.form} onSubmit={guardar}>
         {!editando && (
           <Seletor
             rotulo="Categoria"
@@ -160,7 +160,7 @@ function FormTeto({
           disabled={salvando}
         />
         <Botao type="submit" variante="submeter" disabled={salvando}>
-          {salvando ? "Aguarde…" : editando ? "Salvar alterações" : "Definir teto"}
+          {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Definir teto"}
         </Botao>
         {editando && (
           <button
@@ -222,7 +222,7 @@ export default function OrcamentoCard() {
 
       {status.length === 0 ? (
         <p className={styles.vazio}>
-          Defina um teto mensal por categoria pra acompanhar o gasto aqui.
+          Defina um teto mensal por categoria para acompanhar o gasto aqui.
         </p>
       ) : (
         <div className={styles.lista}>

@@ -140,7 +140,7 @@ describe("ajuste de reconciliação (origem 'recon')", () => {
   });
 });
 
-describe("saldo por caixa com fixa em débito automático", () => {
+describe("saldo por caixa com fixa em débito direto", () => {
   // Fixa de renda que sai sozinha da conta desde março, sem ninguém marcar
   // `pagoPorMes` — é a promessa do débito automático.
   const comAutoDebit: DadosContas = {

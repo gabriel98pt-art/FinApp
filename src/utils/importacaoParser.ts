@@ -34,10 +34,10 @@ function dividirLinhaCsv(linha: string, delim: string): string[] {
   return res;
 }
 
-function acharColuna(cabecalho: string[], candidatos: string[], excluir?: Set<number>): number {
+function acharColuna(cabecalho: string[], candidatos: string[], eliminar?: Set<number>): number {
   for (const cand of candidatos) {
     for (let i = 0; i < cabecalho.length; i++) {
-      if (!excluir?.has(i) && cabecalho[i].includes(cand)) return i;
+      if (!eliminar?.has(i) && cabecalho[i].includes(cand)) return i;
     }
   }
   return -1;

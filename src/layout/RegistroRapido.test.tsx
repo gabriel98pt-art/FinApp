@@ -96,7 +96,7 @@ async function preencher(centavos: string) {
 
 /** Submete e espera a gravação — que é assíncrona dentro do `salvar`. */
 async function submeter() {
-  await userEvent.click(screen.getByRole("button", { name: /Salvar|Adicionar/i }));
+  await userEvent.click(screen.getByRole("button", { name: /Guardar|Adicionar/i }));
   await waitFor(() => expect(criarDespesa).toHaveBeenCalledTimes(1));
 }
 
@@ -322,7 +322,7 @@ describe("carga com custo zero — carregador grátis (05/09/2026)", () => {
     await userEvent.type(screen.getByLabelText("kWh"), "40");
     // "Quanto?" no modo custo total, por omissão.
     await userEvent.type(screen.getByLabelText(/Quanto/i), "0");
-    await userEvent.click(screen.getByRole("button", { name: /Salvar|Adicionar/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Guardar|Adicionar/i }));
 
     await waitFor(() => expect(criarCarga).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -343,7 +343,7 @@ describe("erro de validação — achado da auditoria de Acessibilidade", () => 
     // checagem de JS (valor <= 0) — é o único jeito de chegar no erro sem o
     // navegador bloquear o submit antes.
     await preencher("0");
-    await userEvent.click(screen.getByRole("button", { name: /Salvar|Adicionar/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Guardar|Adicionar/i }));
 
     const alerta = await screen.findByRole("alert");
     expect(alerta).toHaveTextContent("Valor inválido");

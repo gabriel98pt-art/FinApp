@@ -89,14 +89,14 @@ describe("Tvde", () => {
 
   test("sem semanas registadas: estado vazio que diz qual é a semana atual", () => {
     render(<Tvde />);
-    expect(screen.getByText("Nenhuma semana registrada")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma semana registada")).toBeInTheDocument();
   });
 
   test("sincronização caída e sem semanas: avisa em vez de dizer que está vazio", () => {
     erro = true;
     render(<Tvde />);
 
-    expect(screen.queryByText("Nenhuma semana registrada")).not.toBeInTheDocument();
+    expect(screen.queryByText("Nenhuma semana registada")).not.toBeInTheDocument();
     expect(screen.getByText(/Não foi possível sincronizar/)).toBeInTheDocument();
   });
 
@@ -126,7 +126,7 @@ describe("Tvde", () => {
 // solto ao lado ("Lançar receita"/"Desfazer lançamento") viram um menu
 // único, junto de Editar/Excluir.
 describe("menu de ações da semana (item 2)", () => {
-  test("semana sem lançamento: o menu oferece Editar, Lançar receita e Excluir", async () => {
+  test("semana sem lançamento: o menu oferece Editar, Lançar receita e Eliminar", async () => {
     dados = {
       ...vazio(),
       semanas: { "30": { fat: 100000, teste: false } },
@@ -137,7 +137,7 @@ describe("menu de ações da semana (item 2)", () => {
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Lançar receita" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Excluir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Desfazer lançamento" })).not.toBeInTheDocument();
   });
 

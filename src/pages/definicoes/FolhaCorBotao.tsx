@@ -37,15 +37,15 @@ export default function FolhaCorBotao({
     try {
       await definirCorCategoria(uid, alvo, cor);
     } catch {
-      mostrarToast("Não foi possível salvar a cor.");
+      mostrarToast("Não foi possível guardar a cor.");
     }
   }
 
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Cor do botão flutuante">
       <p className={styles.nota}>
-        O botão de registro rápido veste esta cor quando você está na página. Nas outras fica no
-        azul do app.
+        O botão de registo rápido veste esta cor quando está na página. Nas outras fica no azul do
+        app.
       </p>
       <ul className={styles.listaCategorias}>
         {PAGINAS_COLORIDAS.map((nome) => (

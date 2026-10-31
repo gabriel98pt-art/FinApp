@@ -195,7 +195,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
   // dia: sem ele vale a convenção de esperar o fim do mês, e no dia 23 do
   // contexto a parcela ainda não teria saído — que é outro caso, coberto no
   // bloco "mês corrente conta só o que já venceu" mais abaixo.
-  test("categoria específica soma a parcela em débito automático sem marcação", () => {
+  test("categoria específica soma a parcela em débito direto sem marcação", () => {
     const parcela: Parcela = {
       id: "p1",
       descricao: "TV Nova",
@@ -287,7 +287,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
   // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
   // aparece para ela. Sem tratar isso, o Copiloto contava o mês corrente como
   // "em aberto" mesmo já tendo saído sozinho do cartão.
-  test("parcela específica em débito automático não conta o mês já saído pelo cartão", () => {
+  test("parcela específica em débito direto não conta o mês já saído pelo cartão", () => {
     const parcela: Parcela = {
       id: "p1",
       descricao: "TV Nova",
@@ -370,7 +370,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/gastou/i);
   });
 
-  test("parcelas agregado não conta o mês em débito automático já saído pelo cartão", () => {
+  test("parcelas agregado não conta o mês em débito direto já saído pelo cartão", () => {
     const parcela: Parcela = {
       id: "p1",
       descricao: "TV Nova",
@@ -390,7 +390,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/<b>1<\/b> parcela/);
   });
 
-  test("pendentes não conta a parcela em débito automático já saída pelo cartão", () => {
+  test("pendentes não conta a parcela em débito direto já saída pelo cartão", () => {
     const parcela: Parcela = {
       id: "p1",
       descricao: "TV Nova",
@@ -407,7 +407,7 @@ describe("responderPergunta — intents (seção 3.9)", () => {
     expect(resp).toMatch(/Não há pendentes/);
   });
 
-  test("pendentes conta a parcela em débito automático que ainda não venceu este mês", () => {
+  test("pendentes conta a parcela em débito direto que ainda não venceu este mês", () => {
     const parcela: Parcela = {
       id: "p1",
       descricao: "TV Nova",
@@ -608,7 +608,7 @@ describe("copiloto: cartões", () => {
   // O total por cartão reimplementava a mesma soma que categoriasDoMes/
   // totalVeiculoMes já fazem — e tinha o mesmo furo: fixa/parcela em débito
   // automático no cartão não contava sem marcação manual.
-  test("cartão específico soma também fixa e parcela em débito automático", () => {
+  test("cartão específico soma também fixa e parcela em débito direto", () => {
     const fixa: DespesaFixa = {
       id: "f1",
       descricao: "Streaming",

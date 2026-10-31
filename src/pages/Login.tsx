@@ -114,7 +114,7 @@ export default function Login() {
             : modo === "entrar"
               ? "Entrar"
               : modo === "cadastrar"
-                ? "Cadastrar"
+                ? "Registar"
                 : "Enviar link"}
         </button>
 
@@ -129,7 +129,7 @@ export default function Login() {
           className={styles.alternar}
           onClick={() => irPara(modo === "entrar" ? "cadastrar" : "entrar")}
         >
-          {modo === "entrar" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entre"}
+          {modo === "entrar" ? "Não tem conta? Registe-se" : "Já tem conta? Entre"}
         </button>
       </form>
     </div>

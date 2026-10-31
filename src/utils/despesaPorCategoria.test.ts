@@ -100,7 +100,7 @@ describe("despesaPorCategoriaMes", () => {
 
   // Ninguém marca uma parcela em débito automático — o botão "Pagar mês" nem
   // aparece para ela. Sem tratar isso, ela sumia do donut no mês corrente.
-  test("mês corrente: parcela em débito automático entra sem marcação", () => {
+  test("mês corrente: parcela em débito direto entra sem marcação", () => {
     const p: Parcela[] = [
       {
         id: "p1",
@@ -119,7 +119,7 @@ describe("despesaPorCategoriaMes", () => {
     ]);
   });
 
-  test("mês futuro: parcela entra cheia mesmo pendente e sem débito automático", () => {
+  test("mês futuro: parcela entra cheia mesmo pendente e sem débito direto", () => {
     const p: Parcela[] = [
       {
         id: "p1",
@@ -146,7 +146,7 @@ describe("despesaPorCategoriaMes", () => {
 
   // Mesma regra das parcelas acima, que as fixas gerais não seguiam: entravam
   // cheias mesmo pendentes e o donut mostrava dinheiro que ainda não saiu.
-  test("mês corrente: fixa pendente (sem débito automático) fica de fora", () => {
+  test("mês corrente: fixa pendente (sem débito direto) fica de fora", () => {
     const fixas = [
       fixa({ id: "f1", valor: 45000, categoria: "Casa", pagoPorMes: {} }),
       fixa({ id: "f2", valor: 999, categoria: "Assinaturas", inicio: "2026-08" }),
@@ -177,7 +177,7 @@ describe("despesaPorCategoriaMes", () => {
   // faz sentido pra alguém a planejar setembro em agosto é o valor cheio do
   // compromisso, exatamente como as parcelas já faziam antes desta fixa
   // acompanhar a mesma regra.
-  test("mês futuro: fixa entra cheia, tanto em débito automático quanto manual", () => {
+  test("mês futuro: fixa entra cheia, tanto em débito direto quanto manual", () => {
     const fixas = [
       fixa({ id: "f1", valor: 4500, categoria: "Telemóvel", contaCartao: "Visa", autoDebit: true }),
       fixa({ id: "f2", valor: 35000, categoria: "Casa", pagoPorMes: {} }),
@@ -199,7 +199,7 @@ describe("despesaPorCategoriaMes", () => {
   });
 
   // Ninguém marca uma fixa em débito automático — igual às parcelas.
-  test("mês corrente: fixa em débito automático segue o dia de vencimento", () => {
+  test("mês corrente: fixa em débito direto segue o dia de vencimento", () => {
     const fixas = [
       fixa({
         id: "f1",
@@ -682,7 +682,7 @@ describe("despesaPorCategoriaRegistradaMes — fluxo de caixa, mesmo par do KPI"
   // de vencimento — sem NUNCA gravar `pagoPorMes` (ninguém clica em nada
   // pra ela, o selo é só leitura), então o filtro antigo (`pagoPorMes[ym]
   // === true`) nunca a pegava.
-  test("fixa em débito automático entra na categoria pelo dia de vencimento, sem pagoPorMes", () => {
+  test("fixa em débito direto entra na categoria pelo dia de vencimento, sem pagoPorMes", () => {
     const fixas = [
       fixa({
         id: "f1",

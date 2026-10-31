@@ -139,7 +139,7 @@ describe("Importar", () => {
   test("monta e mostra a área de escolher o extrato", () => {
     linhas = null;
     render(<Importar />);
-    expect(screen.getByRole("button", { name: /Carregar arquivo/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Carregar ficheiro/ })).toBeInTheDocument();
   });
 
   test("sem linhas analisadas: não mostra a revisão", () => {
@@ -275,8 +275,8 @@ describe("Importar", () => {
     expect(entrada).toHaveAttribute("aria-busy", "false");
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const arquivo = new File(["conteudo"], "extrato.pdf", { type: "application/pdf" });
-    await userEvent.upload(input, arquivo);
+    const ficheiro = new File(["conteudo"], "extrato.pdf", { type: "application/pdf" });
+    await userEvent.upload(input, ficheiro);
 
     await waitFor(() => expect(entrada).toHaveAttribute("aria-busy", "true"));
 
@@ -348,7 +348,7 @@ describe("Importar", () => {
       await waitFor(() => expect(setTexto).toHaveBeenCalledWith("10/07/2026;Mercado;-45,90"));
     });
 
-    test("área de transferência sem texto (PDF copiado) aponta para Carregar arquivo", async () => {
+    test("área de transferência sem texto (PDF copiado) aponta para Carregar ficheiro", async () => {
       linhas = null;
       comClipboard({ readText: vi.fn(async () => "") });
       render(<Importar />);
@@ -373,7 +373,7 @@ describe("Importar", () => {
       await userEvent.click(screen.getByRole("button", { name: "Colar" }));
 
       await waitFor(() =>
-        expect(mostrarToast).toHaveBeenCalledWith(expect.stringMatching(/Carregar arquivo/)),
+        expect(mostrarToast).toHaveBeenCalledWith(expect.stringMatching(/Carregar ficheiro/)),
       );
       expect(setTexto).not.toHaveBeenCalled();
     });
@@ -407,7 +407,7 @@ describe("Importar", () => {
       expect(screen.getByRole("button", { name: "Importar 1" })).not.toBeDisabled();
     });
 
-    test("sem nenhuma conta cadastrada, não trava — não há o que escolher", () => {
+    test("sem nenhuma conta registada, não trava — não há o que escolher", () => {
       cfg = { ...CONFIG_PADRAO, contasCartoes: [] };
       linhas = [linha()];
       render(<Importar />);
@@ -451,7 +451,7 @@ describe("Importar", () => {
       expect(within(folha).getByRole("button", { name: "Importar 1" })).toBeInTheDocument();
       expect(within(folha).getByText("1 fica de fora (não será importado).")).toBeInTheDocument();
       // Nada marcado para excluir: a linha de exclusão nem aparece.
-      expect(within(folha).queryByText(/serão? excluídos?/)).toBeNull();
+      expect(within(folha).queryByText(/serão? eliminados?/)).toBeNull();
       expect(confirmarImportacao).not.toHaveBeenCalled();
     });
 
