@@ -11,6 +11,10 @@
   margin-bottom: 4px;
 }
 
+.soBotao {
+  justify-content: flex-end;
+}
+
 .titulo {
   composes: tituloSecao from "../styles/titulos.module.css";
 }

@@ -590,8 +590,8 @@ export default function SecaoParcelas() {
           )}
           {/* Só o "+" (01/09) — o título ao lado já diz "Compras parceladas".
               O texto inteiro vive no aria-label. */}
-          <Botao variante="texto" soIcone aria-label="Adicionar parcela" onClick={abrirNova}>
-            <Plus size={16} aria-hidden />
+          <Botao variante="primaria" soIcone aria-label="Adicionar parcela" onClick={abrirNova}>
+            <Plus size={18} aria-hidden />
           </Botao>
         </div>
         <span className={styles.totais}>

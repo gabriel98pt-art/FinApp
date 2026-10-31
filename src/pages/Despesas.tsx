@@ -383,6 +383,7 @@ export default function Despesas() {
   }
 
   const largo = useMediaQuery("(min-width: 1024px)");
+  const botaoNoTopo = useMediaQuery("(min-width: 768px)");
   const linhaVisao = (
     <div className={styles.linhaVisao}>
       <div
@@ -414,15 +415,17 @@ export default function Despesas() {
       )}
       {/* Já se está na aba "Correntes" — o título "Despesas correntes"
                   do cartão de baixo era redundante. O botão sobe pra cá. */}
-      <Botao
-        variante="primaria"
-        soIcone
-        className={styles.botaoAdicionarTopo}
-        onClick={() => abrirRegistro("despesa")}
-        aria-label="Adicionar despesa"
-      >
-        <Plus size={18} aria-hidden />
-      </Botao>
+      {!botaoNoTopo && (
+        <Botao
+          variante="primaria"
+          soIcone
+          className={styles.botaoAdicionarTopo}
+          onClick={() => abrirRegistro("despesa")}
+          aria-label="Adicionar despesa"
+        >
+          <Plus size={18} aria-hidden />
+        </Botao>
+      )}
     </div>
   );
 
@@ -594,6 +597,7 @@ export default function Despesas() {
               vazioSub="Toque em + para adicionar."
               vazioIcone={TrendingDown}
               aoAdicionar={() => abrirRegistro("despesa")}
+              botaoNoTopo={botaoNoTopo}
               aoEditar={editar}
               aoExcluir={(id) => void excluirDespesa(id)}
             />

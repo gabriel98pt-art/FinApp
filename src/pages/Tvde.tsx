@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { CarTaxiFront, Check, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
+import Botao from "../components/Botao";
 import KpiCard from "../components/KpiCard";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import BottomSheet from "../components/BottomSheet";
@@ -440,13 +441,14 @@ export default function Tvde() {
               <div className={styles.cabecalhoAcoes}>
                 {/* Só o "+" (01/09): o título ao lado já diz "Semanas". A
                     frase inteira vive no aria-label. */}
-                <button
-                  className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
-                  aria-label="Nova semana"
+                <Botao
+                  variante="primaria"
+                  soIcone
+                  aria-label="Adicionar semana"
                   onClick={() => setEditando(proximaSemanaFalta)}
                 >
-                  <Plus size={16} aria-hidden />
-                </button>
+                  <Plus size={18} aria-hidden />
+                </Botao>
               </div>
             </div>
             {erro && numeros.length > 0 && <ErroSincronizacao compacto />}

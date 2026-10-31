@@ -4,6 +4,7 @@ import { Check, Plus, Target, X, XCircle } from "lucide-react";
 import Pagina, { EstadoVazio, Kpis } from "../components/Pagina";
 import AbaTransicao from "../components/AbaTransicao";
 import BottomSheet from "../components/BottomSheet";
+import Botao from "../components/Botao";
 import CampoValorDestaque from "../components/CampoValorDestaque";
 import ErroSincronizacao from "../components/ErroSincronizacao";
 import KpiCard from "../components/KpiCard";
@@ -402,13 +403,14 @@ export default function Planejamento() {
                   {fundos.length > 0 &&
                     `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
                 </h3>
-                <button
-                  className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
+                <Botao
+                  variante="primaria"
+                  soIcone
                   aria-label="Adicionar fundo"
                   onClick={abrirNovoFundo}
                 >
-                  <Plus size={16} aria-hidden />
-                </button>
+                  <Plus size={18} aria-hidden />
+                </Botao>
               </div>
 
               {erro && fundos.length > 0 && <ErroSincronizacao compacto />}

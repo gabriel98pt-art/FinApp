@@ -149,31 +149,6 @@
   font-weight: 700;
 }
 
-.adicionar {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--blu-txt);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  padding: 6px 10px;
-  border-radius: var(--r-sm);
-}
-
-.adicionar:hover {
-  background: var(--s2);
-}
-
-/* Botão de criar reduzido ao "+" (01/09/2026): o título ao lado já diz
-   "Fundos", e o texto do botão empurrava-o para duas linhas em ecrã estreito.
-   Fica quadrado; a frase inteira passa para o aria-label. Mesma ideia do
-   .soIcone do botão partilhado (Botao.module.css) — aqui à parte só porque
-   este botão tem cor e peso próprios desta tela. */
-.adicionarSoIcone {
-  gap: 0;
-  padding: 6px 8px;
-}
-
 /* Os fundos vivem DENTRO de um só cartão de vidro (.colunaFundos), como
    secções sem cartão próprio separadas por um fio: empilhados e com fio
    horizontal no telemóvel; a partir de 1024px em duas colunas com um fio
