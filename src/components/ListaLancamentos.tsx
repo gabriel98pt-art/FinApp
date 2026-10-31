@@ -133,7 +133,6 @@ export default function ListaLancamentos({
   vazioIcone,
   moeda,
   aoAdicionar,
-  botaoNoTopo,
   aoEditar,
   aoExcluir,
   rotuloTotal = "Total",
@@ -153,8 +152,6 @@ export default function ListaLancamentos({
   vazioIcone: LucideIcon;
   moeda: Currency;
   aoAdicionar: () => void;
-  /** Em ecrã largo o "+" vive aqui, no topo da lista, e não na linha do período. */
-  botaoNoTopo?: boolean;
   aoEditar: (id: Id) => void;
   /** Ação "Excluir" do menu único de ações (item 2 do lote de UX/nav). Quem
    *  chama decide se confirma antes — aqui só se propaga o id escolhido. */
@@ -201,9 +198,9 @@ export default function ListaLancamentos({
 
   return (
     <div className={styles.cartao}>
-      {(titulo || botaoNoTopo) && (
-        <div className={`${styles.cabecalho} ${titulo ? "" : styles.soBotao}`}>
-          {titulo && <h3 className={styles.titulo}>{titulo}</h3>}
+      {titulo && (
+        <div className={styles.cabecalho}>
+          <h3 className={styles.titulo}>{titulo}</h3>
           <Botao variante="primaria" soIcone aria-label="Adicionar" onClick={aoAdicionar}>
             <Plus size={18} aria-hidden />
           </Botao>

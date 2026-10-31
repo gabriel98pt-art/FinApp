@@ -195,7 +195,19 @@ export default function Receitas() {
       <section className={styles.secao} aria-label="Lançamentos">
         <div className={styles.cabecalhoSecao}>
           <h3 className={styles.tituloSecao}>Lançamentos</h3>
-          <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+          <div className={styles.acoesSecao}>
+            <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+            {botaoNoTopo && (
+              <Botao
+                variante="primaria"
+                soIcone
+                aria-label="Adicionar receita"
+                onClick={() => abrirRegistro("receita")}
+              >
+                <Plus size={18} aria-hidden />
+              </Botao>
+            )}
+          </div>
         </div>
 
         {!largo && seletorVisao}
@@ -231,7 +243,6 @@ export default function Receitas() {
           vazioSub="Toque em + para adicionar."
           vazioIcone={TrendingUp}
           aoAdicionar={() => abrirRegistro("receita")}
-          botaoNoTopo={botaoNoTopo}
           aoEditar={(id) => abrirRegistro("receita", id)}
           aoExcluir={(id) => void excluirReceita(id)}
         />

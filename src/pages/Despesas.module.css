@@ -239,3 +239,9 @@
 .visaoAtiva {
   composes: ativa from "../styles/pilulas.module.css";
 }
+
+.acoesSecao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

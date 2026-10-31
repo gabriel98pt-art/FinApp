@@ -15,3 +15,9 @@
 .adicionar {
   margin-left: auto;
 }
+
+.acoesSecao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

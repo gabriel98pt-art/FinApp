@@ -9,6 +9,14 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 31/10/2026 (mesmas palavras em todo o app)
+
+- Cartões, Despesas, Parcelas, Veículo e Importar passam a usar as mesmas
+  palavras: «A pagar» (no lugar de «Pendente», «Em aberto» e «Por pagar»),
+  «Pago» e «Liquidada» (no lugar de «Quitada»).
+- Fatura do cartão: «Ciclo» passa a «Compras de <mês>», «A pagar» passa a
+  «Total» e «Restante» passa a «Falta pagar».
+
 ## 30/10/2026 (revisão de textos e comportamento)
 
 - Despesas: o rodapé da lista passa a «Soma das despesas do dia a dia», para

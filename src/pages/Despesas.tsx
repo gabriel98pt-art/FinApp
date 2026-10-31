@@ -541,7 +541,19 @@ export default function Despesas() {
           <section className={styles.secao} aria-label="Movimentos">
             <div className={styles.cabecalhoSecao}>
               <h3 className={styles.tituloSecao}>Movimentos</h3>
-              <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+              <div className={styles.acoesSecao}>
+                <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
+                {botaoNoTopo && (
+                  <Botao
+                    variante="primaria"
+                    soIcone
+                    aria-label="Adicionar despesa"
+                    onClick={() => abrirRegistro("despesa")}
+                  >
+                    <Plus size={18} aria-hidden />
+                  </Botao>
+                )}
+              </div>
             </div>
 
             {!largo && linhaVisao}
@@ -597,7 +609,6 @@ export default function Despesas() {
               vazioSub="Toque em + para adicionar."
               vazioIcone={TrendingDown}
               aoAdicionar={() => abrirRegistro("despesa")}
-              botaoNoTopo={botaoNoTopo}
               aoEditar={editar}
               aoExcluir={(id) => void excluirDespesa(id)}
             />
