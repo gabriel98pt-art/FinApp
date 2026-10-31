@@ -282,8 +282,9 @@ function calcularPagamentos(fatura: FaturaCalculada) {
   return pagamentosDaFatura(cfg.faturasPagas?.[fatura.cartao]?.[fatura.mes]);
 }
 
-/** Do tamanho de um iPad em pé para cima não há abas: tudo fica à vista. */
-const ECRA_LARGO = "(min-width: 768px)";
+/** Da largura de um iPad deitado (1024px) para cima não há abas: tudo fica à
+ *  vista — o mesmo ponto em que as outras páginas passam a duas colunas. */
+const ECRA_LARGO = "(min-width: 1024px)";
 
 export default function Cartoes() {
   const uid = useUidSessao();

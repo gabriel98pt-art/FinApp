@@ -309,19 +309,28 @@
   color: var(--mut);
 }
 
-/* iPad/Mac: cartões, parcelas e importar à esquerda, transações à direita. As
-   proporções são fluidas (5:7) — sem larguras fixas, sem rolar na horizontal. */
+/* Mesma regra de colunas de todas as abas (ver Pagina.module.css): uma coluna
+   até 1023px; a partir daí a grelha de 12 — cartões, parcelas e importar à
+   esquerda (4), transações à direita (8). */
 .colunas {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 20px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Entre 768 e 1100px a coluna da esquerda precisa de mais largura: 6:6. */
-@media (max-width: 1099px) {
+@media (min-width: 1024px) {
   .colunas {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .colunas > .coluna:first-child {
+    grid-column: span 4;
+  }
+
+  .colunas > .coluna:last-child {
+    grid-column: span 8;
   }
 }
 
