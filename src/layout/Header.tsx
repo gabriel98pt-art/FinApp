@@ -1,5 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import BotaoPerfil from "./BotaoPerfil";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
@@ -50,9 +51,12 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <h1 className={styles.logo}>
-        Fin<span>App</span>
-      </h1>
+      <div className={styles.marca}>
+        <BotaoPerfil />
+        <h1 className={styles.logo}>
+          Fin<span>App</span>
+        </h1>
+      </div>
       {mostrarMes && (
         <div className={styles.mes}>
           <SeletorMes mes={mes} aoMudar={setMes} compacto />

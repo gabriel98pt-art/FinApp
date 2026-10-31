@@ -16,9 +16,12 @@ import Botao from "../../components/Botao";
 export default function FolhaSenha({
   aberta,
   aoFechar,
+  nivel,
 }: {
   aberta: boolean;
   aoFechar: () => void;
+  /** Empilhamento quando abre por cima de outra folha (Minha conta). */
+  nivel?: number;
 }) {
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
@@ -43,7 +46,7 @@ export default function FolhaSenha({
   }
 
   return (
-    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Trocar senha">
+    <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo="Trocar senha" nivel={nivel}>
       <form onSubmit={(e) => void submeter(e)}>
         <p className={styles.nota}>
           Mínimo de {SENHA_MINIMA} caracteres. Pedimos a senha atual para confirmar que é mesmo

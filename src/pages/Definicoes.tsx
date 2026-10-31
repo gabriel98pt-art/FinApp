@@ -1,22 +1,17 @@
-import { useState, type FormEvent } from "react";
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import Pagina from "../components/Pagina";
 import PainelCoresApp from "../components/PainelCoresApp";
 import Seletor from "../components/Seletor";
-import { apagarConta, mensagemDeErroSenhaAtual, sair } from "../services/authService";
 import { atualizarConfig } from "../services/cfgService";
-import { useConfirmar } from "../hooks/useConfirmar";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import { mostrarToast } from "../stores/toastStore";
 import { useThemeStore } from "../stores/themeStore";
 import type { Currency, Theme } from "../types";
 import styles from "./Definicoes.module.css";
-import Botao from "../components/Botao";
 import SettingsSection from "../components/settings/SettingsSection";
 import SettingsSwitchRow from "../components/settings/SettingsSwitchRow";
 import SettingsRow from "../components/settings/SettingsRow";
-import FolhaSenha from "./definicoes/FolhaSenha";
 import FolhaBackup from "./definicoes/FolhaBackup";
 import FolhaDiagnostico from "./definicoes/FolhaDiagnostico";
 import FolhaCopiloto from "./definicoes/FolhaCopiloto";
@@ -54,75 +49,12 @@ const OPCOES_TEMA: { valor: Theme; rotulo: string }[] = [
   { valor: "light", rotulo: "Claro" },
 ];
 
-/** Apagar a conta — o direito ao apagamento, que até aqui não tinha botão e
- *  só se resolvia pedindo a alguém para ir à consola do Firebase à mão.
- *
- *  Pede a senha e ainda assim confirma: é a única ação da app que destrói
- *  dados sem qualquer forma de recuperar, nem por backup.
- *
- *  Fica fora das folhas de propósito: ao contrário das outras configurações,
- *  esta continua sempre visível na tela principal, nunca escondida atrás de
- *  navegação — é a ação mais grave da app. */
-function ApagarConta() {
-  const [senha, setSenha] = useState("");
-  const [apagando, setApagando] = useState(false);
-  const confirmar = useConfirmar();
-
-  async function submeter(e: FormEvent) {
-    e.preventDefault();
-    if (apagando) return;
-    if (
-      !(await confirmar(
-        "Apagar a conta? Isto remove DEFINITIVAMENTE todos os seus dados — lançamentos, cartões, parcelas, metas e configurações. Não há como desfazer, e nem o backup recupera o que for apagado aqui.",
-      ))
-    )
-      return;
-
-    setApagando(true);
-    try {
-      await apagarConta(senha);
-      // Sem toast de sucesso de propósito: o Firebase encerra a sessão sozinho
-      // e o app volta para o login. Um toast sobre a tela de login seria só
-      // estranho — e não há mais conta a que ele pertença.
-    } catch (err) {
-      mostrarToast(mensagemDeErroSenhaAtual(err));
-      setApagando(false);
-    }
-  }
-
-  return (
-    <form className={styles.grupo} onSubmit={(e) => void submeter(e)}>
-      <p className={styles.grupoTitulo}>Apagar conta</p>
-      <p className={styles.nota}>
-        Remove a conta e todos os dados guardados nela, sem volta. Se quiser ficar com uma cópia,
-        exporte o backup antes.
-      </p>
-      <div className={`${styles.linhaAdicionar} ${styles.linhaApagarConta}`}>
-        <input
-          className={styles.inputPequeno}
-          type="password"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          placeholder="Senha"
-          aria-label="Senha para apagar a conta"
-          autoComplete="current-password"
-          required
-        />
-        <Botao type="submit" variante="perigoForte" disabled={apagando}>
-          <Trash2 size={14} aria-hidden /> {apagando ? "A apagar…" : "Apagar conta"}
-        </Botao>
-      </div>
-    </form>
-  );
-}
-
 export default function Definicoes() {
   const sessao = useAuthStore((s) => s.sessao);
   const theme = useThemeStore((s) => s.theme);
   const definirTema = useThemeStore((s) => s.definirTema);
   const cfg = useCfgStore((s) => s.cfg);
   const [coresAbertas, setCoresAbertas] = useState(false);
-  const [senhaAberta, setSenhaAberta] = useState(false);
   const [backupAberto, setBackupAberto] = useState(false);
   const [copilotoAberto, setCopilotoAberto] = useState(false);
   const [categoriasAberto, setCategoriasAberto] = useState(false);
@@ -292,21 +224,12 @@ export default function Definicoes() {
         <FolhaDiagnostico uid={uid} />
       </SettingsSection>
 
-      <SettingsSection titulo="Conta">
-        <p className={styles.conta}>Sessão: {sessao?.email ?? "—"}</p>
-        <SettingsRow titulo="Trocar senha" navegavel onClick={() => setSenhaAberta(true)} />
-        <SettingsRow titulo="Sair da conta" tone="perigo" onClick={() => void sair()} />
-      </SettingsSection>
-
-      <ApagarConta />
-
       <PainelCoresApp
         aberta={coresAbertas}
         aoFechar={() => setCoresAbertas(false)}
         cfg={cfg}
         uid={uid}
       />
-      <FolhaSenha aberta={senhaAberta} aoFechar={() => setSenhaAberta(false)} />
       <FolhaBackup uid={uid} aberta={backupAberto} aoFechar={() => setBackupAberto(false)} />
       <FolhaCopiloto
         cfg={cfg}

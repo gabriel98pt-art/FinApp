@@ -24,11 +24,6 @@
 /* Mesmo padding horizontal/vertical de SettingsRow.module.css (.linha) —
    linha estática (sem botão/chevron), mas vive no mesmo cartão que
    Trocar senha/Sair da conta e precisa da mesma altura de "barra". */
-.conta {
-  padding: 14px 16px;
-  color: var(--mut);
-  font-size: var(--fs-body);
-}
 
 /* Terminar sessão. Mesmo tratamento do `perigo` de Botao.module.css — texto
    vermelho, sem fundo, para acção destrutiva com volta possível — mas aplicado

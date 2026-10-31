@@ -84,8 +84,15 @@
 
 /* Colunas explícitas: o mês só é renderizado nas rotas que navegam por mês, e
    sem isto as ações saltariam pro meio nas outras telas. */
-.logo {
+.marca {
   grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logo {
   font-size: var(--fs-display);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -97,6 +104,28 @@
    suporta) já cabe tudo, então a marca continua visível em qualquer
    telemóvel real de hoje; só nesse aparelho específico ela sai, e quem já
    abriu o app sabe que app é. */
+/* Com o avatar à esquerda, a coluna do logo num telemóvel de ~390px só tem
+   ~100px até ao mês centrado: a marca encolhe um pouco para não bater nele. */
+@media (max-width: 430px) {
+  .marca {
+    gap: 8px;
+  }
+
+  .logo {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 400px) {
+  .marca {
+    gap: 6px;
+  }
+
+  .logo {
+    font-size: 15.5px;
+  }
+}
+
 @media (max-width: 350px) {
   .logo {
     display: none;

@@ -20,7 +20,9 @@ export default function Sidebar() {
   // Veículo é o contrário: vem ligado e desliga-se em Definições › Veículo.
   const showVeiculo = useCfgStore((s) => s.cfg.showVeiculo);
   const abas = ABAS.filter(
-    (a) => (a.id !== "tvde" || showTvde) && (a.id !== "veiculo" || showVeiculo),
+    (a) =>
+      // Definições abrem só pelo perfil (botão no topo).
+      a.id !== "definicoes" && (a.id !== "tvde" || showTvde) && (a.id !== "veiculo" || showVeiculo),
   );
   // Desfazer/refazer saíram do cabeçalho em 31/08/2026. No telemóvel foram
   // para o menu "Mais"; aqui é o equivalente de tablet/computador, senão

@@ -24,6 +24,7 @@ import type {
 } from "../types";
 import type { TipoCartao } from "../types";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
+import { fotoValida, nomeLimpo } from "../utils/perfil";
 import {
   brutoDasInstituicoes,
   camposLegadosDe,
@@ -61,6 +62,11 @@ const caminho = (uid: string, sufixo = "") => `users/${uid}/fin_v5/cfg${sufixo}`
 export function normalizarConfig(bruto: ConfigContaBruta | null): ConfigConta {
   const { instituicoes: brutasInstituicoes, ...resto } = bruto ?? {};
   const cfg: ConfigConta = { ...CONFIG_PADRAO, ...resto };
+  // Perfil: vem de uma base partilhada, por isso só entra o que tem a forma
+  // esperada — um nome que não é texto ou uma foto que não é imagem pequena
+  // vira "sem nome" / "sem foto".
+  cfg.nome = nomeLimpo(resto.nome);
+  cfg.foto = fotoValida(resto.foto) ? (resto.foto as string) : "";
   // Vem de uma base partilhada: só entra o que tem a forma esperada (página →
   // texto). Um valor estranho vira "sem escolha" e a página usa o padrão.
   cfg.kpiDestaque = Object.fromEntries(

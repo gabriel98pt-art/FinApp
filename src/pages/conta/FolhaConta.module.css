@@ -1,0 +1,70 @@
+/* Folha «Minha conta». Mesmos tokens e botões do resto da app. */
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 8px;
+}
+
+.foto {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fotoAcoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.escondido {
+  display: none;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grupoTitulo {
+  font-weight: 700;
+  font-size: var(--fs-body);
+}
+
+.nota {
+  color: var(--mut);
+  font-size: var(--fs-label);
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  background: var(--s2);
+  border: 1px solid var(--brd);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  color: var(--txt);
+  font-size: var(--fs-title);
+}
+
+.email {
+  color: var(--mut);
+  font-size: var(--fs-body);
+  overflow-wrap: anywhere;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}

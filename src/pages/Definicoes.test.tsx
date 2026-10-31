@@ -75,9 +75,12 @@ describe("Definicoes", () => {
     expect(screen.getByRole("heading", { name: "Definições" })).toBeInTheDocument();
   });
 
-  test("mostra o email da sessão — é como se sabe em que conta se está", () => {
+  test("a secção «Conta» saiu: senha, saída e apagar vivem em «Minha conta»", () => {
     render(<Definicoes />);
-    expect(screen.getByText(/eu@exemplo\.pt/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Trocar senha/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Sair/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Apagar conta/ })).toBeNull();
+    expect(screen.queryByText(/eu@exemplo\.pt/)).toBeNull();
   });
 
   test("as categorias configuradas aparecem para poderem ser geridas", () => {
@@ -131,28 +134,6 @@ describe("Definicoes", () => {
     );
   });
 
-  test("tem saída da conta", () => {
-    render(<Definicoes />);
-    expect(screen.getByRole("button", { name: /Sair/ })).toBeInTheDocument();
-  });
-
-  test("dá para trocar a senha sem sair da conta", () => {
-    render(<Definicoes />);
-    // A troca de senha vive numa folha própria (redesign em índice+folhas) —
-    // abre pelo gatilho antes de os campos existirem no DOM.
-    fireEvent.click(screen.getByRole("button", { name: "Trocar senha" }));
-    expect(screen.getByLabelText("Senha atual")).toBeInTheDocument();
-    expect(screen.getByLabelText("Senha nova")).toBeInTheDocument();
-  });
-
-  test("a senha nova exige o mínimo da app, não o do Firebase", () => {
-    render(<Definicoes />);
-    fireEvent.click(screen.getByRole("button", { name: "Trocar senha" }));
-    // 6 é o que o Firebase aceita; a app pede mais por guardar dados
-    // financeiros. Se este mínimo cair, cai em silêncio — daí o teste.
-    expect(screen.getByLabelText("Senha nova")).toHaveAttribute("minLength", "8");
-  });
-
   test("dá para personalizar o Copiloto", () => {
     render(<Definicoes />);
     // Também vive numa folha própria — mesmo motivo do teste de senha.
@@ -164,11 +145,6 @@ describe("Definicoes", () => {
     render(<Definicoes />);
     fireEvent.click(screen.getByRole("button", { name: "Copiloto" }));
     expect(screen.queryByRole("button", { name: /Desligar/ })).not.toBeInTheDocument();
-  });
-
-  test("dá para apagar a conta — o direito ao apagamento precisa de botão", () => {
-    render(<Definicoes />);
-    expect(screen.getByRole("button", { name: /Apagar conta/ })).toBeInTheDocument();
   });
 
   test("não dispara nada destrutivo só por renderizar", () => {
