@@ -16,7 +16,9 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  /* 76px: o valor mais largo («+1.207,83») cabe sem tocar no vizinho; com 52px,
+     a 1024px, quatro colunas coladas. Auto-fit passa a 3 colunas onde falta largura. */
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
   gap: 6px;
 }
 
