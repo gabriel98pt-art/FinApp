@@ -5,6 +5,7 @@ import { formatMoney } from "../../utils/money";
 import type { Currency, LinhaAnalisada } from "../../types";
 import { descricaoExistente } from "./constantes";
 import styles from "../Importar.module.css";
+import Botao from "../../components/Botao";
 
 /** Antes da confirmação, quando algo do que vai entrar já parece existir: o
  *  que vem no extrato ao lado do que já está registado.
@@ -138,8 +139,8 @@ export default function ModalDuplicatas({
           );
         })}
       </div>
-      <button
-        className={styles.confirmar}
+      <Botao
+        variante="submeter"
         disabled={enviando}
         onClick={() => {
           setAConfirmar(null);
@@ -147,7 +148,7 @@ export default function ModalDuplicatas({
         }}
       >
         Importar mesmo assim
-      </button>
+      </Botao>
     </BottomSheet>
   );
 }

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ClipboardPaste, Loader2, Upload } from "lucide-react";
 import styles from "../Importar.module.css";
+import Botao from "../../components/Botao";
 
 /** Estado vazio da importação: escolher o extrato. "Carregar arquivo" é o
  *  caminho principal (PDF ou CSV do banco); "Colar texto" é o secundário e só
@@ -63,8 +64,9 @@ export default function ImportacaoEntrada({
       </p>
 
       <div className={styles.entradaAcoes}>
-        <button
-          className={styles.botaoPrimario}
+        <Botao
+          variante="submeter"
+          className={styles.botaoAuto}
           onClick={() => arquivoRef.current?.click()}
           disabled={lendoPdf}
         >
@@ -74,7 +76,7 @@ export default function ImportacaoEntrada({
             <Upload size={15} aria-hidden />
           )}{" "}
           {lendoPdf ? "Lendo…" : "Carregar ficheiro"}
-        </button>
+        </Botao>
         {!caixaAberta && (
           <button className={styles.botao} onClick={() => setColando(true)} disabled={lendoPdf}>
             Colar texto
@@ -106,13 +108,14 @@ export default function ImportacaoEntrada({
             autoFocus={colando && !texto}
           />
           <div className={styles.entradaAcoes}>
-            <button
-              className={styles.botaoPrimario}
+            <Botao
+              variante="submeter"
+              className={styles.botaoAuto}
               onClick={onAnalisar}
               disabled={!texto.trim() || lendoPdf}
             >
               Analisar
-            </button>
+            </Botao>
             {/* O botão "Colar" existe por causa do iPhone (ver
                 `colarDoClipboard`): em destaque sem rato, discreto com ele. */}
             {semMouse ? (

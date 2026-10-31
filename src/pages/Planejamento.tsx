@@ -536,9 +536,9 @@ export default function Planejamento() {
             Prazo (opcional)
             <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
           </label>
-          <button type="submit" className={styles.salvar}>
+          <Botao variante="submeter" type="submit">
             Criar fundo
-          </button>
+          </Botao>
         </form>
       </BottomSheet>
 
@@ -556,9 +556,9 @@ export default function Planejamento() {
             required
             disabled={contribuindoEnviando}
           />
-          <button type="submit" className={styles.salvar} disabled={contribuindoEnviando}>
+          <Botao variante="submeter" type="submit" disabled={contribuindoEnviando}>
             {contribuindoEnviando ? "Aguarde…" : "Contribuir"}
-          </button>
+          </Botao>
         </form>
       </BottomSheet>
     </Pagina>

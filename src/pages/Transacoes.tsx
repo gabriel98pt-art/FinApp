@@ -41,6 +41,7 @@ import {
   type Transacao,
 } from "../utils/transacoes";
 import styles from "./Transacoes.module.css";
+import Botao from "../components/Botao";
 
 /** Uma linha do extrato — item 2 do lote de UX/nav (30/08). Receita/despesa
  *  (os dois tipos que o Registro Rápido já edita em qualquer tela do app)
@@ -490,17 +491,13 @@ export default function SecaoTransacoes() {
                     aoMudar={setCategoriaMover}
                     nivel={2}
                   />
-                  <button
-                    className={styles.confirmarMover}
-                    onClick={moverParaDespesas}
-                    disabled={movendo}
-                  >
+                  <Botao variante="submeter" onClick={moverParaDespesas} disabled={movendo}>
                     {/* A operação são duas escritas seguidas (criar a despesa,
                         apagar a carga) e pode demorar. Só o botão apagado não
                         diz se está a andar ou se o toque falhou — mesmo padrão
                         de "Importando…" em Definições e "Lendo…" em Importar. */}
                     {movendo ? "Movendo…" : "Mover para despesas"}
-                  </button>
+                  </Botao>
                 </div>
               ))}
           </div>

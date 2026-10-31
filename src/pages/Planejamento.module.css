@@ -254,26 +254,6 @@
   color: var(--mut);
 }
 
-/* Um por meta, portanto repetido na lista — ver a mesma nota em Parcelas. */
-.contribuirBotao {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: var(--s2);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  border-radius: var(--r-sm);
-  padding: 9px;
-  margin-top: 4px;
-}
-
-.contribuirBotao:hover {
-  background: var(--s3);
-}
-
 /* Formulários */
 .form {
   display: flex;
@@ -303,15 +283,6 @@
   outline: 2px solid var(--blu);
   outline-offset: 0;
   border-color: transparent;
-}
-
-.salvar {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: var(--fs-title);
 }
 
 /* O cartão dos fundos: título com o "+" e, dentro, os fundos sem cartão próprio. */

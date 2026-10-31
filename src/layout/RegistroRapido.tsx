@@ -1053,13 +1053,9 @@ export default function RegistroRapido() {
         nivel={1}
       >
         <div className={styles.folhaParcelamento}>
-          <button
-            type="button"
-            className={styles.confirmarSub}
-            onClick={() => setFolhaParcelamento(false)}
-          >
+          <Botao variante="submeter" type="button" onClick={() => setFolhaParcelamento(false)}>
             <Check size={16} aria-hidden /> Confirmar
-          </button>
+          </Botao>
 
           <button
             type="button"

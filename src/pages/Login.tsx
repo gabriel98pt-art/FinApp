@@ -7,6 +7,7 @@ import {
   SENHA_MINIMA,
 } from "../services/authService";
 import styles from "./Login.module.css";
+import Botao from "../components/Botao";
 
 type Modo = "entrar" | "cadastrar" | "recuperar";
 
@@ -108,7 +109,7 @@ export default function Login() {
           </p>
         )}
 
-        <button type="submit" className={styles.principal} disabled={aguardando}>
+        <Botao variante="submeter" type="submit" disabled={aguardando}>
           {aguardando
             ? "Aguarde…"
             : modo === "entrar"
@@ -116,7 +117,7 @@ export default function Login() {
               : modo === "cadastrar"
                 ? "Registar"
                 : "Enviar link"}
-        </button>
+        </Botao>
 
         {modo === "entrar" && (
           <button type="button" className={styles.alternar} onClick={() => irPara("recuperar")}>

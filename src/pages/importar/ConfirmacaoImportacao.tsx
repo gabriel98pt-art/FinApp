@@ -3,6 +3,7 @@ import type { DecisaoLinha, ExistenteParaDedup, LinhaAnalisada } from "../../typ
 import { plural } from "./agrupamento";
 import { ICONE_DECISAO, ROTULO_DECISAO } from "./constantes";
 import styles from "../Importar.module.css";
+import Botao from "../../components/Botao";
 
 const ORDEM_DECISOES: DecisaoLinha[] = [
   "auto_classificada",
@@ -66,13 +67,14 @@ export default function ConfirmacaoImportacao({
             </span>
           )}
         </p>
-        <button
-          className={styles.confirmar}
+        <Botao
+          variante="submeter"
+          className={styles.rodapeBotao}
           onClick={onAbrir}
           disabled={enviando || totalImportar === 0 || bloqueado}
         >
           {enviando ? "Aguarde…" : `Importar ${totalImportar}`}
-        </button>
+        </Botao>
       </div>
 
       <BottomSheet aberta={aberta} aoFechar={onFechar} titulo="Rever antes de importar">
@@ -109,13 +111,9 @@ export default function ConfirmacaoImportacao({
           )}
         </div>
         <div className={styles.folhaAcoes}>
-          <button
-            className={styles.confirmar}
-            disabled={enviando}
-            onClick={() => void onImportar()}
-          >
+          <Botao variante="submeter" disabled={enviando} onClick={() => void onImportar()}>
             {enviando ? "Aguarde…" : `Importar ${totalImportar}`}
-          </button>
+          </Botao>
           <button className={styles.botao} disabled={enviando} onClick={onFechar}>
             Voltar à revisão
           </button>

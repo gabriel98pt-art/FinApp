@@ -94,17 +94,9 @@
   flex-wrap: wrap;
 }
 
-.botaoPrimario {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  border-radius: var(--r-sm);
+.botaoAuto {
+  width: auto;
   padding: 10px 16px;
-}
-
-.botaoPrimario:disabled {
-  opacity: 0.5;
 }
 
 .botao {
@@ -487,19 +479,6 @@
 
 .kwh::placeholder {
   color: var(--mut);
-}
-
-.confirmar {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: var(--fs-title);
-}
-
-.confirmar:disabled {
-  opacity: 0.5;
 }
 
 /* Resumo antes de gravar: o total grande, a divisão por decisão em lista de
@@ -962,9 +941,9 @@
   font-weight: 600;
 }
 
-.rodape .confirmar {
+.rodapeBotao {
   flex: none;
-  white-space: nowrap;
+  width: auto;
   padding: 10px 18px;
 }
 

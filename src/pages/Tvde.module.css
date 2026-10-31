@@ -351,15 +351,6 @@
   width: 100%;
 }
 
-.salvar {
-  background: var(--tvde-grad);
-  color: var(--bg);
-  font-weight: 700;
-  border-radius: var(--r-sm);
-  padding: 12px;
-  font-size: var(--fs-title);
-}
-
 /* "Excluir" mora dentro da folha de edição da semana (item 7) */
 .excluirSemana {
   color: var(--red);

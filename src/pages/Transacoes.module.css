@@ -169,20 +169,6 @@
   border-top: 1px solid var(--brd);
 }
 
-.confirmarMover {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-weight: 700;
-  font-size: var(--fs-title);
-  border-radius: var(--r-sm);
-  padding: 12px;
-}
-
-.confirmarMover:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
 /* Pesquisa por descrição, por baixo do título e do filtro. */
 .busca {
   display: flex;

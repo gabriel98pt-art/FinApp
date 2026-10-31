@@ -191,9 +191,9 @@ function FormSemana({
             <input inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value)} />
           </label>
         </div>
-        <button type="submit" className={styles.salvar}>
+        <Botao variante="submeter" type="submit">
           Guardar semana
-        </button>
+        </Botao>
         {existente && (
           <button
             type="button"
