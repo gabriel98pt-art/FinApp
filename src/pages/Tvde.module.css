@@ -72,15 +72,24 @@
   gap: 4px;
 }
 
+.quadroLista {
+  composes: quadroLista from "../styles/listas.module.css";
+}
+
+/* As semanas vivem dentro de UM quadro: linhas separadas por um fio, e não um
+   cartão por semana. */
 .lista {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
+}
+
+.semana + .semana {
+  border-top: 1px solid var(--linha);
 }
 
 .semana {
-  composes: vidro from "../styles/vidro.module.css";
-  padding: 12px 14px;
+  padding: 12px 2px;
   display: flex;
   align-items: center;
   justify-content: space-between;

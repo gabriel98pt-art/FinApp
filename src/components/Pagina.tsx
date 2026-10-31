@@ -12,6 +12,7 @@ export default function Pagina({
   tituloVisivel = true,
   acao,
   painel,
+  controles,
   estreita = false,
   children,
 }: {
@@ -26,6 +27,10 @@ export default function Pagina({
    *  (título, painel, conteúdo); a partir de 1024px o painel ocupa 4 colunas
    *  da grelha, colado ao topo, e o conteúdo as outras 8. */
   painel?: ReactNode;
+  /** Os controlos que filtram a lista (abas, Mês/Semana): ficam no topo da
+   *  coluna da lista, por cima do quadro, e não por baixo do resumo. No
+   *  telemóvel a ordem é a de sempre — título, painel, controlos, lista. */
+  controles?: ReactNode;
   /** Formulário de uma coluna (Definições): a partir de 768px fica centrado, com
    *  no máximo ~720px, em vez de esticar pela largura toda. */
   estreita?: boolean;
@@ -41,7 +46,10 @@ export default function Pagina({
           {h2}
           {painel}
         </div>
-        <div className={styles.conteudoLista}>{children}</div>
+        <div className={styles.conteudoLista}>
+          {controles}
+          {children}
+        </div>
       </section>
     );
   }

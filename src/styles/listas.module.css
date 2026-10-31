@@ -1,26 +1,18 @@
-/* Teto de largura das listas de lançamento, partilhado entre as páginas que as
-   mostram (Veículo, Transações, Parcelas e o ListaLancamentos de Despesas /
-   Receitas). Cada uma tinha a sua própria lista, mas o defeito era o mesmo:
-   sem teto, a linha esticava com a coluna de conteúdo (1245px a 1600px) e o
-   valor à direita ficava a meia tela do nome à esquerda — o olho perde o par.
+/* O quadro das listas (Veículo, Parcelas, TVDE…): o mesmo vidro e cantos de
+   `.secao` em secoes.module.css, para as páginas que montam o cabeçalho à
+   mão. Composto por `composes: quadroLista from "../styles/listas.module.css"`. */
+.quadroLista {
+  composes: vidro from "./vidro.module.css";
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  min-width: 0;
+}
 
-   Cresce nos MESMOS degraus do resto do app (a barra lateral em tokens.css, a
-   coluna em AppShell.module.css, o donut em DonutCategoriaCard.module.css):
-   nada no telemóvel, onde a linha já é estreita, e um teto a partir de 768px.
-   A lista fica encostada à esquerda da coluna, como o texto e como a legenda
-   do donut — é a borda por onde se lê. */
+/* A lista vive dentro do quadro, por isso ocupa a largura toda dele: o teto de
+   largura que existia (720/860px) servia para a linha solta sobre o fundo não
+   afastar o valor do nome, e o quadro já tem o seu próprio limite. */
 .listaLegivel {
   max-width: 100%;
-}
-
-@media (min-width: 768px) {
-  .listaLegivel {
-    max-width: 720px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .listaLegivel {
-    max-width: 860px;
-  }
 }

@@ -51,9 +51,7 @@
 }
 
 .secao {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  composes: quadroLista from "../styles/listas.module.css";
 }
 
 .totais {
@@ -66,10 +64,8 @@
 /* Uma só superfície de vidro com as parcelas em linhas finas, como a lista de
    cartões da mesma página (prévia aprovada de 28/10). */
 .lista {
-  composes: vidro from "../styles/vidro.module.css";
   display: flex;
   flex-direction: column;
-  padding: 2px 14px;
 }
 
 .parcela {

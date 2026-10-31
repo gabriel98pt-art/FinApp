@@ -413,7 +413,10 @@ export default function Tvde() {
             grandes e coloridos a disputar a mesma atenção. */}
             <KpiCard rotulo="Líquido" valor={eur(t.lucroLiquido)} />
           </Kpis>
-
+        </>
+      }
+      controles={
+        <>
           <div className={styles.abas} role="tablist" {...propsLista}>
             {ABAS.map(([id, nome]) => (
               <button
@@ -435,7 +438,7 @@ export default function Tvde() {
     >
       <AbaTransicao aba={aba}>
         {aba === "semanas" && (
-          <>
+          <div className={styles.quadroLista}>
             <div className={styles.cabecalho}>
               <h3 className={styles.subtitulo}>Semanas</h3>
               <div className={styles.cabecalhoAcoes}>
@@ -518,7 +521,7 @@ export default function Tvde() {
             <p className={styles.notaEur}>
               Valores sempre em EUR — este módulo não segue a moeda da conta.
             </p>
-          </>
+          </div>
         )}
 
         {aba === "meses" && (

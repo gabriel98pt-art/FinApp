@@ -515,7 +515,10 @@ export default function Despesas() {
               tom="neutro"
             />
           </Kpis>
-
+        </>
+      }
+      controles={
+        <>
           <div className={styles.abas} role="tablist" {...propsLista}>
             {ABAS.map(([id, nome]) => (
               <button

@@ -188,9 +188,9 @@ export default function Receitas() {
               tom="neutro"
             />
           </Kpis>
-          {largo && seletorVisao}
         </>
       }
+      controles={largo ? seletorVisao : undefined}
     >
       <section className={styles.secao} aria-label="Lançamentos">
         <div className={styles.cabecalhoSecao}>

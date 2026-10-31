@@ -73,6 +73,10 @@
   composes: abaAtiva from "../styles/segmentado.module.css";
 }
 
+.quadroLista {
+  composes: quadroLista from "../styles/listas.module.css";
+}
+
 .lista {
   composes: listaLegivel from "../styles/listas.module.css";
   display: flex;

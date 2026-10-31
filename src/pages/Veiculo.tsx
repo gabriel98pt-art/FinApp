@@ -1,3 +1,4 @@
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useRef, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import {
@@ -643,6 +644,39 @@ export default function Veiculo() {
     await encerrarFixa(f);
   }
 
+  const largo = useMediaQuery("(min-width: 1024px)");
+  const linhaVisaoCargas = (
+    <div className={styles.linhaVisao}>
+      <div
+        className={styles.alternadorVisao}
+        role="radiogroup"
+        aria-label="Período"
+        ref={radiogroupPeriodoRef}
+        onKeyDown={aoTeclarPeriodo}
+      >
+        {(
+          [
+            ["mes", "Mês"],
+            ["semana", "Semana"],
+          ] as const
+        ).map(([id, nome]) => (
+          <button
+            key={id}
+            role="radio"
+            aria-checked={visaoCargas === id}
+            className={`${styles.visaoBotao} ${visaoCargas === id ? styles.visaoAtiva : ""}`}
+            onClick={() => setVisaoCargas(id)}
+          >
+            {nome}
+          </button>
+        ))}
+      </div>
+      {visaoCargas === "semana" && (
+        <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
+      )}
+    </div>
+  );
+
   return (
     <Pagina
       titulo="Veículo"
@@ -662,7 +696,10 @@ export default function Veiculo() {
             <KpiCard rotulo="Despesas" valor={formatMoney(despesasDoMes, cfg.currency)} />
             <KpiCard rotulo="Km no mês" valor={kmDoMes ? kmDoMes.toLocaleString("pt-PT") : "0"} />
           </Kpis>
-
+        </>
+      }
+      controles={
+        <>
           <div className={styles.abas} role="tablist" {...propsLista}>
             {ABAS.map(([id, nome]) => (
               <button
@@ -679,6 +716,7 @@ export default function Veiculo() {
               </button>
             ))}
           </div>
+          {largo && aba === "cargas" && linhaVisaoCargas}
         </>
       }
     >
@@ -690,7 +728,7 @@ export default function Veiculo() {
 
       <AbaTransicao aba={aba}>
         {aba === "resumo" && (
-          <div className={styles.lista}>
+          <div className={`${styles.quadroLista} ${styles.lista}`}>
             {cargasDoMesLista.length === 0 && despesasVisiveis.length === 0 && carregado ? (
               <EstadoVazio
                 Icone={Car}
@@ -736,7 +774,7 @@ export default function Veiculo() {
         )}
 
         {aba === "cargas" && (
-          <>
+          <div className={styles.quadroLista}>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Abastecimentos</h3>
               {/* Só o "+" (01/09): o título ao lado já diz "Abastecimentos" —
@@ -761,35 +799,7 @@ export default function Veiculo() {
               Veículo {rotuloTipoVeiculo(tipoVeiculo).toLowerCase()} — mude em Definições › Veículo.
             </p>
 
-            <div className={styles.linhaVisao}>
-              <div
-                className={styles.alternadorVisao}
-                role="radiogroup"
-                aria-label="Período"
-                ref={radiogroupPeriodoRef}
-                onKeyDown={aoTeclarPeriodo}
-              >
-                {(
-                  [
-                    ["mes", "Mês"],
-                    ["semana", "Semana"],
-                  ] as const
-                ).map(([id, nome]) => (
-                  <button
-                    key={id}
-                    role="radio"
-                    aria-checked={visaoCargas === id}
-                    className={`${styles.visaoBotao} ${visaoCargas === id ? styles.visaoAtiva : ""}`}
-                    onClick={() => setVisaoCargas(id)}
-                  >
-                    {nome}
-                  </button>
-                ))}
-              </div>
-              {visaoCargas === "semana" && (
-                <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-              )}
-            </div>
+            {!largo && linhaVisaoCargas}
 
             <div className={styles.lista}>
               {cargasVisiveis.length === 0 ? (
@@ -847,11 +857,11 @@ export default function Veiculo() {
                 </button>
               </div>
             </form>
-          </>
+          </div>
         )}
 
         {aba === "despesas" && (
-          <>
+          <div className={styles.quadroLista}>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
               <Botao
@@ -886,11 +896,11 @@ export default function Veiculo() {
                   ))
               )}
             </div>
-          </>
+          </div>
         )}
 
         {aba === "fixas" && (
-          <>
+          <div className={styles.quadroLista}>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
               <Botao
@@ -959,11 +969,11 @@ export default function Veiculo() {
                 })
               )}
             </div>
-          </>
+          </div>
         )}
 
         {aba === "km" && (
-          <>
+          <div className={styles.quadroLista}>
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
               <Botao
@@ -998,7 +1008,7 @@ export default function Veiculo() {
                   ))
               )}
             </div>
-          </>
+          </div>
         )}
 
         {/* Caixa de abastecimento: só edita — criar é pelo registo rápido

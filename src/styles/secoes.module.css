@@ -1,11 +1,14 @@
-/* Uma secção de página sem cartão: título à esquerda (e, à direita, o que mexe
-   na lista), 12px até ao conteúdo, 36px até à secção anterior (16px do gap da
-   página + 20px aqui). */
+/* Uma secção de página é SEMPRE um quadro: o mesmo vidro e os mesmos cantos dos
+   outros cartões da app, com o cabeçalho (título à esquerda e, à direita, o
+   que mexe na lista: ordem e «+») lá dentro. Linhas soltas sobre o fundo
+   nunca. */
 .secao {
+  composes: vidro from "./vidro.module.css";
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 20px;
+  padding: 16px 18px;
+  min-width: 0;
 }
 
 .cabecalho {
