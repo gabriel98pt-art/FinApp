@@ -106,20 +106,20 @@ function ControlesFatura({
       <div className={styles.topo}>
         <div>
           <p className={styles.ciclo}>
-            Ciclo: {rotuloMes(cicloDaFatura(fatura.mes))}
+            Compras de {rotuloMes(cicloDaFatura(fatura.mes))}
             {fatura.overrideManual !== null && (
               <span className={styles.badgeManual}> · valor manual</span>
             )}
           </p>
         </div>
         <span className={`${styles.estado} ${paga ? styles.paga : ""}`}>
-          {paga ? "Paga" : fatura.pago > 0 ? "Parcial" : "Em aberto"}
+          {paga ? "Pago" : fatura.pago > 0 ? "Parcial" : "A pagar"}
         </span>
       </div>
 
       <div className={styles.valores}>
         <div>
-          <p className={styles.rotuloValor}>A pagar</p>
+          <p className={styles.rotuloValor}>Total</p>
           <p className={styles.valor}>{formatMoney(fatura.devido, cfg.currency)}</p>
         </div>
         <div>
@@ -129,7 +129,7 @@ function ControlesFatura({
           </p>
         </div>
         <div>
-          <p className={styles.rotuloValor}>Restante</p>
+          <p className={styles.rotuloValor}>Falta pagar</p>
           <p className={`${styles.valor} ${fatura.restante > 0 ? styles.amarelo : styles.verde}`}>
             {formatMoney(fatura.restante, cfg.currency)}
           </p>
@@ -643,7 +643,7 @@ export default function Cartoes() {
                   className={`${styles.contaValor} ${!credito && r.saldoAtual < 0 ? styles.vermelho : ""}`}
                 >
                   {formatMoney(credito ? (fatura?.restante ?? 0) : r.saldoAtual, cfg.currency)}
-                  {credito && <small>{paga ? "paga" : "a pagar"}</small>}
+                  {credito && <small>{paga ? "pago" : "a pagar"}</small>}
                 </span>
               </button>
             );

@@ -150,7 +150,7 @@ function LinhaParcela({
       return;
     await agir(
       () => quitarParcela(uid, p, mesRef, hoje),
-      `✓ ${p.descricao} quitada — ${formatMoney(totalQuit, moeda)}`,
+      `✓ ${p.descricao} liquidada — ${formatMoney(totalQuit, moeda)}`,
     );
   }
 
@@ -212,11 +212,11 @@ function LinhaParcela({
         </span>
         <span className={styles.porPagar}>
           {quitada ? (
-            <span className={styles.quitadaTxt}>quitada</span>
+            <span className={styles.quitadaTxt}>liquidada</span>
           ) : (
             <>
               {formatMoney(valorQuitacao(p, mesRef, hoje), moeda)}
-              <small>por pagar</small>
+              <small>a pagar</small>
             </>
           )}
         </span>
@@ -595,7 +595,7 @@ export default function SecaoParcelas() {
           </Botao>
         </div>
         <span className={styles.totais}>
-          {formatMoney(totalDoMes, moeda)}/mês · {formatMoney(restanteTotal, moeda)} por pagar
+          {formatMoney(totalDoMes, moeda)}/mês · {formatMoney(restanteTotal, moeda)} a pagar
         </span>
       </div>
 
@@ -610,7 +610,9 @@ export default function SecaoParcelas() {
           sub="Crie uma parcela para acompanhar o progresso mês a mês."
         />
       ) : ativasVisiveis.length === 0 && quitadas.length > 0 ? (
-        <p className={styles.tudoQuitado}>Tudo quitado — toque em "Quitadas" abaixo para rever.</p>
+        <p className={styles.tudoQuitado}>
+          Tudo liquidado — toque em "Liquidadas" abaixo para rever.
+        </p>
       ) : (
         <div className={styles.lista}>
           {ativasVisiveis.map((p) => (
@@ -635,7 +637,7 @@ export default function SecaoParcelas() {
         <div className={styles.rodape}>
           <button className={styles.botaoQuitadas} onClick={() => setQuitadasAbertas(true)}>
             <History size={16} aria-hidden />
-            Quitadas ({quitadas.length})
+            Liquidadas ({quitadas.length})
           </button>
         </div>
       )}
@@ -643,7 +645,7 @@ export default function SecaoParcelas() {
       <BottomSheet
         aberta={quitadasAbertas}
         aoFechar={() => setQuitadasAbertas(false)}
-        titulo={`Quitadas (${quitadas.length})`}
+        titulo={`Liquidadas (${quitadas.length})`}
       >
         <div className={styles.lista}>
           {quitadasVisiveis.map((p) => (

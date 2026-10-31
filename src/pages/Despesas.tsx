@@ -683,7 +683,7 @@ export default function Despesas() {
                           <span
                             className={`${styles.badgeToggle} ${styles.badgeAuto} ${paga ? styles.badgePago : styles.badgePendente}`}
                           >
-                            {paga ? "Pago" : "Pendente"}
+                            {paga ? "Pago" : "A pagar"}
                           </span>
                         ) : (
                           <button
@@ -702,7 +702,7 @@ export default function Despesas() {
                               )
                             }
                           >
-                            {paga ? "Pago" : "Pendente"}
+                            {paga ? "Pago" : "A pagar"}
                           </button>
                         )
                       }

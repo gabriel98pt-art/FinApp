@@ -113,8 +113,8 @@ describe("Parcelas", () => {
     render(<Parcelas />);
 
     expect(screen.queryByText("Nenhuma compra parcelada")).not.toBeInTheDocument();
-    expect(screen.getByText(/Tudo quitado/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Quitadas \(1\)/ })).toBeInTheDocument();
+    expect(screen.getByText(/Tudo liquidado/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Liquidadas \(1\)/ })).toBeInTheDocument();
   });
 
   test("a folha das quitadas abre e mostra lá dentro o que saiu da lista", async () => {
@@ -124,9 +124,9 @@ describe("Parcelas", () => {
     // Fora da lista principal enquanto a folha não abre.
     expect(screen.getByText("Portátil")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Quitadas \(1\)/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Liquidadas \(1\)/ }));
 
-    const folha = screen.getByRole("dialog", { name: /Quitadas/ });
+    const folha = screen.getByRole("dialog", { name: /Liquidadas/ });
     expect(folha).toBeInTheDocument();
     expect(screen.getByText("Telemóvel")).toBeInTheDocument();
   });
@@ -178,7 +178,7 @@ describe("Parcelas", () => {
     estado = { itens: [parcela(), quitada()], carregado: true, erro: false };
     render(<Parcelas />);
 
-    const folha = screen.getByRole("dialog", { hidden: true, name: /Quitadas/ });
+    const folha = screen.getByRole("dialog", { hidden: true, name: /Liquidadas/ });
     expect(folha).toHaveAttribute("inert");
   });
 
@@ -230,7 +230,7 @@ describe("Parcelas", () => {
     test("não aparece no menu de uma parcela quitada", async () => {
       estado = { itens: [quitada()], carregado: true, erro: false };
       render(<Parcelas />);
-      await userEvent.click(screen.getByRole("button", { name: /Quitadas/ }));
+      await userEvent.click(screen.getByRole("button", { name: /Liquidadas/ }));
       await userEvent.click(await screen.findByText("Telemóvel"));
       expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
       expect(
