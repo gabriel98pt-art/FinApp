@@ -128,7 +128,26 @@ describe("montarResumoParaIA", () => {
       alvo: "€ 2.000,00",
       atual: "€ 500,00",
       prazo: "2026-12-31",
+      falta: "€ 1.500,00",
     });
+  });
+
+  // Bug corrigido: a regra do prompt em api/copiloto-ia.ts é "nunca faças
+  // contas" — sem este campo já calculado, uma pergunta genérica sobre fundos
+  // (que não bate no intent específico da camada 1) caía na regra "diz que
+  // não tens esse dado" por um número que a app já sabia (progressoFundo).
+  test("fundo já concluído manda 'falta' em zero, nunca negativo", () => {
+    const concluido: Fundo = {
+      id: "f1",
+      nome: "Férias",
+      alvo: 100000,
+      atual: 150000,
+      prazo: "2026-12-31",
+    };
+
+    const r = montarResumoParaIA(ctx({ fundos: [concluido] }));
+
+    expect(r.fundos[0].falta).toBe("€ 0,00");
   });
 
   test("conta vazia produz um resumo válido, não rebenta", () => {

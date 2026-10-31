@@ -29,6 +29,7 @@ import {
   categoriasAcimaDaMedia,
   categoriasDoMes,
   dataCurta,
+  progressoFundo,
   projecaoFimMes,
   totaisDoMes,
 } from "./copiloto";
@@ -48,6 +49,14 @@ export interface FundoResumo {
   alvo: string;
   atual: string;
   prazo: string;
+  /** Já calculado aqui (`progressoFundo`) — a regra do prompt em
+   *  `api/copiloto-ia.ts` é "nunca faças contas", então "quanto falta" tem de
+   *  chegar pronto, como alvo/atual já chegavam. Sem isto, uma pergunta
+   *  genérica sobre fundos (sem bater no intent específico da camada 1, que
+   *  já sabe calcular isto) caía na regra "diz que não tens esse dado", por
+   *  um número que a app já tinha. Nunca negativo: `progressoFundo` já faz
+   *  o `Math.max(0, alvo - atual)`. */
+  falta: string;
 }
 
 /** Uma despesa recente do mês corrente. Sem conta/cartão e sem id — o que a
@@ -161,6 +170,7 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
         alvo: formatMoney(f.alvo, moeda),
         atual: formatMoney(f.atual, moeda),
         prazo: f.prazo!,
+        falta: formatMoney(progressoFundo(f, ctx.mesReal).falta, moeda),
       })),
     ultimasTransacoes: ctx.despesas
       .filter((d) => d.data.slice(0, 7) === ym)
