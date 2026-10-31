@@ -15,6 +15,7 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
   ao nome do mês, em vez de uma folha no fundo do ecrã. Já não é preciso levar
   o rato do topo até ao fundo da janela. Fecha com Esc, com um clique fora ou
   ao escolher o mês. No iPhone continua a folha que sobe de baixo.
+  A caixa fica centrada por baixo do nome do mês.
 
 ## 31/10/2026 (mesmas palavras em todo o app)
 

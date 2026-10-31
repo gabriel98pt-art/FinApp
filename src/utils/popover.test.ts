@@ -86,6 +86,19 @@ describe("horizontal — nunca sai pelas bordas", () => {
     expect(p.left).toBe(500);
   });
 
+  test("alinhar «centro»: os centros do gatilho e da caixa coincidem", () => {
+    // Gatilho 500..660 → centro 580; caixa de 240 → começa em 460.
+    const p = posicionarPopover(gatilho({ left: 500, width: 160 }), CAIXA, JANELA, "centro");
+    expect(p.left + CAIXA.largura / 2).toBe(580);
+  });
+
+  test("alinhar «centro» encostado à borda: fica na margem, sem transbordar", () => {
+    const esq = posicionarPopover(gatilho({ left: 10, width: 40 }), CAIXA, JANELA, "centro");
+    expect(esq.left).toBe(MARGEM);
+    const dir = posicionarPopover(gatilho({ left: 1400, width: 40 }), CAIXA, JANELA, "centro");
+    expect(dir.left).toBe(JANELA.largura - CAIXA.largura - MARGEM);
+  });
+
   test("puxa para dentro quando transbordaria à direita", () => {
     const p = posicionarPopover(gatilho({ left: 1380 }), CAIXA, JANELA);
     expect(p.left).toBe(1440 - CAIXA.largura - MARGEM);

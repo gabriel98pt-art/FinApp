@@ -26,6 +26,7 @@ export default function FolhaAncorada({
   aoFechar,
   titulo,
   ancoraRef,
+  alinhar,
   nivel = 0,
   children,
 }: {
@@ -34,6 +35,8 @@ export default function FolhaAncorada({
   titulo: string;
   /** O elemento a que o popover se cola no desktop. Ignorado no telemóvel. */
   ancoraRef: RefObject<HTMLElement | null>;
+  /** Só no desktop: "centro" centra o popover sob a âncora. Padrão: pela esquerda. */
+  alinhar?: "inicio" | "centro";
   /** Empilhamento da folha aninhada — só usado no telemóvel. */
   nivel?: number;
   children: ReactNode;
@@ -49,7 +52,13 @@ export default function FolhaAncorada({
   }
 
   return (
-    <Popover aberta={aberta} aoFechar={aoFechar} titulo={titulo} ancoraRef={ancoraRef}>
+    <Popover
+      aberta={aberta}
+      aoFechar={aoFechar}
+      titulo={titulo}
+      ancoraRef={ancoraRef}
+      alinhar={alinhar}
+    >
       {children}
     </Popover>
   );

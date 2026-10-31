@@ -34,6 +34,9 @@ export function posicionarPopover(
   /** Tamanho natural da caixa, medido antes de ser posicionada. */
   caixa: { largura: number; altura: number },
   janela: { largura: number; altura: number },
+  /** "inicio" cola a esquerda da caixa à do gatilho (o padrão); "centro" põe
+   *  os dois centros horizontais no mesmo sítio. */
+  alinhar: "inicio" | "centro" = "inicio",
 ): PosicaoPopover {
   const espacoAbaixo = janela.altura - ancora.bottom - ESPACO - MARGEM;
   const espacoAcima = ancora.top - ESPACO - MARGEM;
@@ -44,10 +47,12 @@ export function posicionarPopover(
     ? Math.max(MARGEM, ancora.top - ESPACO - Math.min(caixa.altura, maxAltura))
     : ancora.bottom + ESPACO;
 
-  // Alinha pela esquerda do gatilho e puxa para dentro se transbordar à
-  // direita. O `max` no fim ganha sempre, para uma caixa mais larga do que a
-  // janela começar na margem em vez de num valor negativo.
-  const left = Math.max(MARGEM, Math.min(ancora.left, janela.largura - caixa.largura - MARGEM));
+  // Alinha pela esquerda do gatilho (ou pelo centro) e puxa para dentro se
+  // transbordar à direita. O `max` no fim ganha sempre, para uma caixa mais
+  // larga do que a janela começar na margem em vez de num valor negativo.
+  const desejado =
+    alinhar === "centro" ? ancora.left + ancora.width / 2 - caixa.largura / 2 : ancora.left;
+  const left = Math.max(MARGEM, Math.min(desejado, janela.largura - caixa.largura - MARGEM));
 
   return { top, left, maxAltura, acima };
 }

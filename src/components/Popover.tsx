@@ -25,6 +25,7 @@ export default function Popover({
   aoFechar,
   titulo,
   ancoraRef,
+  alinhar = "inicio",
   children,
 }: {
   aberta: boolean;
@@ -34,6 +35,8 @@ export default function Popover({
   titulo: string;
   /** O elemento a que a caixa se cola — normalmente o botão que a abriu. */
   ancoraRef: RefObject<HTMLElement | null>;
+  /** "centro": o centro da caixa fica sob o centro do gatilho. */
+  alinhar?: "inicio" | "centro";
   children: ReactNode;
 }) {
   const caixaRef = useRef<HTMLDivElement>(null);
@@ -71,6 +74,7 @@ export default function Popover({
             largura: document.documentElement.clientWidth,
             altura: document.documentElement.clientHeight,
           },
+          alinhar,
         ),
       );
     }
@@ -86,7 +90,7 @@ export default function Popover({
       window.removeEventListener("scroll", posicionar, true);
       window.removeEventListener("resize", posicionar);
     };
-  }, [aberta, ancoraRef]);
+  }, [aberta, ancoraRef, alinhar]);
 
   // Fecha com Esc ou com um clique fora — o que o véu fazia na folha. O clique
   // no próprio gatilho fica de fora: quem o trata é o onClick dele, senão o

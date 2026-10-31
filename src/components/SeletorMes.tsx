@@ -76,6 +76,7 @@ export default function SeletorMes({
         aoFechar={() => setAberta(false)}
         titulo="Escolher mês"
         ancoraRef={gatilhoRef}
+        alinhar="centro"
         nivel={nivel}
       >
         <div className={styles.navAno}>
