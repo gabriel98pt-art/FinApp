@@ -3,6 +3,7 @@ import { contarStatus } from "./agrupamento";
 import type { FiltroImportacao } from "./constantes";
 import ImportacaoFiltros from "./ImportacaoFiltros";
 import styles from "../Importar.module.css";
+import Botao from "../../components/Botao";
 
 /** Topo da revisão: o resumo por estado (que também filtra a lista) e
  *  "Novo extrato". */
@@ -26,9 +27,9 @@ export default function ImportacaoResumo({
         filtro={filtro}
         setFiltro={setFiltro}
       />
-      <button className={styles.linkBotao} onClick={onNovoExtrato}>
+      <Botao variante="link" onClick={onNovoExtrato}>
         Novo extrato
-      </button>
+      </Botao>
     </div>
   );
 }

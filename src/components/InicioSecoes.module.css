@@ -37,16 +37,6 @@
   letter-spacing: -0.015em;
 }
 
-.link {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  min-height: 32px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--blu-txt);
-}
-
 .linha {
   position: relative;
   display: flex;

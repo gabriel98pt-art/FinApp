@@ -189,9 +189,9 @@ export default function FiltroTransacoes({
           </div>
         </div>
         {ativos > 0 && (
-          <button
+          <Botao
+            variante="link"
             type="button"
-            className={styles.limpar}
             onClick={() => {
               aoMudarCategoria("");
               aoMudarConta("");
@@ -199,7 +199,7 @@ export default function FiltroTransacoes({
             }}
           >
             Limpar filtros
-          </button>
+          </Botao>
         )}
       </FolhaAncorada>
     </>

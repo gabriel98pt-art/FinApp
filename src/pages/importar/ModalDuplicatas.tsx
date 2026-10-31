@@ -86,13 +86,13 @@ export default function ModalDuplicatas({
                         ? "O mês desta despesa fixa vai voltar a ficar por pagar."
                         : "O lançamento já registado vai ser eliminado."}
                     </p>
-                    <button
+                    <Botao
+                      variante="link"
                       type="button"
-                      className={styles.linkBotao}
                       onClick={() => onMarcarParaApagar(l.id, false)}
                     >
                       Manter o existente
-                    </button>
+                    </Botao>
                   </>
                 ) : aConfirmar === l.id ? (
                   <div
@@ -126,13 +126,9 @@ export default function ModalDuplicatas({
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    className={styles.linkPerigo}
-                    onClick={() => setAConfirmar(l.id)}
-                  >
+                  <Botao variante="perigo" type="button" onClick={() => setAConfirmar(l.id)}>
                     {fixa ? "Desmarcar o mês pago…" : "Eliminar o existente…"}
-                  </button>
+                  </Botao>
                 )}
               </div>
             </div>

@@ -31,9 +31,9 @@ export default function FluxoImportar({ imp }: { imp: ReturnType<typeof useImpor
           há nada por limpar. */}
       {(imp.texto.trim() || linhas !== null) && (
         <div className={styles.resetLinha}>
-          <button className={styles.linkBotao} onClick={imp.resetarImportacao}>
+          <Botao variante="link" onClick={imp.resetarImportacao}>
             Resetar importação
-          </button>
+          </Botao>
         </div>
       )}
 
@@ -82,9 +82,9 @@ export default function FluxoImportar({ imp }: { imp: ReturnType<typeof useImpor
           )}
           <p className={styles.importadoAviso}>
             Esta lista limpa sozinha em alguns minutos, ou{" "}
-            <button className={styles.linkBotao} onClick={imp.limparRevisao}>
+            <Botao variante="link" onClick={imp.limparRevisao}>
               limpa agora
-            </button>
+            </Botao>
             .
           </p>
         </div>

@@ -123,9 +123,9 @@ export default function ImportacaoEntrada({
                 <ClipboardPaste size={15} aria-hidden /> Colar
               </Botao>
             ) : (
-              <button className={styles.linkBotao} onClick={onColarClipboard} disabled={lendoPdf}>
+              <Botao variante="link" onClick={onColarClipboard} disabled={lendoPdf}>
                 Colar
-              </button>
+              </Botao>
             )}
           </div>
         </div>

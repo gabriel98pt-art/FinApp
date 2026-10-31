@@ -358,9 +358,9 @@ export default function SecaoTransacoes() {
                   : `${itens.length} transações`}
               </h3>
               {filtroAtivo && (
-                <button type="button" className={styles.limparTudo} onClick={limparTudo}>
+                <Botao variante="link" type="button" onClick={limparTudo}>
                   Limpar tudo
-                </button>
+                </Botao>
               )}
             </div>
             <FiltroTransacoes
@@ -466,8 +466,8 @@ export default function SecaoTransacoes() {
                 <strong>{detalhe.nota}</strong>
               </div>
             )}
-            <button
-              className={styles.irPara}
+            <Botao
+              variante="link"
               onClick={() => {
                 const destino = TELA_DO_TIPO[detalhe.origem];
                 fecharDetalhe();
@@ -475,7 +475,7 @@ export default function SecaoTransacoes() {
               }}
             >
               Abrir em {TELA_DO_TIPO[detalhe.origem].nome}
-            </button>
+            </Botao>
             {detalhe.origem === "carga" &&
               (categoriaMover === null ? (
                 <button className={styles.mover} onClick={() => setCategoriaMover("Outros")}>

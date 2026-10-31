@@ -129,20 +129,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.irPara {
-  margin-top: 12px;
-  background: var(--s2);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: var(--fs-title);
-  border-radius: var(--r-sm);
-  padding: 12px;
-}
-
-.irPara:hover {
-  background: var(--s3);
-}
-
 /* Correção de uma recarga classificada por engano — ação secundária, discreta:
    quase sempre a folha é só para consultar. */
 .mover {
@@ -189,14 +175,6 @@
   background: transparent;
   color: var(--txt);
   font-size: var(--fs-body);
-}
-
-.limparTudo {
-  color: var(--blu-txt);
-  font-size: var(--fs-label);
-  font-weight: 600;
-  min-height: 32px;
-  padding: 0 4px;
 }
 
 .tituloLinha {

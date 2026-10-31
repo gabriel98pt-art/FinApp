@@ -136,21 +136,6 @@
   color: var(--blu-txt);
 }
 
-.limpar {
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 700;
-  text-align: center;
-  border-radius: var(--r-sm);
-}
-
-.limpar:hover {
-  background: var(--tint-red-10);
-}
-
 /* Período: dois campos de data, dentro do mês exibido, por baixo das colunas. */
 .periodo {
   margin-top: 8px;

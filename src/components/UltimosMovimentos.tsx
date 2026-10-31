@@ -18,6 +18,7 @@ import { nomeAtualDoMetodo } from "../utils/instituicoes";
 import { CURRENCY_SYMBOLS, formatCents } from "../utils/money";
 import { entraDinheiro, TELA_DO_TIPO, transacoesDoMes, type Transacao } from "../utils/transacoes";
 import styles from "./InicioSecoes.module.css";
+import Botao from "./Botao";
 
 const QUANTOS = 4;
 
@@ -68,10 +69,10 @@ export default function UltimosMovimentos() {
         <h3 id="ultimos-mov" className={styles.titulo}>
           Últimos movimentos
         </h3>
-        <button type="button" className={styles.link} onClick={() => navegar("/transacoes")}>
+        <Botao variante="link" type="button" onClick={() => navegar("/transacoes")}>
           Ver todos
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
-        </button>
+        </Botao>
       </div>
       <div className={styles.lista}>
         {ultimos.map((t) => {

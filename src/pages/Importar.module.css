@@ -133,13 +133,6 @@
   margin-top: 8px;
 }
 
-.linkBotao {
-  position: relative;
-  color: var(--blu-txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-}
-
 /* Botões que se leem como link ("Novo extrato", "limpa agora", "Resetar
    importação", "Ver detalhes"): o texto tem ~18px de altura; o toque apanha
    uma faixa de ~40px à volta, sem mexer no desenho nem no fluxo do texto. */
@@ -986,19 +979,6 @@
   color: var(--red);
   font-size: var(--fs-label);
   font-weight: 600;
-}
-
-.linkPerigo {
-  position: relative;
-  color: var(--red);
-  font-weight: 700;
-  font-size: var(--fs-label);
-}
-
-.linkPerigo::after {
-  content: "";
-  position: absolute;
-  inset: -11px -6px;
 }
 
 .revisaoConfirmar {

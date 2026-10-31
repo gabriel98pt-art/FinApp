@@ -9,6 +9,7 @@ import { hojeIso, mesAtual } from "../utils/calculos";
 import { despesaPorCategoriaRegistradaMes } from "../utils/despesaPorCategoria";
 import { formatMoney } from "../utils/money";
 import styles from "./InicioSecoes.module.css";
+import Botao from "./Botao";
 
 const QUANTAS = 4;
 
@@ -46,10 +47,10 @@ export default function OndeFoiODinheiro() {
         <h3 id="categorias" className={styles.titulo}>
           Categorias
         </h3>
-        <button type="button" className={styles.link} onClick={() => setAberta(true)}>
+        <Botao variante="link" type="button" onClick={() => setAberta(true)}>
           Ver todas
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
-        </button>
+        </Botao>
       </div>
       <div className={styles.lista}>
         {maiores.map((f) => (

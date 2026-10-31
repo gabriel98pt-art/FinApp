@@ -23,6 +23,7 @@ import {
   type TipoVencimento,
 } from "../utils/vencimentos";
 import styles from "./InicioSecoes.module.css";
+import Botao from "./Botao";
 
 const ICONE: Record<TipoVencimento, LucideIcon> = {
   fixa: Repeat,
@@ -104,10 +105,10 @@ export default function APagarEsteMes() {
         <h3 id="a-pagar" className={styles.titulo}>
           A pagar este mês
         </h3>
-        <button type="button" className={styles.link} onClick={() => navegar("/calendario")}>
+        <Botao variante="link" type="button" onClick={() => navegar("/calendario")}>
           Ver todos
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
-        </button>
+        </Botao>
       </div>
       <p className={styles.resumo}>
         <span className={`${styles.resumoValor} ${classeDiscreta}`}>
