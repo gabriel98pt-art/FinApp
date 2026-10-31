@@ -1,6 +1,7 @@
 import BottomSheet from "./BottomSheet";
 import { ICONES_CATEGORIA } from "../constants/aparenciaCategoria";
 import styles from "./SeletorAparencia.module.css";
+import Botao from "./Botao";
 
 /** Grade curada de ícones do `lucide-react` (item 19), dentro de uma folha do
  *  app. `aoEscolher(null)` limpa. */
@@ -22,9 +23,9 @@ export default function SeletorIcone({
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
-      <button type="button" className={styles.limpar} onClick={() => aoEscolher(null)}>
+      <Botao variante="link" type="button" onClick={() => aoEscolher(null)}>
         Sem ícone
-      </button>
+      </Botao>
       <div className={`${styles.grade} ${styles.gradeIcone}`}>
         {ICONES_CATEGORIA.map(({ id, Icone }) => (
           <button

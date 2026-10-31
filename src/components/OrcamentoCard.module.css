@@ -154,14 +154,6 @@
   border-color: transparent;
 }
 
-.remover {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
-  align-self: center;
-}
-
 /* Lista de gastos dentro da folha de editar teto */
 
 .gastos {

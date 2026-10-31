@@ -163,14 +163,9 @@ function FormTeto({
           {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Definir teto"}
         </Botao>
         {editando && (
-          <button
-            type="button"
-            className={styles.remover}
-            onClick={() => void remover()}
-            disabled={salvando}
-          >
+          <Botao variante="perigo" type="button" onClick={() => void remover()} disabled={salvando}>
             Remover teto
-          </button>
+          </Botao>
         )}
       </form>
     </BottomSheet>

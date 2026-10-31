@@ -277,11 +277,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.remover {
-  color: var(--red);
-  padding: 0 4px;
-}
-
 /* Formulário da semana */
 .form {
   display: flex;
@@ -343,12 +338,6 @@
 }
 
 /* "Excluir" mora dentro da folha de edição da semana (item 7) */
-.excluirSemana {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
-}
 
 /* Sugestão de recarga própria vinda das cargas do veículo (item 9) */
 .dicaAuto {

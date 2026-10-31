@@ -79,13 +79,13 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
                 <span className={styles.erroQuando}>{quando(e.timestamp)}</span>
                 <span className={styles.erroMensagem}>{e.mensagem}</span>
               </div>
-              <button
-                className={styles.acaoCategoria}
+              <Botao
+                variante="icone"
                 onClick={() => void copiar(e)}
                 aria-label={`Copiar erro de ${quando(e.timestamp)}`}
               >
                 <Copy size={14} aria-hidden />
-              </button>
+              </Botao>
             </div>
           ))}
         </div>

@@ -154,30 +154,31 @@ export default function FolhaContasCartoes({
                 <div className={styles.linhaCategoria}>
                   <span className={styles.nomeCategoria}>{nomeDe(c)}</span>
                   <span className={styles.tipoConta}>{credito ? "crédito" : "débito"}</span>
-                  <button
-                    className={styles.acaoCategoria}
+                  <Botao
+                    variante="icone"
                     onClick={() => abrirAdicionarMetodo(c)}
                     aria-label={`Adicionar método em ${nomeDe(c)}`}
                     title="Adicionar método"
                   >
                     <Wallet size={16} aria-hidden />
-                  </button>
-                  <button
-                    className={styles.acaoCategoria}
+                  </Botao>
+                  <Botao
+                    variante="icone"
                     onClick={() => setRenomeando(c)}
                     aria-label={`Renomear ${nomeDe(c)}`}
                     title="Renomear"
                   >
                     <Pencil size={16} aria-hidden />
-                  </button>
-                  <button
-                    className={`${styles.acaoCategoria} ${styles.acaoRemover}`}
+                  </Botao>
+                  <Botao
+                    variante="icone"
+                    className={styles.acaoRemover}
                     onClick={() => void remover(c)}
                     aria-label={`Remover ${nomeDe(c)}`}
                     title="Remover"
                   >
                     <X size={16} aria-hidden />
-                  </button>
+                  </Botao>
                 </div>
                 {/* Só o cartão de crédito tem fatura, e é o dia dela que manda
                     também nas parcelas em débito direto. */}

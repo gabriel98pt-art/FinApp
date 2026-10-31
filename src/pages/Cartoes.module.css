@@ -128,30 +128,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.remover {
-  color: var(--red);
-  padding: 0 4px;
-}
-
 .acoes {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-/* Secundárias ("Ajustar valor", "Reabrir", "Ajustar saldo"): acompanham o
-   `.acaoPrimaria`, que é o "Pagar" e esse sim fica com o acento. */
-.acao {
-  font-size: var(--fs-label);
-  font-weight: 700;
-  color: var(--txt);
-  background: var(--s2);
-  border-radius: var(--r-sm);
-  padding: 7px 10px;
-}
-
-.acao:hover {
-  background: var(--s3);
 }
 
 /* Sheets */
@@ -463,11 +443,4 @@
 .linhaDupla {
   display: flex;
   gap: 10px;
-}
-
-.excluir {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
 }

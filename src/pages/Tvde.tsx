@@ -195,9 +195,9 @@ function FormSemana({
           Guardar semana
         </Botao>
         {existente && (
-          <button
+          <Botao
+            variante="perigo"
             type="button"
-            className={styles.excluirSemana}
             onClick={() => {
               void (async () => {
                 if (n === null) return;
@@ -215,7 +215,7 @@ function FormSemana({
             }}
           >
             Eliminar semana
-          </button>
+          </Botao>
         )}
       </form>
     </BottomSheet>
@@ -737,8 +737,8 @@ export default function Tvde() {
                       </span>
                       <span>
                         {eur(d.valor)}{" "}
-                        <button
-                          className={styles.remover}
+                        <Botao
+                          variante="perigo"
                           onClick={(e) => {
                             e.preventDefault();
                             void (async () => {
@@ -749,7 +749,7 @@ export default function Tvde() {
                           aria-label={`Eliminar ${d.descricao}`}
                         >
                           <X size={16} aria-hidden />
-                        </button>
+                        </Botao>
                       </span>
                     </li>
                   ))}

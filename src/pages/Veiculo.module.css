@@ -195,13 +195,6 @@
   padding-bottom: 4px;
 }
 
-.excluir {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
-}
-
 /* Cada aba diz o que é, em vez de um cabeçalho genérico (item 4) */
 .tituloSecao {
   composes: tituloSecao from "../styles/titulos.module.css";

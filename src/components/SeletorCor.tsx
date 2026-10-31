@@ -3,6 +3,7 @@ import BottomSheet from "./BottomSheet";
 import { CORES_CATEGORIA } from "../constants/aparenciaCategoria";
 import { corDoIconeSobre, razaoContraste } from "../utils/categoriaVisual";
 import styles from "./SeletorAparencia.module.css";
+import Botao from "./Botao";
 
 /** Mínimo AA (WCAG) pra texto normal — usado quando `corDeFundo` é passado. */
 const CONTRASTE_MINIMO = 4.5;
@@ -49,9 +50,9 @@ export default function SeletorCor({
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
-      <button type="button" className={styles.limpar} onClick={() => aoEscolher(null)}>
+      <Botao variante="link" type="button" onClick={() => aoEscolher(null)}>
         Cor automática
-      </button>
+      </Botao>
       <div className={`${styles.grade} ${styles.gradeCor}`}>
         {cores.map((c) => {
           const reprovada =

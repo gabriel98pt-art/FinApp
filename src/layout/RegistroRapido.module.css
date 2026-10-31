@@ -159,13 +159,6 @@
   gap: 10px;
 }
 
-.excluir {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
-}
-
 /* Conta/cartão como nomes clicáveis, não dropdown (item 18) */
 .fileiraContas {
   display: flex;

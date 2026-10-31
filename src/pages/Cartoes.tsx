@@ -146,8 +146,8 @@ function ControlesFatura({
               </span>
               <span className={styles.pagamentoValor}>
                 {formatMoney(p.valor, cfg.currency)}
-                <button
-                  className={styles.remover}
+                <Botao
+                  variante="perigo"
                   onClick={() => {
                     void (async () => {
                       if (!(await confirmar("Remover este pagamento?"))) return;
@@ -168,7 +168,7 @@ function ControlesFatura({
                   aria-label="Remover pagamento"
                 >
                   <X size={15} aria-hidden />
-                </button>
+                </Botao>
               </span>
             </li>
           ))}
@@ -181,12 +181,12 @@ function ControlesFatura({
             Pagar
           </Botao>
         )}
-        <button className={styles.acao} onClick={aoAjustar}>
+        <Botao variante="secundario" onClick={aoAjustar}>
           Ajustar valor
-        </button>
+        </Botao>
         {fatura.pago > 0 && (
-          <button
-            className={styles.acao}
+          <Botao
+            variante="secundario"
             onClick={() => {
               void (async () => {
                 const n = calcularPagamentos(fatura).length;
@@ -210,7 +210,7 @@ function ControlesFatura({
             }}
           >
             Reabrir
-          </button>
+          </Botao>
         )}
       </div>
     </div>
@@ -844,8 +844,8 @@ export default function Cartoes() {
                 nos lançamentos um a um. */}
             {resumoAberto.tipo !== "credit" && (
               <div className={styles.acoes}>
-                <button
-                  className={styles.acao}
+                <Botao
+                  variante="secundario"
                   onClick={() => {
                     setValorTexto(resumoAberto.saldoAtual);
                     setContaAberta(null);
@@ -856,7 +856,7 @@ export default function Cartoes() {
                   }}
                 >
                   Ajustar saldo
-                </button>
+                </Botao>
               </div>
             )}
 
@@ -1014,13 +1014,9 @@ export default function Cartoes() {
             {tfEditandoId ? "Guardar alterações" : "Registar transferência"}
           </Botao>
           {tfEditandoId && (
-            <button
-              type="button"
-              className={styles.excluir}
-              onClick={() => void excluirTransferencia()}
-            >
+            <Botao variante="perigo" type="button" onClick={() => void excluirTransferencia()}>
               Eliminar transferência
-            </button>
+            </Botao>
           )}
         </form>
       </BottomSheet>

@@ -1146,9 +1146,9 @@ export default function Veiculo() {
           <Botao type="submit" variante="submeter">
             Guardar alterações
           </Botao>
-          <button type="button" className={styles.excluir} onClick={() => void excluirCarga()}>
+          <Botao variante="perigo" type="button" onClick={() => void excluirCarga()}>
             Eliminar abastecimento
-          </button>
+          </Botao>
         </form>
       </BottomSheet>
 
@@ -1182,9 +1182,9 @@ export default function Veiculo() {
           <Botao type="submit" variante="submeter">
             Guardar alterações
           </Botao>
-          <button type="button" className={styles.excluir} onClick={() => void excluirDespesa()}>
+          <Botao variante="perigo" type="button" onClick={() => void excluirDespesa()}>
             Eliminar despesa
-          </button>
+          </Botao>
         </form>
       </BottomSheet>
 
@@ -1228,9 +1228,9 @@ export default function Veiculo() {
             {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
-            <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
+            <Botao variante="perigo" type="button" onClick={() => void excluirFixa()}>
               Eliminar despesa fixa
-            </button>
+            </Botao>
           )}
         </form>
       </BottomSheet>
@@ -1260,9 +1260,9 @@ export default function Veiculo() {
             {kmEditandoId ? "Guardar alterações" : "Registar"}
           </Botao>
           {kmEditandoId && (
-            <button type="button" className={styles.excluir} onClick={() => void excluirKm()}>
+            <Botao variante="perigo" type="button" onClick={() => void excluirKm()}>
               Eliminar registo
-            </button>
+            </Botao>
           )}
         </form>
       </BottomSheet>

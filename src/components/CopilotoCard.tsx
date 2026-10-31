@@ -209,16 +209,16 @@ export default function CopilotoCard() {
       )}
 
       {acaoPendente && (
-        <button
+        <Botao
+          variante="secundario"
           type="button"
-          className={styles.acaoPlano}
           disabled={aExecutar}
           onClick={() => void executarAcao()}
         >
           {aExecutar
             ? "A separar…"
             : `Separar ${formatMoney(acaoPendente.valor, cfg.currency)} para ${acaoPendente.nomeFundo}`}
-        </button>
+        </Botao>
       )}
 
       <div className={styles.sugestoes}>

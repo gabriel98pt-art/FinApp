@@ -439,8 +439,8 @@ export default function Planejamento() {
                       <div key={f.id} className={styles.fundoCard}>
                         <div className={styles.fundoTopo}>
                           <p className={styles.fundoNome}>{f.nome}</p>
-                          <button
-                            className={styles.remover}
+                          <Botao
+                            variante="perigo"
                             onClick={() => {
                               void (async () => {
                                 if (!(await confirmar(`Eliminar o fundo "${f.nome}"?`))) return;
@@ -452,7 +452,7 @@ export default function Planejamento() {
                             aria-label="Eliminar fundo"
                           >
                             <X size={16} aria-hidden />
-                          </button>
+                          </Botao>
                         </div>
                         <div className={styles.barra}>
                           <div className={`${styles.preenchido}`} style={{ width: `${pct}%` }} />

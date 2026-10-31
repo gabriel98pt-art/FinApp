@@ -801,9 +801,9 @@ export default function Despesas() {
             {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
-            <button type="button" className={styles.excluir} onClick={() => void excluirFixa()}>
+            <Botao variante="perigo" type="button" onClick={() => void excluirFixa()}>
               Eliminar despesa fixa
-            </button>
+            </Botao>
           )}
         </form>
       </BottomSheet>

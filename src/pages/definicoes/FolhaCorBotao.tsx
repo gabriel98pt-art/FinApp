@@ -7,6 +7,7 @@ import { mostrarToast } from "../../stores/toastStore";
 import type { ConfigConta } from "../../types";
 import { corDaCategoriaVisual } from "../../utils/categoriaVisual";
 import styles from "../Definicoes.module.css";
+import Botao from "../../components/Botao";
 
 /** Cor do botão flutuante em Despesas, Receitas e Veículo. Não é um campo
  *  novo em cfg: estes 3 nomes entram no mesmo `categoriaCor` das categorias,
@@ -56,14 +57,14 @@ export default function FolhaCorBotao({
               aria-hidden
             />
             <span className={styles.nomeCategoria}>{nome}</span>
-            <button
-              className={styles.acaoCategoria}
+            <Botao
+              variante="icone"
               onClick={() => setCorDe(nome)}
               aria-label={`Cor do botão em ${nome}`}
               title="Cor"
             >
               <Palette size={16} aria-hidden />
-            </button>
+            </Botao>
           </li>
         ))}
       </ul>

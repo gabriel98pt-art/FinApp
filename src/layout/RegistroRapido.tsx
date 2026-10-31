@@ -1035,9 +1035,9 @@ export default function RegistroRapido() {
           </Botao>
 
           {editando && (
-            <button type="button" className={styles.excluir} onClick={eliminar} disabled={salvando}>
+            <Botao variante="perigo" type="button" onClick={eliminar} disabled={salvando}>
               Eliminar lançamento
-            </button>
+            </Botao>
           )}
         </div>
       </form>

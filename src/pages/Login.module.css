@@ -74,9 +74,3 @@
   font-size: var(--fs-body);
   text-align: center;
 }
-
-.alternar {
-  color: var(--blu-txt);
-  font-size: var(--fs-body);
-  padding: 6px;
-}

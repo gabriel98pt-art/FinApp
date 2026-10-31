@@ -208,11 +208,6 @@
   font-size: var(--fs-title);
 }
 
-.remover {
-  color: var(--red);
-  padding: 0 4px;
-}
-
 .fundoStat {
   display: flex;
   align-items: baseline;

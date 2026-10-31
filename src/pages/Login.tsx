@@ -120,18 +120,18 @@ export default function Login() {
         </Botao>
 
         {modo === "entrar" && (
-          <button type="button" className={styles.alternar} onClick={() => irPara("recuperar")}>
+          <Botao variante="link" type="button" onClick={() => irPara("recuperar")}>
             Esqueci a senha
-          </button>
+          </Botao>
         )}
 
-        <button
+        <Botao
+          variante="link"
           type="button"
-          className={styles.alternar}
           onClick={() => irPara(modo === "entrar" ? "cadastrar" : "entrar")}
         >
           {modo === "entrar" ? "Não tem conta? Registe-se" : "Já tem conta? Entre"}
-        </button>
+        </Botao>
       </form>
     </div>
   );

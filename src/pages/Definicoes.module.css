@@ -110,43 +110,6 @@
   font-weight: 600;
 }
 
-.acaoCategoria {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-sm);
-  color: var(--mut);
-  /* Âncora da área de toque invisível, logo abaixo. */
-  position: relative;
-}
-
-/* Quatro ícones de 30px seguidos (ícone, cor, renomear, remover) são alvos
-   pequenos demais. A área de toque cresce sem engordar o quadrado visual: em
-   altura vai aos 44px do mínimo da Apple (a linha tem exatamente 44px, ver
-   acima) e em largura estica até ao meio do intervalo de 10px que a separa do
-   vizinho — 40px no total, e nem um pixel dentro do botão ao lado. O último
-   ainda estica para fora do grupo, onde só há margem da folha. */
-.acaoCategoria::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: -5px;
-  right: -5px;
-  height: 44px;
-  transform: translateY(-50%);
-}
-
-.acaoCategoria:last-child::before {
-  right: -12px;
-}
-
-.acaoCategoria:hover {
-  background: var(--s3);
-  color: var(--txt);
-}
-
 .acaoRemover:hover {
   color: var(--red);
 }

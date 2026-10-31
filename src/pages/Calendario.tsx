@@ -405,8 +405,8 @@ export default function SecaoCalendario() {
                   {e.valor !== undefined && (
                     <span className={styles.itemValor}>{formatMoney(e.valor, moeda)}</span>
                   )}
-                  <button
-                    className={styles.remover}
+                  <Botao
+                    variante="perigo"
                     onClick={() => {
                       void (async () => {
                         if (!(await confirmar(`Eliminar "${e.titulo}"?`))) return;
@@ -418,7 +418,7 @@ export default function SecaoCalendario() {
                     aria-label="Eliminar evento"
                   >
                     <X size={16} aria-hidden />
-                  </button>
+                  </Botao>
                 </div>
               </div>
             ))}

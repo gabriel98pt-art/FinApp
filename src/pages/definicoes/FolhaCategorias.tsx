@@ -134,38 +134,39 @@ export default function FolhaCategorias({
             <li key={item} className={styles.linhaCategoria}>
               <CategoriaBolha categoria={item} />
               <span className={styles.nomeCategoria}>{item}</span>
-              <button
-                className={styles.acaoCategoria}
+              <Botao
+                variante="icone"
                 onClick={() => setIconeDe(item)}
                 aria-label={`Ícone de ${item}`}
                 title="Ícone"
               >
                 <Shapes size={16} aria-hidden />
-              </button>
-              <button
-                className={styles.acaoCategoria}
+              </Botao>
+              <Botao
+                variante="icone"
                 onClick={() => setCorDe(item)}
                 aria-label={`Cor de ${item}`}
                 title="Cor"
               >
                 <Palette size={16} aria-hidden />
-              </button>
-              <button
-                className={styles.acaoCategoria}
+              </Botao>
+              <Botao
+                variante="icone"
                 onClick={() => setRenomeando(item)}
                 aria-label={`Renomear ${item}`}
                 title="Renomear"
               >
                 <Pencil size={16} aria-hidden />
-              </button>
-              <button
-                className={`${styles.acaoCategoria} ${styles.acaoRemover}`}
+              </Botao>
+              <Botao
+                variante="icone"
+                className={styles.acaoRemover}
                 onClick={() => void remover(item)}
                 aria-label={`Remover ${item}`}
                 title="Remover"
               >
                 <X size={16} aria-hidden />
-              </button>
+              </Botao>
             </li>
           ))}
         </ul>

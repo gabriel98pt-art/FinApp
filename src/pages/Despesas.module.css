@@ -211,13 +211,6 @@
   font-size: var(--fs-label);
 }
 
-.excluir {
-  color: var(--red);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  padding: 6px;
-}
-
 /* Alternador Mês / Semana (item 10) */
 .linhaVisao {
   composes: linha from "../styles/pilulas.module.css";
