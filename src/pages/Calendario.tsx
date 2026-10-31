@@ -357,8 +357,8 @@ export default function SecaoCalendario() {
             eventos.length === 0 && (
               <EstadoVazio
                 Icone={CalendarDays}
-                mensagem="Nenhum evento ainda"
-                sub="Toque no + pra agendar o primeiro."
+                mensagem="Ainda não há eventos"
+                sub="Toque em + para adicionar."
               />
             )
           )}
@@ -432,7 +432,7 @@ export default function SecaoCalendario() {
             abrirNovoEvento(diaSelecionado ?? hoje);
           }}
         >
-          <Plus size={15} aria-hidden /> Novo evento neste dia
+          <Plus size={15} aria-hidden /> Adicionar evento neste dia
         </button>
       </BottomSheet>
 

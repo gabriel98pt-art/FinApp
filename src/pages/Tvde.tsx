@@ -68,7 +68,7 @@ const ABAS = [
   // A aba guarda quatro coisas — conta destino, fonte da receita, Segurança
   // Social e despesas do TVDE. O nome antigo ("Seg. Social & Despesas")
   // anunciava só duas, e quem procurava as outras duas não as achava.
-  ["extras", "Extras e definições"],
+  ["extras", "Extras"],
 ] as const satisfies readonly (readonly [AbaTvde, string])[];
 
 const CAMPOS_DINHEIRO = [

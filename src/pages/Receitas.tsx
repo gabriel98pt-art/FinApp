@@ -219,7 +219,7 @@ export default function Receitas() {
               ? `Nenhuma receita em ${rotuloDaSemana(semanaAtual)}`
               : `Nenhuma receita em ${rotuloMes(mes)}`
           }
-          vazioSub="Toque em Adicionar para lançar a primeira."
+          vazioSub="Toque em + para adicionar."
           vazioIcone={TrendingUp}
           aoAdicionar={() => abrirRegistro("receita")}
           aoEditar={(id) => abrirRegistro("receita", id)}

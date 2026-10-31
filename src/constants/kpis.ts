@@ -53,6 +53,11 @@ export const KPIS_POR_PAGINA: KpisDaPagina[] = [
     id: "metas",
     titulo: "Planejamento — Metas",
     rotulos: ["Meta Mensal", "Taxa de Poupança", "Total em Fundos", "Poupado (12m)"],
+    textos: {
+      "Meta Mensal": "Meta mensal",
+      "Taxa de Poupança": "Taxa de poupança",
+      "Total em Fundos": "Total em fundos",
+    },
   },
   {
     id: "veiculo",

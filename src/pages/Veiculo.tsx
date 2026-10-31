@@ -800,7 +800,7 @@ export default function Veiculo() {
                       ? `Nenhum abastecimento em ${rotuloDaSemana(semanaAtual)}`
                       : `Nenhum abastecimento em ${rotuloMes(mes)}`
                   }
-                  sub="Registe um abastecimento com o botão acima."
+                  sub="Toque em + para adicionar."
                 />
               ) : (
                 [...cargasVisiveis]

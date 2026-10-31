@@ -781,7 +781,7 @@ export default function Cartoes() {
           <EstadoVazio
             Icone={ArrowLeftRight}
             mensagem={`Nenhuma transferência em ${rotuloMes(mes)}`}
-            sub="Toque no + para mover dinheiro entre contas."
+            sub="Toque em + para adicionar."
           />
         ) : (
           ordenarPorDataDesc(transferenciasDoMes).map((t) => (

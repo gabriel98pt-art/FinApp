@@ -591,7 +591,7 @@ export default function Despesas() {
                   ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
                   : `Nenhuma despesa em ${rotuloMes(mes)}`
               }
-              vazioSub="Toque no + para lançar a primeira."
+              vazioSub="Toque em + para adicionar."
               vazioIcone={TrendingDown}
               aoAdicionar={() => abrirRegistro("despesa")}
               aoEditar={editar}
@@ -635,7 +635,7 @@ export default function Despesas() {
                   }
                   sub={
                     despesasFixas.length === 0
-                      ? "Toque no + para criar a primeira."
+                      ? "Toque em + para adicionar."
                       : "As já criadas começam ou terminam em outros meses."
                   }
                 />

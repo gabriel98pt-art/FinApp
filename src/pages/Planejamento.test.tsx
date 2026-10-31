@@ -134,7 +134,7 @@ describe("Planejamento", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Metas" }));
 
     expect(screen.getByRole("heading", { name: "Planejamento" })).toBeInTheDocument();
-    expect(screen.getByText("Nenhum fundo criado")).toBeInTheDocument();
+    expect(screen.getByText("Ainda não há fundos")).toBeInTheDocument();
     // O conteúdo da outra aba sai de cena.
     expect(screen.queryByText(/Defina um teto mensal por categoria/)).not.toBeInTheDocument();
   });
@@ -378,16 +378,17 @@ describe("aba Metas", () => {
     // deixa a escolha já gravada continuar a casar.
     await montarNasMetas();
 
-    const esperados = KPIS_POR_PAGINA.find((p) => p.id === "metas")!.rotulos;
+    const pagina = KPIS_POR_PAGINA.find((p) => p.id === "metas")!;
+    const esperados = pagina.rotulos;
     expect(esperados).toHaveLength(4);
     for (const rotulo of esperados) {
-      expect(screen.getByText(rotulo)).toBeInTheDocument();
+      expect(screen.getByText(pagina.textos?.[rotulo] ?? rotulo)).toBeInTheDocument();
     }
   });
 
   test("taxa de poupança sem receitas no mês: traço, não 0%", async () => {
     await montarNasMetas();
-    const coluna = screen.getByText("Taxa de Poupança").closest("div")!;
+    const coluna = screen.getByText("Taxa de poupança").closest("div")!;
     expect(within(coluna).getByText("—")).toBeInTheDocument();
     expect(within(coluna).queryByText("0%")).not.toBeInTheDocument();
   });
@@ -398,11 +399,11 @@ describe("aba Metas", () => {
     ]);
     despesas = lista([despesa(150000)]);
     await montarNasMetas();
-    const coluna = screen.getByText("Taxa de Poupança").closest("div")!;
+    const coluna = screen.getByText("Taxa de poupança").closest("div")!;
     expect(within(coluna).getByText("0%")).toBeInTheDocument();
   });
 
-  test("Poupado (12m) é verde, como Taxa de Poupança ao lado", async () => {
+  test("Poupado (12m) é verde, como Taxa de poupança ao lado", async () => {
     // Achado da auditoria de Design: era "amarelo" fixo, destoando da Taxa
     // de Poupança (sempre verde) na MESMA tela. Sempre verde é o tom certo
     // aqui mesmo com muita despesa: `poupancaMeses` nunca soma negativo
@@ -422,14 +423,14 @@ describe("aba Metas", () => {
 
   test("sem fundos: estado vazio que ensina como criar o primeiro", async () => {
     await montarNasMetas();
-    expect(screen.getByText("Nenhum fundo criado")).toBeInTheDocument();
+    expect(screen.getByText("Ainda não há fundos")).toBeInTheDocument();
   });
 
   test("sincronização caída e sem fundos: avisa em vez de dizer que está vazio", async () => {
     fundos = listaComErro<Fundo>();
     await montarNasMetas();
 
-    expect(screen.queryByText("Nenhum fundo criado")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ainda não há fundos")).not.toBeInTheDocument();
     expect(screen.getByText(/Não foi possível sincronizar/)).toBeInTheDocument();
   });
 

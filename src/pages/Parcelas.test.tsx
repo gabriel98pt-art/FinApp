@@ -184,7 +184,7 @@ describe("Parcelas", () => {
 
   test("erro de validação associa os campos relevantes via aria-describedby — achado da auditoria de Acessibilidade", async () => {
     render(<Parcelas />);
-    await userEvent.click(screen.getByRole("button", { name: "Nova parcela" }));
+    await userEvent.click(screen.getByRole("button", { name: "Adicionar parcela" }));
 
     await userEvent.type(screen.getByLabelText("Descrição"), "Portátil");
     await userEvent.type(screen.getByLabelText("Quanto no total?"), "50000");

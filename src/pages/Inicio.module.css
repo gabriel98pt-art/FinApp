@@ -28,3 +28,9 @@
     order: 5;
   }
 }
+
+.vazio {
+  margin: 0 0 8px;
+  color: var(--mut);
+  font-size: 0.9rem;
+}

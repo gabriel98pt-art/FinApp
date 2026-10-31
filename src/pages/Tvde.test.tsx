@@ -78,7 +78,7 @@ describe("Tvde", () => {
     // Chamava-se "Seg. Social & Despesas" e lá dentro estão quatro coisas —
     // as duas do nome mais a conta destino e a fonte da receita.
     render(<Tvde />);
-    const aba = screen.getByRole("tab", { name: "Extras e definições" });
+    const aba = screen.getByRole("tab", { name: "Extras" });
     await userEvent.click(aba);
 
     expect(screen.getByText("Conta destino da receita")).toBeInTheDocument();

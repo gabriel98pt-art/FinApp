@@ -95,6 +95,9 @@ export default function Inicio() {
       {/* A grelha alinhada (styles/grelha.module.css). A ordem do DOM é a do
           telemóvel; nas telas largas `order` põe o aviso numa faixa por cima e
           os Últimos movimentos antes das Categorias. */}
+      {resumo.receitas === 0 && resumo.despesas === 0 && !erroDados && (
+        <p className={grade.vazio}>Ainda não registou nada neste mês.</p>
+      )}
       <div className={g.grelha}>
         <div className={`${g.celula} ${g.s12} ${grade.aviso}`}>
           <AvisoOrcamento />

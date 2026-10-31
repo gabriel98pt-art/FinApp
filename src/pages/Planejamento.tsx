@@ -311,14 +311,21 @@ export default function Planejamento() {
           <div className={g.grelha}>
             <div className={`${g.celula} ${g.s4}`}>
               <Kpis pagina="metas">
-                <KpiCard rotulo="Meta Mensal" valor={formatMoney(meta.meta, moeda)} tom="acento" />
                 <KpiCard
-                  rotulo="Taxa de Poupança"
+                  rotulo="Meta mensal"
+                  chave="Meta Mensal"
+                  valor={formatMoney(meta.meta, moeda)}
+                  tom="acento"
+                />
+                <KpiCard
+                  rotulo="Taxa de poupança"
+                  chave="Taxa de Poupança"
                   valor={taxaPoupancaMes === null ? "—" : `${taxaPoupancaMes}%`}
                   tom="verde"
                 />
                 <KpiCard
-                  rotulo="Total em Fundos"
+                  rotulo="Total em fundos"
+                  chave="Total em Fundos"
                   valor={formatMoney(fundosAtual, moeda)}
                   tom="acento"
                 />
@@ -397,7 +404,7 @@ export default function Planejamento() {
                 </h3>
                 <button
                   className={`${styles.adicionar} ${styles.adicionarSoIcone}`}
-                  aria-label="Novo fundo"
+                  aria-label="Adicionar fundo"
                   onClick={abrirNovoFundo}
                 >
                   <Plus size={16} aria-hidden />
@@ -411,8 +418,8 @@ export default function Planejamento() {
               ) : carregado && fundos.length === 0 ? (
                 <EstadoVazio
                   Icone={Target}
-                  mensagem="Nenhum fundo criado"
-                  sub="Adicione um fundo de poupança com o botão + aqui em cima."
+                  mensagem="Ainda não há fundos"
+                  sub="Toque em + para adicionar."
                 />
               ) : (
                 <div className={styles.fundos}>
