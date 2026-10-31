@@ -125,6 +125,13 @@
   text-align: center;
 }
 
+/* Largura própria: dentro do Popover (≥768px) a caixa só tem 200px de mínimo e
+   três meses por linha ficavam encostados à borda. */
+.navAno,
+.grade {
+  min-width: 240px;
+}
+
 .grade {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

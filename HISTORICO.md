@@ -9,6 +9,13 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 31/10/2026 (seletor de mês junto ao botão)
+
+- No iPad e no Mac (a partir de 768px), escolher o mês abre uma caixinha colada
+  ao nome do mês, em vez de uma folha no fundo do ecrã. Já não é preciso levar
+  o rato do topo até ao fundo da janela. Fecha com Esc, com um clique fora ou
+  ao escolher o mês. No iPhone continua a folha que sobe de baixo.
+
 ## 31/10/2026 (mesmas palavras em todo o app)
 
 - Cartões, Despesas, Parcelas, Veículo e Importar passam a usar as mesmas

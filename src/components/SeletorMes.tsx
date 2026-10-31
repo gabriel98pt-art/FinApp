@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import BottomSheet from "./BottomSheet";
+import FolhaAncorada from "./FolhaAncorada";
 import type { YearMonth } from "../types";
 import {
   anoDe,
@@ -27,6 +27,7 @@ export default function SeletorMes({
   nivel?: number;
 }) {
   const [aberta, setAberta] = useState(false);
+  const gatilhoRef = useRef<HTMLButtonElement>(null);
   const [ano, setAno] = useState(() => anoDe(mes));
   const hoje = mesAtual();
 
@@ -54,6 +55,7 @@ export default function SeletorMes({
       {/* Tocar no rótulo salta direto para qualquer mês — voltar um ano pela
           seta eram 12 toques. */}
       <button
+        ref={gatilhoRef}
         type="button"
         className={`${styles.rotulo} ${styles.gatilho}`}
         onClick={abrir}
@@ -69,10 +71,11 @@ export default function SeletorMes({
         <ChevronRight size={18} aria-hidden />
       </button>
 
-      <BottomSheet
+      <FolhaAncorada
         aberta={aberta}
         aoFechar={() => setAberta(false)}
         titulo="Escolher mês"
+        ancoraRef={gatilhoRef}
         nivel={nivel}
       >
         <div className={styles.navAno}>
@@ -117,7 +120,7 @@ export default function SeletorMes({
             );
           })}
         </div>
-      </BottomSheet>
+      </FolhaAncorada>
     </div>
   );
 }

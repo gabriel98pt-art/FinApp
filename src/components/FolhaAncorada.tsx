@@ -6,7 +6,8 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 /** Mesmo corte do resto do layout (ver `Pagina.tsx` e `RegistroRapido.tsx`). */
 const MOBILE = "(max-width: 767px)";
 
-/** Escolhe como abrir uma lista de opções conforme o tamanho da janela:
+/** Escolhe como abrir uma lista de opções (ou uma grelha curta, como o seletor
+ *  de mês) conforme o tamanho da janela:
  *  `BottomSheet` no telemóvel, `Popover` colado ao gatilho no desktop.
  *
  *  A razão é o ponteiro. No telemóvel a folha sobe de baixo, à distância do
@@ -16,7 +17,8 @@ const MOBILE = "(max-width: 767px)";
  *  aparece onde o ponteiro já está.
  *
  *  Só entra onde a escolha é rápida e o contexto à volta importa — os
- *  seletores por linha da importação e o botão de ordenar. Os seletores de
+ *  seletores por linha da importação, o botão de ordenar e o seletor de mês
+ *  do cabeçalho. Os seletores de
  *  formulário (`Seletor` na variante "campo") continuam em folha: aí a folha
  *  já é o contexto. */
 export default function FolhaAncorada({
