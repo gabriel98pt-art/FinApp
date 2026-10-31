@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ComponentPropsWithRef } from "react";
 import styles from "./Botao.module.css";
 
 /** Os cinco papéis que um botão desempenha na app. Tudo o que não caiba aqui
@@ -16,7 +16,7 @@ export type VarianteBotao =
   | "secundario"
   | "link";
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+type Props = ComponentPropsWithRef<"button"> & {
   variante: VarianteBotao;
   /** Botão reduzido ao ícone (o "+" de criar, dentro do corpo das páginas).
    *  Quem o usa passa OBRIGATORIAMENTE um `aria-label` com a frase inteira —

@@ -9,6 +9,28 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 31/10/2026 (tudo alinhado e botões iguais)
+
+- **Mesmas colunas em todas as abas.** Em ecrã grande (a partir de 1024px) todas
+  as páginas ficam em duas colunas: o resumo à esquerda e a lista à direita.
+  Cartões já não corta nomes no iPad na vertical.
+- **Listas sempre dentro de um quadro**, com o mesmo fundo e cantos dos outros
+  cartões. O título, a ordem e o «+» ficam na mesma linha, dentro do quadro.
+  Correntes/Fixas, Mês/Semana e as abas do Veículo e da TVDE passaram para o
+  topo da coluna da lista. No telemóvel a ordem é a de sempre.
+- **No Mac o conteúdo pára nos 1200px e fica ao centro**, para o nome não ficar
+  longe do valor.
+- **Botões iguais em toda a app.** O mesmo tipo de botão tem sempre o mesmo
+  aspeto: o «+» de adicionar (escuro, quadrado), o círculo bege para filtrar,
+  ordenar e ações, a pílula bege com texto (Esconder, Importar, Liquidadas,
+  Contribuir, Adicionar…), o link «Ver todos», o botão principal das folhas e o
+  de perigo. Está tudo definido num só sítio (o componente `Botao`), por isso
+  mudar o aspeto de todos de uma vez é simples. É uma versão provisória.
+- O «+» das Despesas e das Receitas fica sempre ao lado do título da lista,
+  também no iPhone. Ordenar passou a ser só um ícone; a ordem atual vê-se ao
+  abrir.
+- Em «Últimos 12 meses» os valores já não se colam uns aos outros.
+
 ## 31/10/2026 (seletor de mês junto ao botão)
 
 - No iPad e no Mac (a partir de 768px), escolher o mês abre uma caixinha colada

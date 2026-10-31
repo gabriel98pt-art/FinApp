@@ -64,8 +64,6 @@
   justify-content: flex-end;
 }
 
-.cancelar,
-.cancelar:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .cartao {
     transform: translate(-50%, -50%);
