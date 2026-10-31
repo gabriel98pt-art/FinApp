@@ -1,3 +1,4 @@
+import Botao from "./Botao";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./Paginador.module.css";
 
@@ -16,13 +17,14 @@ export default function Paginador({
 
   return (
     <div className={styles.pager}>
-      <button
+      <Botao
+        variante="secundario"
         onClick={() => aoMudar(pagina - 1)}
         disabled={pagina <= 1}
         aria-label="Página anterior"
       >
-        <ChevronLeft size={16} aria-hidden />
-      </button>
+        <ChevronLeft size={15} aria-hidden />
+      </Botao>
       {/* A lista inteira troca de conteúdo ao mudar de página, mas o foco fica
           na seta — sem região viva, nada é anunciado e a pessoa não sabe se o
           toque pegou. Anunciar o contador (curto) em vez da lista (15 linhas)
@@ -30,13 +32,14 @@ export default function Paginador({
       <span aria-live="polite">
         {pagina} / {paginas}
       </span>
-      <button
+      <Botao
+        variante="secundario"
         onClick={() => aoMudar(pagina + 1)}
         disabled={pagina >= paginas}
         aria-label="Página seguinte"
       >
-        <ChevronRight size={16} aria-hidden />
-      </button>
+        <ChevronRight size={15} aria-hidden />
+      </Botao>
     </div>
   );
 }

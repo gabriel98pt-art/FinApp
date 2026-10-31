@@ -588,9 +588,9 @@ export default function Cartoes() {
   }
 
   const botaoImportar = (
-    <button type="button" className={styles.botaoImportar} onClick={() => setImportarAberto(true)}>
+    <Botao variante="secundario" onClick={() => setImportarAberto(true)}>
       <Upload size={15} aria-hidden /> Importar
-    </button>
+    </Botao>
   );
 
   const contas = (
@@ -600,19 +600,14 @@ export default function Cartoes() {
           Cartões e contas
           {contasEscondidas ? ` · ${resumos.length} escondidos` : ""}
         </h3>
-        <button
-          type="button"
-          className={styles.minibotao}
-          onClick={alternarContas}
-          aria-expanded={!contasEscondidas}
-        >
+        <Botao variante="secundario" onClick={alternarContas} aria-expanded={!contasEscondidas}>
           {contasEscondidas ? "Mostrar" : "Esconder"}
           {contasEscondidas ? (
-            <ChevronDown size={14} aria-hidden />
+            <ChevronDown size={15} aria-hidden />
           ) : (
-            <ChevronUp size={14} aria-hidden />
+            <ChevronUp size={15} aria-hidden />
           )}
-        </button>
+        </Botao>
       </div>
       {!contasEscondidas && (
         <div className={styles.contas}>
@@ -763,8 +758,7 @@ export default function Cartoes() {
         {/* Só o "+", ao lado do título da secção que já diz do que se trata;
             o texto inteiro fica no aria-label (sweep de 01/09/2026). */}
         <Botao
-          variante="primaria"
-          soIcone
+          variante="adicionar"
           onClick={abrirNovaTransferencia}
           aria-label="Adicionar transferência"
         >

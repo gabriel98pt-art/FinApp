@@ -17,5 +17,5 @@ export default function SeletorOrdem({
   valor: Ordem;
   aoMudar: (o: Ordem) => void;
 }) {
-  return <SeletorOrdemFolha valor={valor} linhas={LINHAS} aoMudar={aoMudar} gatilho="texto" />;
+  return <SeletorOrdemFolha valor={valor} linhas={LINHAS} aoMudar={aoMudar} />;
 }

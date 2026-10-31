@@ -781,12 +781,11 @@ export default function Veiculo() {
                   ver .soIcone em Botao.module.css. A frase inteira vive no
                   aria-label. */}
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 aria-label="Adicionar abastecimento"
                 onClick={() => abrirRegistro("carga")}
               >
-                <Plus size={16} aria-hidden />
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 
@@ -852,9 +851,9 @@ export default function Veiculo() {
                   value={novoLocal}
                   onChange={(e) => setNovoLocal(e.target.value)}
                 />
-                <button type="submit" className={styles.gerirBotao}>
+                <Botao variante="secundario" type="submit">
                   Adicionar
-                </button>
+                </Botao>
               </div>
             </form>
           </div>
@@ -865,12 +864,11 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 aria-label="Adicionar despesa"
                 onClick={() => abrirRegistro("despesaVeiculo")}
               >
-                <Plus size={16} aria-hidden />
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 
@@ -904,12 +902,11 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 aria-label="Adicionar despesa fixa"
                 onClick={abrirNovaFixa}
               >
-                <Plus size={16} aria-hidden />
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 
@@ -977,12 +974,11 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 aria-label="Adicionar quilometragem"
                 onClick={abrirNovoKm}
               >
-                <Plus size={16} aria-hidden />
+                <Plus size={18} aria-hidden />
               </Botao>
             </div>
 

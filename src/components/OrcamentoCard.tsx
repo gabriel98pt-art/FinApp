@@ -215,8 +215,8 @@ export default function OrcamentoCard() {
         <p className={styles.titulo}>Orçamento por categoria</p>
         {/* Só o "+" (01/09): o título ao lado já diz "Orçamento por categoria".
             O texto inteiro vive no aria-label. */}
-        <Botao variante="primaria" soIcone aria-label="Definir teto" onClick={abrirNovo}>
-          <Plus size={16} aria-hidden />
+        <Botao variante="adicionar" aria-label="Definir teto" onClick={abrirNovo}>
+          <Plus size={18} aria-hidden />
         </Botao>
       </div>
 

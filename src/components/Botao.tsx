@@ -5,7 +5,16 @@ import styles from "./Botao.module.css";
  *  ou é um controlo (segmento, chip, selo — esses têm componente próprio) ou é
  *  um papel novo, e nesse caso entra como variante, não como CSS solto na
  *  página. */
-export type VarianteBotao = "primaria" | "submeter" | "texto" | "perigo" | "perigoForte";
+export type VarianteBotao =
+  | "primaria"
+  | "submeter"
+  | "texto"
+  | "perigo"
+  | "perigoForte"
+  | "adicionar"
+  | "icone"
+  | "secundario"
+  | "link";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variante: VarianteBotao;

@@ -383,7 +383,6 @@ export default function Despesas() {
   }
 
   const largo = useMediaQuery("(min-width: 1024px)");
-  const botaoNoTopo = useMediaQuery("(min-width: 768px)");
   const linhaVisao = (
     <div className={styles.linhaVisao}>
       <div
@@ -412,19 +411,6 @@ export default function Despesas() {
       </div>
       {visao === "semana" && (
         <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-      )}
-      {/* Já se está na aba "Correntes" — o título "Despesas correntes"
-                  do cartão de baixo era redundante. O botão sobe pra cá. */}
-      {!botaoNoTopo && (
-        <Botao
-          variante="primaria"
-          soIcone
-          className={styles.botaoAdicionarTopo}
-          onClick={() => abrirRegistro("despesa")}
-          aria-label="Adicionar despesa"
-        >
-          <Plus size={18} aria-hidden />
-        </Botao>
       )}
     </div>
   );
@@ -546,16 +532,15 @@ export default function Despesas() {
               <h3 className={styles.tituloSecao}>Movimentos</h3>
               <div className={styles.acoesSecao}>
                 <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
-                {botaoNoTopo && (
+                {
                   <Botao
-                    variante="primaria"
-                    soIcone
+                    variante="adicionar"
                     aria-label="Adicionar despesa"
                     onClick={() => abrirRegistro("despesa")}
                   >
                     <Plus size={18} aria-hidden />
                   </Botao>
-                )}
+                }
               </div>
             </div>
 
@@ -625,8 +610,7 @@ export default function Despesas() {
                 Despesas fixas
               </h3>
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 onClick={abrirNovaFixa}
                 aria-label="Adicionar despesa fixa"
               >

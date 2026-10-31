@@ -590,7 +590,7 @@ export default function SecaoParcelas() {
           )}
           {/* Só o "+" (01/09) — o título ao lado já diz "Compras em prestações".
               O texto inteiro vive no aria-label. */}
-          <Botao variante="primaria" soIcone aria-label="Adicionar parcela" onClick={abrirNova}>
+          <Botao variante="adicionar" aria-label="Adicionar parcela" onClick={abrirNova}>
             <Plus size={18} aria-hidden />
           </Botao>
         </div>
@@ -635,10 +635,10 @@ export default function SecaoParcelas() {
           folha à parte com o histórico, em vez de crescer a página. */}
       {quitadas.length > 0 && (
         <div className={styles.rodape}>
-          <button className={styles.botaoQuitadas} onClick={() => setQuitadasAbertas(true)}>
-            <History size={16} aria-hidden />
+          <Botao variante="secundario" onClick={() => setQuitadasAbertas(true)}>
+            <History size={15} aria-hidden />
             Liquidadas ({quitadas.length})
-          </button>
+          </Botao>
         </div>
       )}
 

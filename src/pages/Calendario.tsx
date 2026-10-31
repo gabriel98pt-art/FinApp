@@ -256,8 +256,7 @@ export default function SecaoCalendario() {
             01/09/2026). Continua exatamente onde sempre esteve, no corpo da
             página — o cabeçalho não recebe botões de criar. */}
             <Botao
-              variante="primaria"
-              soIcone
+              variante="adicionar"
               onClick={() => abrirNovoEvento()}
               aria-label="Adicionar evento"
             >

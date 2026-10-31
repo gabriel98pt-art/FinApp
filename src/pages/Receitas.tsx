@@ -120,22 +120,10 @@ export default function Receitas() {
   const maiorFonte = agruparPorChave(doMes(contadas, mes), (r) => r.fonte)[0] ?? null;
 
   const largo = useMediaQuery("(min-width: 1024px)");
-  const botaoNoTopo = useMediaQuery("(min-width: 768px)");
   const seletorVisao = (
     <SeletorVisao valor={visao} aoMudar={setVisao}>
       {visao === "semana" && (
         <SeletorSemana semanas={semanas} indice={semanaIdx} aoMudar={setSemanaIdx} />
-      )}
-      {!botaoNoTopo && (
-        <Botao
-          variante="primaria"
-          soIcone
-          className={styles.adicionar}
-          aria-label="Adicionar receita"
-          onClick={() => abrirRegistro("receita")}
-        >
-          <Plus size={18} aria-hidden />
-        </Botao>
       )}
     </SeletorVisao>
   );
@@ -197,16 +185,15 @@ export default function Receitas() {
           <h3 className={styles.tituloSecao}>Lançamentos</h3>
           <div className={styles.acoesSecao}>
             <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
-            {botaoNoTopo && (
+            {
               <Botao
-                variante="primaria"
-                soIcone
+                variante="adicionar"
                 aria-label="Adicionar receita"
                 onClick={() => abrirRegistro("receita")}
               >
                 <Plus size={18} aria-hidden />
               </Botao>
-            )}
+            }
           </div>
         </div>
 

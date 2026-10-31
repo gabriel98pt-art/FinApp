@@ -445,8 +445,7 @@ export default function Tvde() {
                 {/* Só o "+" (01/09): o título ao lado já diz "Semanas". A
                     frase inteira vive no aria-label. */}
                 <Botao
-                  variante="primaria"
-                  soIcone
+                  variante="adicionar"
                   aria-label="Adicionar semana"
                   onClick={() => setEditando(proximaSemanaFalta)}
                 >

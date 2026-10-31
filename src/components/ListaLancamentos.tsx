@@ -201,7 +201,7 @@ export default function ListaLancamentos({
       {titulo && (
         <div className={styles.cabecalho}>
           <h3 className={styles.titulo}>{titulo}</h3>
-          <Botao variante="primaria" soIcone aria-label="Adicionar" onClick={aoAdicionar}>
+          <Botao variante="adicionar" aria-label="Adicionar" onClick={aoAdicionar}>
             <Plus size={18} aria-hidden />
           </Botao>
         </div>

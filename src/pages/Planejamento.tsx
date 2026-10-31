@@ -403,12 +403,7 @@ export default function Planejamento() {
                   {fundos.length > 0 &&
                     `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
                 </h3>
-                <Botao
-                  variante="primaria"
-                  soIcone
-                  aria-label="Adicionar fundo"
-                  onClick={abrirNovoFundo}
-                >
+                <Botao variante="adicionar" aria-label="Adicionar fundo" onClick={abrirNovoFundo}>
                   <Plus size={18} aria-hidden />
                 </Botao>
               </div>
@@ -479,15 +474,15 @@ export default function Planejamento() {
                           <p className={styles.fundoAtingido}>Meta atingida!</p>
                         )}
                         {projecao && <p className={styles.fundoProj}>{projecao}</p>}
-                        <button
-                          className={styles.contribuirBotao}
+                        <Botao
+                          variante="secundario"
                           onClick={() => {
                             setContribValor(null);
                             setContribuindo(f.id);
                           }}
                         >
                           <Plus size={15} aria-hidden /> Contribuir
-                        </button>
+                        </Botao>
                       </div>
                     );
                   })}

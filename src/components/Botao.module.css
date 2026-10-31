@@ -90,3 +90,61 @@
   font-size: var(--fs-body);
   padding: 8px 14px;
 }
+
+/* ── Padrão único (prévia) ───────────────────────────────────────────────────
+   Quatro papéis novos, com medidas fixas: o mesmo papel tem o mesmo aspeto em
+   todas as abas. Icones sempre 18px (adicionar, icone) ou 15px (secundario). */
+
+/* Adicionar (+): escuro, 34×34, só ícone, na linha do título do quadro. */
+.adicionar {
+  background: var(--btn-bg);
+  color: var(--btn-txt);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex: none;
+}
+
+/* Ícone secundário (filtro, ordenar, menu de ações): círculo bege 34×34. */
+.icone {
+  background: var(--s2);
+  color: var(--mut);
+  border: 1px solid var(--brd);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex: none;
+  position: relative;
+}
+
+.icone:hover {
+  color: var(--txt);
+  background: var(--s3);
+}
+
+/* Secundário com texto (Esconder, Importar, Liquidadas, Contribuir…): pílula
+   bege com 34px de altura, texto 13.6/600 e ícone opcional de 15px. */
+.secundario {
+  background: var(--s2);
+  color: var(--txt);
+  border-radius: var(--r-pill);
+  height: 34px;
+  padding: 0 14px;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  gap: 6px;
+}
+
+.secundario:hover {
+  background: var(--s3);
+}
+
+/* Link (Ver todos / Ver todas): texto terracota, sem fundo. */
+.link {
+  color: var(--blu-txt);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 2px;
+  gap: 2px;
+}

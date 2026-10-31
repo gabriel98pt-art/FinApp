@@ -1,3 +1,4 @@
+import Botao from "./Botao";
 import { useRef, useState } from "react";
 import { Check, ListFilter } from "lucide-react";
 import CategoriaBolha from "./CategoriaBolha";
@@ -121,18 +122,18 @@ export default function FiltroTransacoes({
 
   return (
     <>
-      <button
+      <Botao
         ref={gatilhoRef}
-        type="button"
-        className={`${styles.botao} ${ativos > 0 ? styles.botaoAtivo : ""}`}
+        variante="icone"
+        className={ativos > 0 ? styles.botaoAtivo : ""}
         onClick={() => setAberta(!aberta)}
         aria-expanded={aberta}
         aria-label={ativos > 0 ? `Filtrar transações — ${ativos} ativo(s)` : "Filtrar transações"}
         title="Filtrar"
       >
-        <ListFilter size={16} aria-hidden />
+        <ListFilter size={18} aria-hidden />
         {ativos > 0 && <span className={styles.badge}>{ativos}</span>}
-      </button>
+      </Botao>
 
       <FolhaAncorada
         aberta={aberta}

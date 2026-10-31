@@ -1,3 +1,4 @@
+import Botao from "./Botao";
 import { CloudOff } from "lucide-react";
 import styles from "./ErroSincronizacao.module.css";
 
@@ -28,9 +29,9 @@ export default function ErroSincronizacao({
       <div className={styles.tira} role="status">
         <CloudOff size={15} aria-hidden />
         <span className={styles.tiraTexto}>{mensagem} — os dados podem estar desatualizados.</span>
-        <button className={styles.tiraBotao} onClick={() => window.location.reload()}>
+        <Botao variante="secundario" onClick={() => window.location.reload()}>
           Tentar novamente
-        </button>
+        </Botao>
       </div>
     );
   }
@@ -42,9 +43,9 @@ export default function ErroSincronizacao({
       </span>
       <p className={styles.mensagem}>{mensagem}</p>
       <p className={styles.sub}>{sub}</p>
-      <button className={styles.botao} onClick={() => window.location.reload()}>
+      <Botao variante="secundario" onClick={() => window.location.reload()}>
         Tentar novamente
-      </button>
+      </Botao>
     </div>
   );
 }
