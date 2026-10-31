@@ -702,9 +702,9 @@ export default function SecaoParcelas() {
             value={novoIntermediador}
             onChange={(e) => setNovoIntermediador(e.target.value)}
           />
-          <button type="submit" className={styles.gerirBotao}>
+          <Botao variante="secundario" type="submit">
             Adicionar
-          </button>
+          </Botao>
         </div>
       </form>
 

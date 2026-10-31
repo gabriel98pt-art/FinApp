@@ -27,6 +27,7 @@ import { confirmarAcao } from "../stores/confirmarStore";
 import { mostrarToast } from "../stores/toastStore";
 import { formatMoney } from "../utils/money";
 import styles from "./CopilotoCard.module.css";
+import Botao from "./Botao";
 
 const SUGESTOES = [
   "resumo do mês",
@@ -192,9 +193,9 @@ export default function CopilotoCard() {
           onChange={(e) => setPergunta(e.target.value)}
           placeholder="Ex.: quanto gastei em mercado?"
         />
-        <button type="submit" className={styles.botao}>
+        <Botao variante="secundario" type="submit">
           Perguntar
-        </button>
+        </Botao>
       </form>
 
       {aPensar && <p className={styles.resposta}>A pensar…</p>}

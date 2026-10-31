@@ -209,22 +209,6 @@
   padding: 0 4px;
 }
 
-.novoNoDiaBotao {
-  /* Ocupa a largura da folha, com o ícone e o rótulo centrados juntos. */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: 100%;
-  color: var(--blu-txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: var(--r-sm);
-  background: var(--s2);
-}
-
 /* Formulário */
 .form {
   display: flex;

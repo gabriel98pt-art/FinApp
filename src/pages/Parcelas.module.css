@@ -343,11 +343,3 @@
 
 /* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
    de acento sempre presente. A ação principal da tela é a de cima. */
-.gerirBotao {
-  background: var(--s3);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  border-radius: var(--r-sm);
-  padding: 9px 14px;
-}

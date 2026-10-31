@@ -4,6 +4,7 @@ import BottomSheet from "../../components/BottomSheet";
 import { alterarSenha, mensagemDeErroSenhaAtual, SENHA_MINIMA } from "../../services/authService";
 import { mostrarToast } from "../../stores/toastStore";
 import styles from "../Definicoes.module.css";
+import Botao from "../../components/Botao";
 
 /** Troca de senha. Pede a atual porque o Firebase exige login recente para
  *  operações sensíveis — e porque é ela que impede que uma sessão deixada
@@ -70,9 +71,9 @@ export default function FolhaSenha({
             minLength={SENHA_MINIMA}
             required
           />
-          <button type="submit" className={styles.botaoPequeno} disabled={salvando}>
+          <Botao variante="secundario" type="submit" disabled={salvando}>
             <KeyRound size={14} aria-hidden /> {salvando ? "A alterar…" : "Alterar senha"}
-          </button>
+          </Botao>
         </div>
       </form>
     </BottomSheet>

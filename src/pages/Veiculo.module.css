@@ -312,15 +312,6 @@
 
 /* Painel de gerir listas, no fim da página e de uso raro: era mais uma mancha
    de acento sempre presente. A ação principal da tela é a de cima. */
-.gerirBotao {
-  background: transparent;
-  border: 1px solid var(--brd);
-  color: var(--mut);
-  font-weight: 600;
-  font-size: var(--fs-label);
-  border-radius: var(--r-sm);
-  padding: 7px 12px;
-}
 
 /* Caixa de marcação simples dentro das folhas (ex.: «Recarga da frota»). */
 .checkbox {

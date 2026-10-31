@@ -65,33 +65,7 @@
 }
 
 .cancelar,
-.confirmar {
-  border-radius: var(--r-sm);
-  padding: 10px 18px;
-  font-size: var(--fs-title);
-  font-weight: 700;
-}
-
-.cancelar {
-  color: var(--mut);
-}
-
-.cancelar:hover {
-  background: var(--s2);
-  color: var(--txt);
-}
-
-.confirmar {
-  background: var(--red);
-  color: var(--bg);
-}
-
 .cancelar:focus-visible,
-.confirmar:focus-visible {
-  outline: 2px solid var(--blu);
-  outline-offset: 2px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cartao {
     transform: translate(-50%, -50%);

@@ -3,6 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { registrarErro } from "../services/erroService";
 import { useAuthStore } from "../stores/authStore";
 import styles from "./ErrorBoundary.module.css";
+import Botao from "./Botao";
 
 /** Rede de segurança contra a tela branca: uma exceção durante o render
  *  desmonta a árvore React inteira, e sem isto o utilizador fica a olhar para
@@ -73,9 +74,9 @@ export default class ErrorBoundary extends Component<
           {this.state.primeiroComponente && (
             <p className={styles.detalhe}>{this.state.primeiroComponente}</p>
           )}
-          <button className={styles.botao} onClick={() => window.location.reload()}>
+          <Botao variante="secundario" onClick={() => window.location.reload()}>
             Recarregar
-          </button>
+          </Botao>
         </div>
       </div>
     );

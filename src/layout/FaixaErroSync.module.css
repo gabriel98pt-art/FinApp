@@ -23,17 +23,3 @@
 .texto {
   color: var(--txt);
 }
-
-.botao {
-  color: var(--ylw);
-  font-weight: 800;
-  font-size: var(--fs-body);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  padding: 2px 4px;
-  border-radius: var(--r-xs);
-}
-
-.botao:hover {
-  background: var(--tint-ylw-14);
-}

@@ -106,23 +106,23 @@ export default function ModalDuplicatas({
                         : "Isto apaga o lançamento que já está registado. Não dá para desfazer só por aqui."}
                     </p>
                     <div className={styles.revisaoConfirmarAcoes}>
-                      <button
+                      <Botao
+                        variante="perigo"
                         type="button"
-                        className={styles.botaoPerigo}
                         onClick={() => {
                           onMarcarParaApagar(l.id, true);
                           setAConfirmar(null);
                         }}
                       >
                         {fixa ? "Sim, desmarcar o mês" : "Sim, eliminar o existente"}
-                      </button>
-                      <button
+                      </Botao>
+                      <Botao
+                        variante="secundario"
                         type="button"
-                        className={styles.botao}
                         onClick={() => setAConfirmar(null)}
                       >
                         Cancelar
-                      </button>
+                      </Botao>
                     </div>
                   </div>
                 ) : (

@@ -1,6 +1,7 @@
 import { CloudOff } from "lucide-react";
 import { useCfgStore } from "../stores/cfgStore";
 import styles from "./FaixaErroSync.module.css";
+import Botao from "../components/Botao";
 
 /** Aviso global de sincronização caída, só para a config da conta.
  *
@@ -19,9 +20,9 @@ export default function FaixaErroSync() {
     <div className={styles.faixa} role="status">
       <CloudOff size={15} aria-hidden />
       <span className={styles.texto}>Não foi possível sincronizar.</span>
-      <button className={styles.botao} onClick={() => window.location.reload()}>
+      <Botao variante="secundario" onClick={() => window.location.reload()}>
         Tentar novamente
-      </button>
+      </Botao>
     </div>
   );
 }

@@ -673,9 +673,9 @@ export default function Tvde() {
                   onChange={(e) => setSegMes(e.target.value)}
                 />
                 <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
-                <button type="submit" className={styles.botaoMini}>
+                <Botao variante="secundario" type="submit">
                   Guardar
-                </button>
+                </Botao>
               </div>
               {Object.entries(segPorMes).length > 0 && (
                 <ul className={styles.listaSimples}>
@@ -724,9 +724,9 @@ export default function Tvde() {
                   onChange={(e) => setDespDescricao(e.target.value)}
                   required
                 />
-                <button type="submit" className={styles.botaoMini}>
+                <Botao variante="secundario" type="submit">
                   Adicionar
-                </button>
+                </Botao>
               </div>
               {despesas.length > 0 && (
                 <ul className={styles.listaSimples}>

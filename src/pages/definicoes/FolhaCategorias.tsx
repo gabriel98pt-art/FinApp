@@ -20,6 +20,7 @@ import { mensagemDeErroDados } from "../../utils/erroDados";
 import { corDaCategoriaVisual } from "../../utils/categoriaVisual";
 import type { ConfigConta } from "../../types";
 import styles from "../Definicoes.module.css";
+import Botao from "../../components/Botao";
 
 /** Lista editável de categorias de despesa OU fontes de receita — o mesmo
  *  editor serve as duas (item 19: ícone, cor, renomear, remover). Servia
@@ -177,9 +178,9 @@ export default function FolhaCategorias({
           placeholder="Nova categoria…"
           aria-label={`Adicionar em ${titulo}`}
         />
-        <button type="submit" className={styles.botaoPequeno}>
+        <Botao variante="secundario" type="submit">
           Adicionar
-        </button>
+        </Botao>
       </form>
 
       <SeletorIcone

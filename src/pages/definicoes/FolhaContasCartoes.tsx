@@ -235,9 +235,9 @@ export default function FolhaContasCartoes({
             rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
             aoMudar={(t) => setTipo(t as TipoCartao)}
           />
-          <button type="submit" className={styles.botaoPequeno}>
+          <Botao variante="secundario" type="submit">
             <Wallet size={14} aria-hidden /> Adicionar
-          </button>
+          </Botao>
         </div>
       </form>
 

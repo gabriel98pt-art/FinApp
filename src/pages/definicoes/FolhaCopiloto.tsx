@@ -6,6 +6,7 @@ import { definirPreferenciasCopiloto } from "../../services/cfgService";
 import { mostrarToast } from "../../stores/toastStore";
 import type { ConfigConta, TomCopiloto } from "../../types";
 import styles from "../Definicoes.module.css";
+import Botao from "../../components/Botao";
 
 const TONS: { valor: TomCopiloto; rotulo: string }[] = [
   { valor: "direto", rotulo: "Direto" },
@@ -86,13 +87,13 @@ export default function FolhaCopiloto({
             rotuloOpcao={(v) => TONS.find((t) => t.valor === v)?.rotulo ?? v}
             aoMudar={(v) => setTom(v as TomCopiloto)}
           />
-          <button type="submit" className={styles.botaoPequeno} disabled={salvando}>
+          <Botao variante="secundario" type="submit" disabled={salvando}>
             <Sparkles size={14} aria-hidden /> {salvando ? "A guardar…" : "Guardar"}
-          </button>
+          </Botao>
           {configurado && (
-            <button type="button" className={styles.botaoPequeno} onClick={() => void desligar()}>
+            <Botao variante="secundario" type="button" onClick={() => void desligar()}>
               <X size={14} aria-hidden /> Desligar
-            </button>
+            </Botao>
           )}
         </div>
       </form>

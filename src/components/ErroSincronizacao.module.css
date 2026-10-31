@@ -32,21 +32,6 @@
   font-size: var(--fs-body);
 }
 
-.botao {
-  margin-top: 10px;
-  background: var(--s2);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  border-radius: var(--r-sm);
-  padding: 10px 16px;
-  transition: background var(--dur-fast) var(--ease-exit);
-}
-
-.botao:hover {
-  background: var(--s3);
-}
-
 /* Variante compacta: a lista ainda tem dados, então o aviso fica sobre ela
    em vez de a substituir. */
 
@@ -69,18 +54,4 @@
   flex: 1;
   min-width: 0;
   color: var(--txt);
-}
-
-.tiraBotao {
-  color: var(--ylw);
-  font-weight: 800;
-  font-size: var(--fs-body);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  padding: 2px 4px;
-  border-radius: var(--r-xs);
-}
-
-.tiraBotao:hover {
-  background: var(--tint-ylw-14);
 }

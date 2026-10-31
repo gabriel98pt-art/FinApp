@@ -9,6 +9,7 @@ import ModalDuplicatas from "./importar/ModalDuplicatas";
 import ConfirmacaoImportacao from "./importar/ConfirmacaoImportacao";
 import { plural } from "./importar/agrupamento";
 import styles from "./Importar.module.css";
+import Botao from "../components/Botao";
 
 /** O fluxo de importar, hoje dentro da folha aberta a partir de Cartões (era a
  *  página /importar). Só monta os pedaços: toda a lógica e a ligação às stores
@@ -68,9 +69,9 @@ export default function FluxoImportar({ imp }: { imp: ReturnType<typeof useImpor
               )}
             </p>
             {imp.podeDesfazer && (
-              <button className={styles.botao} onClick={imp.desfazerImportacao}>
+              <Botao variante="secundario" onClick={imp.desfazerImportacao}>
                 Desfazer
-              </button>
+              </Botao>
             )}
           </div>
           {!imp.podeDesfazer && (

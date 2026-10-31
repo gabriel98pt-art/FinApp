@@ -197,20 +197,6 @@
   font-size: var(--fs-body);
 }
 
-.botaoImportar {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--brd);
-  background: var(--s1);
-  color: var(--txt);
-  font-size: var(--fs-body);
-  font-weight: 600;
-}
-
 .cabecalhoContas {
   display: flex;
   align-items: center;
@@ -221,19 +207,6 @@
 
 .rotuloContas {
   color: var(--mut);
-  font-size: var(--fs-label);
-  font-weight: 600;
-}
-
-.minibotao {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 32px;
-  padding: 0 10px;
-  border-radius: var(--r-pill);
-  background: var(--s2);
-  color: var(--blu-txt);
   font-size: var(--fs-label);
   font-weight: 600;
 }

@@ -114,9 +114,9 @@ export default function ConfirmacaoImportacao({
           <Botao variante="submeter" disabled={enviando} onClick={() => void onImportar()}>
             {enviando ? "Aguarde…" : `Importar ${totalImportar}`}
           </Botao>
-          <button className={styles.botao} disabled={enviando} onClick={onFechar}>
+          <Botao variante="secundario" disabled={enviando} onClick={onFechar}>
             Voltar à revisão
-          </button>
+          </Botao>
         </div>
       </BottomSheet>
     </>

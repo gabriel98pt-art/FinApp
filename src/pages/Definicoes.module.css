@@ -276,27 +276,6 @@
   }
 }
 
-.botaoPequeno {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--s2);
-  color: var(--txt);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  border-radius: var(--r-sm);
-  padding: 8px 12px;
-  white-space: nowrap;
-}
-
-.botaoPequeno:hover {
-  background: var(--s3);
-}
-
-.botaoPequeno:disabled {
-  opacity: 0.6;
-}
-
 .arquivoOculto {
   display: none;
 }

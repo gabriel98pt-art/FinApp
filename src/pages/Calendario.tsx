@@ -424,15 +424,15 @@ export default function SecaoCalendario() {
             ))}
           </div>
         )}
-        <button
-          className={styles.novoNoDiaBotao}
+        <Botao
+          variante="secundario"
           onClick={() => {
             setDiaSelecionado(null);
             abrirNovoEvento(diaSelecionado ?? hoje);
           }}
         >
           <Plus size={15} aria-hidden /> Adicionar evento neste dia
-        </button>
+        </Botao>
       </BottomSheet>
 
       <BottomSheet aberta={novoAberto} aoFechar={() => setNovoAberto(false)} titulo="Novo evento">

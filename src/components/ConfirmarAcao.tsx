@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { responderConfirmacao, useConfirmarStore } from "../stores/confirmarStore";
 import styles from "./ConfirmarAcao.module.css";
+import Botao from "./Botao";
 
 /** Diálogo de confirmação do app. Cartão central em vez de folha: é uma
  *  pergunta curta de sim/não, não um formulário — e o cartão no meio da tela
@@ -71,21 +72,17 @@ export default function ConfirmarAcao() {
         {/* A mensagem pode trazer \n com um aviso extra na segunda linha. */}
         <p className={styles.mensagem}>{mensagem}</p>
         <div className={styles.acoes}>
-          <button
-            type="button"
-            className={styles.cancelar}
-            onClick={() => responderConfirmacao(false)}
-          >
+          <Botao variante="secundario" type="button" onClick={() => responderConfirmacao(false)}>
             Cancelar
-          </button>
-          <button
+          </Botao>
+          <Botao
+            variante="perigoForte"
             ref={confirmarRef}
             type="button"
-            className={styles.confirmar}
             onClick={() => responderConfirmacao(true)}
           >
             Confirmar
-          </button>
+          </Botao>
         </div>
       </div>
     </>,

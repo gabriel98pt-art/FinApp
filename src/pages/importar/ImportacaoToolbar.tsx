@@ -3,6 +3,7 @@ import Seletor from "../../components/Seletor";
 import { nomeAtualDoMetodo } from "../../utils/instituicoes";
 import type { ConfigConta } from "../../types";
 import styles from "../Importar.module.css";
+import Botao from "../../components/Botao";
 
 /** Ações em massa sobre todas as linhas: aceitar auto-classificadas, marcar
  *  tudo para importar/pular e escolher a mesma conta para o extrato inteiro.
@@ -32,12 +33,12 @@ export default function ImportacaoToolbar({
         <Check size={15} strokeWidth={2.5} aria-hidden /> Aceitar auto-classificadas
       </button>
       <div className={styles.acoesPar}>
-        <button className={styles.botao} onClick={() => onMarcarTodas("import")}>
+        <Botao variante="secundario" onClick={() => onMarcarTodas("import")}>
           Marcar tudo p/ importar
-        </button>
-        <button className={styles.botao} onClick={() => onMarcarTodas("skip")}>
+        </Botao>
+        <Botao variante="secundario" onClick={() => onMarcarTodas("skip")}>
           Marcar tudo p/ pular
-        </button>
+        </Botao>
       </div>
       <Seletor
         variante="inline"

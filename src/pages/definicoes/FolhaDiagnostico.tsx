@@ -5,6 +5,7 @@ import SettingsRow from "../../components/settings/SettingsRow";
 import { limparErros, observarErros, type ErroRegistado } from "../../services/erroService";
 import { mostrarToast } from "../../stores/toastStore";
 import styles from "../Definicoes.module.css";
+import Botao from "../../components/Botao";
 
 /** Data legível para quem vai reportar o erro ("quinta às 14h32", não um
  *  timestamp). */
@@ -89,9 +90,9 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
           ))}
         </div>
         <div className={styles.linhaAdicionar}>
-          <button className={styles.botaoPequeno} onClick={() => void limpar()}>
+          <Botao variante="secundario" onClick={() => void limpar()}>
             <Trash2 size={14} aria-hidden /> Limpar registo
-          </button>
+          </Botao>
         </div>
       </BottomSheet>
     </>

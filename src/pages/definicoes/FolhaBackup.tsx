@@ -194,9 +194,9 @@ export default function FolhaBackup({
     <BottomSheet aberta={aberta} aoFechar={fechar} titulo="Backup">
       <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um ficheiro.</p>
       <div className={styles.linhaAdicionar}>
-        <button className={styles.botaoPequeno} onClick={() => void exportar()}>
+        <Botao variante="secundario" onClick={() => void exportar()}>
           <Download size={14} aria-hidden /> Exportar dados
-        </button>
+        </Botao>
       </div>
       {etapa.tipo === "valido" && resumo ? (
         <div className={styles.resumoBackup} role="group" aria-label="Confirmar restauração">
@@ -226,13 +226,13 @@ export default function FolhaBackup({
           <p className={styles.dropzoneBackupTexto}>
             Arraste o ficheiro de backup aqui, cole com ⌘V/Ctrl+V, ou
           </p>
-          <button
-            className={styles.botaoPequeno}
+          <Botao
+            variante="secundario"
             onClick={() => arquivoRef.current?.click()}
             disabled={etapa.tipo === "verificando"}
           >
             {etapa.tipo === "verificando" ? "Verificando…" : "Escolher ficheiro"}
-          </button>
+          </Botao>
           <input
             ref={arquivoRef}
             type="file"

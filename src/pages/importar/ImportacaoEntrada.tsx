@@ -78,9 +78,9 @@ export default function ImportacaoEntrada({
           {lendoPdf ? "Lendo…" : "Carregar ficheiro"}
         </Botao>
         {!caixaAberta && (
-          <button className={styles.botao} onClick={() => setColando(true)} disabled={lendoPdf}>
+          <Botao variante="secundario" onClick={() => setColando(true)} disabled={lendoPdf}>
             Colar texto
-          </button>
+          </Botao>
         )}
         <input
           ref={arquivoRef}
@@ -119,9 +119,9 @@ export default function ImportacaoEntrada({
             {/* O botão "Colar" existe por causa do iPhone (ver
                 `colarDoClipboard`): em destaque sem rato, discreto com ele. */}
             {semMouse ? (
-              <button className={styles.botao} onClick={onColarClipboard} disabled={lendoPdf}>
+              <Botao variante="secundario" onClick={onColarClipboard} disabled={lendoPdf}>
                 <ClipboardPaste size={15} aria-hidden /> Colar
-              </button>
+              </Botao>
             ) : (
               <button className={styles.linkBotao} onClick={onColarClipboard} disabled={lendoPdf}>
                 Colar
