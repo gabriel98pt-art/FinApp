@@ -281,7 +281,7 @@
 /* Largura máxima da área de conteúdo nas telas largas, encostada à sidebar. O
    cabeçalho acompanha (AppShell/Header). */
 :root {
-  --conteudo-max: 1320px;
+  --conteudo-max: 1200px;
 }
 
 /* Altura do cabeçalho (61px medidos: 10 + 10 de padding, o conteúdo e o fio) e

@@ -25,9 +25,11 @@
 @media (min-width: 1024px) {
   .conteudo {
     max-width: var(--conteudo-max);
-    /* Encostado à barra: com o ecrã mais largo que o máximo, a sobra fica toda
-       à direita. O cabeçalho acompanha (ver o padding dele). */
-    margin-left: var(--sidebar-w);
+    /* Centrado no espaço à direita da barra: com o ecrã mais largo que o
+       máximo, a sobra reparte-se pelos dois lados e o nome deixa de ficar a
+       meio ecrã do valor. `max()` mantém o encosto à barra quando não sobra
+       nada. O cabeçalho acompanha (ver o padding dele). */
+    margin-left: max(var(--sidebar-w), calc((100% + var(--sidebar-w) - var(--conteudo-max)) / 2));
     margin-right: 0;
   }
 }
