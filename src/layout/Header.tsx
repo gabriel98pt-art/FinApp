@@ -62,10 +62,6 @@ export default function Header() {
           <SeletorMes mes={mes} aoMudar={setMes} compacto />
         </div>
       )}
-      {/* Desfazer e refazer saíram daqui em 31/08/2026: eram as duas únicas
-          ações do header que não abriam nada, e cinco botões a 44 pontos não
-          cabiam num telemóvel de 375. Agora vivem no menu "Mais" (telemóvel)
-          e no fim da barra lateral (tablet/computador). */}
       <div className={styles.acoes}>
         <button
           className={styles.acao}

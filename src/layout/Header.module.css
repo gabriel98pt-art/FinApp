@@ -173,10 +173,7 @@
    (SeletorMes.module.css). Os 7px que sobram de cada lado caem dentro do
    padding do header, portanto não empurram nada.
 
-   A largura só passou a caber quando desfazer e refazer saíram do header
-   (31/08/2026): cinco botões a 44 pontos eram 220px só de ações, mais do que
-   o header tem a 375px com o logo e o mês ao lado. Com dois, são 88 — e o
-   `gap` de 14px em `.acoes` garante que as duas áreas encostam sem se
+   O `gap` de 14px em `.acoes` garante que as duas áreas encostam sem se
    sobrepor, senão um toque na fronteira ia parar ao botão errado. */
 .acao::before {
   content: "";
