@@ -57,6 +57,13 @@ export interface FundoResumo {
    *  um número que a app já tinha. Nunca negativo: `progressoFundo` já faz
    *  o `Math.max(0, alvo - atual)`. */
   falta: string;
+  /** Quanto separar por mês para chegar ao alvo a tempo do prazo — mesma
+   *  razão de `falta`: já vem calculado (`progressoFundo`), porque a regra
+   *  do prompt é "nunca faças contas". `null` nos dois casos em que
+   *  `progressoFundo` também devolve `null` aqui: fundo já concluído (não há
+   *  "por mês" a separar) ou prazo já vencido (não há meses restantes para
+   *  repartir a falta). */
+  porMes: string | null;
 }
 
 /** Uma despesa recente do mês corrente. Sem conta/cartão e sem id — o que a
@@ -165,13 +172,17 @@ export function montarResumoParaIA(ctx: ContextoCopiloto): ResumoParaIA {
       .map(([nome, total]) => ({ nome, total: formatMoney(total, moeda) })),
     fundos: ctx.fundos
       .filter((f) => f.prazo)
-      .map((f) => ({
-        nome: f.nome,
-        alvo: formatMoney(f.alvo, moeda),
-        atual: formatMoney(f.atual, moeda),
-        prazo: f.prazo!,
-        falta: formatMoney(progressoFundo(f, ctx.mesReal).falta, moeda),
-      })),
+      .map((f) => {
+        const p = progressoFundo(f, ctx.mesReal);
+        return {
+          nome: f.nome,
+          alvo: formatMoney(f.alvo, moeda),
+          atual: formatMoney(f.atual, moeda),
+          prazo: f.prazo!,
+          falta: formatMoney(p.falta, moeda),
+          porMes: p.porMes === null ? null : formatMoney(p.porMes, moeda),
+        };
+      }),
     ultimasTransacoes: ctx.despesas
       .filter((d) => d.data.slice(0, 7) === ym)
       .slice()
