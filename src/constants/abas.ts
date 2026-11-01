@@ -69,5 +69,4 @@ export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("analise"),
   aba("veiculo"),
   aba("tvde"),
-  aba("definicoes"),
 ];

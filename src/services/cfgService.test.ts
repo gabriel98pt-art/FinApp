@@ -748,3 +748,32 @@ describe("histórico", () => {
     expect(snapshot).not.toHaveBeenCalled();
   });
 });
+
+describe("normalizarConfig — perfil (nome e foto)", () => {
+  const foto = "data:image/webp;base64,UklGRg==";
+
+  test("sem nome nem foto: vazios", () => {
+    const c = s.normalizarConfig({});
+    expect(c.nome).toBe("");
+    expect(c.foto).toBe("");
+  });
+
+  test("com foto válida e nome: ficam, com o nome limpo", () => {
+    const c = s.normalizarConfig({ nome: "  Ana   Silva ", foto });
+    expect(c.nome).toBe("Ana Silva");
+    expect(c.foto).toBe(foto);
+  });
+
+  test("foto que não é imagem pequena JPEG/WebP vira «sem foto»", () => {
+    expect(s.normalizarConfig({ foto: "data:image/svg+xml;base64,PHN2Zz4=" }).foto).toBe("");
+    expect(s.normalizarConfig({ foto: "https://x.pt/a.jpg" }).foto).toBe("");
+    expect(s.normalizarConfig({ foto: "data:image/webp;base64," + "A".repeat(50_000) }).foto).toBe(
+      "",
+    );
+    expect(s.normalizarConfig({ foto: 42 as unknown as string }).foto).toBe("");
+  });
+
+  test("nome que não é texto vira «sem nome»", () => {
+    expect(s.normalizarConfig({ nome: 7 as unknown as string }).nome).toBe("");
+  });
+});

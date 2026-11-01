@@ -4,6 +4,8 @@ import { CATEGORIAS_DESPESA_PADRAO, FONTES_RECEITA_PADRAO } from "./categorias";
 /** Config de uma conta nova. O RTDB remove objetos/arrays vazios — a
  *  normalização em cfgService garante estes campos sempre presentes. */
 export const CONFIG_PADRAO: ConfigConta = {
+  nome: "",
+  foto: "",
   theme: "dark",
   currency: "EUR",
   showTvde: false,

@@ -117,23 +117,6 @@
   }
 }
 
-/* Desfazer/refazer, separados das abas por um risco: as de cima levam a uma
-   tela, estas fazem alguma coisa na hora. */
-.acoes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin: 8px 12px 0;
-  padding-top: 8px;
-  border-top: 1px solid var(--linha);
-}
-
-.acoes .aba:disabled {
-  opacity: 0.35;
-  pointer-events: none;
-}
-
 /* Telas baixas (portátil pequeno, iPad com barra do Safari): abas mais
    juntas para as 14 caberem sem rolar. */
 @media (max-height: 760px) {
@@ -142,8 +125,7 @@
     height: 36px;
   }
 
-  .lista,
-  .acoes {
+  .lista {
     gap: 3px;
   }
 }

@@ -1,0 +1,15 @@
+/* O avatar é o botão: 32px, sem caixa própria. A área de toque chega aos 44px
+   sem alargar o círculo (o resto da linha do cabeçalho não disputa o espaço). */
+.botao {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+}
+
+.botao::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}

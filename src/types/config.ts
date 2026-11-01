@@ -81,6 +81,14 @@ export type TipoNotificacao = "parcela" | "fixa" | "fatura" | "orcamento";
 
 /** Configuração por conta (antigo `S.cfg`). */
 export interface ConfigConta {
+  /** Nome da pessoa, opcional (perfil). Vazio = sem nome: o avatar usa a 1.ª
+   *  letra do e-mail. Validado em `normalizarConfig` (texto curto, sem espaços
+   *  nas pontas). */
+  nome: string;
+  /** Foto de perfil como data URL (JPEG/WebP ~200×200, ≤ ~30 KB), reduzida no
+   *  próprio aparelho e guardada com os dados da conta — sem Firebase Storage.
+   *  Vazio = sem foto. Validado em `normalizarConfig`. */
+  foto: string;
   theme: Theme;
   /** Só o símbolo muda — a formatação `1.234,56` é igual para todas (seção 4.5). */
   currency: Currency;
