@@ -129,6 +129,8 @@ describe("montarResumoParaIA", () => {
       atual: "€ 500,00",
       prazo: "2026-12-31",
       falta: "€ 1.500,00",
+      // mesReal "2026-07" até "2026-12" inclusive: 6 meses. 150000 / 6 = 25000.
+      porMes: "€ 250,00",
     });
   });
 
@@ -136,7 +138,7 @@ describe("montarResumoParaIA", () => {
   // contas" — sem este campo já calculado, uma pergunta genérica sobre fundos
   // (que não bate no intent específico da camada 1) caía na regra "diz que
   // não tens esse dado" por um número que a app já sabia (progressoFundo).
-  test("fundo já concluído manda 'falta' em zero, nunca negativo", () => {
+  test("fundo já concluído manda 'falta' em zero, nunca negativo, e 'porMes' nulo", () => {
     const concluido: Fundo = {
       id: "f1",
       nome: "Férias",
@@ -148,6 +150,25 @@ describe("montarResumoParaIA", () => {
     const r = montarResumoParaIA(ctx({ fundos: [concluido] }));
 
     expect(r.fundos[0].falta).toBe("€ 0,00");
+    expect(r.fundos[0].porMes).toBeNull();
+  });
+
+  // Mesma razão de `progressoFundo` (utils/copiloto.ts): sem meses restantes
+  // não há como repartir a falta por mês — "porMes" tem de chegar nulo à IA,
+  // não um valor sem sentido (ex. dividido por zero ou por um negativo).
+  test("fundo com prazo já vencido manda 'porMes' nulo", () => {
+    const vencido: Fundo = {
+      id: "f1",
+      nome: "Viagem",
+      alvo: 200000,
+      atual: 50000,
+      prazo: "2026-01-31",
+    };
+
+    const r = montarResumoParaIA(ctx({ fundos: [vencido] }));
+
+    expect(r.fundos[0].falta).toBe("€ 1.500,00");
+    expect(r.fundos[0].porMes).toBeNull();
   });
 
   test("conta vazia produz um resumo válido, não rebenta", () => {
