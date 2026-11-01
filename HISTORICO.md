@@ -9,6 +9,23 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 01/11/2026 (perfil e menos botões)
+
+- **Botão de perfil no topo.** Um círculo à esquerda de «FinApp», em todos os
+  tamanhos de ecrã, com a tua foto ou as iniciais do nome (sem nome, a 1.ª
+  letra do e-mail). Ao tocar abre um menu pequeno com «Minha conta» e
+  «Definições».
+- **«Minha conta»** é uma folha nova: escolher, trocar ou remover a foto,
+  nome (opcional), e-mail (só leitura), e ainda Trocar senha, Sair e Apagar
+  conta — que saíram das Definições. A foto é reduzida no próprio aparelho
+  (200×200, até 30 KB) e fica guardada na tua conta.
+- **Definições saíram da barra lateral e do menu «Mais».** Passam a abrir só
+  pelo perfil.
+- **Desfazer e Refazer saíram da barra de baixo e da barra lateral.** Só o
+  «Desfazer importação» continua a existir, na própria importação.
+- Em telemóveis muito estreitos o «FinApp» do topo fica um pouco mais pequeno
+  para não bater no mês.
+
 ## 31/10/2026 (tudo alinhado e botões iguais)
 
 - **Mesmas colunas em todas as abas.** Em ecrã grande (a partir de 1024px) todas
