@@ -9,11 +9,8 @@
   /* Abre espaço para a barra lateral. O token é 0px no mobile, então isto
      vale em qualquer largura sem media query. Desloca só na horizontal — o
      sticky vertical continua igual. */
-  /* A faixa é do tom do fundo, com um fio fino por baixo; sem blur abaixo de
-     768px. A partir daí ocupa a largura toda (a sidebar flutua por cima dela) e
-     só o conteúdo se afasta, senão começava depois da sidebar como um bloco. */
-  background: var(--cabecalho-bg);
-  border-bottom: 1px solid var(--linha);
+  /* Em repouso é transparente e sem linha; o vidro vive no ::before e só
+     aparece com `.rolado` (scroll > 12px), com transição suave. */
   display: grid;
   grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
@@ -23,11 +20,8 @@
      entra a folga do ecrã deitado, onde o entalhe passa a ser de um dos lados.
      Nos aparelhos sem faixa nenhuma os tokens valem 0px e o padding fica
      exatamente o de antes. */
-  padding: calc(10px + var(--safe-topo)) calc(16px + var(--safe-dir)) 10px
-    calc(16px + var(--safe-esq));
-  border-left: none;
-  border-right: none;
-  border-top: none;
+  height: var(--cabecalho-alt);
+  padding: var(--safe-topo) calc(16px + var(--safe-dir)) 0 calc(16px + var(--safe-esq));
 }
 
 @media (min-width: 768px) {
@@ -47,21 +41,54 @@
   }
 }
 
-@media (min-width: 768px) {
-  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    .header {
-      -webkit-backdrop-filter: blur(18px) saturate(160%);
-      backdrop-filter: blur(18px) saturate(160%);
-    }
+.header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--cabecalho-bg);
+  border-bottom: 1px solid var(--linha);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.rolado::before {
+  opacity: 1;
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .header::before {
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .header {
+  .header::before {
     background: var(--bg);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header::before {
+    transition: none;
+  }
+}
+
+/* «Voltar» das sub-páginas: alvo de toque de 44×44 no mínimo. */
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 8px 0 4px;
+  color: var(--blu-txt);
+  font-size: var(--fs-title);
+  font-weight: 500;
 }
 
 /* Seletor de mês fixo no header (item 1). O min-width 0 (e o minmax na coluna)

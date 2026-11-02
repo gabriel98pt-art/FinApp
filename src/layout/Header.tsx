@@ -1,5 +1,6 @@
-import { Eye, EyeOff } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import BotaoPerfil from "./BotaoPerfil";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
@@ -29,8 +30,21 @@ const ROTAS_COM_MES = [
   "/tvde",
 ];
 
+/** Sub-páginas: em vez da foto de perfil, o canto esquerdo tem «Voltar». */
+const SUBPAGINAS = ["/definicoes"];
+
 export default function Header() {
   const { pathname } = useLocation();
+  const navegar = useNavigate();
+  const subpagina = SUBPAGINAS.includes(pathname);
+  // Em repouso a barra é transparente; passa dos 12px de scroll ganha o vidro.
+  const [rolado, setRolado] = useState(() => window.scrollY > 12);
+  useEffect(() => {
+    const ler = () => setRolado(window.scrollY > 12);
+    ler();
+    window.addEventListener("scroll", ler, { passive: true });
+    return () => window.removeEventListener("scroll", ler);
+  }, []);
   const mes = useMesVisivelStore((s) => s.mes);
   const setMes = useMesVisivelStore((s) => s.setMes);
   const mostrarMes = ROTAS_COM_MES.includes(pathname);
@@ -50,9 +64,21 @@ export default function Header() {
   }
 
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${rolado ? styles.rolado : ""}`}>
       <div className={styles.marca}>
-        <BotaoPerfil />
+        {subpagina ? (
+          <button
+            type="button"
+            className={styles.voltar}
+            // Sem histórico (página aberta direto), «Voltar» vai ao Início.
+            onClick={() => (window.history.state?.idx > 0 ? navegar(-1) : navegar("/"))}
+          >
+            <ChevronLeft size={22} aria-hidden />
+            Voltar
+          </button>
+        ) : (
+          <BotaoPerfil />
+        )}
         <h1 className={styles.logo}>
           Fin<span>App</span>
         </h1>

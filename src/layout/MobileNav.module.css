@@ -11,40 +11,80 @@
   left: 50%;
   transform: translateX(-50%);
   width: calc(100vw - 28px);
-  height: 64px;
+  height: 56px;
   z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
+  padding: 0 6px;
   border-radius: var(--r-pill);
   box-shadow: var(--sh-vidro);
 }
 
-/* Aba comum: só o ícone (o nome fica no DOM, escondido, e em `title`). A ativa
-   é um círculo branco no claro e creme no escuro. 44px de alvo de toque. */
+/* Vidro fosco também no telemóvel (o `.material` só o dava a partir de 768px). */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .barra {
+    background: var(--vidro-bg-blur);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .barra {
+    background: var(--vidro-solido);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* O círculo da aba ativa: 44px, desliza por translateX (posto por JS) entre os
+   quatro destinos. Mola crítica = sem ressalto. Fica por baixo dos ícones. */
+.circulo {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: var(--aba-ativa-bg);
+  box-shadow: var(--aba-ativa-sh);
+  pointer-events: none;
+  opacity: 1;
+}
+
+.circuloAnima {
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity var(--dur-fast) ease;
+}
+
+/* Rota fora dos quatro destinos: o círculo some em vez de ficar parado. */
+.circuloOculto {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circuloAnima {
+    transition: opacity var(--dur-fast) ease;
+  }
+}
+
+/* Aba comum: só o ícone (o nome fica no DOM, escondido, e em `title`). 44px de
+   alvo de toque; o fundo da ativa é o `.circulo`, que desliza por baixo. */
 .item {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  flex: 0 0 var(--aba-circulo);
-  width: var(--aba-circulo);
-  height: var(--aba-circulo);
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   color: var(--mut);
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
+  transition: color 0.18s ease;
   -webkit-tap-highlight-color: transparent;
-}
-
-/* O círculo visível tem 40px; a área de toque continua a ter 44. */
-.item::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
 }
 
 .item:active {
@@ -64,12 +104,10 @@
 
 .ativo {
   color: var(--aba-ativa-txt);
-  background: var(--aba-ativa-bg);
-  box-shadow: var(--aba-ativa-sh);
 }
 
-/* Botão central: terracota cheio e maior que o círculo da aba ativa (56 contra
-   40px), para nunca se ler como mais uma aba selecionada. */
+/* Botão central: terracota cheio e maior que o círculo da aba ativa (50 contra
+   44px), integrado na cápsula de 56px, para nunca se ler como aba selecionada. */
 .slotCentral {
   flex: 0 0 auto;
   display: flex;
@@ -78,8 +116,8 @@
 }
 
 .central {
-  width: var(--fab-tam);
-  height: var(--fab-tam);
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -96,73 +134,12 @@
   box-shadow: 0 2px 6px color-mix(in srgb, var(--blu) 35%, transparent);
 }
 
-/* Menu "Mais" — abre/fecha por opacidade + pointer-events, nunca display */
-.veu {
-  position: fixed;
-  inset: 0;
-  z-index: 42;
-  background: rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--dur-exit) var(--ease-exit);
-}
-
-/* Blur fraco só quando visível — a base fechada não tem blur nenhum */
-.veuVisivel {
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity var(--dur-enter) var(--ease-enter);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .veuVisivel {
-    background: rgba(0, 0, 0, 0.5);
-  }
-}
-
-/* Superfície sólida (não vidro) — o material translúcido fica só na barra */
+/* Menu "Mais": conteúdo da folha (BottomSheet), em duas colunas. */
 .menuMais {
-  position: fixed;
-  /* Sempre 11px acima do topo da barra, seja qual for a altura dela. */
-  bottom: calc(var(--alt-barra-nav) + 11px);
-  left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  width: min(100vw - 20px, 430px);
-  z-index: 43;
-  background: var(--s1);
-  border: 1px solid var(--brd);
-  border-radius: var(--r-card);
-  box-shadow: var(--sh-card);
-  padding: 8px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
-  opacity: 0;
-  pointer-events: none;
-  /* fechado = base: sair acelera e é mais rápido (motion.css) */
-  transition:
-    opacity var(--dur-exit) var(--ease-exit),
-    transform var(--dur-exit) var(--ease-exit);
-}
-
-.menuAberto {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-  /* aberto: entrar desacelera e é mais lento */
-  transition:
-    opacity var(--dur-enter) var(--ease-enter),
-    transform var(--dur-enter) var(--ease-enter);
-}
-
-/* Reduced motion: menu abre/fecha só por opacidade curta */
-@media (prefers-reduced-motion: reduce) {
-  .menuMais {
-    transition: opacity var(--dur-fast) var(--ease-exit) !important;
-    transform: translateX(-50%) !important;
-  }
+  padding: 4px 12px 16px;
 }
 
 .itemMais {
@@ -190,9 +167,7 @@
 }
 
 @media (min-width: 768px) {
-  .barra,
-  .menuMais,
-  .veu {
+  .barra {
     display: none;
   }
 }

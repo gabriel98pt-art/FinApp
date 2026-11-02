@@ -703,8 +703,11 @@ O que isto muda já hoje:
 
 Pontos das partes 4.1 a 4.4 que estas regras não fecham:
 
-1. Cor do Principal na FinApp: hoje é escuro/creme; o terracota só está no
-   «+».
+1. ~~Cor do Principal na FinApp~~ — **decidido:** o Botão Principal mantém-se
+   **escuro** (modo claro) e **creme** (modo escuro). O terracota fica
+   reservado ao botão «+» central e a destaques pontuais.
+   **Verbos oficiais unificados:** «Registar» (substitui Adicionar/Lançar) e
+   «Apagar» (substitui Eliminar/Remover).
 2. O que fica à direita no topo, e se o logotipo «FinApp» se mantém.
 3. Nome da página na barra quando há seletor de mês.
 4. Linguagem de movimento comum (curvas, durações) além da bolinha que

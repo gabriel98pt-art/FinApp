@@ -23,6 +23,8 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-optical-sizing: auto;
+  /* Números sempre alinhados em coluna (valores, totais, datas, contagens). */
+  font-variant-numeric: tabular-nums;
 }
 
 /* Mesh do fundo (tokens: --fundo-mesh). Fixo, atrás de tudo: não estica com a

@@ -57,10 +57,10 @@ function aba(id: AbaId): AbaDef {
   return ABAS.find((a) => a.id === id)!;
 }
 
-/** Barra mobile (redesenho do Marco 2): Receitas | Despesas | [botão central]
- *  | Início | Mais. As duas primeiras ficam à esquerda do botão central. */
-export const NAV_MOBILE_ESQUERDA: AbaDef[] = [aba("receitas"), aba("despesas")];
-export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("inicio")];
+/** Barra mobile: Início | Receitas | [botão central] | Despesas | Mais — o
+ *  Início em 1.º, como na barra lateral. */
+export const NAV_MOBILE_ESQUERDA: AbaDef[] = [aba("inicio"), aba("receitas")];
+export const NAV_MOBILE_DIREITA: AbaDef[] = [aba("despesas")];
 
 /** Tudo o que não tem posição fixa na barra vive no menu "Mais". */
 export const ABAS_MENU_MAIS: AbaDef[] = [
@@ -69,4 +69,5 @@ export const ABAS_MENU_MAIS: AbaDef[] = [
   aba("analise"),
   aba("veiculo"),
   aba("tvde"),
+  aba("definicoes"),
 ];

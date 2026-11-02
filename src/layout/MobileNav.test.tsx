@@ -31,6 +31,11 @@ function desenhar() {
   );
 }
 
+// A folha só monta o conteúdo depois da 1.ª abertura (BottomSheet).
+function abrirMais() {
+  fireEvent.click(screen.getByRole("button", { name: "Mais abas" }));
+}
+
 beforeEach(() => {
   cfg = CONFIG_PADRAO;
 });
@@ -41,39 +46,49 @@ beforeEach(() => {
 describe("MobileNav — módulo Veículo", () => {
   test("ligado (padrão): a aba Veículo está no menu Mais", () => {
     desenhar();
+    abrirMais();
     expect(screen.getByRole("link", { name: /Veículo/ })).toBeInTheDocument();
   });
 
   test("desligado: a aba Veículo sai do menu Mais", () => {
     cfg = { ...CONFIG_PADRAO, showVeiculo: false };
     desenhar();
+    abrirMais();
     expect(screen.queryByRole("link", { name: /Veículo/ })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Cartões/ })).toBeInTheDocument();
   });
 });
 
-describe("MobileNav — menu Mais", () => {
-  test("fechado por omissão: o menu é inert", () => {
+describe("MobileNav — menu Mais (folha)", () => {
+  const folha = () => screen.getByRole("link", { name: /Cartões/ }).closest('[role="dialog"]')!;
+
+  test("fechada de novo: a folha volta a ser inert", () => {
     desenhar();
-    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
-    expect(menu).toHaveAttribute("inert");
+    abrirMais();
+    fireEvent.click(screen.getByRole("link", { name: /Cartões/ }));
+    expect(folha()).toHaveAttribute("inert");
   });
 
   test("abrir o menu tira o inert — os links voltam a ser alcançáveis", () => {
     desenhar();
-    fireEvent.click(screen.getByRole("button", { name: "Mais abas" }));
-
-    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
-    expect(menu).not.toHaveAttribute("inert");
+    abrirMais();
+    expect(folha()).not.toHaveAttribute("inert");
   });
 
-  test("fechar de novo (clique no véu) devolve o inert", () => {
-    const { container } = desenhar();
-    fireEvent.click(screen.getByRole("button", { name: "Mais abas" }));
-    const veu = container.querySelector('[aria-hidden="true"]')!;
-    fireEvent.click(veu);
+  test("tem atalho para Definições", () => {
+    desenhar();
+    abrirMais();
+    expect(screen.getByRole("link", { name: /Definições/ })).toBeInTheDocument();
+  });
+});
 
-    const menu = screen.getByRole("link", { name: /Cartões/ }).closest("div")!;
-    expect(menu).toHaveAttribute("inert");
+describe("MobileNav — ordem das abas", () => {
+  test("Início · Receitas · Registo rápido · Despesas · Mais", () => {
+    desenhar();
+    const nav = screen.getByRole("navigation", { name: "Navegação principal" });
+    const nomes = Array.from(nav.querySelectorAll("a, button")).map(
+      (e) => e.getAttribute("aria-label") ?? e.textContent,
+    );
+    expect(nomes).toEqual(["Início", "Receitas", "Registo rápido", "Despesas", "Mais abas"]);
   });
 });

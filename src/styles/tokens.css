@@ -288,7 +288,7 @@
    o afastamento do primeiro cartão ao cabeçalho: a sidebar em pílula começa
    exatamente onde começa o conteúdo. */
 :root {
-  --cabecalho-alt: calc(61px + var(--safe-topo));
+  --cabecalho-alt: calc(44px + var(--safe-topo));
   --topo-conteudo: calc(var(--cabecalho-alt) + 16px);
 }
 
@@ -310,15 +310,15 @@
 /* Barra de navegação móvel — fonte única para tudo o que se apoia nela.
 
    --folga-indicador: faixa onde o iOS desenha o indicador de gestos (~13px).
-   A barra é agora uma pílula flutuante (64px) que fica 6px ACIMA dela; onde não
+   A barra é agora uma pílula flutuante (56px) que fica 6px ACIMA dela; onde não
    existe a faixa (Android, iPhone com botão, desktop) o respiro é de 6px.
 
-   --alt-barra-nav: do fundo do ecrã ao topo da barra — 6px de respiro + 64px
+   --alt-barra-nav: do fundo do ecrã ao topo da barra — 6px de respiro + 56px
    da pílula + a folga. Quem flutua acima da barra parte daqui em vez de
    repetir contas que deixam de bater assim que a barra se mexe. */
 :root {
   --folga-indicador: max(6px, min(14px, env(safe-area-inset-bottom)));
-  --alt-barra-nav: calc(70px + var(--folga-indicador));
+  --alt-barra-nav: calc(62px + var(--folga-indicador));
 }
 
 /* Área segura do sistema — as quatro faixas onde o telemóvel desenha coisas
