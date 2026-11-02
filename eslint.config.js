@@ -8,7 +8,7 @@ import prettier from "eslint-config-prettier";
 export default tseslint.config(
   // `coverage` é gerado pelo relatório de testes e traz JS de terceiros (o
   // visualizador HTML), que aparecia como avisos em todo o `npx eslint .`.
-  { ignores: ["dist", "coverage"] },
+  { ignores: ["dist", "coverage", "ios"] },
   {
     files: ["**/*.{ts,tsx}"],
     extends: [

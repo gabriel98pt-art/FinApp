@@ -3,7 +3,12 @@
 // Realtime Database, não em esconder estas chaves.
 
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
+  initializeAuth,
+} from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -17,5 +22,13 @@ const firebaseConfig = {
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
-export const auth = getAuth(firebaseApp);
+// `initializeAuth` em vez de `getAuth`, como no TVDE-Pro: o `getAuth` liga o
+// login por popup/redirect, que no arranque abre um iframe escondido do
+// `firebaseapp.com` e só depois diz se há sessão. Dentro do app nativo
+// (Capacitor, capacitor://localhost) esse iframe nunca responde e a tela fica
+// vazia. Este app só entra por e-mail e senha, e a persistência é a mesma do
+// `getAuth` (IndexedDB, depois localStorage, depois sessionStorage).
+export const auth = initializeAuth(firebaseApp, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence],
+});
 export const db = getDatabase(firebaseApp);
