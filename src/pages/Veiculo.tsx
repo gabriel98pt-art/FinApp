@@ -65,6 +65,7 @@ import {
 } from "../utils/veiculo";
 import type { Abastecimento, Cents, DespesaFixa, DespesaVeiculo, Id, RegistroKm } from "../types";
 import { idAba, idPainelAba } from "../utils/abas";
+import { cargasProprias } from "../utils/cargasProprias";
 import styles from "./Veiculo.module.css";
 import Botao from "../components/Botao";
 import { rotuloTipoVeiculo } from "../constants/veiculoPadrao";
@@ -243,7 +244,9 @@ export default function Veiculo() {
   // lista em vez de continuar preso ao mês. Os outros três não têm filtro de
   // semana próprio e ficam mensais.
   const cargasPorSemana = aba === "cargas" && visaoCargas === "semana" && semanaAtual !== undefined;
-  const totalCargasVisiveis = cargasVisiveis.reduce((s, c) => s + c.custo, 0);
+  // Mesma regra de `totalCargasMes`: recarga da frota não é gasto do próprio
+  // e fica fora do total, só a cargasVisiveis (a lista) continua a mostrá-la.
+  const totalCargasVisiveis = cargasProprias(cargasVisiveis).reduce((s, c) => s + c.custo, 0);
 
   // Todas as abas mostram só o mês do seletor no topo — inclusive Km: o
   // registo de km é incremental (o KPI "Km no mês" SOMA os do mês), não uma
