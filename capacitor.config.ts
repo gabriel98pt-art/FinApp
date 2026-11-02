@@ -1,7 +1,7 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+que cimport type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.finapp.app",
+  appId: "com.gabriel98pt.finapp",
   appName: "FinApp",
   webDir: "dist",
 };
