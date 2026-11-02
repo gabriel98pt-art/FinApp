@@ -41,31 +41,32 @@
   }
 }
 
+/* O vidro vive no ::before. Em repouso é transparente; ao rolar fica 85% do
+   fundo + blur. Transiciona-se só a cor (e não a opacidade): no Safari do iOS
+   o backdrop-filter falha sob opacidade animada e o texto passava nítido por
+   baixo do logo e dos ícones. */
 .header::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--cabecalho-bg);
-  border-bottom: 1px solid var(--linha);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   pointer-events: none;
 }
 
 .rolado::before {
-  opacity: 1;
-}
-
-@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-  .header::before {
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    backdrop-filter: blur(20px) saturate(160%);
-  }
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  border-bottom-color: var(--linha);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .header::before {
+  .rolado::before {
     background: var(--bg);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
