@@ -18,6 +18,8 @@
     "icones": "node scripts/gerar-icones.mjs"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "firebase": "^12.16.0",
     "jose": "^6.2.10",
     "lucide-react": "^1.26.0",
@@ -28,6 +30,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",

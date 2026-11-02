@@ -129,3 +129,15 @@ a {
    quando chegar, NÃO pode ser pega por regra genérica de reduced-motion —
    arrasto é manipulação direta do usuário, não decoração; usar escape hatch
    próprio (ex. [data-dragging="true"] { transition: none !important }). */
+
+/* App nativo (classe posta em main.tsx): sem barras de rolagem visíveis nas
+   listas e folhas que rolam por dentro, como num app iOS. As da página toda
+   são do WKWebView e escondem-se no lado nativo (MainViewController.swift). */
+.nativo,
+.nativo * {
+  scrollbar-width: none;
+}
+
+.nativo ::-webkit-scrollbar {
+  display: none;
+}
