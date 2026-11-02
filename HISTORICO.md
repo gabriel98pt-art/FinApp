@@ -9,6 +9,20 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 
 ---
 
+## 02/11/2026 (app nativa no iPhone)
+
+- **O FinApp passa a existir também como app nativa de iPhone**, feita da mesma
+  forma que a do TVDE Pro (Capacitor). Por agora corre no simulador do Mac; para
+  o iPhone físico falta pôr a conta Apple no Xcode.
+- **O arranque ficou mais leve.** O login deixou de preparar o acesso por popup
+  (Google e afins), que o FinApp não usa. Dentro da app nativa isso deixava o
+  ecrã vazio; no site, a sessão aparece mais depressa.
+- **Na app nativa a página já não amplia ao tocar num campo.** Antes, ao
+  escrever, a página ficava maior que o ecrã, com barras de rolagem nos dois
+  sentidos e o topo escondido debaixo da câmara depois de fechar o teclado.
+- **Na app nativa não aparecem barras de rolagem**, nem na página nem nas
+  listas e folhas. No site fica tudo como estava.
+
 ## 01/11/2026 (perfil e menos botões)
 
 - **Botão de perfil no topo.** Um círculo à esquerda de «FinApp», em todos os
