@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import { useDragToClose } from "../hooks/useDragToClose";
@@ -82,6 +82,30 @@ export default function BottomSheet({
   const veuRef = useRef<HTMLDivElement>(null);
   // `visivel` inclui a saída: a folha continua apresentada enquanto a mola a
   // leva para fora da janela, e só depois é que o CSS a esconde.
+  // Teclado e folha saem juntos: antes de a saída começar, tira-se o foco do
+  // campo ativo — o WebKit recolhe o teclado em simultâneo com a mola em vez de
+  // o deixar preso (ou a deixar uma faixa) por baixo. Cobre todos os caminhos
+  // de fecho (véu, Esc, gesto, botão de ação), porque todos acabam em
+  // `aberta=false`. Declarado antes do hook para correr antes do layout effect
+  // que arranca a mola.
+  useLayoutEffect(() => {
+    if (aberta) return;
+    const ativo = document.activeElement;
+    if (ativo instanceof HTMLElement && folhaRef.current?.contains(ativo)) ativo.blur();
+  }, [aberta]);
+
+  // Com uma folha aberta a página por baixo não rola nem estica (o CSS lê isto).
+  useEffect(() => {
+    if (!aberta) return;
+    const raiz = document.documentElement;
+    raiz.dataset.folhaAberta = String(Number(raiz.dataset.folhaAberta ?? 0) + 1);
+    return () => {
+      const n = Number(raiz.dataset.folhaAberta ?? 1) - 1;
+      if (n > 0) raiz.dataset.folhaAberta = String(n);
+      else delete raiz.dataset.folhaAberta;
+    };
+  }, [aberta]);
+
   const { visivel, ...arrasto } = useDragToClose({ aberta, folhaRef, veuRef, aoFechar });
   const tituloId = useId();
   useFocoModal({ aberta, folhaRef, aoFechar });

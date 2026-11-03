@@ -11,6 +11,12 @@ html {
   accent-color: var(--blu);
 }
 
+/* Folha aberta: a página por baixo não rola nem estica. */
+html[data-folha-aberta],
+html[data-folha-aberta] body {
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   /* Sem isto o Safari faz o seu próprio bounce elástico por cima do gesto de

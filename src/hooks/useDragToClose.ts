@@ -235,6 +235,8 @@ export function useDragToClose({ aberta, folhaRef, veuRef, aoFechar }: Opcoes) {
 
   const aoPointerDown = useCallback(
     (e: React.PointerEvent) => {
+      // Dedo: tratado pelos listeners nativos de touch (efeito abaixo).
+      if (e.pointerType === "touch") return;
       const folha = folhaRef.current;
       if (!folha) return;
       if (animando.current) {
@@ -257,7 +259,7 @@ export function useDragToClose({ aberta, folhaRef, veuRef, aoFechar }: Opcoes) {
 
   const aoPointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!arrastando.current) return;
+      if (e.pointerType === "touch" || !arrastando.current) return;
       const folha = folhaRef.current;
       let novoY = base.current + (e.clientY - sy.current);
       if (novoY < 0) novoY = -rubberBand(-novoY, folha?.offsetHeight ?? 0);
@@ -269,47 +271,132 @@ export function useDragToClose({ aberta, folhaRef, veuRef, aoFechar }: Opcoes) {
     [aplicarY, folhaRef],
   );
 
+  /** Fim do gesto, venha de ponteiro ou de touch: decide entre fechar e voltar
+   *  ao lugar pela posição + momentum projetado. */
+  const terminarArrasto = useCallback(() => {
+    if (!arrastando.current) return;
+    arrastando.current = false;
+    const folha = folhaRef.current;
+    if (!folha) return;
+
+    // velocidade instantânea (px/s) dos últimos ~100ms do gesto — não a
+    // média do arrasto inteiro
+    const h = hist.current;
+    let v = 0;
+    if (h.length > 1) {
+      const dt = h[h.length - 1][0] - h[0][0];
+      if (dt > 0) v = ((h[h.length - 1][1] - h[0][1]) / dt) * 1000;
+    }
+
+    const H = folha.offsetHeight;
+    const fechar = y.current + projetarMomentum(v) > H / 2;
+
+    if (fechar) {
+      animarPara(distanciaFora(), v, RESPOSTA_SAIDA, AMORT_CRITICO, () => {
+        // A folha fica onde está — fora da janela. Quem a desmonta é o
+        // efeito de saída, que vai reconhecer que não há percurso a fazer.
+        foraPeloArrasto.current = true;
+        aoFechar();
+      });
+    } else {
+      // Voltar ao lugar: aqui SIM um bounce leve, porque o gesto trouxe
+      // momentum. Em reduced-motion, sem bounce.
+      animarPara(
+        0,
+        v,
+        reduzido() ? RESPOSTA_SAIDA : RESPOSTA_ENTRADA,
+        reduzido() ? AMORT_CRITICO : AMORT_BOUNCE,
+        largar,
+      );
+    }
+  }, [animarPara, aoFechar, distanciaFora, folhaRef, largar]);
+
   const soltar = useCallback(
     (e: React.PointerEvent) => {
-      if (!arrastando.current) return;
-      arrastando.current = false;
-      const folha = folhaRef.current;
-      if (!folha) return;
+      if (e.pointerType === "touch" || !arrastando.current) return;
       e.currentTarget.releasePointerCapture(e.pointerId);
-
-      // velocidade instantânea (px/s) dos últimos ~100ms do gesto — não a
-      // média do arrasto inteiro
-      const h = hist.current;
-      let v = 0;
-      if (h.length > 1) {
-        const dt = h[h.length - 1][0] - h[0][0];
-        if (dt > 0) v = ((h[h.length - 1][1] - h[0][1]) / dt) * 1000;
-      }
-
-      const H = folha.offsetHeight;
-      const fechar = y.current + projetarMomentum(v) > H / 2;
-
-      if (fechar) {
-        animarPara(distanciaFora(), v, RESPOSTA_SAIDA, AMORT_CRITICO, () => {
-          // A folha fica onde está — fora da janela. Quem a desmonta é o
-          // efeito de saída, que vai reconhecer que não há percurso a fazer.
-          foraPeloArrasto.current = true;
-          aoFechar();
-        });
-      } else {
-        // Voltar ao lugar: aqui SIM um bounce leve, porque o gesto trouxe
-        // momentum. Em reduced-motion, sem bounce.
-        animarPara(
-          0,
-          v,
-          reduzido() ? RESPOSTA_SAIDA : RESPOSTA_ENTRADA,
-          reduzido() ? AMORT_CRITICO : AMORT_BOUNCE,
-          largar,
-        );
-      }
+      terminarArrasto();
     },
-    [animarPara, aoFechar, distanciaFora, folhaRef, largar],
+    [terminarArrasto],
   );
+
+  // Dedo: listeners NATIVOS e não passivos, ancorados na própria folha. Só
+  // assim o `preventDefault` do touchmove é honrado pelo WebKit (os handlers
+  // do React são passivos) e o gesto responde ao dedo desde o primeiro pixel,
+  // de qualquer ponto do topo do conteúdo — não só do cabeçalho — sem o
+  // scroll da folha ou da página por baixo competir com ele.
+  useEffect(() => {
+    const folha = folhaRef.current;
+    if (!folha) return;
+    let candidato = false;
+
+    const aoTocar = (e: TouchEvent) => {
+      // Gesto da folha: não chega ao pull-to-refresh nem ao fundo.
+      e.stopPropagation();
+      if (e.touches.length !== 1) {
+        candidato = false;
+        return;
+      }
+      if (animando.current) {
+        // agarrar a meio do voo: pára a mola e retoma da posição visível
+        pararAnimacao();
+        base.current = y.current;
+        candidato = true;
+        arrastando.current = true;
+      } else {
+        base.current = 0;
+        candidato = folha.scrollTop <= 0;
+        arrastando.current = false;
+      }
+      sy.current = e.touches[0].clientY;
+      y.current = base.current;
+      hist.current = [[performance.now(), base.current]];
+    };
+
+    const aoMover = (e: TouchEvent) => {
+      if (!candidato) return;
+      e.stopPropagation();
+      const cy = e.touches[0].clientY;
+      if (!arrastando.current) {
+        const dy = cy - sy.current;
+        // Para cima, ou com a folha já rolada: é scroll do conteúdo.
+        if (dy < 0 || folha.scrollTop > 0) {
+          candidato = false;
+          return;
+        }
+        if (dy < 6) return;
+        // Começa a arrastar: o teclado recolhe junto com o gesto.
+        const ativo = document.activeElement;
+        if (ativo instanceof HTMLElement && folha.contains(ativo)) ativo.blur();
+        arrastando.current = true;
+        sy.current = cy;
+        folha.dataset.mola = "true";
+      }
+      if (e.cancelable) e.preventDefault();
+      let novoY = base.current + (cy - sy.current);
+      if (novoY < 0) novoY = -rubberBand(-novoY, folha.offsetHeight);
+      aplicarY(novoY);
+      const agora = performance.now();
+      hist.current.push([agora, novoY]);
+      while (hist.current.length > 2 && agora - hist.current[0][0] > 100) hist.current.shift();
+    };
+
+    const aoLargar = () => {
+      candidato = false;
+      terminarArrasto();
+    };
+
+    folha.addEventListener("touchstart", aoTocar, { passive: false });
+    folha.addEventListener("touchmove", aoMover, { passive: false });
+    folha.addEventListener("touchend", aoLargar);
+    folha.addEventListener("touchcancel", aoLargar);
+    return () => {
+      folha.removeEventListener("touchstart", aoTocar);
+      folha.removeEventListener("touchmove", aoMover);
+      folha.removeEventListener("touchend", aoLargar);
+      folha.removeEventListener("touchcancel", aoLargar);
+    };
+  }, [aplicarY, folhaRef, pararAnimacao, terminarArrasto]);
 
   return {
     visivel,

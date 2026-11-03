@@ -15,16 +15,42 @@
   background: var(--veu);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--dur-exit) var(--ease-exit);
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  /* Opacidade e desfoque na MESMA duração e curva: com tempos diferentes o
+     filtro "descolava" no último frame. */
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    -webkit-backdrop-filter var(--dur-exit) var(--ease-exit),
+    backdrop-filter var(--dur-exit) var(--ease-exit);
 }
 
 /* Blur fraco só quando visível — a base fechada não tem blur nenhum */
 .veuVisivel {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity var(--dur-enter) var(--ease-enter);
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    -webkit-backdrop-filter var(--dur-enter) var(--ease-enter),
+    backdrop-filter var(--dur-enter) var(--ease-enter);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+  /* Camada própria no compositor enquanto o véu está à vista (só então: são
+     18+ véus montados e uma camada de ecrã inteiro cada). */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .veu,
+  .veuVisivel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .veuVisivel {
+    background: rgba(0, 0, 0, 0.55);
+  }
 }
 
 /* Enquanto a mola manda, o véu desvanece frame a frame junto com a folha (o
@@ -32,6 +58,7 @@
    navegador tenta interpolar entre valores já defasados e o véu arrasta-se
    atrás da folha. */
 .veu[data-mola="true"] {
+  will-change: transform, opacity;
   transition: none;
 }
 
@@ -72,7 +99,9 @@
      do fundo do ecrã e abria uma faixa de fundo por baixo dela. */
   transform-origin: 50% 100%;
   width: min(100vw, 480px);
-  max-height: calc(100dvh - 48px - var(--altura-teclado));
+  /* Sem o teclado a conta é a pedida: ecrã menos a área segura de cima. O
+     desconto do teclado fica (ver acima): sem ele o botão de ação fica tapado. */
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - var(--altura-teclado));
   overflow-y: auto;
   z-index: 46;
   background: var(--s1);
