@@ -340,8 +340,11 @@
   padding: 6px 11px;
 }
 
-.chipKpi:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .chipKpi:hover {
+    color: var(--txt);
+  }
 }
 
 .chipKpiAtivo {

@@ -22,8 +22,11 @@
   color: var(--mut);
 }
 
-.opcao:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .opcao:hover {
+    color: var(--txt);
+  }
 }
 
 .ativa {

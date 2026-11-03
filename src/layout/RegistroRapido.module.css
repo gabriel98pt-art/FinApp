@@ -71,8 +71,11 @@
     color var(--dur-fast) ease;
 }
 
-.subTipo:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .subTipo:hover {
+    color: var(--txt);
+  }
 }
 
 .subTipoAtivo {
@@ -176,8 +179,11 @@
   white-space: nowrap;
 }
 
-.conta:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .conta:hover {
+    color: var(--txt);
+  }
 }
 
 .contaAtiva {
@@ -219,8 +225,11 @@
   text-underline-offset: 3px;
 }
 
-.parceladaResumo:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .parceladaResumo:hover {
+    color: var(--txt);
+  }
 }
 
 .folhaParcelamento {
@@ -266,8 +275,11 @@
   color: var(--mut);
 }
 
-.opcaoTipoDespesa:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .opcaoTipoDespesa:hover {
+    color: var(--txt);
+  }
 }
 
 .opcaoTipoDespesaAtiva {

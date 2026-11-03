@@ -53,8 +53,11 @@
   white-space: nowrap;
 }
 
-.local:hover {
-  color: var(--txt);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .local:hover {
+    color: var(--txt);
+  }
 }
 
 .localAtivo {

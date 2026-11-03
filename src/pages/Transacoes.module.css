@@ -141,9 +141,12 @@
   text-align: center;
 }
 
-.mover:hover {
-  color: var(--txt);
-  background: var(--s2);
+/* Só com rato: no toque o :hover fica colado e vencia a cor do estado ativo. */
+@media (hover: hover) and (pointer: fine) {
+  .mover:hover {
+    color: var(--txt);
+    background: var(--s2);
+  }
 }
 
 .formMover {
