@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import MenuAcoesItem, { type AcaoItem } from "../components/MenuAcoesItem";
 import FolhaConta from "../pages/conta/FolhaConta";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
 import styles from "./BotaoPerfil.module.css";
 
 /** O botão do perfil, no topo à esquerda: a foto da pessoa (ou as iniciais) e um
- *  menu pequeno com «Minha conta» e «Definições». É a única porta para as
- *  Definições — saíram da barra lateral e do menu «Mais». */
+ *  menu pequeno com «Minha conta» e, no desktop, «Definições». No telemóvel as
+ *  Definições estão no menu «Mais». */
 export default function BotaoPerfil() {
   const navegar = useNavigate();
   const email = useAuthStore((s) => s.sessao?.email);
@@ -20,9 +21,14 @@ export default function BotaoPerfil() {
   const [conta, setConta] = useState(false);
   const ancora = useRef<HTMLButtonElement>(null);
 
+  // No telemóvel as Definições vivem no «Mais»; no desktop (sem «Mais», e com a
+  // barra lateral a escondê-las) esta continua a ser a porta.
+  const desktop = useMediaQuery("(min-width: 768px)");
   const acoes: AcaoItem[] = [
     { rotulo: "Minha conta", Icone: UserRound, onClick: () => setConta(true) },
-    { rotulo: "Definições", Icone: Settings, onClick: () => navegar("/definicoes") },
+    ...(desktop
+      ? [{ rotulo: "Definições", Icone: Settings, onClick: () => navegar("/definicoes") }]
+      : []),
   ];
 
   return (
