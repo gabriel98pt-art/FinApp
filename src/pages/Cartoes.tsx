@@ -195,7 +195,7 @@ function ControlesFatura({
                 if (
                   !(await confirmar(
                     `Reabrir a fatura de ${rotuloMes(fatura.mes)}? Apaga ${n} pagamento(s).`,
-                    { verbo: "Reabrir", perigo: true },
+                    { verbo: "Reabrir" },
                   ))
                 )
                   return;
@@ -490,10 +490,10 @@ export default function Cartoes() {
     try {
       if (tfEditandoId) {
         await atualizarTransferencia(uid, { ...dados, id: tfEditandoId });
-        mostrarToast("✓ Transferência atualizada");
+        mostrarToast("Transferência atualizada");
       } else {
         await criarTransferencia(uid, dados);
-        mostrarToast("✓ Transferência registada");
+        mostrarToast("Transferência registada");
       }
       setTfAberta(false);
     } catch {
@@ -544,7 +544,7 @@ export default function Cartoes() {
         despesas,
       });
       const quitou = valor >= pagando.restante;
-      mostrarToast(quitou ? "✓ Fatura paga" : "✓ Pagamento parcial registado");
+      mostrarToast(quitou ? "Fatura paga" : "Pagamento parcial registado");
       setPagando(null);
     } catch {
       mostrarToast("Não foi possível registar o pagamento.");
@@ -560,8 +560,8 @@ export default function Cartoes() {
       await definirFaturaManual(uid, ajustando.cartao, ajustando.mes, valor);
       mostrarToast(
         valor === null
-          ? "✓ Reposto para cálculo automático"
-          : `✓ Fatura manual: ${formatMoney(valor, cfg.currency)}`,
+          ? "Reposto para cálculo automático"
+          : `Fatura manual: ${formatMoney(valor, cfg.currency)}`,
       );
       setAjustando(null);
     } catch {
@@ -583,7 +583,7 @@ export default function Cartoes() {
         resumo.conta,
         saldoInicialParaAlvo(resumo, saldoInicial, alvo),
       );
-      mostrarToast("✓ Saldo ajustado");
+      mostrarToast("Saldo ajustado");
       setAjustandoSaldo(null);
     } catch {
       mostrarToast("Não foi possível ajustar.");

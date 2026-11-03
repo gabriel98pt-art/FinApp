@@ -77,7 +77,7 @@ function FormTeto({
     setSalvando(true);
     try {
       await definirOrcamento(uid, alvo, valor);
-      mostrarToast(editando ? "✓ Teto atualizado" : "✓ Teto definido");
+      mostrarToast(editando ? "Teto atualizado" : "Teto definido");
       fechar();
     } catch {
       mostrarToast("Não foi possível guardar o teto.");

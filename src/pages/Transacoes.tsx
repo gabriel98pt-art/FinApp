@@ -338,7 +338,7 @@ export default function SecaoTransacoes() {
       // que dá para corrigir à mão — na ordem inversa, o dinheiro sumia.
       await criarDespesa(uid, dadosDespesaDaCarga(carga, categoriaMover));
       await removerCarga(uid, carga.id);
-      mostrarToast("✓ Movida para despesas");
+      mostrarToast("Movida para despesas");
       fecharDetalhe();
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");

@@ -4,7 +4,7 @@
 // o interruptor "Modo discreto" de Definições.
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CONFIG_PADRAO } from "../constants/configPadrao";
 import type { ConfigConta } from "../types";
@@ -23,9 +23,9 @@ vi.mock("../components/NotificacoesSino", () => ({ default: () => <span /> }));
 
 const Header = (await import("./Header")).default;
 
-const desenhar = () =>
+const desenhar = (rota = "/") =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[rota]}>
       <Header />
     </MemoryRouter>,
   );
@@ -54,5 +54,25 @@ describe("Header", () => {
     desenhar();
     fireEvent.click(screen.getByRole("button", { name: "Mostrar valores" }));
     expect(atualizarConfig).toHaveBeenCalledWith("u1", { modoDiscreto: false });
+  });
+
+  test("sem seletor de mês, o título pequeno aparece no centro ao rolar", () => {
+    desenhar("/definicoes");
+    const titulo = screen.getByText("Definições");
+    expect(titulo.className).not.toMatch(/tituloVisivel/);
+    act(() => {
+      window.scrollY = 100;
+      window.dispatchEvent(new Event("scroll"));
+    });
+    expect(titulo.className).toMatch(/tituloVisivel/);
+    act(() => {
+      window.scrollY = 0;
+      window.dispatchEvent(new Event("scroll"));
+    });
+  });
+
+  test("com seletor de mês, o centro é sempre o mês", () => {
+    desenhar("/despesas");
+    expect(screen.queryByText("Despesas")).not.toBeInTheDocument();
   });
 });

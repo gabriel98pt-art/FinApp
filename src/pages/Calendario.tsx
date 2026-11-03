@@ -213,7 +213,7 @@ export default function SecaoCalendario() {
     const valor = valorTexto ?? undefined;
     try {
       await criarEvento(uid, { titulo, data: dataNovo, valor });
-      mostrarToast("✓ Evento registado");
+      mostrarToast("Evento registado");
       setNovoAberto(false);
       setTitulo("");
       setValorTexto(null);

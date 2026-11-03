@@ -37,7 +37,7 @@ export default function FolhaSenha({
       // ao lado, e o formulário não convida a submeter outra vez.
       setAtual("");
       setNova("");
-      mostrarToast("✓ Senha alterada");
+      mostrarToast("Senha alterada");
     } catch (err) {
       mostrarToast(mensagemDeErroSenhaAtual(err));
     } finally {

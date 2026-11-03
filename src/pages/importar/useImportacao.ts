@@ -436,7 +436,7 @@ export function useImportacao() {
       if (apagar.length) {
         await comHistoricoSuprimido(() => apagarExistentes(uid, apagar, despesasFixas, despesas));
       }
-      mostrarToast(`✓ ${n} lançamento(s) importado(s)`);
+      mostrarToast(`${n} lançamento(s) importado(s)`);
       // Não limpa `linhas`/`texto` aqui: se o usuário confirmou sem querer e
       // for desfazer (↩) no menu "Mais", a revisão volta exatamente como estava —
       // sem reanalisar o extrato do zero e perder as marcações. `importadoEm`

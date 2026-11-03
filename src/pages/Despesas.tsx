@@ -342,13 +342,10 @@ export default function Despesas() {
       if (!atual) return;
       await agir(
         () => atualizarDespesaFixa(uid, { ...atual, ...dados }),
-        "✓ Despesa fixa atualizada",
+        "Despesa fixa atualizada",
       );
     } else {
-      await agir(
-        () => criarDespesaFixa(uid, { ...dados, pagoPorMes: {} }),
-        "✓ Despesa fixa criada",
-      );
+      await agir(() => criarDespesaFixa(uid, { ...dados, pagoPorMes: {} }), "Despesa fixa criada");
     }
     setDfAberta(false);
   }
@@ -704,7 +701,7 @@ export default function Despesas() {
                             onClick={() =>
                               void agir(
                                 () => alternarPagoDespesaFixa(uid, f, mes, !paga, itens),
-                                paga ? "Marcado como pendente" : "✓ Pago",
+                                paga ? "Marcado como pendente" : "Pago",
                               )
                             }
                           >

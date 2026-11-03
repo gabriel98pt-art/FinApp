@@ -286,9 +286,9 @@ export default function Veiculo() {
     if (!Number.isFinite(km) || km <= 0) return mostrarToast("Km inválido.");
     const dados_ = { km, data: kmData || hojeIso(), nota: kmNota.trim() || undefined };
     if (kmEditandoId) {
-      await agir(() => atualizarKm(uid, { ...dados_, id: kmEditandoId }), "✓ Registo atualizado");
+      await agir(() => atualizarKm(uid, { ...dados_, id: kmEditandoId }), "Registo atualizado");
     } else {
-      await agir(() => criarKm(uid, dados_), "✓ Quilometragem registada");
+      await agir(() => criarKm(uid, dados_), "Quilometragem registada");
     }
     setKmAberta(false);
   }
@@ -435,7 +435,7 @@ export default function Veiculo() {
     };
     try {
       await atualizarCarga(uid, { ...dados_, id: cgEditandoId });
-      mostrarToast("✓ Abastecimento atualizado");
+      mostrarToast("Abastecimento atualizado");
       setCgAberta(false);
     } catch {
       mostrarToast("Não foi possível guardar.");
@@ -451,7 +451,7 @@ export default function Veiculo() {
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, "locaisCarregamento", nome);
-      mostrarToast(`✓ "${nome}" registado`);
+      mostrarToast(`${nome} registado`);
       setNovoLocal("");
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
@@ -462,7 +462,7 @@ export default function Veiculo() {
     if (!(await confirmar(`Apagar ${nome}? Abastecimentos já registados não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, "locaisCarregamento", nome);
-      mostrarToast(`"${nome}" apagado`);
+      mostrarToast(`${nome} apagado`);
     } catch {
       mostrarToast("Não foi possível apagar.");
     }
@@ -479,7 +479,7 @@ export default function Veiculo() {
     try {
       await renomearLocal(uid, cfg, renomeando, nomeNovo);
       setRenomeando(null);
-      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+      mostrarToast(`Agora chama-se ${nomeNovo.trim()}`);
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
@@ -548,7 +548,7 @@ export default function Veiculo() {
     };
     await agir(
       () => atualizarDespesaVeiculo(uid, { ...dados_, id: dvEditandoId }),
-      "✓ Despesa atualizada",
+      "Despesa atualizada",
     );
     setDvAberta(false);
   }
@@ -612,12 +612,9 @@ export default function Veiculo() {
     if (dfEditandoId) {
       const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
       if (!atual) return;
-      await agir(
-        () => atualizarFixaVeiculo(uid, { ...atual, ...base }),
-        "✓ Despesa fixa atualizada",
-      );
+      await agir(() => atualizarFixaVeiculo(uid, { ...atual, ...base }), "Despesa fixa atualizada");
     } else {
-      await agir(() => criarFixaVeiculo(uid, { ...base, pagoPorMes: {} }), "✓ Despesa fixa criada");
+      await agir(() => criarFixaVeiculo(uid, { ...base, pagoPorMes: {} }), "Despesa fixa criada");
     }
     setDfAberta(false);
   }
@@ -962,7 +959,7 @@ export default function Veiculo() {
                             onClick={() =>
                               void agir(
                                 () => alternarPagoFixaVeiculo(uid, f, mes, !paga, dados.despesas),
-                                paga ? "Marcado como pendente" : "✓ Pago em " + rotuloMes(mes),
+                                paga ? "Marcado como pendente" : "Pago em " + rotuloMes(mes),
                               )
                             }
                           >

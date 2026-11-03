@@ -18,8 +18,8 @@
     color: var(--mais-txt);
     box-shadow: var(--mais-sombra);
     transition:
-      transform var(--dur-fast) var(--ease-spring),
-      box-shadow var(--dur-fast) var(--ease-spring);
+      transform var(--dur-fast) var(--ease-mola),
+      box-shadow var(--dur-fast) var(--ease-mola);
   }
 
   .fab:active {

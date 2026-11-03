@@ -53,8 +53,8 @@
   background: transparent;
   border-bottom: 1px solid transparent;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--dur-exit) ease,
+    border-color var(--dur-exit) ease;
   pointer-events: none;
 }
 
@@ -104,6 +104,39 @@
   /* Folga curta: com o grid as colunas laterais já separam o mês do avatar e
      das ações, e a 375px cada pixel aqui é rótulo que deixa de cortar. */
   padding: 0 2px;
+}
+
+/* Páginas sem seletor de mês (Definições): o nome da página, pequeno, aparece
+   no centro quando o título grande sai por baixo da barra (doc 5.5 ponto 3). */
+.tituloCentro {
+  grid-column: 2;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity var(--dur-exit) var(--ease-exit),
+    transform var(--dur-exit) var(--ease-exit);
+}
+
+.tituloVisivel {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-enter) var(--ease-enter),
+    transform var(--dur-enter) var(--ease-enter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tituloCentro {
+    transform: none;
+  }
 }
 
 /* Colunas explícitas: o mês só é renderizado nas rotas que navegam por mês, e

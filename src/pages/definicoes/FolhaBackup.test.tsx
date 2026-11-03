@@ -206,7 +206,7 @@ describe("FolhaBackup — validar antes de confirmar", () => {
     soltar(JSON.stringify({ versao: 1, dados: {} }));
     await confirmarRestauracao();
 
-    await vi.waitFor(() => expect(mostrarToast).toHaveBeenCalledWith("✓ Backup restaurado"));
+    await vi.waitFor(() => expect(mostrarToast).toHaveBeenCalledWith("Backup restaurado"));
     expect(await screen.findByText(/Arraste o ficheiro de backup aqui/)).toBeTruthy();
   });
 });

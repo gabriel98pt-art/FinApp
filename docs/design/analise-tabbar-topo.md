@@ -732,25 +732,30 @@ O que isto muda já hoje:
      Vermelho (`perigo`) **só para apagar**, com o texto «Apagar». O resto
      usa `primario` com o verbo exato («Pagar», «Registar», «Mover»).
 
-### 5.6 Estado da aplicação na FinApp (Fase 2, 03/11/2026)
+### 5.6 Estado da aplicação na FinApp (fechado a 03/11/2026)
 
-Feito no código:
-- Topo sem o logotipo «FinApp» (`layout/Header.tsx`).
-- `Botao` com os 5 estilos e os 3 tamanhos; as 9 variantes antigas
-  migradas (cerca de 150 botões). «Sair da conta» passou de vermelho a
-  neutro, porque não apaga dados.
-- Diálogo de confirmação com o verbo da ação: «Apagar» a vermelho por
-  omissão; «Pagar», «Registar», «Mover» e «Separar» a escuro; «Reabrir a
-  fatura» a vermelho, porque apaga pagamentos.
-- Verbos trocados nos textos visíveis (cerca de 170): Eliminar/Remover →
-  Apagar, Adicionar/Lançar → Registar, e os particípios a acompanhar
-  («apagado», «registado»).
-- Perguntas de confirmação sem aspas retas à volta dos nomes.
-
-Ainda por aplicar:
-- Centro do topo com o título pequeno ao rolar (ponto 3).
-- Tempos de movimento e véus a 45% (ponto 4).
-- Tab bar (parte 5.1), topo transparente com vidro (5.2) e `tabular-nums`
-  (5.3).
-- Aspas retas nos toasts (`✓ "Uber" registado`) — esta fase só tratou as
-  perguntas de confirmação.
+Tudo o que a Parte 5 pede está no código:
+- **Tab bar (5.1):** 56px, vidro fosco com blur de 20px também no telemóvel
+  (fundo sólido com redução de transparência), ordem Início · Receitas ·
+  [+] · Despesas · Mais, círculo da aba ativa a deslizar com mola sem
+  ressalto, «Mais» como folha que sobe de baixo.
+- **Topo (5.2):** transparente em repouso, vidro a 85% + blur ao rolar;
+  título grande de 34px; «‹ Voltar» no canto superior esquerdo nas
+  sub-páginas; sem logotipo. Centro: seletor de mês onde existe; nas
+  outras páginas (Definições) o nome da página aparece pequeno quando o
+  título grande sai por baixo da barra (mais de 44px de scroll).
+- **Tipografia (5.3):** fonte do sistema e `tabular-nums` no `body`.
+- **Botões (5.4/5.5):** 5 estilos, 3 tamanhos, `carregando`; cerca de 150
+  botões migrados. «Sair da conta» é neutro.
+- **Diálogo:** o botão diz o verbo da ação. Vermelho só em «Apagar»;
+  «Pagar», «Registar», «Mover», «Separar» e «Reabrir» (fatura) a escuro.
+- **Movimento (ponto 4):** `--dur-fast` 0,15 s, `--dur-exit` 0,2 s,
+  `--dur-enter` 0,45 s, `--dur-mola` 0,5 s; `--ease-spring` (com ressalto)
+  trocado por `--ease-mola` (sem ressalto) no «+» e no círculo da tab bar;
+  tempos soltos (0,18 s, 0,12 s, 0,15 s) passaram aos tokens. O único
+  ressalto que fica é o da folha ao soltar um arrasto (mola em JS).
+- **Véus:** um só token `--veu` (preto a 45%) + `blur(4px)` na folha e no
+  diálogo — são os únicos véus da app desde que o «Mais» virou folha.
+- **Textos:** verbos Registar/Apagar; perguntas de confirmação e mensagens
+  curtas sem aspas retas à volta dos nomes e sem o «✓» (ex.: «Uber
+  registado»), como na TVDE Pro.

@@ -165,7 +165,7 @@ export default function CopilotoCard() {
     setAExecutar(true);
     try {
       await contribuirFundo(uid, fundo, acaoPendente.valor);
-      mostrarToast(`✓ ${formatMoney(acaoPendente.valor, moeda)} separado(s) para ${fundo.nome}`);
+      mostrarToast(`${formatMoney(acaoPendente.valor, moeda)} separado(s) para ${fundo.nome}`);
       setAcaoPendente(null);
     } catch {
       mostrarToast("Não foi possível separar agora.");

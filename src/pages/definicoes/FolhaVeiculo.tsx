@@ -44,7 +44,7 @@ export default function FolhaVeiculo({
   async function alternarModulo() {
     try {
       await atualizarConfig(uid, { showVeiculo: !cfg.showVeiculo });
-      mostrarToast(cfg.showVeiculo ? "Módulo Veículo desligado" : "✓ Módulo Veículo ligado");
+      mostrarToast(cfg.showVeiculo ? "Módulo Veículo desligado" : "Módulo Veículo ligado");
     } catch {
       mostrarToast("Não foi possível alterar.");
     }
@@ -54,7 +54,7 @@ export default function FolhaVeiculo({
     if (valor === cfg.tipoVeiculo) return;
     try {
       await atualizarConfig(uid, { tipoVeiculo: valor as TipoVeiculo });
-      mostrarToast("✓ Tipo de veículo atualizado");
+      mostrarToast("Tipo de veículo atualizado");
     } catch {
       mostrarToast("Não foi possível alterar.");
     }

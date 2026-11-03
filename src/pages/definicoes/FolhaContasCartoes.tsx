@@ -68,7 +68,7 @@ export default function FolhaContasCartoes({
     if (!nomeFinal) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarCartao(uid, cfg, nomeFinal, tipo);
-      mostrarToast(`✓ ${tipo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`);
+      mostrarToast(`${tipo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`);
       setNome("");
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
@@ -88,7 +88,7 @@ export default function FolhaContasCartoes({
     try {
       await adicionarMetodo(uid, cfg, adicionandoMetodoA, tipoNovoMetodo);
       mostrarToast(
-        `✓ ${tipoNovoMetodo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`,
+        `${tipoNovoMetodo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`,
       );
       setAdicionandoMetodoA(null);
     } catch (err) {
@@ -102,7 +102,7 @@ export default function FolhaContasCartoes({
     try {
       await renomearCartao(uid, cfg, alvo, nomeNovo);
       setRenomeando(null);
-      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+      mostrarToast(`Agora chama-se ${nomeNovo.trim()}`);
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
@@ -117,7 +117,7 @@ export default function FolhaContasCartoes({
       return;
     try {
       await removerCartao(uid, cfg, id);
-      mostrarToast(`"${nomeDe(id)}" apagado`);
+      mostrarToast(`${nomeDe(id)} apagado`);
     } catch {
       mostrarToast("Não foi possível apagar.");
     }

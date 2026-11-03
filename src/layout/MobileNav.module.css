@@ -56,7 +56,7 @@
 
 .circuloAnima {
   transition:
-    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--dur-mola) var(--ease-mola),
     opacity var(--dur-fast) ease;
 }
 
@@ -83,7 +83,7 @@
   height: 44px;
   border-radius: 50%;
   color: var(--mut);
-  transition: color 0.18s ease;
+  transition: color var(--dur-fast) ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -125,8 +125,8 @@
   color: var(--mais-txt);
   box-shadow: var(--mais-sombra);
   transition:
-    transform var(--dur-fast) var(--ease-spring),
-    box-shadow var(--dur-fast) var(--ease-spring);
+    transform var(--dur-fast) var(--ease-mola),
+    box-shadow var(--dur-fast) var(--ease-mola);
 }
 
 .central:active {

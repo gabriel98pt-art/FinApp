@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import BotaoPerfil from "./BotaoPerfil";
 import NotificacoesSino from "../components/NotificacoesSino";
 import SeletorMes from "../components/SeletorMes";
+import { ABAS } from "../constants/abas";
 import { useMesVisivelStore } from "../stores/mesVisivelStore";
 import { useAuthStore } from "../stores/authStore";
 import { useCfgStore } from "../stores/cfgStore";
@@ -38,9 +39,15 @@ export default function Header() {
   const navegar = useNavigate();
   const subpagina = SUBPAGINAS.includes(pathname);
   // Em repouso a barra é transparente; passa dos 12px de scroll ganha o vidro.
+  // Passados os 44px o título grande (34px) já saiu por baixo da barra, e é aí
+  // que o nome pequeno aparece no centro.
   const [rolado, setRolado] = useState(() => window.scrollY > 12);
+  const [tituloFora, setTituloFora] = useState(() => window.scrollY > 44);
   useEffect(() => {
-    const ler = () => setRolado(window.scrollY > 12);
+    const ler = () => {
+      setRolado(window.scrollY > 12);
+      setTituloFora(window.scrollY > 44);
+    };
     ler();
     window.addEventListener("scroll", ler, { passive: true });
     return () => window.removeEventListener("scroll", ler);
@@ -48,6 +55,7 @@ export default function Header() {
   const mes = useMesVisivelStore((s) => s.mes);
   const setMes = useMesVisivelStore((s) => s.setMes);
   const mostrarMes = ROTAS_COM_MES.includes(pathname);
+  const titulo = ABAS.find((a) => a.rota === pathname)?.titulo;
   const uid = useAuthStore((s) => s.sessao?.uid);
   const modoDiscreto = useCfgStore((s) => s.cfg.modoDiscreto);
 
@@ -80,10 +88,21 @@ export default function Header() {
           <BotaoPerfil />
         )}
       </div>
-      {mostrarMes && (
+      {mostrarMes ? (
         <div className={styles.mes}>
           <SeletorMes mes={mes} aoMudar={setMes} compacto />
         </div>
+      ) : (
+        titulo && (
+          // Repete o título grande da página, por isso fica fora da árvore de
+          // acessibilidade: o leitor de ecrã já o lê no <h2>.
+          <p
+            className={`${styles.tituloCentro} ${tituloFora ? styles.tituloVisivel : ""}`}
+            aria-hidden
+          >
+            {titulo}
+          </p>
+        )
       )}
       <div className={styles.acoes}>
         <button

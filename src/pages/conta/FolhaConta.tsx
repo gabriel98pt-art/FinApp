@@ -49,7 +49,7 @@ export default function FolhaConta({
     try {
       const url = await reduzirImagem(ficheiro);
       await atualizarConfig(uid, { foto: url });
-      mostrarToast("✓ Foto guardada");
+      mostrarToast("Foto guardada");
     } catch (err) {
       mostrarToast(err instanceof Error ? err.message : "Não foi possível guardar a foto.");
     } finally {
@@ -61,7 +61,7 @@ export default function FolhaConta({
     if (!uid) return;
     try {
       await atualizarConfig(uid, { foto: "" });
-      mostrarToast("✓ Foto apagada");
+      mostrarToast("Foto apagada");
     } catch {
       mostrarToast("Não foi possível apagar a foto.");
     }
@@ -75,7 +75,7 @@ export default function FolhaConta({
       const limpo = nomeLimpo(nome);
       await atualizarConfig(uid, { nome: limpo });
       setNome(limpo);
-      mostrarToast("✓ Nome guardado");
+      mostrarToast("Nome guardado");
     } catch {
       mostrarToast("Não foi possível guardar o nome.");
     } finally {

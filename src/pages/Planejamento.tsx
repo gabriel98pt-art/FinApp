@@ -184,7 +184,7 @@ export default function Planejamento() {
     if (valorAlvo === null || valorAlvo <= 0) return mostrarToast("Meta inválida.");
     try {
       await criarFundo(uid, { nome, alvo: valorAlvo, atual: 0, prazo: prazo || undefined });
-      mostrarToast("✓ Fundo criado");
+      mostrarToast("Fundo criado");
       setNovoAberto(false);
       setNome("");
       setAlvo(null);
@@ -209,7 +209,7 @@ export default function Planejamento() {
     setContribuindoEnviando(true);
     try {
       await contribuirFundo(uid, fundo, valor);
-      mostrarToast(`✓ ${formatMoney(valor, moeda)} registado(s) em ${fundo.nome}`);
+      mostrarToast(`${formatMoney(valor, moeda)} registado(s) em ${fundo.nome}`);
       setContribuindo(null);
       setContribValor(null);
     } catch {

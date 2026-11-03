@@ -84,7 +84,7 @@ export default function FolhaBackup({
       a.download = `finapp-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      mostrarToast("✓ Backup baixado");
+      mostrarToast("Backup baixado");
     } catch {
       mostrarToast("Não foi possível exportar.");
     }
@@ -119,7 +119,7 @@ export default function FolhaBackup({
     setImportando(true);
     try {
       await importarBackup(uid, etapa.json);
-      mostrarToast("✓ Backup restaurado");
+      mostrarToast("Backup restaurado");
       setEtapa({ tipo: "ocioso" });
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível restaurar o backup."));

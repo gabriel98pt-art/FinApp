@@ -80,7 +80,7 @@ export default function FolhaValoresParcela({
     try {
       await definirValorDoMes(uid, p, mes, valor, despesas);
       esquecerRascunho(mes);
-      mostrarToast(`✓ ${rotuloMes(mes)}: ${formatMoney(valor, moeda)}`);
+      mostrarToast(`${rotuloMes(mes)}: ${formatMoney(valor, moeda)}`);
     } catch {
       mostrarToast("Não foi possível guardar. Tente de novo.");
     }
@@ -90,7 +90,7 @@ export default function FolhaValoresParcela({
     try {
       await limparValorDoMes(uid, p, mes, despesas);
       esquecerRascunho(mes);
-      mostrarToast(`✓ ${rotuloMes(mes)} volta ao valor automático`);
+      mostrarToast(`${rotuloMes(mes)} volta ao valor automático`);
     } catch {
       mostrarToast("Não foi possível guardar. Tente de novo.");
     }

@@ -43,7 +43,7 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
       .join("\n");
     try {
       await navigator.clipboard.writeText(texto);
-      mostrarToast("✓ Erro copiado");
+      mostrarToast("Erro copiado");
     } catch {
       mostrarToast("Não foi possível copiar.");
     }
@@ -52,7 +52,7 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
   async function limpar() {
     try {
       await limparErros(uid);
-      mostrarToast("✓ Registo limpo");
+      mostrarToast("Registo limpo");
     } catch {
       mostrarToast("Não foi possível limpar.");
     }

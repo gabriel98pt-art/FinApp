@@ -33,8 +33,8 @@
   font-weight: 700;
   color: var(--mut);
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 
 /* O fundo/cor vêm inline de `corDaCategoriaVisual` (Despesa/Receita/Veículo
@@ -67,8 +67,8 @@
   font-size: var(--fs-body);
   font-weight: 700;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 
 .subTipo:hover {

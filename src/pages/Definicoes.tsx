@@ -71,7 +71,7 @@ export default function Definicoes() {
     if (!uid) return;
     try {
       await atualizarConfig(uid, { showTvde: !cfg.showTvde });
-      mostrarToast(cfg.showTvde ? "Módulo TVDE desligado" : "✓ Módulo TVDE ligado");
+      mostrarToast(cfg.showTvde ? "Módulo TVDE desligado" : "Módulo TVDE ligado");
     } catch {
       mostrarToast("Não foi possível alterar.");
     }
@@ -90,7 +90,7 @@ export default function Definicoes() {
     if (!uid) return;
     try {
       await atualizarConfig(uid, { currency: valor as Currency });
-      mostrarToast("✓ Moeda atualizada");
+      mostrarToast("Moeda atualizada");
     } catch {
       mostrarToast("Não foi possível alterar.");
     }
@@ -100,7 +100,7 @@ export default function Definicoes() {
     if (!uid) return;
     try {
       await atualizarConfig(uid, { diaInicioSemana: Number(valor) });
-      mostrarToast("✓ Início da semana atualizado");
+      mostrarToast("Início da semana atualizado");
     } catch {
       mostrarToast("Não foi possível alterar.");
     }

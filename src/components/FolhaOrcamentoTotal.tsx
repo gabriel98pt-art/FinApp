@@ -66,7 +66,7 @@ export default function FolhaOrcamentoTotal({
     setSalvando(true);
     try {
       await definirOrcamentoTotal(uid, valor);
-      mostrarToast(valor === null || valor === 0 ? "Total apagado" : "✓ Total definido");
+      mostrarToast(valor === null || valor === 0 ? "Total apagado" : "Total definido");
       fechar();
     } catch {
       mostrarToast("Não foi possível guardar o total.");

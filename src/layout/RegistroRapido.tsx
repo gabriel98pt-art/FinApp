@@ -542,8 +542,8 @@ export default function RegistroRapido() {
       mostrarToast(
         editando && lado !== tipo
           ? lado === "receita"
-            ? "✓ Virou receita"
-            : "✓ Virou despesa"
+            ? "Virou receita"
+            : "Virou despesa"
           : editando
             ? "Alterações guardadas"
             : tipo === "receita"

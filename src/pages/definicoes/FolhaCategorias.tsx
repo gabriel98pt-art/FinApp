@@ -66,7 +66,7 @@ export default function FolhaCategorias({
       if (lista === "fontesReceita") await renomearFonte(uid, cfg, alvo, nomeNovo);
       else await renomearCategoria(uid, cfg, lista, alvo, nomeNovo);
       setRenomeando(null);
-      mostrarToast(`✓ Agora chama-se "${nomeNovo.trim()}"`);
+      mostrarToast(`Agora chama-se ${nomeNovo.trim()}`);
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível renomear."));
     }
@@ -100,7 +100,7 @@ export default function FolhaCategorias({
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, lista, nome);
-      mostrarToast(`✓ "${nome}" registado`);
+      mostrarToast(`${nome} registado`);
       setNovo("");
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
@@ -111,7 +111,7 @@ export default function FolhaCategorias({
     if (!(await confirmar(`Apagar ${item}? Lançamentos que já usam esse nome não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, lista, item);
-      mostrarToast(`"${item}" apagado`);
+      mostrarToast(`${item} apagado`);
     } catch {
       mostrarToast("Não foi possível apagar.");
     }

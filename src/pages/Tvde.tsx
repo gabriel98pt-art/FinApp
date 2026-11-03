@@ -145,7 +145,7 @@ function FormSemana({
     }
     try {
       await salvarSemana(uid, n, semana);
-      mostrarToast(`✓ Semana ${n} guardada`);
+      mostrarToast(`Semana ${n} guardada`);
       aoFechar();
       setChave(null);
     } catch {
@@ -504,7 +504,7 @@ export default function Tvde() {
                             return;
                           await agir(
                             () => lancarReceitaSemana(uid, nSem, dados),
-                            "✓ Receita registada nas finanças",
+                            "Receita registada nas finanças",
                           );
                         })();
                       }}
@@ -606,7 +606,7 @@ export default function Tvde() {
                     onChange={(e) =>
                       void agir(
                         () => salvarConfigTvde(uid, { contaReceita: e.target.value }),
-                        "✓ Conta destino guardada",
+                        "Conta destino guardada",
                       )
                     }
                   >
@@ -639,7 +639,7 @@ export default function Tvde() {
                   onChange={(e) =>
                     void agir(
                       () => salvarConfigTvde(uid, { fonteReceita: e.target.value }),
-                      "✓ Fonte da receita guardada",
+                      "Fonte da receita guardada",
                     )
                   }
                 >
@@ -660,7 +660,7 @@ export default function Tvde() {
                 const v = segValor ?? 0;
                 void agir(
                   () => definirSegMes(uid, segMes, v === 0 ? null : v),
-                  v === 0 ? "Seg. Social apagada" : "✓ Seg. Social registada",
+                  v === 0 ? "Seg. Social apagada" : "Seg. Social registada",
                 );
                 setSegValor(null);
               }}
@@ -704,7 +704,7 @@ export default function Tvde() {
                 void agir(
                   () =>
                     criarDespesaTvde(uid, { data: hojeIso(), descricao: despDescricao, valor: v }),
-                  "✓ Despesa TVDE registada",
+                  "Despesa TVDE registada",
                 );
                 setDespDescricao("");
                 setDespValor(null);

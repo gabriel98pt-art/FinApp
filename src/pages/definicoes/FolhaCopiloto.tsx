@@ -43,7 +43,7 @@ export default function FolhaCopiloto({
     setSalvando(true);
     try {
       await definirPreferenciasCopiloto(uid, { nome: nome.trim() || undefined, tom });
-      mostrarToast("✓ Copiloto personalizado");
+      mostrarToast("Copiloto personalizado");
     } catch {
       mostrarToast("Não foi possível guardar.");
     } finally {

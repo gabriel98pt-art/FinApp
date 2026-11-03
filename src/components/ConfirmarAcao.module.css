@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--veu);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-exit) var(--ease-exit);

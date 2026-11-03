@@ -151,7 +151,7 @@ function LinhaParcela({
       return;
     await agir(
       () => quitarParcela(uid, p, mesRef, hoje),
-      `✓ ${p.descricao} liquidada — ${formatMoney(totalQuit, moeda)}`,
+      `${p.descricao} liquidada — ${formatMoney(totalQuit, moeda)}`,
     );
   }
 
@@ -168,7 +168,7 @@ function LinhaParcela({
             onClick: () =>
               void agir(
                 () => pagarMesParcela(uid, p, proximo),
-                `✓ ${p.descricao} — ${rotuloMes(proximo)} paga`,
+                `${p.descricao} — ${rotuloMes(proximo)} paga`,
               ),
           },
         ]
@@ -326,10 +326,10 @@ function FormParcela({
     try {
       if (editando) {
         await atualizarParcela(uid, { ...editando, ...dados });
-        mostrarToast("✓ Parcela atualizada");
+        mostrarToast("Parcela atualizada");
       } else {
         await criarParcela(uid, { ...dados, pagoPorMes: {} });
-        mostrarToast("✓ Parcela criada");
+        mostrarToast("Parcela criada");
       }
       setSemeadoPara(null);
       aoFechar();
@@ -506,7 +506,7 @@ export default function SecaoParcelas() {
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, "intermediadoresParcelamento", nome);
-      mostrarToast(`✓ "${nome}" registado`);
+      mostrarToast(`${nome} registado`);
       setNovoIntermediador("");
     } catch (err) {
       mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
@@ -517,7 +517,7 @@ export default function SecaoParcelas() {
     if (!(await confirmar(`Apagar ${nome}? Parcelas já criadas não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, "intermediadoresParcelamento", nome);
-      mostrarToast(`"${nome}" apagado`);
+      mostrarToast(`${nome} apagado`);
     } catch {
       mostrarToast("Não foi possível apagar.");
     }
