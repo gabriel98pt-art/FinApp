@@ -29,7 +29,7 @@ export default function ErroSincronizacao({
       <div className={styles.tira} role="status">
         <CloudOff size={15} aria-hidden />
         <span className={styles.tiraTexto}>{mensagem} — os dados podem estar desatualizados.</span>
-        <Botao variante="secundario" onClick={() => window.location.reload()}>
+        <Botao variante="neutro" tamanho="pequeno" onClick={() => window.location.reload()}>
           Tentar novamente
         </Botao>
       </div>
@@ -43,7 +43,7 @@ export default function ErroSincronizacao({
       </span>
       <p className={styles.mensagem}>{mensagem}</p>
       <p className={styles.sub}>{sub}</p>
-      <Botao variante="secundario" onClick={() => window.location.reload()}>
+      <Botao variante="neutro" tamanho="pequeno" onClick={() => window.location.reload()}>
         Tentar novamente
       </Botao>
     </div>

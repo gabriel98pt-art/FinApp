@@ -18,7 +18,8 @@ export default function Paginador({
   return (
     <div className={styles.pager}>
       <Botao
-        variante="secundario"
+        variante="neutro"
+        tamanho="pequeno"
         onClick={() => aoMudar(pagina - 1)}
         disabled={pagina <= 1}
         aria-label="Página anterior"
@@ -33,7 +34,8 @@ export default function Paginador({
         {pagina} / {paginas}
       </span>
       <Botao
-        variante="secundario"
+        variante="neutro"
+        tamanho="pequeno"
         onClick={() => aoMudar(pagina + 1)}
         disabled={pagina >= paginas}
         aria-label="Página seguinte"

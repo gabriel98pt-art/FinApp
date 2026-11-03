@@ -83,16 +83,16 @@ describe("FolhaConta", () => {
     await waitFor(() => expect(atualizarConfig).toHaveBeenCalledWith("u1", { nome: "Ana Silva" }));
   });
 
-  test("sem foto oferece escolher; com foto oferece trocar e remover", () => {
+  test("sem foto oferece escolher; com foto oferece trocar e apagar", () => {
     const { unmount } = render(<FolhaConta aberta aoFechar={() => {}} />);
     expect(screen.getByRole("button", { name: /Escolher foto/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Remover foto/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Apagar foto/ })).toBeNull();
     unmount();
 
     cfg = { ...CONFIG_PADRAO, foto: "data:image/webp;base64,AAAA" };
     render(<FolhaConta aberta aoFechar={() => {}} />);
     expect(screen.getByRole("button", { name: /Trocar foto/ })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Remover foto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Apagar foto/ }));
     return waitFor(() => expect(atualizarConfig).toHaveBeenCalledWith("u1", { foto: "" }));
   });
 });

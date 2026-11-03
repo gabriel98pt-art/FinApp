@@ -68,10 +68,10 @@ export default function FolhaContasCartoes({
     if (!nomeFinal) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarCartao(uid, cfg, nomeFinal, tipo);
-      mostrarToast(`✓ ${tipo === "credit" ? "Cartão de crédito" : "Conta de débito"} adicionado`);
+      mostrarToast(`✓ ${tipo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`);
       setNome("");
     } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
     }
   }
 
@@ -88,11 +88,11 @@ export default function FolhaContasCartoes({
     try {
       await adicionarMetodo(uid, cfg, adicionandoMetodoA, tipoNovoMetodo);
       mostrarToast(
-        `✓ ${tipoNovoMetodo === "credit" ? "Cartão de crédito" : "Conta de débito"} adicionado`,
+        `✓ ${tipoNovoMetodo === "credit" ? "Cartão de crédito" : "Conta de débito"} registado`,
       );
       setAdicionandoMetodoA(null);
     } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
     }
   }
 
@@ -111,15 +111,15 @@ export default function FolhaContasCartoes({
   async function remover(id: string) {
     if (
       !(await confirmar(
-        `Remover "${nomeDe(id)}"? Os lançamentos que já a usam não mudam — para trocar o nome, use Renomear.`,
+        `Apagar ${nomeDe(id)}? Os lançamentos que já a usam não mudam — para trocar o nome, use Renomear.`,
       ))
     )
       return;
     try {
       await removerCartao(uid, cfg, id);
-      mostrarToast(`"${nomeDe(id)}" removido`);
+      mostrarToast(`"${nomeDe(id)}" apagado`);
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     }
   }
 
@@ -155,15 +155,19 @@ export default function FolhaContasCartoes({
                   <span className={styles.nomeCategoria}>{nomeDe(c)}</span>
                   <span className={styles.tipoConta}>{credito ? "crédito" : "débito"}</span>
                   <Botao
-                    variante="icone"
+                    variante="neutro"
+                    tamanho="pequeno"
+                    soIcone
                     onClick={() => abrirAdicionarMetodo(c)}
-                    aria-label={`Adicionar método em ${nomeDe(c)}`}
-                    title="Adicionar método"
+                    aria-label={`Registar método em ${nomeDe(c)}`}
+                    title="Registar método"
                   >
                     <Wallet size={16} aria-hidden />
                   </Botao>
                   <Botao
-                    variante="icone"
+                    variante="neutro"
+                    tamanho="pequeno"
+                    soIcone
                     onClick={() => setRenomeando(c)}
                     aria-label={`Renomear ${nomeDe(c)}`}
                     title="Renomear"
@@ -171,11 +175,13 @@ export default function FolhaContasCartoes({
                     <Pencil size={16} aria-hidden />
                   </Botao>
                   <Botao
-                    variante="icone"
+                    variante="neutro"
+                    tamanho="pequeno"
+                    soIcone
                     className={styles.acaoRemover}
                     onClick={() => void remover(c)}
-                    aria-label={`Remover ${nomeDe(c)}`}
-                    title="Remover"
+                    aria-label={`Apagar ${nomeDe(c)}`}
+                    title="Apagar"
                   >
                     <X size={16} aria-hidden />
                   </Botao>
@@ -236,8 +242,8 @@ export default function FolhaContasCartoes({
             rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
             aoMudar={(t) => setTipo(t as TipoCartao)}
           />
-          <Botao variante="secundario" type="submit">
-            <Wallet size={14} aria-hidden /> Adicionar
+          <Botao variante="neutro" tamanho="pequeno" type="submit">
+            <Wallet size={14} aria-hidden /> Registar
           </Botao>
         </div>
       </form>
@@ -251,7 +257,7 @@ export default function FolhaContasCartoes({
         aoFechar={() => setRenomeando(null)}
         aoConfirmar={(n) => void renomear(n)}
         nivel={1}
-        aviso="O nome novo aparece em tudo — no que já está lançado também."
+        aviso="O nome novo aparece em tudo — no que já está registado também."
       />
 
       {/* Adicionar um 2.º método à mesma instituição (Fase C2) — não pede nome,
@@ -263,7 +269,7 @@ export default function FolhaContasCartoes({
         nivel={1}
         titulo={
           adicionandoMetodoA
-            ? `Adicionar método — ${cfg.instituicoes.find((i) => i.id === adicionandoMetodoA)?.nome ?? ""}`
+            ? `Registar método — ${cfg.instituicoes.find((i) => i.id === adicionandoMetodoA)?.nome ?? ""}`
             : ""
         }
       >
@@ -278,8 +284,8 @@ export default function FolhaContasCartoes({
               rotuloOpcao={(t) => (t === "credit" ? "Crédito" : "Débito")}
               aoMudar={(t) => setTipoNovoMetodo(t as TipoCartao)}
             />
-            <Botao type="submit" variante="submeter">
-              Adicionar método
+            <Botao type="submit" variante="primario" tamanho="grande">
+              Registar método
             </Botao>
           </form>
         )}

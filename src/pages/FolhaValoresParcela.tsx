@@ -134,7 +134,8 @@ export default function FolhaValoresParcela({
                   />
                   <Botao
                     type="submit"
-                    variante="texto"
+                    variante="fantasma"
+                    tamanho="pequeno"
                     disabled={!podeSalvar}
                     aria-label={`Guardar ${rotulo}`}
                   >
@@ -156,7 +157,8 @@ export default function FolhaValoresParcela({
                       Automático: {formatMoney(valorBaseDaParcela(p, idx), moeda)}
                     </span>
                     <Botao
-                      variante="texto"
+                      variante="fantasma"
+                      tamanho="pequeno"
                       aria-label={`Usar valor automático em ${rotulo}`}
                       onClick={() => void usarAutomatico(m)}
                     >

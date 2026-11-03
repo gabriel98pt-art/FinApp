@@ -84,10 +84,11 @@ export default function ModalDuplicatas({
                     <p className={styles.revisaoExcluirAviso}>
                       {fixa
                         ? "O mês desta despesa fixa vai voltar a ficar por pagar."
-                        : "O lançamento já registado vai ser eliminado."}
+                        : "O lançamento já registado vai ser apagado."}
                     </p>
                     <Botao
-                      variante="link"
+                      variante="fantasma"
+                      tamanho="pequeno"
                       type="button"
                       onClick={() => onMarcarParaApagar(l.id, false)}
                     >
@@ -108,16 +109,18 @@ export default function ModalDuplicatas({
                     <div className={styles.revisaoConfirmarAcoes}>
                       <Botao
                         variante="perigo"
+                        tamanho="pequeno"
                         type="button"
                         onClick={() => {
                           onMarcarParaApagar(l.id, true);
                           setAConfirmar(null);
                         }}
                       >
-                        {fixa ? "Sim, desmarcar o mês" : "Sim, eliminar o existente"}
+                        {fixa ? "Sim, desmarcar o mês" : "Sim, apagar o existente"}
                       </Botao>
                       <Botao
-                        variante="secundario"
+                        variante="neutro"
+                        tamanho="pequeno"
                         type="button"
                         onClick={() => setAConfirmar(null)}
                       >
@@ -126,8 +129,13 @@ export default function ModalDuplicatas({
                     </div>
                   </div>
                 ) : (
-                  <Botao variante="perigo" type="button" onClick={() => setAConfirmar(l.id)}>
-                    {fixa ? "Desmarcar o mês pago…" : "Eliminar o existente…"}
+                  <Botao
+                    variante="perigo"
+                    tamanho="pequeno"
+                    type="button"
+                    onClick={() => setAConfirmar(l.id)}
+                  >
+                    {fixa ? "Desmarcar o mês pago…" : "Apagar o existente…"}
                   </Botao>
                 )}
               </div>
@@ -136,7 +144,8 @@ export default function ModalDuplicatas({
         })}
       </div>
       <Botao
-        variante="submeter"
+        variante="primario"
+        tamanho="grande"
         disabled={enviando}
         onClick={() => {
           setAConfirmar(null);

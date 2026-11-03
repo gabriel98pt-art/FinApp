@@ -47,7 +47,7 @@ export default function OndeFoiODinheiro() {
         <h3 id="categorias" className={styles.titulo}>
           Categorias
         </h3>
-        <Botao variante="link" type="button" onClick={() => setAberta(true)}>
+        <Botao variante="fantasma" tamanho="pequeno" type="button" onClick={() => setAberta(true)}>
           Ver todas
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
         </Botao>

@@ -74,7 +74,7 @@ export default class ErrorBoundary extends Component<
           {this.state.primeiroComponente && (
             <p className={styles.detalhe}>{this.state.primeiroComponente}</p>
           )}
-          <Botao variante="secundario" onClick={() => window.location.reload()}>
+          <Botao variante="neutro" tamanho="pequeno" onClick={() => window.location.reload()}>
             Recarregar
           </Botao>
         </div>

@@ -226,7 +226,7 @@ describe("unidades", () => {
 // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
 // ações (Editar/Excluir), em vez de ir direto pro formulário.
 describe("menu de ações da linha (item 2)", () => {
-  test("tocar num abastecimento abre o menu com Editar e Eliminar", async () => {
+  test("tocar num abastecimento abre o menu com Editar e Apagar", async () => {
     dados = {
       cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
       despesas: [],
@@ -239,10 +239,10 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(screen.getByText("Galp"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
-  test("Eliminar no menu remove o abastecimento direto, sem abrir a edição", async () => {
+  test("Apagar no menu apaga o abastecimento direto, sem abrir a edição", async () => {
     dados = {
       cargas: [{ id: "c1", data: "2026-08-05", kwh: 20, precoKwh: 30, custo: 600, local: "Galp" }],
       despesas: [],
@@ -253,7 +253,7 @@ describe("menu de ações da linha (item 2)", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
     await userEvent.click(screen.getByText("Galp"));
-    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     await waitFor(() => expect(removerCarga).toHaveBeenCalledWith("u1", "c1"));
   });
@@ -300,22 +300,22 @@ describe("menu de ações da pílula de local", () => {
     cfg = { ...CONFIG_PADRAO, locaisCarregamento: ["Galp Matosinhos"] };
   });
 
-  test("o menu do local traz Renomear e Remover", async () => {
+  test("o menu do local traz Renomear e Apagar", async () => {
     renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Ações de Galp Matosinhos" }));
 
     expect(await screen.findByRole("button", { name: "Renomear" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Remover" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
-  test("Remover no menu apaga o local da lista", async () => {
+  test("Apagar no menu apaga o local da lista", async () => {
     renderVeiculo();
     await userEvent.click(screen.getByRole("tab", { name: "Abastecimentos" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Ações de Galp Matosinhos" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Remover" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     await waitFor(() =>
       expect(removerItemLista).toHaveBeenCalledWith(

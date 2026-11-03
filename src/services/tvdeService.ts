@@ -110,11 +110,11 @@ export async function removerDespesaTvde(uid: string, id: Id) {
  *  o lucro já desconta a Segurança Social e soma gorjetas, coisas que não são
  *  receita e que, lançadas aqui, davam um valor a menos nas finanças. */
 export async function lancarReceitaSemana(uid: string, n: number, dados: DadosTvde) {
-  if (dados.lancamentos[String(n)]) throw new Error("Semana já lançada nas finanças.");
+  if (dados.lancamentos[String(n)]) throw new Error("Semana já registada nas finanças.");
   const semana = dados.semanas[String(n)];
   if (!semana) throw new Error("Semana inexistente.");
   if (!dados.cfg.contaReceita)
-    throw new Error("Configure a conta destino da receita (aba Extras) antes de lançar.");
+    throw new Error("Configure a conta destino da receita (aba Extras) antes de registar.");
   snapshotHistorico();
   const valorReceita = Math.round(calcularSemana(semana, dados.cfg.pctFrota).receita);
   const receitaId = push(ref(db, `users/${uid}/fin_v5/receitas`)).key!;

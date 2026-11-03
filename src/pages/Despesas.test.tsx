@@ -141,7 +141,7 @@ describe("Despesas", () => {
 // contrário de toda outra lista do app (Transações, Parcelas, Veículo), que
 // abre um menu com Editar/Excluir. Fixas era a única exceção.
 describe("menu de ações da linha de fixas (02/09/2026)", () => {
-  test("tocar na linha abre o menu com Editar e Eliminar, não a edição direto", async () => {
+  test("tocar na linha abre o menu com Editar e Apagar, não a edição direto", async () => {
     fixas = lista([fixa()]);
     renderDespesas();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
@@ -149,7 +149,7 @@ describe("menu de ações da linha de fixas (02/09/2026)", () => {
     await userEvent.click(screen.getByText("Netflix"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
     // A edição não abre sozinha — só depois de escolher "Editar" no menu.
     expect(screen.queryByRole("heading", { name: "Editar despesa fixa" })).not.toBeInTheDocument();
   });
@@ -179,13 +179,13 @@ describe("menu de ações da linha de fixas (02/09/2026)", () => {
   // Achado do Gabriel (03/09/2026): apagar uma fixa apagava o registo
   // inteiro, levando junto o histórico de meses já pagos. "Excluir" passa a
   // só encerrar a fixa a partir de hoje (`fim`), sem tocar em `pagoPorMes`.
-  test('"Eliminar" encerra a fixa a partir de hoje em vez de apagar o registo', async () => {
+  test('"Apagar" encerra a fixa a partir de hoje em vez de apagar o registo', async () => {
     fixas = lista([fixa({ pagoPorMes: { "2026-07": true, "2026-08": true } })]);
     renderDespesas();
     await userEvent.click(screen.getByRole("tab", { name: "Fixas" }));
 
     await userEvent.click(screen.getByText("Netflix"));
-    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     await waitFor(() =>
       expect(atualizarDespesaFixa).toHaveBeenCalledWith("u1", {
@@ -415,12 +415,12 @@ describe("Despesas com reembolso", () => {
 
   // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
   // ações — Excluir vira uma opção dele, ao lado de Editar.
-  test("Eliminar no menu de ações da linha pede confirmação e remove a despesa", async () => {
+  test("Apagar no menu de ações da linha pede confirmação e apaga a despesa", async () => {
     despesas = lista([gasto()]);
     renderDespesas();
 
     await userEvent.click(screen.getByText("Jantar de equipa"));
-    const eliminar = await screen.findByRole("button", { name: "Eliminar" });
+    const eliminar = await screen.findByRole("button", { name: "Apagar" });
     await userEvent.click(eliminar);
 
     await waitFor(() => expect(removerDespesa).toHaveBeenCalledWith("u1", "d1"));

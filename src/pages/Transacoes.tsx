@@ -73,7 +73,7 @@ function LinhaTransacao({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
-    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+    { rotulo: "Apagar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
   ];
 
   return (
@@ -302,13 +302,13 @@ export default function SecaoTransacoes() {
 
   async function excluirTransacao(t: Transacao) {
     if (!uid) return;
-    if (!(await confirmar(`Eliminar "${t.titulo}"?`))) return;
+    if (!(await confirmar(`Apagar ${t.titulo}?`))) return;
     try {
       if (t.origem === "receita") await removerReceita(uid, t.refId);
       else if (t.origem === "despesa") await removerDespesa(uid, t.refId);
-      mostrarToast(t.origem === "receita" ? "Receita eliminada" : "Despesa eliminada");
+      mostrarToast(t.origem === "receita" ? "Receita apagada" : "Despesa apagada");
     } catch {
-      mostrarToast("Não foi possível eliminar. Tente de novo.");
+      mostrarToast("Não foi possível apagar. Tente de novo.");
     }
   }
 
@@ -329,7 +329,8 @@ export default function SecaoTransacoes() {
       fecharDetalhe();
       return;
     }
-    if (!(await confirmar(`Mover "${detalhe.titulo}" para despesas comuns?`))) return;
+    if (!(await confirmar(`Mover ${detalhe.titulo} para despesas comuns?`, { verbo: "Mover" })))
+      return;
 
     setMovendo(true);
     try {
@@ -358,7 +359,7 @@ export default function SecaoTransacoes() {
                   : `${itens.length} transações`}
               </h3>
               {filtroAtivo && (
-                <Botao variante="link" type="button" onClick={limparTudo}>
+                <Botao variante="fantasma" tamanho="pequeno" type="button" onClick={limparTudo}>
                   Limpar tudo
                 </Botao>
               )}
@@ -467,7 +468,8 @@ export default function SecaoTransacoes() {
               </div>
             )}
             <Botao
-              variante="link"
+              variante="fantasma"
+              tamanho="pequeno"
               onClick={() => {
                 const destino = TELA_DO_TIPO[detalhe.origem];
                 fecharDetalhe();
@@ -491,7 +493,12 @@ export default function SecaoTransacoes() {
                     aoMudar={setCategoriaMover}
                     nivel={2}
                   />
-                  <Botao variante="submeter" onClick={moverParaDespesas} disabled={movendo}>
+                  <Botao
+                    variante="primario"
+                    tamanho="grande"
+                    onClick={moverParaDespesas}
+                    disabled={movendo}
+                  >
                     {/* A operação são duas escritas seguidas (criar a despesa,
                         apagar a carga) e pode demorar. Só o botão apagado não
                         diz se está a andar ou se o toque falhou — mesmo padrão

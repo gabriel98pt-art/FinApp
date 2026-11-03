@@ -33,10 +33,10 @@ export default function ImportacaoToolbar({
         <Check size={15} strokeWidth={2.5} aria-hidden /> Aceitar auto-classificadas
       </button>
       <div className={styles.acoesPar}>
-        <Botao variante="secundario" onClick={() => onMarcarTodas("import")}>
+        <Botao variante="neutro" tamanho="pequeno" onClick={() => onMarcarTodas("import")}>
           Marcar tudo p/ importar
         </Botao>
-        <Botao variante="secundario" onClick={() => onMarcarTodas("skip")}>
+        <Botao variante="neutro" tamanho="pequeno" onClick={() => onMarcarTodas("skip")}>
           Marcar tudo p/ pular
         </Botao>
       </div>

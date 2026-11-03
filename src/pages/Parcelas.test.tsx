@@ -148,14 +148,14 @@ describe("Parcelas", () => {
     expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
   });
 
-  test("o menu da linha também oferece Editar e Eliminar", async () => {
+  test("o menu da linha também oferece Editar e Apagar", async () => {
     estado = { itens: [parcela()], carregado: true, erro: false };
     render(<Parcelas />);
 
     await userEvent.click(screen.getByText("Portátil"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
   test("pagar tudo avisa que quita a compra inteira e não dá para desfazer", async () => {
@@ -184,7 +184,7 @@ describe("Parcelas", () => {
 
   test("erro de validação associa os campos relevantes via aria-describedby — achado da auditoria de Acessibilidade", async () => {
     render(<Parcelas />);
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar parcela" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registar parcela" }));
 
     await userEvent.type(screen.getByLabelText("Descrição"), "Portátil");
     await userEvent.type(screen.getByLabelText("Quanto no total?"), "50000");

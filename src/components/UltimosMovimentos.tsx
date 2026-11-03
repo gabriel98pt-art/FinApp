@@ -69,7 +69,12 @@ export default function UltimosMovimentos() {
         <h3 id="ultimos-mov" className={styles.titulo}>
           Últimos movimentos
         </h3>
-        <Botao variante="link" type="button" onClick={() => navegar("/transacoes")}>
+        <Botao
+          variante="fantasma"
+          tamanho="pequeno"
+          type="button"
+          onClick={() => navegar("/transacoes")}
+        >
           Ver todos
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
         </Botao>

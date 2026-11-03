@@ -148,9 +148,10 @@ function ControlesFatura({
                 {formatMoney(p.valor, cfg.currency)}
                 <Botao
                   variante="perigo"
+                  tamanho="pequeno"
                   onClick={() => {
                     void (async () => {
-                      if (!(await confirmar("Remover este pagamento?"))) return;
+                      if (!(await confirmar("Apagar este pagamento?"))) return;
                       await removerPagamentoFatura(
                         uid,
                         fatura.cartao,
@@ -161,11 +162,11 @@ function ControlesFatura({
                         parcelas,
                         despesas,
                       )
-                        .then(() => mostrarToast("↩ Pagamento removido"))
-                        .catch(() => mostrarToast("Não foi possível remover."));
+                        .then(() => mostrarToast("↩ Pagamento apagado"))
+                        .catch(() => mostrarToast("Não foi possível apagar."));
                     })();
                   }}
-                  aria-label="Remover pagamento"
+                  aria-label="Apagar pagamento"
                 >
                   <X size={15} aria-hidden />
                 </Botao>
@@ -177,22 +178,24 @@ function ControlesFatura({
 
       <div className={styles.acoes}>
         {fatura.restante > 0 && (
-          <Botao variante="primaria" onClick={aoPagar}>
+          <Botao variante="primario" onClick={aoPagar}>
             Pagar
           </Botao>
         )}
-        <Botao variante="secundario" onClick={aoAjustar}>
+        <Botao variante="neutro" tamanho="pequeno" onClick={aoAjustar}>
           Ajustar valor
         </Botao>
         {fatura.pago > 0 && (
           <Botao
-            variante="secundario"
+            variante="neutro"
+            tamanho="pequeno"
             onClick={() => {
               void (async () => {
                 const n = calcularPagamentos(fatura).length;
                 if (
                   !(await confirmar(
-                    `Reabrir a fatura de ${rotuloMes(fatura.mes)}? Remove ${n} pagamento(s).`,
+                    `Reabrir a fatura de ${rotuloMes(fatura.mes)}? Apaga ${n} pagamento(s).`,
+                    { verbo: "Reabrir", perigo: true },
                   ))
                 )
                   return;
@@ -238,7 +241,7 @@ function LinhaTransferencia({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(t) },
-    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
+    { rotulo: "Apagar", Icone: Trash2, onClick: () => aoExcluir(t), tone: "perigo" },
   ];
 
   const nome = `${nomeDe(t.de)} → ${nomeDe(t.para)}`;
@@ -500,12 +503,12 @@ export default function Cartoes() {
 
   async function excluirTransferencia() {
     if (!tfEditandoId) return;
-    if (!(await confirmar("Eliminar esta transferência?"))) return;
+    if (!(await confirmar("Apagar esta transferência?"))) return;
     const id = tfEditandoId;
     setTfAberta(false);
     try {
       await removerTransferencia(uid, id);
-      mostrarToast("Transferência eliminada");
+      mostrarToast("Transferência apagada");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
     }
@@ -513,10 +516,10 @@ export default function Cartoes() {
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha.
   async function excluirTransferenciaDaLista(t: Transferencia) {
-    if (!(await confirmar("Eliminar esta transferência?"))) return;
+    if (!(await confirmar("Apagar esta transferência?"))) return;
     try {
       await removerTransferencia(uid, t.id);
-      mostrarToast("Transferência eliminada");
+      mostrarToast("Transferência apagada");
     } catch {
       mostrarToast("Não foi possível concluir. Tente de novo.");
     }
@@ -588,7 +591,7 @@ export default function Cartoes() {
   }
 
   const botaoImportar = (
-    <Botao variante="secundario" onClick={() => setImportarAberto(true)}>
+    <Botao variante="neutro" tamanho="pequeno" onClick={() => setImportarAberto(true)}>
       <Upload size={15} aria-hidden /> Importar
     </Botao>
   );
@@ -600,7 +603,12 @@ export default function Cartoes() {
           Cartões e contas
           {contasEscondidas ? ` · ${resumos.length} escondidos` : ""}
         </h3>
-        <Botao variante="secundario" onClick={alternarContas} aria-expanded={!contasEscondidas}>
+        <Botao
+          variante="neutro"
+          tamanho="pequeno"
+          onClick={alternarContas}
+          aria-expanded={!contasEscondidas}
+        >
           {contasEscondidas ? "Mostrar" : "Esconder"}
           {contasEscondidas ? (
             <ChevronDown size={15} aria-hidden />
@@ -758,9 +766,11 @@ export default function Cartoes() {
         {/* Só o "+", ao lado do título da secção que já diz do que se trata;
             o texto inteiro fica no aria-label (sweep de 01/09/2026). */}
         <Botao
-          variante="adicionar"
+          variante="secundario"
+          tamanho="pequeno"
+          soIcone
           onClick={abrirNovaTransferencia}
-          aria-label="Adicionar transferência"
+          aria-label="Registar transferência"
         >
           <Plus size={18} aria-hidden />
         </Botao>
@@ -776,7 +786,7 @@ export default function Cartoes() {
           <EstadoVazio
             Icone={ArrowLeftRight}
             mensagem={`Nenhuma transferência em ${rotuloMes(mes)}`}
-            sub="Toque em + para adicionar."
+            sub="Toque em + para registar."
           />
         ) : (
           ordenarPorDataDesc(transferenciasDoMes).map((t) => (
@@ -845,7 +855,8 @@ export default function Cartoes() {
             {resumoAberto.tipo !== "credit" && (
               <div className={styles.acoes}>
                 <Botao
-                  variante="secundario"
+                  variante="neutro"
+                  tamanho="pequeno"
                   onClick={() => {
                     setValorTexto(resumoAberto.saldoAtual);
                     setContaAberta(null);
@@ -917,7 +928,12 @@ export default function Cartoes() {
             {contasDebito.length === 0 && (
               <p className={styles.aviso}>Adicione primeiro uma conta/cartão de débito.</p>
             )}
-            <Botao type="submit" variante="submeter" disabled={contasDebito.length === 0}>
+            <Botao
+              type="submit"
+              variante="primario"
+              tamanho="grande"
+              disabled={contasDebito.length === 0}
+            >
               Registar pagamento
             </Botao>
           </form>
@@ -940,7 +956,7 @@ export default function Cartoes() {
               Valor manual (€) — vazio volta ao automático
               <CampoMoeda valor={valorTexto} aoMudar={setValorTexto} placeholder="automático" />
             </label>
-            <Botao type="submit" variante="submeter">
+            <Botao type="submit" variante="primario" tamanho="grande">
               Guardar
             </Botao>
           </form>
@@ -967,7 +983,7 @@ export default function Cartoes() {
               Os lançamentos não mudam — o que se acerta é o ponto de partida da conta, para o saldo
               bater com o do banco.
             </p>
-            <Botao type="submit" variante="submeter">
+            <Botao type="submit" variante="primario" tamanho="grande">
               Guardar
             </Botao>
           </form>
@@ -1010,12 +1026,17 @@ export default function Cartoes() {
               maxLength={120}
             />
           </label>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             {tfEditandoId ? "Guardar alterações" : "Registar transferência"}
           </Botao>
           {tfEditandoId && (
-            <Botao variante="perigo" type="button" onClick={() => void excluirTransferencia()}>
-              Eliminar transferência
+            <Botao
+              variante="perigo"
+              tamanho="pequeno"
+              type="button"
+              onClick={() => void excluirTransferencia()}
+            >
+              Apagar transferência
             </Botao>
           )}
         </form>

@@ -74,7 +74,7 @@ export default function FolhaSenha({
             minLength={SENHA_MINIMA}
             required
           />
-          <Botao variante="secundario" type="submit" disabled={salvando}>
+          <Botao variante="neutro" tamanho="pequeno" type="submit" disabled={salvando}>
             <KeyRound size={14} aria-hidden /> {salvando ? "A alterar…" : "Alterar senha"}
           </Botao>
         </div>

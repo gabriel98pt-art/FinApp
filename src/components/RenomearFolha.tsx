@@ -63,7 +63,7 @@ export default function RenomearFolha({
         <p className={styles.aviso}>
           {aviso ?? "Os lançamentos que já usam este nome passam a usar o novo."}
         </p>
-        <Botao type="submit" variante="submeter">
+        <Botao type="submit" variante="primario" tamanho="grande">
           Renomear
         </Botao>
       </form>

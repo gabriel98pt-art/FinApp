@@ -107,7 +107,7 @@ describe("Cartoes", () => {
     expect(screen.getByRole("button", { name: /Fatura/ })).toBeInTheDocument();
   });
 
-  test("sem contas configuradas: convida a adicionar a primeira", () => {
+  test("sem contas configuradas: convida a registar a primeira", () => {
     cfg = { ...CONFIG_PADRAO, contasCartoes: [], tipoCartao: {} };
     render(<Cartoes />);
     expect(screen.getByText("Nenhuma conta ou cartão")).toBeInTheDocument();
@@ -254,7 +254,7 @@ describe("Cartoes", () => {
       expect(screen.queryByText(CARTAO)).toBeNull();
     });
 
-    test("uma transferência já lançada mostra o nome novo nas duas pontas", () => {
+    test("uma transferência já registada mostra o nome novo nas duas pontas", () => {
       render(<Cartoes />);
       const linha = screen.getAllByRole("button").find((b) => b.textContent?.includes("10/08"))!;
       expect(linha.textContent).toContain("Gold Novo");
@@ -263,14 +263,14 @@ describe("Cartoes", () => {
 
     // Item 2 do lote de UX/nav (30/08): a linha inteira abre o menu único de
     // ações, em vez de ir direto pro formulário de edição.
-    test("tocar na linha da transferência abre o menu com Editar e Eliminar", async () => {
+    test("tocar na linha da transferência abre o menu com Editar e Apagar", async () => {
       render(<Cartoes />);
       const linha = screen.getAllByRole("button").find((b) => b.textContent?.includes("10/08"))!;
 
       fireEvent.click(linha);
 
       expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
     });
   });
 

@@ -109,7 +109,7 @@ export default function Login() {
           </p>
         )}
 
-        <Botao variante="submeter" type="submit" disabled={aguardando}>
+        <Botao variante="primario" tamanho="grande" type="submit" disabled={aguardando}>
           {aguardando
             ? "Aguarde…"
             : modo === "entrar"
@@ -120,13 +120,19 @@ export default function Login() {
         </Botao>
 
         {modo === "entrar" && (
-          <Botao variante="link" type="button" onClick={() => irPara("recuperar")}>
+          <Botao
+            variante="fantasma"
+            tamanho="pequeno"
+            type="button"
+            onClick={() => irPara("recuperar")}
+          >
             Esqueci a senha
           </Botao>
         )}
 
         <Botao
-          variante="link"
+          variante="fantasma"
+          tamanho="pequeno"
           type="button"
           onClick={() => irPara(modo === "entrar" ? "cadastrar" : "entrar")}
         >

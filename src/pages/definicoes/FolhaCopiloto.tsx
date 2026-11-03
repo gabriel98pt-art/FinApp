@@ -56,9 +56,9 @@ export default function FolhaCopiloto({
       await definirPreferenciasCopiloto(uid, null);
       setNome("");
       setTom("direto");
-      mostrarToast("Personalização removida");
+      mostrarToast("Personalização apagada");
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     }
   }
 
@@ -87,11 +87,16 @@ export default function FolhaCopiloto({
             rotuloOpcao={(v) => TONS.find((t) => t.valor === v)?.rotulo ?? v}
             aoMudar={(v) => setTom(v as TomCopiloto)}
           />
-          <Botao variante="secundario" type="submit" disabled={salvando}>
-            <Sparkles size={14} aria-hidden /> {salvando ? "A guardar…" : "Guardar"}
+          <Botao variante="neutro" tamanho="pequeno" type="submit" carregando={salvando}>
+            <Sparkles size={14} aria-hidden /> Guardar
           </Botao>
           {configurado && (
-            <Botao variante="secundario" type="button" onClick={() => void desligar()}>
+            <Botao
+              variante="neutro"
+              tamanho="pequeno"
+              type="button"
+              onClick={() => void desligar()}
+            >
               <X size={14} aria-hidden /> Desligar
             </Botao>
           )}

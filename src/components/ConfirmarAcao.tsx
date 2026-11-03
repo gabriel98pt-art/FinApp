@@ -12,6 +12,7 @@ import Botao from "./Botao";
 export default function ConfirmarAcao() {
   const aberto = useConfirmarStore((s) => s.aberto);
   const mensagem = useConfirmarStore((s) => s.mensagem);
+  const acao = useConfirmarStore((s) => s.acao);
   const confirmarRef = useRef<HTMLButtonElement>(null);
   /** Quem tinha o foco antes do diálogo abrir, para lho devolver no fecho. */
   const anterior = useRef<HTMLElement | null>(null);
@@ -30,7 +31,7 @@ export default function ConfirmarAcao() {
       // lançamento), e a folha por baixo também escuta o Esc (`useFocoModal`,
       // que ouve em `document` na fase de bolha). Sem isto o Esc chegava lá
       // primeiro: fechava a FOLHA e deixava esta confirmação órfã por cima de
-      // um formulário que já não existe — com o "Confirmar" ainda a apagar. A
+      // um formulário que já não existe — com o "Apagar" ainda ativo. A
       // captura corre antes de qualquer listener de bolha, portanto o pedido
       // que está mesmo por cima é o único que responde.
       e.stopPropagation();
@@ -63,7 +64,7 @@ export default function ConfirmarAcao() {
         // `inert` e não `aria-hidden`, pela mesma razão da BottomSheet: fechado,
         // o cartão continua montado (só invisível e sem `pointer-events`), e o
         // Tab entrava na mesma nos dois botões — em qualquer tela do app a
-        // tabulação acabava num "Cancelar"/"Confirmar" que ninguém vê. Pior,
+        // tabulação acabava num "Cancelar"/"Apagar" que ninguém vê. Pior,
         // `aria-hidden` num contentor com focáveis é ele próprio uma violação
         // de ARIA. `inert` tira-os da navegação e da árvore de acessibilidade
         // de uma vez.
@@ -72,16 +73,16 @@ export default function ConfirmarAcao() {
         {/* A mensagem pode trazer \n com um aviso extra na segunda linha. */}
         <p className={styles.mensagem}>{mensagem}</p>
         <div className={styles.acoes}>
-          <Botao variante="secundario" type="button" onClick={() => responderConfirmacao(false)}>
+          {/* Mesmo tamanho e mesma forma lado a lado; só a cor diz qual aceita. */}
+          <Botao variante="neutro" onClick={() => responderConfirmacao(false)}>
             Cancelar
           </Botao>
           <Botao
-            variante="perigoForte"
+            variante={acao.perigo ? "perigo" : "primario"}
             ref={confirmarRef}
-            type="button"
             onClick={() => responderConfirmacao(true)}
           >
-            Confirmar
+            {acao.verbo}
           </Botao>
         </div>
       </div>

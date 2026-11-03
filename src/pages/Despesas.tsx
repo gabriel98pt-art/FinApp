@@ -266,8 +266,8 @@ export default function Despesas() {
       return;
     }
     if (!item) return;
-    if (!(await confirmar(`Eliminar "${item.descricao}"?`))) return;
-    await agir(() => removerDespesa(uid, id), "Despesa eliminada");
+    if (!(await confirmar(`Apagar ${item.descricao}?`))) return;
+    await agir(() => removerDespesa(uid, id), "Despesa apagada");
   }
 
   // ---- caixa de despesa fixa (criar/editar na mesma folha — itens 2 e 7) ----
@@ -369,7 +369,7 @@ export default function Despesas() {
   async function excluirFixa() {
     const atual = despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!(await confirmar(`Eliminar "${atual.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${atual.descricao}?`))) return;
     setDfAberta(false);
     await encerrarFixa(atual);
   }
@@ -378,7 +378,7 @@ export default function Despesas() {
   // edição estar aberta, ao contrário de `excluirFixa` acima (essa continua
   // a servir o botão "Excluir" de DENTRO da folha).
   async function excluirFixaDaLista(f: DespesaFixa) {
-    if (!(await confirmar(`Eliminar "${f.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${f.descricao}?`))) return;
     await encerrarFixa(f);
   }
 
@@ -534,8 +534,10 @@ export default function Despesas() {
                 <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
                 {
                   <Botao
-                    variante="adicionar"
-                    aria-label="Adicionar despesa"
+                    variante="secundario"
+                    tamanho="pequeno"
+                    soIcone
+                    aria-label="Registar despesa"
                     onClick={() => abrirRegistro("despesa")}
                   >
                     <Plus size={18} aria-hidden />
@@ -594,7 +596,7 @@ export default function Despesas() {
                   ? `Nenhuma despesa em ${rotuloDaSemana(semanaAtual)}`
                   : `Nenhuma despesa em ${rotuloMes(mes)}`
               }
-              vazioSub="Toque em + para adicionar."
+              vazioSub="Toque em + para registar."
               vazioIcone={TrendingDown}
               aoAdicionar={() => abrirRegistro("despesa")}
               aoEditar={editar}
@@ -610,9 +612,11 @@ export default function Despesas() {
                 Despesas fixas
               </h3>
               <Botao
-                variante="adicionar"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
                 onClick={abrirNovaFixa}
-                aria-label="Adicionar despesa fixa"
+                aria-label="Registar despesa fixa"
               >
                 <Plus size={18} aria-hidden />
               </Botao>
@@ -637,7 +641,7 @@ export default function Despesas() {
                   }
                   sub={
                     despesasFixas.length === 0
-                      ? "Toque em + para adicionar."
+                      ? "Toque em + para registar."
                       : "As já criadas começam ou terminam em outros meses."
                   }
                 />
@@ -797,12 +801,17 @@ export default function Despesas() {
             {dfAutoDebit ? <SquareCheck size={18} aria-hidden /> : <Square size={18} aria-hidden />}
             Débito direto
           </button>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
-            <Botao variante="perigo" type="button" onClick={() => void excluirFixa()}>
-              Eliminar despesa fixa
+            <Botao
+              variante="perigo"
+              tamanho="pequeno"
+              type="button"
+              onClick={() => void excluirFixa()}
+            >
+              Apagar despesa fixa
             </Botao>
           )}
         </form>
@@ -832,7 +841,7 @@ export default function Despesas() {
               rotuloOpcao={(c) => nomeAtualDoMetodo(cfg, c)}
               rotuloVazio="Sem cartão"
             />
-            <Botao type="submit" variante="submeter">
+            <Botao type="submit" variante="primario" tamanho="grande">
               Guardar
             </Botao>
           </form>

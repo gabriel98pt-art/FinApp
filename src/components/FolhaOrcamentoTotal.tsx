@@ -66,7 +66,7 @@ export default function FolhaOrcamentoTotal({
     setSalvando(true);
     try {
       await definirOrcamentoTotal(uid, valor);
-      mostrarToast(valor === null || valor === 0 ? "Total removido" : "✓ Total definido");
+      mostrarToast(valor === null || valor === 0 ? "Total apagado" : "✓ Total definido");
       fechar();
     } catch {
       mostrarToast("Não foi possível guardar o total.");
@@ -82,7 +82,7 @@ export default function FolhaOrcamentoTotal({
           Quanto pretende gastar por mês
           <CampoMoeda valor={valor} aoMudar={setValor} disabled={salvando} />
         </label>
-        <Botao type="submit" variante="submeter" disabled={salvando}>
+        <Botao type="submit" variante="primario" tamanho="grande" disabled={salvando}>
           {salvando ? "Aguarde…" : "Guardar"}
         </Botao>
       </form>

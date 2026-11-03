@@ -126,7 +126,7 @@ describe("Tvde", () => {
 // solto ao lado ("Lançar receita"/"Desfazer lançamento") viram um menu
 // único, junto de Editar/Excluir.
 describe("menu de ações da semana (item 2)", () => {
-  test("semana sem lançamento: o menu oferece Editar, Lançar receita e Eliminar", async () => {
+  test("semana sem lançamento: o menu oferece Editar, Registar receita e Apagar", async () => {
     dados = {
       ...vazio(),
       semanas: { "30": { fat: 100000, teste: false } },
@@ -136,12 +136,12 @@ describe("menu de ações da semana (item 2)", () => {
     await userEvent.click(screen.getByRole("button", { name: /Semana 30/ }));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Lançar receita" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registar receita" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Desfazer lançamento" })).not.toBeInTheDocument();
   });
 
-  test("semana já lançada: o menu troca para Desfazer lançamento", async () => {
+  test("semana já registada: o menu troca para Desfazer lançamento", async () => {
     dados = {
       ...vazio(),
       semanas: { "30": { fat: 100000, teste: false } },
@@ -152,7 +152,7 @@ describe("menu de ações da semana (item 2)", () => {
     await userEvent.click(screen.getByRole("button", { name: /Semana 30/ }));
 
     expect(await screen.findByRole("button", { name: "Desfazer lançamento" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Lançar receita" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Registar receita" })).not.toBeInTheDocument();
   });
 });
 

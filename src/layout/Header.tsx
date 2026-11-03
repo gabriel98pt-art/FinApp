@@ -79,9 +79,6 @@ export default function Header() {
         ) : (
           <BotaoPerfil />
         )}
-        <h1 className={styles.logo}>
-          Fin<span>App</span>
-        </h1>
       </div>
       {mostrarMes && (
         <div className={styles.mes}>

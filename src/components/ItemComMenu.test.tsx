@@ -35,7 +35,7 @@ describe("ItemComMenu", () => {
 
     expect(aoEditar).not.toHaveBeenCalled();
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
   test('"Editar" no menu chama aoEditar', async () => {
@@ -49,7 +49,7 @@ describe("ItemComMenu", () => {
     expect(aoEditar).toHaveBeenCalledTimes(1);
   });
 
-  test('"Eliminar" no menu chama aoExcluir', async () => {
+  test('"Apagar" no menu chama aoExcluir', async () => {
     const aoExcluir = vi.fn();
     render(
       <ItemComMenu
@@ -60,7 +60,7 @@ describe("ItemComMenu", () => {
       />,
     );
     await userEvent.click(screen.getByText("Netflix"));
-    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     expect(aoExcluir).toHaveBeenCalledTimes(1);
   });

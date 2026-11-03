@@ -124,7 +124,9 @@ export default function FiltroTransacoes({
     <>
       <Botao
         ref={gatilhoRef}
-        variante="icone"
+        variante="neutro"
+        tamanho="pequeno"
+        soIcone
         className={ativos > 0 ? styles.botaoAtivo : ""}
         onClick={() => setAberta(!aberta)}
         aria-expanded={aberta}
@@ -190,7 +192,8 @@ export default function FiltroTransacoes({
         </div>
         {ativos > 0 && (
           <Botao
-            variante="link"
+            variante="fantasma"
+            tamanho="pequeno"
             type="button"
             onClick={() => {
               aoMudarCategoria("");

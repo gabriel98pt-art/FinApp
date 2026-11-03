@@ -1,150 +1,144 @@
-/* Base comum a todas as variantes. O reset de <button> vive em base.css
-   (font/cor herdadas, sem fundo nem borda, :active a 0.97), por isso aqui só
-   fica o que distingue um botão de um <button> qualquer. */
+/* Base comum. O reset de <button> vive em base.css (font/cor herdadas, sem
+   fundo nem borda, :active a 0.97). Todos os botões são cápsulas (ícone
+   sozinho: círculo), para que dois botões lado a lado tenham sempre a mesma
+   forma — antes o «Cancelar» do diálogo era pílula e o «Confirmar» tinha
+   cantos de 9px. */
 .base {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  font-weight: 700;
-  border-radius: var(--r-sm);
+  gap: 6px;
+  font-weight: 600;
+  border-radius: var(--r-pill);
   white-space: nowrap;
+  flex: none;
+  transition: background var(--dur-fast) var(--ease-exit);
 }
 
 .base:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: default;
 }
 
-/* Ação principal de um ecrã: "Adicionar despesa", "Novo evento", "Pagar".
-   0.82rem/8px 14px era o desenho com mais votos entre as seis cópias à mão que
-   existiam; o tamanho arredondou para --fs-body (0.85rem, meio pixel acima) ao
-   entrar na escala. */
-.primaria {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-size: var(--fs-body);
-  padding: 8px 14px;
-}
+/* ── Tamanhos ───────────────────────────────────────────────────────────── */
 
-/* Confirmar um formulário dentro de uma folha inferior. Mesma cor da primária,
-   mas larga e alta: é o único destino da folha, e o polegar chega-lhe em
-   qualquer sítio da largura do ecrã. */
-.submeter {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  font-size: var(--fs-title);
-  padding: 12px;
-  width: 100%;
-}
-
-/* Ação de cabeçalho de secção ("adicionar" ao lado do título do quadro): é
-   texto, não botão, porque compete com o título ao lado e não deve ganhar. */
-.texto {
-  color: var(--blu-txt);
-  font-size: var(--fs-body);
-  padding: 6px 10px;
-}
-
-.texto:hover {
-  background: var(--s2);
-}
-
-/* Botão de CRIAR reduzido ao "+" (01/09/2026): dentro do corpo das páginas, o
-   "+ Adicionar abastecimento" ao lado do título repetia por extenso o que o
-   título já dizia, e em ecrã estreito era o texto do botão que empurrava o
-   título para duas linhas. Fica só o ícone, quadrado; o texto inteiro passa
-   para `aria-label`, portanto quem usa leitor de ecrã continua a ouvir "
-   Adicionar abastecimento" e não "mais".
-
-   Combina-se com qualquer variante — muda só a forma, nunca a cor. */
-.soIcone {
-  gap: 0;
-  padding: 8px;
-}
-
-/* Ações destrutivas, em dois pesos — porque não são todas igualmente graves e
-   antes eram: "excluir parcela" era texto vermelho, "sair" era texto vermelho
-   com ícone, e "apagar conta" (a única sem volta possível) era um botão cinzento
-   neutro, ou seja, a acção mais grave da app era a que menos parecia.
-
-   .perigo — desfazível ou recuperável: excluir uma parcela, terminar a sessão.
-   Vermelho só no texto: assinala sem interromper. */
-.perigo {
-  color: var(--red);
-  font-size: var(--fs-body);
-  padding: 6px 10px;
-}
-
-.perigo:hover {
-  background: var(--tint-red-12);
-}
-
-/* .perigoForte — irreversível e total: apagar a conta e tudo o que ela guarda.
-   Vermelho cheio, o mesmo do "Confirmar" do diálogo de confirmação, que é o
-   outro sítio da app onde já não há como voltar atrás. Deliberadamente pesado:
-   quem chega aqui deve reconhecer o botão pelo que ele é antes de o ler. */
-.perigoForte {
-  background: var(--red);
-  color: var(--bg);
-  font-size: var(--fs-body);
-  padding: 8px 14px;
-}
-
-/* ── Padrão único (prévia) ───────────────────────────────────────────────────
-   Quatro papéis novos, com medidas fixas: o mesmo papel tem o mesmo aspeto em
-   todas as abas. Icones sempre 18px (adicionar, icone) ou 15px (secundario). */
-
-/* Adicionar (+): escuro, 34×34, só ícone, na linha do título do quadro. */
-.adicionar {
-  background: var(--btn-bg);
-  color: var(--btn-txt);
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  flex: none;
-}
-
-/* Ícone secundário (filtro, ordenar, menu de ações): círculo bege 34×34. */
-.icone {
-  background: var(--s2);
-  color: var(--mut);
-  border: 1px solid var(--brd);
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  flex: none;
-  position: relative;
-}
-
-.icone:hover {
-  color: var(--txt);
-  background: var(--s3);
-}
-
-/* Secundário com texto (Esconder, Importar, Liquidadas, Contribuir…): pílula
-   bege com 34px de altura, texto 13.6/600 e ícone opcional de 15px. */
-.secundario {
-  background: var(--s2);
-  color: var(--txt);
-  border-radius: var(--r-pill);
+.pequeno {
   height: 34px;
   padding: 0 14px;
   font-size: var(--fs-body);
-  font-weight: 600;
-  gap: 6px;
 }
 
-.secundario:hover {
-  background: var(--s3);
+/* 34px de desenho, 44 de toque (o mínimo da Apple). */
+.pequeno::before {
+  content: "";
+  position: absolute;
+  inset: -5px 0;
 }
 
-/* Link (Ver todos / Ver todas): texto terracota, sem fundo. */
-.link {
+.normal {
+  height: 44px;
+  padding: 0 18px;
+  font-size: var(--fs-title);
+}
+
+/* Fim de folha: único destino, e o polegar chega-lhe em qualquer sítio da
+   largura do ecrã. */
+.grande {
+  height: 52px;
+  width: 100%;
+  padding: 0 20px;
+  font-size: var(--fs-title);
+  font-weight: 700;
+}
+
+.soIcone {
+  gap: 0;
+  padding: 0;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.pequeno.soIcone::before {
+  inset: -5px;
+}
+
+/* ── Estilos ────────────────────────────────────────────────────────────── */
+
+.primario {
+  background: var(--btn-bg);
+  color: var(--btn-txt);
+}
+
+.secundario {
+  background: color-mix(in srgb, var(--blu) 14%, transparent);
   color: var(--blu-txt);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 6px 2px;
-  gap: 2px;
+}
+
+.neutro {
+  background: var(--s2);
+  color: var(--txt);
+}
+
+.fantasma {
+  color: var(--blu-txt);
+}
+
+.perigo {
+  background: var(--tint-red-12);
+  color: var(--red);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .secundario:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--blu) 22%, transparent);
+  }
+
+  .neutro:hover:not(:disabled),
+  .fantasma:hover:not(:disabled) {
+    background: var(--s3);
+  }
+
+  .perigo:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--red) 20%, transparent);
+  }
+}
+
+/* ── A carregar ─────────────────────────────────────────────────────────── */
+
+/* Mais visível do que o desativado normal: está a fazer, não está bloqueado. */
+.carregando:disabled {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+.oculto {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  visibility: hidden;
+}
+
+.indicador {
+  position: absolute;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulsar {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Girar é movimento; o pulso mantém o aviso de «a fazer» sem ele. */
+@media (prefers-reduced-motion: reduce) {
+  .indicador {
+    animation: pulsar 1.1s ease-in-out infinite;
+  }
 }

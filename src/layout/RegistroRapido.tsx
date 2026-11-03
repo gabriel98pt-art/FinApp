@@ -547,14 +547,14 @@ export default function RegistroRapido() {
           : editando
             ? "Alterações guardadas"
             : tipo === "receita"
-              ? "Receita adicionada"
+              ? "Receita registada"
               : tipo === "despesa" && parcelada
                 ? `Parcela criada em ${numParcelas}x`
                 : tipo === "carga"
                   ? "Abastecimento registado"
                   : tipo === "despesaVeiculo"
-                    ? "Despesa do veículo adicionada"
-                    : "Despesa adicionada",
+                    ? "Despesa do veículo registada"
+                    : "Despesa registada",
       );
       fecharRegistro();
     } catch {
@@ -566,15 +566,15 @@ export default function RegistroRapido() {
 
   async function eliminar() {
     if (!uid || !editando) return;
-    if (!(await confirmar(`Eliminar "${editando.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${editando.descricao}?`))) return;
     setSalvando(true);
     try {
       if (tipo === "receita") await removerReceita(uid, editando.id);
       else await removerDespesa(uid, editando.id);
-      mostrarToast("Lançamento eliminado");
+      mostrarToast("Lançamento apagado");
       fecharRegistro();
     } catch {
-      setErro("Não foi possível eliminar. Tente de novo.");
+      setErro("Não foi possível apagar. Tente de novo.");
     } finally {
       setSalvando(false);
     }
@@ -1030,13 +1030,19 @@ export default function RegistroRapido() {
         )}
 
         <div className={styles.acoes}>
-          <Botao type="submit" variante="submeter" disabled={salvando}>
-            {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Adicionar"}
+          <Botao type="submit" variante="primario" tamanho="grande" disabled={salvando}>
+            {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Registar"}
           </Botao>
 
           {editando && (
-            <Botao variante="perigo" type="button" onClick={eliminar} disabled={salvando}>
-              Eliminar lançamento
+            <Botao
+              variante="perigo"
+              tamanho="pequeno"
+              type="button"
+              onClick={eliminar}
+              disabled={salvando}
+            >
+              Apagar lançamento
             </Botao>
           )}
         </div>
@@ -1053,7 +1059,12 @@ export default function RegistroRapido() {
         nivel={1}
       >
         <div className={styles.folhaParcelamento}>
-          <Botao variante="submeter" type="button" onClick={() => setFolhaParcelamento(false)}>
+          <Botao
+            variante="primario"
+            tamanho="grande"
+            type="button"
+            onClick={() => setFolhaParcelamento(false)}
+          >
             <Check size={16} aria-hidden /> Confirmar
           </Botao>
 

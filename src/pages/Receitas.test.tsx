@@ -141,9 +141,9 @@ describe("Receitas", () => {
     ).toBeInTheDocument();
   });
 
-  test("Adicionar abre o registo rápido no modo receita", async () => {
+  test("Registar abre o registo rápido no modo receita", async () => {
     render(<Receitas />);
-    await userEvent.click(screen.getByRole("button", { name: /Adicionar/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Registar receita/ }));
 
     expect(abrirRegistro).toHaveBeenCalledWith("receita");
   });
@@ -163,12 +163,12 @@ describe("Receitas", () => {
     expect(abrirRegistro).toHaveBeenCalledWith("receita", "r1");
   });
 
-  test("Eliminar no menu de ações pede confirmação e remove a receita", async () => {
+  test("Apagar no menu de ações pede confirmação e apaga a receita", async () => {
     estadoReceitas = { itens: [receita()], carregado: true, erro: false };
     render(<Receitas />);
 
     await userEvent.click(screen.getByText("Salário"));
-    const eliminar = await screen.findByRole("button", { name: "Eliminar" });
+    const eliminar = await screen.findByRole("button", { name: "Apagar" });
     await userEvent.click(eliminar);
 
     await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));

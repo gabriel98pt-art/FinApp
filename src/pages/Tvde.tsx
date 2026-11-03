@@ -191,30 +191,31 @@ function FormSemana({
             <input inputMode="decimal" value={pct} onChange={(e) => setPct(e.target.value)} />
           </label>
         </div>
-        <Botao variante="submeter" type="submit">
+        <Botao variante="primario" tamanho="grande" type="submit">
           Guardar semana
         </Botao>
         {existente && (
           <Botao
             variante="perigo"
+            tamanho="pequeno"
             type="button"
             onClick={() => {
               void (async () => {
                 if (n === null) return;
                 if (dados.lancamentos[String(n)]) {
-                  mostrarToast("Desfaça o lançamento antes de eliminar a semana.");
+                  mostrarToast("Desfaça o lançamento antes de apagar a semana.");
                   return;
                 }
-                if (!(await confirmar(`Eliminar a semana ${n}?`))) return;
+                if (!(await confirmar(`Apagar a semana ${n}?`))) return;
                 aoFechar();
                 setChave(null);
                 await removerSemana(uid, n)
-                  .then(() => mostrarToast("Semana eliminada"))
+                  .then(() => mostrarToast("Semana apagada"))
                   .catch(() => mostrarToast("Não foi possível concluir. Tente de novo."));
               })();
             }}
           >
-            Eliminar semana
+            Apagar semana
           </Botao>
         )}
       </form>
@@ -255,8 +256,8 @@ function LinhaSemana({
     { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
     lancada
       ? { rotulo: "Desfazer lançamento", Icone: RotateCcw, onClick: aoDesfazerLancamento }
-      : { rotulo: "Lançar receita", Icone: Check, onClick: aoLancarReceita },
-    { rotulo: "Eliminar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+      : { rotulo: "Registar receita", Icone: Check, onClick: aoLancarReceita },
+    { rotulo: "Apagar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
   ];
 
   return (
@@ -369,11 +370,11 @@ export default function Tvde() {
   // com lançamento nas finanças ainda de pé).
   async function excluirSemanaDaLista(nSem: number) {
     if (lancamentos[String(nSem)]) {
-      mostrarToast("Desfaça o lançamento antes de eliminar a semana.");
+      mostrarToast("Desfaça o lançamento antes de apagar a semana.");
       return;
     }
-    if (!(await confirmar(`Eliminar a semana ${nSem}?`))) return;
-    await agir(() => removerSemana(uid, nSem), "Semana eliminada");
+    if (!(await confirmar(`Apagar a semana ${nSem}?`))) return;
+    await agir(() => removerSemana(uid, nSem), "Semana apagada");
   }
 
   return (
@@ -445,8 +446,10 @@ export default function Tvde() {
                 {/* Só o "+" (01/09): o título ao lado já diz "Semanas". A
                     frase inteira vive no aria-label. */}
                 <Botao
-                  variante="adicionar"
-                  aria-label="Adicionar semana"
+                  variante="secundario"
+                  tamanho="pequeno"
+                  soIcone
+                  aria-label="Registar semana"
                   onClick={() => setEditando(proximaSemanaFalta)}
                 >
                   <Plus size={18} aria-hidden />
@@ -494,13 +497,14 @@ export default function Tvde() {
                         void (async () => {
                           if (
                             !(await confirmar(
-                              `Lançar ${eur(Math.round(c.receita))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                              `Registar ${eur(Math.round(c.receita))} como receita nas finanças?\n\nSemana ${nSem} (${rotuloDaSemana(cfg.inicioSemana1, nSem)}).`,
+                              { verbo: "Registar" },
                             ))
                           )
                             return;
                           await agir(
                             () => lancarReceitaSemana(uid, nSem, dados),
-                            "✓ Receita lançada nas finanças",
+                            "✓ Receita registada nas finanças",
                           );
                         })();
                       }}
@@ -587,7 +591,7 @@ export default function Tvde() {
             <div className={styles.blocoExtra}>
               <p className={styles.blocoTitulo}>Conta destino da receita</p>
               <p className={styles.blocoNota}>
-                Onde a receita lançada da semana (aba Semanas) entra nas finanças.
+                Onde a receita registada da semana (aba Semanas) entra nas finanças.
               </p>
               {contasCartoes.length === 0 ? (
                 <p className={styles.blocoNota}>
@@ -625,7 +629,7 @@ export default function Tvde() {
             <div className={styles.blocoExtra}>
               <p className={styles.blocoTitulo}>Fonte da receita</p>
               <p className={styles.blocoNota}>
-                Qual fonte usar ao lançar a receita da semana (TVDE) nas finanças — evita duplicar
+                Qual fonte usar ao registar a receita da semana (TVDE) nas finanças — evita duplicar
                 categoria com uma fonte que já usa.
               </p>
               <div className={styles.linhaDupla}>
@@ -656,14 +660,14 @@ export default function Tvde() {
                 const v = segValor ?? 0;
                 void agir(
                   () => definirSegMes(uid, segMes, v === 0 ? null : v),
-                  v === 0 ? "Seg. Social removida" : "✓ Seg. Social registada",
+                  v === 0 ? "Seg. Social apagada" : "✓ Seg. Social registada",
                 );
                 setSegValor(null);
               }}
             >
               <p className={styles.blocoTitulo}>Segurança Social (por mês de pagamento)</p>
               <p className={styles.blocoNota}>
-                Lançar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
+                Registar no mês em que o valor saiu da conta — normalmente o trimestre anterior.
               </p>
               <div className={styles.linhaDupla}>
                 <input
@@ -673,7 +677,7 @@ export default function Tvde() {
                   onChange={(e) => setSegMes(e.target.value)}
                 />
                 <CampoMoeda valor={segValor} aoMudar={setSegValor} required />
-                <Botao variante="secundario" type="submit">
+                <Botao variante="neutro" tamanho="pequeno" type="submit">
                   Guardar
                 </Botao>
               </div>
@@ -700,7 +704,7 @@ export default function Tvde() {
                 void agir(
                   () =>
                     criarDespesaTvde(uid, { data: hojeIso(), descricao: despDescricao, valor: v }),
-                  "✓ Despesa TVDE adicionada",
+                  "✓ Despesa TVDE registada",
                 );
                 setDespDescricao("");
                 setDespValor(null);
@@ -724,8 +728,8 @@ export default function Tvde() {
                   onChange={(e) => setDespDescricao(e.target.value)}
                   required
                 />
-                <Botao variante="secundario" type="submit">
-                  Adicionar
+                <Botao variante="neutro" tamanho="pequeno" type="submit">
+                  Registar
                 </Botao>
               </div>
               {despesas.length > 0 && (
@@ -739,14 +743,15 @@ export default function Tvde() {
                         {eur(d.valor)}{" "}
                         <Botao
                           variante="perigo"
+                          tamanho="pequeno"
                           onClick={(e) => {
                             e.preventDefault();
                             void (async () => {
-                              if (!(await confirmar(`Eliminar "${d.descricao}"?`))) return;
-                              await agir(() => removerDespesaTvde(uid, d.id), "Despesa eliminada");
+                              if (!(await confirmar(`Apagar ${d.descricao}?`))) return;
+                              await agir(() => removerDespesaTvde(uid, d.id), "Despesa apagada");
                             })();
                           }}
-                          aria-label={`Eliminar ${d.descricao}`}
+                          aria-label={`Apagar ${d.descricao}`}
                         >
                           <X size={16} aria-hidden />
                         </Botao>

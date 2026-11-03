@@ -20,7 +20,7 @@ export default function FaixaErroSync() {
     <div className={styles.faixa} role="status">
       <CloudOff size={15} aria-hidden />
       <span className={styles.texto}>Não foi possível sincronizar.</span>
-      <Botao variante="secundario" onClick={() => window.location.reload()}>
+      <Botao variante="neutro" tamanho="pequeno" onClick={() => window.location.reload()}>
         Tentar novamente
       </Botao>
     </div>

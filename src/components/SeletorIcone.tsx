@@ -23,7 +23,7 @@ export default function SeletorIcone({
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
-      <Botao variante="link" type="button" onClick={() => aoEscolher(null)}>
+      <Botao variante="fantasma" tamanho="pequeno" type="button" onClick={() => aoEscolher(null)}>
         Sem ícone
       </Botao>
       <div className={`${styles.grade} ${styles.gradeIcone}`}>

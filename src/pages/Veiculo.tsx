@@ -153,7 +153,7 @@ function ChipComMenu({
 
   const acoes: AcaoItem[] = [
     { rotulo: "Renomear", Icone: Pencil, onClick: aoRenomear },
-    { rotulo: "Remover", Icone: Trash2, onClick: aoRemover, tone: "perigo" },
+    { rotulo: "Apagar", Icone: Trash2, onClick: aoRemover, tone: "perigo" },
   ];
 
   return (
@@ -295,15 +295,15 @@ export default function Veiculo() {
 
   async function excluirKm() {
     if (!kmEditandoId) return;
-    if (!(await confirmar("Eliminar este registo de km?"))) return;
+    if (!(await confirmar("Apagar este registo de km?"))) return;
     const id = kmEditandoId;
     setKmAberta(false);
-    await agir(() => removerKm(uid, id), "Registo eliminado");
+    await agir(() => removerKm(uid, id), "Registo apagado");
   }
 
   async function excluirKmDaLista(id: Id) {
-    if (!(await confirmar("Eliminar este registo de km?"))) return;
-    await agir(() => removerKm(uid, id), "Registo eliminado");
+    if (!(await confirmar("Apagar este registo de km?"))) return;
+    await agir(() => removerKm(uid, id), "Registo apagado");
   }
 
   // ---- caixa de abastecimento (só edita — ver comentário mais abaixo) ----
@@ -451,20 +451,20 @@ export default function Veiculo() {
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, "locaisCarregamento", nome);
-      mostrarToast(`✓ "${nome}" adicionado`);
+      mostrarToast(`✓ "${nome}" registado`);
       setNovoLocal("");
     } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
     }
   }
 
   async function removerLocal(nome: string) {
-    if (!(await confirmar(`Remover "${nome}"? Abastecimentos já registados não mudam.`))) return;
+    if (!(await confirmar(`Apagar ${nome}? Abastecimentos já registados não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, "locaisCarregamento", nome);
-      mostrarToast(`"${nome}" removido`);
+      mostrarToast(`"${nome}" apagado`);
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     }
   }
 
@@ -487,17 +487,17 @@ export default function Veiculo() {
 
   async function excluirCarga() {
     if (!cgEditandoId) return;
-    if (!(await confirmar("Eliminar este abastecimento?"))) return;
+    if (!(await confirmar("Apagar este abastecimento?"))) return;
     const id = cgEditandoId;
     setCgAberta(false);
-    await agir(() => removerCarga(uid, id), "Abastecimento eliminado");
+    await agir(() => removerCarga(uid, id), "Abastecimento apagado");
   }
 
   // Item 2 do lote de UX/nav: Excluir vira ação do menu único da linha,
   // direto — sem passar pela edição primeiro.
   async function excluirCargaDaLista(id: Id) {
-    if (!(await confirmar("Eliminar este abastecimento?"))) return;
-    await agir(() => removerCarga(uid, id), "Abastecimento eliminado");
+    if (!(await confirmar("Apagar este abastecimento?"))) return;
+    await agir(() => removerCarga(uid, id), "Abastecimento apagado");
   }
 
   // ---- caixa de despesa variável do veículo (criar/editar) ----
@@ -555,15 +555,15 @@ export default function Veiculo() {
 
   async function excluirDespesa() {
     if (!dvEditandoId) return;
-    if (!(await confirmar("Eliminar esta despesa do veículo?"))) return;
+    if (!(await confirmar("Apagar esta despesa do veículo?"))) return;
     const id = dvEditandoId;
     setDvAberta(false);
-    await agir(() => removerDespesaVeiculo(uid, id), "Despesa eliminada");
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa apagada");
   }
 
   async function excluirDespesaDaLista(id: Id) {
-    if (!(await confirmar("Eliminar esta despesa do veículo?"))) return;
-    await agir(() => removerDespesaVeiculo(uid, id), "Despesa eliminada");
+    if (!(await confirmar("Apagar esta despesa do veículo?"))) return;
+    await agir(() => removerDespesaVeiculo(uid, id), "Despesa apagada");
   }
 
   // ---- caixa de despesa fixa do veículo (criar/editar) ----
@@ -637,13 +637,13 @@ export default function Veiculo() {
   async function excluirFixa() {
     const atual = dados.despesasFixas.find((f) => f.id === dfEditandoId);
     if (!atual) return;
-    if (!(await confirmar(`Eliminar "${atual.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${atual.descricao}?`))) return;
     setDfAberta(false);
     await encerrarFixa(atual);
   }
 
   async function excluirFixaDaLista(f: DespesaFixa) {
-    if (!(await confirmar(`Eliminar "${f.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${f.descricao}?`))) return;
     await encerrarFixa(f);
   }
 
@@ -784,8 +784,10 @@ export default function Veiculo() {
                   ver .soIcone em Botao.module.css. A frase inteira vive no
                   aria-label. */}
               <Botao
-                variante="adicionar"
-                aria-label="Adicionar abastecimento"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
+                aria-label="Registar abastecimento"
                 onClick={() => abrirRegistro("carga")}
               >
                 <Plus size={18} aria-hidden />
@@ -812,7 +814,7 @@ export default function Veiculo() {
                       ? `Nenhum abastecimento em ${rotuloDaSemana(semanaAtual)}`
                       : `Nenhum abastecimento em ${rotuloMes(mes)}`
                   }
-                  sub="Toque em + para adicionar."
+                  sub="Toque em + para registar."
                 />
               ) : (
                 [...cargasVisiveis]
@@ -854,8 +856,8 @@ export default function Veiculo() {
                   value={novoLocal}
                   onChange={(e) => setNovoLocal(e.target.value)}
                 />
-                <Botao variante="secundario" type="submit">
-                  Adicionar
+                <Botao variante="neutro" tamanho="pequeno" type="submit">
+                  Registar
                 </Botao>
               </div>
             </form>
@@ -867,8 +869,10 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas do veículo</h3>
               <Botao
-                variante="adicionar"
-                aria-label="Adicionar despesa"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
+                aria-label="Registar despesa"
                 onClick={() => abrirRegistro("despesaVeiculo")}
               >
                 <Plus size={18} aria-hidden />
@@ -905,8 +909,10 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Despesas fixas do veículo</h3>
               <Botao
-                variante="adicionar"
-                aria-label="Adicionar despesa fixa"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
+                aria-label="Registar despesa fixa"
                 onClick={abrirNovaFixa}
               >
                 <Plus size={18} aria-hidden />
@@ -977,8 +983,10 @@ export default function Veiculo() {
             <div className={styles.cabecalhoLista}>
               <h3 className={styles.tituloSecao}>Quilometragem</h3>
               <Botao
-                variante="adicionar"
-                aria-label="Adicionar quilometragem"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
+                aria-label="Registar quilometragem"
                 onClick={abrirNovoKm}
               >
                 <Plus size={18} aria-hidden />
@@ -1146,11 +1154,16 @@ export default function Veiculo() {
             />
             Recarga da frota
           </label>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             Guardar alterações
           </Botao>
-          <Botao variante="perigo" type="button" onClick={() => void excluirCarga()}>
-            Eliminar abastecimento
+          <Botao
+            variante="perigo"
+            tamanho="pequeno"
+            type="button"
+            onClick={() => void excluirCarga()}
+          >
+            Apagar abastecimento
           </Botao>
         </form>
       </BottomSheet>
@@ -1182,11 +1195,16 @@ export default function Veiculo() {
               maxLength={120}
             />
           </label>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             Guardar alterações
           </Botao>
-          <Botao variante="perigo" type="button" onClick={() => void excluirDespesa()}>
-            Eliminar despesa
+          <Botao
+            variante="perigo"
+            tamanho="pequeno"
+            type="button"
+            onClick={() => void excluirDespesa()}
+          >
+            Apagar despesa
           </Botao>
         </form>
       </BottomSheet>
@@ -1227,12 +1245,17 @@ export default function Veiculo() {
               onChange={(e) => setDfDia(e.target.value)}
             />
           </label>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             {dfEditandoId ? "Guardar alterações" : "Criar fixa"}
           </Botao>
           {dfEditandoId && (
-            <Botao variante="perigo" type="button" onClick={() => void excluirFixa()}>
-              Eliminar despesa fixa
+            <Botao
+              variante="perigo"
+              tamanho="pequeno"
+              type="button"
+              onClick={() => void excluirFixa()}
+            >
+              Apagar despesa fixa
             </Botao>
           )}
         </form>
@@ -1259,12 +1282,17 @@ export default function Veiculo() {
             Descrição (opcional)
             <input value={kmNota} onChange={(e) => setKmNota(e.target.value)} />
           </label>
-          <Botao type="submit" variante="submeter">
+          <Botao type="submit" variante="primario" tamanho="grande">
             {kmEditandoId ? "Guardar alterações" : "Registar"}
           </Botao>
           {kmEditandoId && (
-            <Botao variante="perigo" type="button" onClick={() => void excluirKm()}>
-              Eliminar registo
+            <Botao
+              variante="perigo"
+              tamanho="pequeno"
+              type="button"
+              onClick={() => void excluirKm()}
+            >
+              Apagar registo
             </Botao>
           )}
         </form>

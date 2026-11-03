@@ -53,7 +53,7 @@ describe("FolhaContasCartoes — criar", () => {
   test("cria com o tipo crédito por omissão", async () => {
     abrir();
     await userEvent.type(screen.getByLabelText("Nome da conta ou cartão"), "AB Gold");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registar" }));
     expect(adicionarCartao).toHaveBeenCalledWith("u1", CONFIG_PADRAO, "AB Gold", "credit");
   });
 
@@ -62,13 +62,13 @@ describe("FolhaContasCartoes — criar", () => {
     await userEvent.type(screen.getByLabelText("Nome da conta ou cartão"), "Conta Principal");
     await userEvent.click(screen.getByRole("button", { name: /Tipo/ }));
     await userEvent.click(screen.getByRole("button", { name: "Débito" }));
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registar" }));
     expect(adicionarCartao).toHaveBeenCalledWith("u1", CONFIG_PADRAO, "Conta Principal", "debit");
   });
 
   test("nome vazio não chama o serviço", async () => {
     abrir();
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registar" }));
     expect(adicionarCartao).not.toHaveBeenCalled();
   });
 
@@ -76,7 +76,7 @@ describe("FolhaContasCartoes — criar", () => {
     abrir();
     const campo = screen.getByLabelText("Nome da conta ou cartão");
     await userEvent.type(campo, "AB Gold");
-    await userEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Registar" }));
     expect(campo).toHaveValue("");
   });
 });
@@ -121,29 +121,29 @@ describe("FolhaContasCartoes — lista do que já existe", () => {
     expect(renomearCartao).toHaveBeenCalledWith("u1", cfgCredito, CARTAO, "Gold Novo");
   });
 
-  test("remover chama removerCartao depois de confirmar", async () => {
+  test("apagar chama removerCartao depois de confirmar", async () => {
     abrir(cfgCredito);
-    fireEvent.click(screen.getByRole("button", { name: `Remover ${CARTAO}` }));
+    fireEvent.click(screen.getByRole("button", { name: `Apagar ${CARTAO}` }));
     await vi.waitFor(() => expect(removerCartao).toHaveBeenCalledWith("u1", cfgCredito, CARTAO));
   });
 
   // Fase C2: uma instituição já migrada 1:1 pode ganhar um 2.º método sem
   // precisar de virar uma conta nova — o cartão de crédito que falta ao lado
   // da conta de débito do mesmo banco.
-  test("adicionar método abre a folha com o nome da instituição, sem pedir nome", () => {
+  test("registar método abre a folha com o nome da instituição, sem pedir nome", () => {
     abrir(cfgCredito);
-    fireEvent.click(screen.getByRole("button", { name: `Adicionar método em ${CARTAO}` }));
+    fireEvent.click(screen.getByRole("button", { name: `Registar método em ${CARTAO}` }));
     expect(
-      screen.getByRole("heading", { name: `Adicionar método — ${CARTAO}` }),
+      screen.getByRole("heading", { name: `Registar método — ${CARTAO}` }),
     ).toBeInTheDocument();
   });
 
   test("submeter chama adicionarMetodo com o id da instituição e o tipo escolhido", () => {
     abrir(cfgCredito);
-    fireEvent.click(screen.getByRole("button", { name: `Adicionar método em ${CARTAO}` }));
+    fireEvent.click(screen.getByRole("button", { name: `Registar método em ${CARTAO}` }));
     // O tipo já nasce em "Crédito" (padrão do formulário) — não precisa de
     // trocar nada para este teste, só confirmar.
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar método" }));
+    fireEvent.click(screen.getByRole("button", { name: "Registar método" }));
     expect(adicionarMetodo).toHaveBeenCalledWith("u1", cfgCredito, CARTAO, "credit");
   });
 

@@ -65,7 +65,8 @@ export default function ImportacaoEntrada({
 
       <div className={styles.entradaAcoes}>
         <Botao
-          variante="submeter"
+          variante="primario"
+          tamanho="grande"
           className={styles.botaoAuto}
           onClick={() => arquivoRef.current?.click()}
           disabled={lendoPdf}
@@ -78,7 +79,12 @@ export default function ImportacaoEntrada({
           {lendoPdf ? "Lendo…" : "Carregar ficheiro"}
         </Botao>
         {!caixaAberta && (
-          <Botao variante="secundario" onClick={() => setColando(true)} disabled={lendoPdf}>
+          <Botao
+            variante="neutro"
+            tamanho="pequeno"
+            onClick={() => setColando(true)}
+            disabled={lendoPdf}
+          >
             Colar texto
           </Botao>
         )}
@@ -109,7 +115,8 @@ export default function ImportacaoEntrada({
           />
           <div className={styles.entradaAcoes}>
             <Botao
-              variante="submeter"
+              variante="primario"
+              tamanho="grande"
               className={styles.botaoAuto}
               onClick={onAnalisar}
               disabled={!texto.trim() || lendoPdf}
@@ -119,11 +126,21 @@ export default function ImportacaoEntrada({
             {/* O botão "Colar" existe por causa do iPhone (ver
                 `colarDoClipboard`): em destaque sem rato, discreto com ele. */}
             {semMouse ? (
-              <Botao variante="secundario" onClick={onColarClipboard} disabled={lendoPdf}>
+              <Botao
+                variante="neutro"
+                tamanho="pequeno"
+                onClick={onColarClipboard}
+                disabled={lendoPdf}
+              >
                 <ClipboardPaste size={15} aria-hidden /> Colar
               </Botao>
             ) : (
-              <Botao variante="link" onClick={onColarClipboard} disabled={lendoPdf}>
+              <Botao
+                variante="fantasma"
+                tamanho="pequeno"
+                onClick={onColarClipboard}
+                disabled={lendoPdf}
+              >
                 Colar
               </Botao>
             )}

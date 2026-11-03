@@ -34,14 +34,14 @@ describe("MenuAcoesItem", () => {
         acoes={[
           { rotulo: "Editar", Icone: Pencil, onClick: vi.fn() },
           { rotulo: "Marcar como pago", Icone: Check, onClick: vi.fn() },
-          { rotulo: "Eliminar", Icone: Trash2, onClick: vi.fn(), tone: "perigo" },
+          { rotulo: "Apagar", Icone: Trash2, onClick: vi.fn(), tone: "perigo" },
         ]}
       />,
     );
 
     expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Marcar como pago" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
   test("clicar numa ação fecha o menu E dispara o onClick dela", () => {
@@ -52,7 +52,7 @@ describe("MenuAcoesItem", () => {
         aoFechar={aoFechar}
         acoes={[
           { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
-          { rotulo: "Eliminar", Icone: Trash2, onClick: vi.fn(), tone: "perigo" },
+          { rotulo: "Apagar", Icone: Trash2, onClick: vi.fn(), tone: "perigo" },
         ]}
       />,
     );
@@ -71,12 +71,12 @@ describe("MenuAcoesItem", () => {
         aoFechar={vi.fn()}
         acoes={[
           { rotulo: "Editar", Icone: Pencil, onClick: aoEditar },
-          { rotulo: "Eliminar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
+          { rotulo: "Apagar", Icone: Trash2, onClick: aoExcluir, tone: "perigo" },
         ]}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apagar" }));
 
     expect(aoExcluir).toHaveBeenCalledTimes(1);
     expect(aoEditar).not.toHaveBeenCalled();

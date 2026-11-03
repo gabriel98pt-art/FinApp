@@ -100,21 +100,20 @@ export default function FolhaCategorias({
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, lista, nome);
-      mostrarToast(`✓ "${nome}" adicionado`);
+      mostrarToast(`✓ "${nome}" registado`);
       setNovo("");
     } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
     }
   }
 
   async function remover(item: string) {
-    if (!(await confirmar(`Remover "${item}"? Lançamentos que já usam esse nome não mudam.`)))
-      return;
+    if (!(await confirmar(`Apagar ${item}? Lançamentos que já usam esse nome não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, lista, item);
-      mostrarToast(`"${item}" removido`);
+      mostrarToast(`"${item}" apagado`);
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     }
   }
 
@@ -135,7 +134,9 @@ export default function FolhaCategorias({
               <CategoriaBolha categoria={item} />
               <span className={styles.nomeCategoria}>{item}</span>
               <Botao
-                variante="icone"
+                variante="neutro"
+                tamanho="pequeno"
+                soIcone
                 onClick={() => setIconeDe(item)}
                 aria-label={`Ícone de ${item}`}
                 title="Ícone"
@@ -143,7 +144,9 @@ export default function FolhaCategorias({
                 <Shapes size={16} aria-hidden />
               </Botao>
               <Botao
-                variante="icone"
+                variante="neutro"
+                tamanho="pequeno"
+                soIcone
                 onClick={() => setCorDe(item)}
                 aria-label={`Cor de ${item}`}
                 title="Cor"
@@ -151,7 +154,9 @@ export default function FolhaCategorias({
                 <Palette size={16} aria-hidden />
               </Botao>
               <Botao
-                variante="icone"
+                variante="neutro"
+                tamanho="pequeno"
+                soIcone
                 onClick={() => setRenomeando(item)}
                 aria-label={`Renomear ${item}`}
                 title="Renomear"
@@ -159,11 +164,13 @@ export default function FolhaCategorias({
                 <Pencil size={16} aria-hidden />
               </Botao>
               <Botao
-                variante="icone"
+                variante="neutro"
+                tamanho="pequeno"
+                soIcone
                 className={styles.acaoRemover}
                 onClick={() => void remover(item)}
-                aria-label={`Remover ${item}`}
-                title="Remover"
+                aria-label={`Apagar ${item}`}
+                title="Apagar"
               >
                 <X size={16} aria-hidden />
               </Botao>
@@ -177,10 +184,10 @@ export default function FolhaCategorias({
           value={novo}
           onChange={(e) => setNovo(e.target.value)}
           placeholder="Nova categoria…"
-          aria-label={`Adicionar em ${titulo}`}
+          aria-label={`Registar em ${titulo}`}
         />
-        <Botao variante="secundario" type="submit">
-          Adicionar
+        <Botao variante="neutro" tamanho="pequeno" type="submit">
+          Registar
         </Botao>
       </form>
 

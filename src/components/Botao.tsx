@@ -1,50 +1,78 @@
 import type { ComponentPropsWithRef } from "react";
+import { Loader2 } from "lucide-react";
 import styles from "./Botao.module.css";
 
-/** Os cinco papéis que um botão desempenha na app. Tudo o que não caiba aqui
- *  ou é um controlo (segmento, chip, selo — esses têm componente próprio) ou é
- *  um papel novo, e nesse caso entra como variante, não como CSS solto na
- *  página. */
-export type VarianteBotao =
-  | "primaria"
-  | "submeter"
-  | "texto"
-  | "perigo"
-  | "perigoForte"
-  | "adicionar"
-  | "icone"
-  | "secundario"
-  | "link";
+/** Os cinco estilos de botão, iguais na FinApp e na TVDE Pro (padrão comum,
+ *  docs/design/analise-tabbar-topo.md, parte 5). Tudo o que não caiba aqui é
+ *  um controlo (segmento, chip, selo — esses têm componente próprio).
+ *
+ *  - primario: cor cheia, sem degradê. Só um por ecrã.
+ *  - secundario: fundo suave na cor de acento.
+ *  - neutro: cor da superfície.
+ *  - fantasma: só texto ou só ícone, sem fundo.
+ *  - perigo: vermelho, só para ações que apagam dados. */
+export type VarianteBotao = "primario" | "secundario" | "neutro" | "fantasma" | "perigo";
+
+/** pequeno 34px (área de toque de 44 por trás), normal 44px, grande 52px a
+ *  ocupar a largura toda (o «Guardar» no fundo das folhas). */
+export type TamanhoBotao = "pequeno" | "normal" | "grande";
 
 type Props = ComponentPropsWithRef<"button"> & {
   variante: VarianteBotao;
-  /** Botão reduzido ao ícone (o "+" de criar, dentro do corpo das páginas).
-   *  Quem o usa passa OBRIGATORIAMENTE um `aria-label` com a frase inteira —
-   *  "Adicionar abastecimento", não "adicionar" — porque é o que sobra para
-   *  quem não vê o ícone. */
+  tamanho?: TamanhoBotao;
+  /** Botão reduzido ao ícone, redondo. Quem o usa passa OBRIGATORIAMENTE um
+   *  `aria-label` com a frase inteira — "Registar abastecimento", não
+   *  "registar" — porque é o que sobra para quem não vê o ícone. */
   soIcone?: boolean;
+  /** A meio de uma ação: fica desativado e troca o conteúdo por um indicador,
+   *  sem mudar de largura. */
+  carregando?: boolean;
 };
 
-/** Botão da app.
- *
- *  Existia em seis cópias feitas à mão só na versão "pílula azul cheia"
- *  (Despesas, Veículo, Cartões, Orçamento, Calendário), nove na versão
- *  "Salvar" das folhas e quatro na versão "adicionar" de cabeçalho — cada uma
- *  com um tamanho ou um padding ligeiramente diferente, sem que a diferença
- *  quisesse dizer nada. A folha de estilo de uma página é o sítio errado para
- *  redecidir o que é um botão primário.
- *
- *  `className` continua a ser aceite e vem depois das classes da variante, para
- *  quem precisa de layout local (largura, alinhamento na grelha) sem redefinir
- *  o desenho. */
-export default function Botao({ variante, soIcone, className, type, ...resto }: Props) {
+/** Botão da app. `className` vem depois das classes do componente, para quem
+ *  precisa de layout local (largura, alinhamento na grelha) sem redefinir o
+ *  desenho. */
+export default function Botao({
+  variante,
+  tamanho = "normal",
+  soIcone,
+  carregando,
+  className,
+  type,
+  disabled,
+  children,
+  ...resto
+}: Props) {
+  const classes = [
+    styles.base,
+    styles[variante],
+    styles[tamanho],
+    soIcone && styles.soIcone,
+    carregando && styles.carregando,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <button
       // <button> sem type dentro de <form> submete por omissão, e quase nenhuma
       // das chamadas quer isso; quem quer passa type="submit".
       type={type ?? "button"}
-      className={`${styles.base} ${styles[variante]}${soIcone ? ` ${styles.soIcone}` : ""}${className ? ` ${className}` : ""}`}
+      className={classes}
+      disabled={disabled || carregando}
+      aria-busy={carregando || undefined}
       {...resto}
-    />
+    >
+      {carregando ? (
+        <>
+          {/* O conteúdo fica, invisível, a segurar a largura do botão. */}
+          <span className={styles.oculto}>{children}</span>
+          <Loader2 className={styles.indicador} size={18} aria-hidden />
+        </>
+      ) : (
+        children
+      )}
+    </button>
   );
 }

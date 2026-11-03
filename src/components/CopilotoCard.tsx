@@ -158,6 +158,7 @@ export default function CopilotoCard() {
     const moeda = cfg.currency;
     const ok = await confirmarAcao(
       `Separar ${formatMoney(acaoPendente.valor, moeda)} para ${acaoPendente.nomeFundo}?`,
+      { verbo: "Separar" },
     );
     if (!ok) return;
 
@@ -193,7 +194,7 @@ export default function CopilotoCard() {
           onChange={(e) => setPergunta(e.target.value)}
           placeholder="Ex.: quanto gastei em mercado?"
         />
-        <Botao variante="secundario" type="submit">
+        <Botao variante="neutro" tamanho="pequeno" type="submit">
           Perguntar
         </Botao>
       </form>
@@ -210,7 +211,8 @@ export default function CopilotoCard() {
 
       {acaoPendente && (
         <Botao
-          variante="secundario"
+          variante="neutro"
+          tamanho="pequeno"
           type="button"
           disabled={aExecutar}
           onClick={() => void executarAcao()}

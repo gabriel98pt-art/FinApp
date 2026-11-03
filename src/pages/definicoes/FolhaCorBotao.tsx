@@ -58,7 +58,9 @@ export default function FolhaCorBotao({
             />
             <span className={styles.nomeCategoria}>{nome}</span>
             <Botao
-              variante="icone"
+              variante="neutro"
+              tamanho="pequeno"
+              soIcone
               onClick={() => setCorDe(nome)}
               aria-label={`Cor do botão em ${nome}`}
               title="Cor"

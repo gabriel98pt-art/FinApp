@@ -111,7 +111,7 @@ function LinhaLancamento({
         acoes={[
           { rotulo: "Editar", Icone: Pencil, onClick: () => aoEditar(item.id) },
           {
-            rotulo: "Eliminar",
+            rotulo: "Apagar",
             Icone: Trash2,
             onClick: () => aoExcluir(item.id),
             tone: "perigo",
@@ -201,7 +201,13 @@ export default function ListaLancamentos({
       {titulo && (
         <div className={styles.cabecalho}>
           <h3 className={styles.titulo}>{titulo}</h3>
-          <Botao variante="adicionar" aria-label="Adicionar" onClick={aoAdicionar}>
+          <Botao
+            variante="secundario"
+            tamanho="pequeno"
+            soIcone
+            aria-label="Registar"
+            onClick={aoAdicionar}
+          >
             <Plus size={18} aria-hidden />
           </Botao>
         </div>

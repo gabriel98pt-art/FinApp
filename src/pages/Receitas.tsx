@@ -51,12 +51,12 @@ export default function Receitas() {
   async function excluirReceita(id: string) {
     const item = itens.find((r) => r.id === id);
     if (!item) return;
-    if (!(await confirmar(`Eliminar "${item.descricao}"?`))) return;
+    if (!(await confirmar(`Apagar ${item.descricao}?`))) return;
     try {
       await removerReceita(uid, id);
-      mostrarToast("Receita eliminada");
+      mostrarToast("Receita apagada");
     } catch {
-      mostrarToast("Não foi possível eliminar. Tente de novo.");
+      mostrarToast("Não foi possível apagar. Tente de novo.");
     }
   }
 
@@ -187,8 +187,10 @@ export default function Receitas() {
             <SeletorOrdem valor={ordem} aoMudar={setOrdem} />
             {
               <Botao
-                variante="adicionar"
-                aria-label="Adicionar receita"
+                variante="secundario"
+                tamanho="pequeno"
+                soIcone
+                aria-label="Registar receita"
                 onClick={() => abrirRegistro("receita")}
               >
                 <Plus size={18} aria-hidden />
@@ -227,7 +229,7 @@ export default function Receitas() {
               ? `Nenhuma receita em ${rotuloDaSemana(semanaAtual)}`
               : `Nenhuma receita em ${rotuloMes(mes)}`
           }
-          vazioSub="Toque em + para adicionar."
+          vazioSub="Toque em + para registar."
           vazioIcone={TrendingUp}
           aoAdicionar={() => abrirRegistro("receita")}
           aoEditar={(id) => abrirRegistro("receita", id)}

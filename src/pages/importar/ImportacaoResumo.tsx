@@ -27,7 +27,7 @@ export default function ImportacaoResumo({
         filtro={filtro}
         setFiltro={setFiltro}
       />
-      <Botao variante="link" onClick={onNovoExtrato}>
+      <Botao variante="fantasma" tamanho="pequeno" onClick={onNovoExtrato}>
         Novo extrato
       </Botao>
     </div>

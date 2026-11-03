@@ -61,9 +61,9 @@ export default function FolhaConta({
     if (!uid) return;
     try {
       await atualizarConfig(uid, { foto: "" });
-      mostrarToast("✓ Foto removida");
+      mostrarToast("✓ Foto apagada");
     } catch {
-      mostrarToast("Não foi possível remover a foto.");
+      mostrarToast("Não foi possível apagar a foto.");
     }
   }
 
@@ -93,7 +93,8 @@ export default function FolhaConta({
             <Avatar foto={foto} nome={nomeGuardado} email={sessao?.email} tamanho={72} />
             <div className={styles.fotoAcoes}>
               <Botao
-                variante="secundario"
+                variante="neutro"
+                tamanho="pequeno"
                 disabled={aProcessar}
                 onClick={() => inputFoto.current?.click()}
               >
@@ -101,8 +102,8 @@ export default function FolhaConta({
                 {aProcessar ? "A processar…" : foto ? "Trocar foto" : "Escolher foto"}
               </Botao>
               {foto && (
-                <Botao variante="perigo" onClick={() => void removerFoto()}>
-                  Remover foto
+                <Botao variante="perigo" tamanho="pequeno" onClick={() => void removerFoto()}>
+                  Apagar foto
                 </Botao>
               )}
             </div>
@@ -130,7 +131,12 @@ export default function FolhaConta({
                 placeholder="Como quer ser chamado"
                 autoComplete="name"
               />
-              <Botao variante="secundario" type="submit" disabled={guardando || !nomeAlterado}>
+              <Botao
+                variante="neutro"
+                tamanho="pequeno"
+                type="submit"
+                disabled={guardando || !nomeAlterado}
+              >
                 Guardar
               </Botao>
             </div>
@@ -142,10 +148,10 @@ export default function FolhaConta({
           </div>
 
           <div className={styles.acoes}>
-            <Botao variante="secundario" onClick={() => setSenhaAberta(true)}>
+            <Botao variante="neutro" tamanho="pequeno" onClick={() => setSenhaAberta(true)}>
               <KeyRound size={15} aria-hidden /> Trocar senha
             </Botao>
-            <Botao variante="perigo" onClick={() => void sair()}>
+            <Botao variante="neutro" tamanho="pequeno" onClick={() => void sair()}>
               <LogOut size={15} aria-hidden /> Sair da conta
             </Botao>
           </div>

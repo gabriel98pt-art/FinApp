@@ -68,7 +68,8 @@ export default function ConfirmacaoImportacao({
           )}
         </p>
         <Botao
-          variante="submeter"
+          variante="primario"
+          tamanho="grande"
           className={styles.rodapeBotao}
           onClick={onAbrir}
           disabled={enviando || totalImportar === 0 || bloqueado}
@@ -104,17 +105,22 @@ export default function ConfirmacaoImportacao({
           {nApagar > 0 && (
             <p className={styles.resumoFinalApagar}>
               {nApagar === 1
-                ? "1 lançamento existente será eliminado."
-                : `${nApagar} lançamentos existentes serão eliminados.`}
+                ? "1 lançamento existente será apagado."
+                : `${nApagar} lançamentos existentes serão apagados.`}
               {temFixas && " Nas despesas fixas, o mês volta a ficar a pagar."}
             </p>
           )}
         </div>
         <div className={styles.folhaAcoes}>
-          <Botao variante="submeter" disabled={enviando} onClick={() => void onImportar()}>
+          <Botao
+            variante="primario"
+            tamanho="grande"
+            disabled={enviando}
+            onClick={() => void onImportar()}
+          >
             {enviando ? "Aguarde…" : `Importar ${totalImportar}`}
           </Botao>
-          <Botao variante="secundario" disabled={enviando} onClick={onFechar}>
+          <Botao variante="neutro" tamanho="pequeno" disabled={enviando} onClick={onFechar}>
             Voltar à revisão
           </Botao>
         </div>

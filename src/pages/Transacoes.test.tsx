@@ -88,7 +88,7 @@ beforeEach(() => {
 });
 
 describe("Transacoes", () => {
-  test("uma despesa antiga mostra o nome de hoje da conta, não o de quando foi lançada", () => {
+  test("uma despesa antiga mostra o nome de hoje da conta, não o de quando foi registada", () => {
     // A despesa guarda "AB Gold (C)", o id que ficou de antes do rename. É a
     // razão de a cascata de renomear ter podido desaparecer: o extrato resolve
     // o nome na hora, em vez de o histórico ter de ser reescrito.
@@ -319,27 +319,27 @@ describe("Transacoes", () => {
 // Item 2 do lote de UX/nav (30/08): receita/despesa ganham o menu único
 // (Editar/Excluir) — os outros cinco tipos continuam na folha "Abrir em X".
 describe("menu de ações da linha (item 2)", () => {
-  test("tocar numa linha de receita abre o menu com Editar e Eliminar", async () => {
+  test("tocar numa linha de receita abre o menu com Editar e Apagar", async () => {
     receitas = lista([receita()]);
     desenhar();
 
     await userEvent.click(screen.getByText("Salário"));
 
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Eliminar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apagar" })).toBeInTheDocument();
   });
 
-  test("Eliminar no menu remove a receita direto, sem abrir formulário", async () => {
+  test("Apagar no menu apaga a receita direto, sem abrir formulário", async () => {
     receitas = lista([receita()]);
     desenhar();
 
     await userEvent.click(screen.getByText("Salário"));
-    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     await waitFor(() => expect(removerReceita).toHaveBeenCalledWith("u1", "r1"));
   });
 
-  test("Eliminar no menu remove a despesa direto", async () => {
+  test("Apagar no menu apaga a despesa direto", async () => {
     despesas = lista([
       {
         id: "d1",
@@ -352,7 +352,7 @@ describe("menu de ações da linha (item 2)", () => {
     desenhar();
 
     await userEvent.click(screen.getByText("Mercado"));
-    await userEvent.click(await screen.findByRole("button", { name: "Eliminar" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Apagar" }));
 
     await waitFor(() => expect(removerDespesa).toHaveBeenCalledWith("u1", "d1"));
   });

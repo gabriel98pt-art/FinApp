@@ -1,5 +1,5 @@
 /* Grid de 3 colunas em vez de space-between: com flex, o mês só se centrava
-   no espaço que sobrava entre o logo e as ações, e como essas duas pontas têm
+   no espaço que sobrava entre o avatar e as ações, e como essas duas pontas têm
    larguras diferentes ele ficava puxado pra esquerda. Aqui as colunas 1 e 3
    dividem o resto em partes iguais, então o meio é o meio do header. */
 .header {
@@ -15,7 +15,7 @@
   grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
   /* Em cima soma-se a faixa do entalhe/ilha da câmara: com `viewport-fit=cover`
-     (index.html) o topo da página é o topo do ECRÃ, e sem isto o logo e os
+     (index.html) o topo da página é o topo do ECRÃ, e sem isto o avatar e os
      ícones ficavam por baixo do relógio e da bateria no iPhone. Nas laterais
      entra a folga do ecrã deitado, onde o entalhe passa a ser de um dos lados.
      Nos aparelhos sem faixa nenhuma os tokens valem 0px e o padding fica
@@ -44,7 +44,7 @@
 /* O vidro vive no ::before. Em repouso é transparente; ao rolar fica 85% do
    fundo + blur. Transiciona-se só a cor (e não a opacidade): no Safari do iOS
    o backdrop-filter falha sob opacidade animada e o texto passava nítido por
-   baixo do logo e dos ícones. */
+   baixo do avatar e dos ícones. */
 .header::before {
   content: "";
   position: absolute;
@@ -93,19 +93,15 @@
 }
 
 /* Seletor de mês fixo no header (item 1). O min-width 0 (e o minmax na coluna)
-   é pra que num telemóvel estreito ele encolha em vez de empurrar o logo.
-   grid-column explícito é obrigatório: sem ele, a coluna do mês é decidida
-   por auto-posicionamento — e abaixo de 350px, quando a logo soma
-   `display: none`, deixa de existir como item de grid, e o mês seria
-   auto-colocado na coluna 1 (a que sobrou), a competir por espaço com as
-   ações em vez de ter a faixa do meio só para si. Piorava exatamente o
-   corte que o `display: none` da logo devia resolver. */
+   é pra que num telemóvel estreito ele encolha em vez de empurrar o avatar.
+   grid-column explícito: sem ele, a coluna do mês seria decidida por
+   auto-posicionamento e podia cair numa das pontas. */
 .mes {
   grid-column: 2;
   display: flex;
   justify-content: center;
   min-width: 0;
-  /* Folga curta: com o grid as colunas laterais já separam o mês do logo e
+  /* Folga curta: com o grid as colunas laterais já separam o mês do avatar e
      das ações, e a 375px cada pixel aqui é rótulo que deixa de cortar. */
   padding: 0 2px;
 }
@@ -120,50 +116,6 @@
   min-width: 0;
 }
 
-.logo {
-  font-size: var(--fs-display);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-/* Abaixo de 350px (iPhone SE de 1ª geração e aparelhos parecidos) o nome não
-   cabe mais ao lado do mês e dos 3 ícones do cabeçalho — "setembro 2026"
-   cortava uns 4pt. A partir de 375px (o menor ecrã que a Apple ainda
-   suporta) já cabe tudo, então a marca continua visível em qualquer
-   telemóvel real de hoje; só nesse aparelho específico ela sai, e quem já
-   abriu o app sabe que app é. */
-/* Com o avatar à esquerda, a coluna do logo num telemóvel de ~390px só tem
-   ~100px até ao mês centrado: a marca encolhe um pouco para não bater nele. */
-@media (max-width: 430px) {
-  .marca {
-    gap: 8px;
-  }
-
-  .logo {
-    font-size: 17px;
-  }
-}
-
-@media (max-width: 400px) {
-  .marca {
-    gap: 6px;
-  }
-
-  .logo {
-    font-size: 15.5px;
-  }
-}
-
-@media (max-width: 350px) {
-  .logo {
-    display: none;
-  }
-}
-
-.logo span {
-  color: var(--blu-txt);
-}
-
 .acoes {
   grid-column: 3;
   display: flex;
@@ -174,7 +126,7 @@
      sem se sobrepor — senão um toque na fronteira ia parar ao botão errado. */
   gap: 8px;
   /* O ícone tem folga dentro do seu quadrado; puxar o grupo aproxima-o
-     opticamente da borda sem mexer no padding do header (que mantém o logo
+     opticamente da borda sem mexer no padding do header (que mantém o avatar
      alinhado com o conteúdo das páginas). */
   margin-right: -4px;
 }

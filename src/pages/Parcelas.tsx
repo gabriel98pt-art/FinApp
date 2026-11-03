@@ -144,7 +144,8 @@ function LinhaParcela({
     // diferença cabe por extenso.
     if (
       !(await confirmar(
-        `Pagar tudo de "${p.descricao}" agora?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)} numa única despesa, lançada hoje.\n\nQuita a compra inteira de uma vez e não dá para desfazer.`,
+        `Pagar tudo de ${p.descricao} agora?\n\n${abertos.length} parcela(s) em aberto → ${formatMoney(totalQuit, moeda)} numa única despesa, registada hoje.\n\nQuita a compra inteira de uma vez e não dá para desfazer.`,
+        { verbo: "Pagar" },
       ))
     )
       return;
@@ -187,7 +188,7 @@ function LinhaParcela({
           },
         ]
       : []),
-    { rotulo: "Eliminar", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
+    { rotulo: "Apagar", Icone: Trash2, onClick: () => aoExcluir(p), tone: "perigo" },
   ];
 
   return (
@@ -341,17 +342,17 @@ function FormParcela({
     if (!editando) return;
     if (
       !(await confirmar(
-        `Eliminar a parcela "${editando.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+        `Apagar a parcela ${editando.descricao}?\nOs meses já pagos continuam no histórico de despesas.`,
       ))
     )
       return;
     try {
       await excluirParcela(uid, editando, despesas);
-      mostrarToast("Parcela eliminada");
+      mostrarToast("Parcela apagada");
       setSemeadoPara(null);
       aoFechar();
     } catch {
-      setErro("Não foi possível eliminar. Tente de novo.");
+      setErro("Não foi possível apagar. Tente de novo.");
     }
   }
 
@@ -463,12 +464,12 @@ function FormParcela({
             {erro}
           </p>
         )}
-        <Botao type="submit" variante="submeter">
+        <Botao type="submit" variante="primario" tamanho="grande">
           {editando ? "Guardar alterações" : "Criar parcela"}
         </Botao>
         {editando && (
-          <Botao variante="perigo" onClick={() => void eliminar()}>
-            Eliminar parcela
+          <Botao variante="perigo" tamanho="pequeno" onClick={() => void eliminar()}>
+            Apagar parcela
           </Botao>
         )}
       </form>
@@ -505,20 +506,20 @@ export default function SecaoParcelas() {
     if (!nome) return mostrarToast("Escreva um nome primeiro.");
     try {
       await adicionarItemLista(uid, cfg, "intermediadoresParcelamento", nome);
-      mostrarToast(`✓ "${nome}" adicionado`);
+      mostrarToast(`✓ "${nome}" registado`);
       setNovoIntermediador("");
     } catch (err) {
-      mostrarToast(mensagemDeErroDados(err, "Não foi possível adicionar."));
+      mostrarToast(mensagemDeErroDados(err, "Não foi possível registar."));
     }
   }
 
   async function removerIntermediador(nome: string) {
-    if (!(await confirmar(`Remover "${nome}"? Parcelas já criadas não mudam.`))) return;
+    if (!(await confirmar(`Apagar ${nome}? Parcelas já criadas não mudam.`))) return;
     try {
       await removerItemLista(uid, cfg, "intermediadoresParcelamento", nome);
-      mostrarToast(`"${nome}" removido`);
+      mostrarToast(`"${nome}" apagado`);
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     }
   }
 
@@ -538,15 +539,15 @@ export default function SecaoParcelas() {
   async function excluirDaLista(p: Parcela) {
     if (
       !(await confirmar(
-        `Eliminar a parcela "${p.descricao}"?\nOs meses já pagos continuam no histórico de despesas.`,
+        `Apagar a parcela ${p.descricao}?\nOs meses já pagos continuam no histórico de despesas.`,
       ))
     )
       return;
     try {
       await excluirParcela(uid, p, despesas);
-      mostrarToast("Parcela eliminada");
+      mostrarToast("Parcela apagada");
     } catch {
-      mostrarToast("Não foi possível eliminar. Tente de novo.");
+      mostrarToast("Não foi possível apagar. Tente de novo.");
     }
   }
 
@@ -590,7 +591,13 @@ export default function SecaoParcelas() {
           )}
           {/* Só o "+" (01/09) — o título ao lado já diz "Compras em prestações".
               O texto inteiro vive no aria-label. */}
-          <Botao variante="adicionar" aria-label="Adicionar parcela" onClick={abrirNova}>
+          <Botao
+            variante="secundario"
+            tamanho="pequeno"
+            soIcone
+            aria-label="Registar parcela"
+            onClick={abrirNova}
+          >
             <Plus size={18} aria-hidden />
           </Botao>
         </div>
@@ -635,7 +642,7 @@ export default function SecaoParcelas() {
           folha à parte com o histórico, em vez de crescer a página. */}
       {quitadas.length > 0 && (
         <div className={styles.rodape}>
-          <Botao variante="secundario" onClick={() => setQuitadasAbertas(true)}>
+          <Botao variante="neutro" tamanho="pequeno" onClick={() => setQuitadasAbertas(true)}>
             <History size={15} aria-hidden />
             Liquidadas ({quitadas.length})
           </Botao>
@@ -686,7 +693,7 @@ export default function SecaoParcelas() {
                 <button
                   type="button"
                   className={styles.chipRemover}
-                  aria-label={`Remover ${i}`}
+                  aria-label={`Apagar ${i}`}
                   onClick={() => void removerIntermediador(i)}
                 >
                   ×
@@ -702,8 +709,8 @@ export default function SecaoParcelas() {
             value={novoIntermediador}
             onChange={(e) => setNovoIntermediador(e.target.value)}
           />
-          <Botao variante="secundario" type="submit">
-            Adicionar
+          <Botao variante="neutro" tamanho="pequeno" type="submit">
+            Registar
           </Botao>
         </div>
       </form>

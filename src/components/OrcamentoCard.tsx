@@ -90,10 +90,10 @@ function FormTeto({
     setSalvando(true);
     try {
       await definirOrcamento(uid, categoriaFixa, null);
-      mostrarToast("Teto removido");
+      mostrarToast("Teto apagado");
       fechar();
     } catch {
-      mostrarToast("Não foi possível remover.");
+      mostrarToast("Não foi possível apagar.");
     } finally {
       setSalvando(false);
     }
@@ -159,12 +159,18 @@ function FormTeto({
           required
           disabled={salvando}
         />
-        <Botao type="submit" variante="submeter" disabled={salvando}>
+        <Botao type="submit" variante="primario" tamanho="grande" disabled={salvando}>
           {salvando ? "Aguarde…" : editando ? "Guardar alterações" : "Definir teto"}
         </Botao>
         {editando && (
-          <Botao variante="perigo" type="button" onClick={() => void remover()} disabled={salvando}>
-            Remover teto
+          <Botao
+            variante="perigo"
+            tamanho="pequeno"
+            type="button"
+            onClick={() => void remover()}
+            disabled={salvando}
+          >
+            Apagar teto
           </Botao>
         )}
       </form>
@@ -210,7 +216,13 @@ export default function OrcamentoCard() {
         <p className={styles.titulo}>Orçamento por categoria</p>
         {/* Só o "+" (01/09): o título ao lado já diz "Orçamento por categoria".
             O texto inteiro vive no aria-label. */}
-        <Botao variante="adicionar" aria-label="Definir teto" onClick={abrirNovo}>
+        <Botao
+          variante="secundario"
+          tamanho="pequeno"
+          soIcone
+          aria-label="Definir teto"
+          onClick={abrirNovo}
+        >
           <Plus size={18} aria-hidden />
         </Botao>
       </div>

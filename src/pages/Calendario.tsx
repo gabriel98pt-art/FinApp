@@ -213,7 +213,7 @@ export default function SecaoCalendario() {
     const valor = valorTexto ?? undefined;
     try {
       await criarEvento(uid, { titulo, data: dataNovo, valor });
-      mostrarToast("✓ Evento adicionado");
+      mostrarToast("✓ Evento registado");
       setNovoAberto(false);
       setTitulo("");
       setValorTexto(null);
@@ -256,9 +256,11 @@ export default function SecaoCalendario() {
             01/09/2026). Continua exatamente onde sempre esteve, no corpo da
             página — o cabeçalho não recebe botões de criar. */}
             <Botao
-              variante="adicionar"
+              variante="secundario"
+              tamanho="pequeno"
+              soIcone
               onClick={() => abrirNovoEvento()}
-              aria-label="Adicionar evento"
+              aria-label="Registar evento"
             >
               <Plus size={18} aria-hidden />
             </Botao>
@@ -357,7 +359,7 @@ export default function SecaoCalendario() {
               <EstadoVazio
                 Icone={CalendarDays}
                 mensagem="Ainda não há eventos"
-                sub="Toque em + para adicionar."
+                sub="Toque em + para registar."
               />
             )
           )}
@@ -407,15 +409,16 @@ export default function SecaoCalendario() {
                   )}
                   <Botao
                     variante="perigo"
+                    tamanho="pequeno"
                     onClick={() => {
                       void (async () => {
-                        if (!(await confirmar(`Eliminar "${e.titulo}"?`))) return;
+                        if (!(await confirmar(`Apagar ${e.titulo}?`))) return;
                         await removerEvento(uid, e.id)
-                          .then(() => mostrarToast("Evento eliminado"))
-                          .catch(() => mostrarToast("Não foi possível eliminar."));
+                          .then(() => mostrarToast("Evento apagado"))
+                          .catch(() => mostrarToast("Não foi possível apagar."));
                       })();
                     }}
-                    aria-label="Eliminar evento"
+                    aria-label="Apagar evento"
                   >
                     <X size={16} aria-hidden />
                   </Botao>
@@ -425,13 +428,14 @@ export default function SecaoCalendario() {
           </div>
         )}
         <Botao
-          variante="secundario"
+          variante="neutro"
+          tamanho="pequeno"
           onClick={() => {
             setDiaSelecionado(null);
             abrirNovoEvento(diaSelecionado ?? hoje);
           }}
         >
-          <Plus size={15} aria-hidden /> Adicionar evento neste dia
+          <Plus size={15} aria-hidden /> Registar evento neste dia
         </Botao>
       </BottomSheet>
 
@@ -463,8 +467,8 @@ export default function SecaoCalendario() {
               required
             />
           </label>
-          <Botao type="submit" variante="submeter">
-            Adicionar evento
+          <Botao type="submit" variante="primario" tamanho="grande">
+            Registar evento
           </Botao>
         </form>
       </BottomSheet>

@@ -209,7 +209,7 @@ export default function Planejamento() {
     setContribuindoEnviando(true);
     try {
       await contribuirFundo(uid, fundo, valor);
-      mostrarToast(`✓ ${formatMoney(valor, moeda)} adicionado(s) a ${fundo.nome}`);
+      mostrarToast(`✓ ${formatMoney(valor, moeda)} registado(s) em ${fundo.nome}`);
       setContribuindo(null);
       setContribValor(null);
     } catch {
@@ -403,7 +403,13 @@ export default function Planejamento() {
                   {fundos.length > 0 &&
                     `— ${formatMoney(fundosAtual, moeda)}${fundosAlvo > 0 ? ` / ${formatMoney(fundosAlvo, moeda)}` : ""}`}
                 </h3>
-                <Botao variante="adicionar" aria-label="Adicionar fundo" onClick={abrirNovoFundo}>
+                <Botao
+                  variante="secundario"
+                  tamanho="pequeno"
+                  soIcone
+                  aria-label="Registar fundo"
+                  onClick={abrirNovoFundo}
+                >
                   <Plus size={18} aria-hidden />
                 </Botao>
               </div>
@@ -416,7 +422,7 @@ export default function Planejamento() {
                 <EstadoVazio
                   Icone={Target}
                   mensagem="Ainda não há fundos"
-                  sub="Toque em + para adicionar."
+                  sub="Toque em + para registar."
                 />
               ) : (
                 <div className={styles.fundos}>
@@ -441,15 +447,16 @@ export default function Planejamento() {
                           <p className={styles.fundoNome}>{f.nome}</p>
                           <Botao
                             variante="perigo"
+                            tamanho="pequeno"
                             onClick={() => {
                               void (async () => {
-                                if (!(await confirmar(`Eliminar o fundo "${f.nome}"?`))) return;
+                                if (!(await confirmar(`Apagar o fundo ${f.nome}?`))) return;
                                 await removerFundo(uid, f.id)
-                                  .then(() => mostrarToast("Fundo eliminado"))
-                                  .catch(() => mostrarToast("Não foi possível eliminar."));
+                                  .then(() => mostrarToast("Fundo apagado"))
+                                  .catch(() => mostrarToast("Não foi possível apagar."));
                               })();
                             }}
-                            aria-label="Eliminar fundo"
+                            aria-label="Apagar fundo"
                           >
                             <X size={16} aria-hidden />
                           </Botao>
@@ -475,7 +482,8 @@ export default function Planejamento() {
                         )}
                         {projecao && <p className={styles.fundoProj}>{projecao}</p>}
                         <Botao
-                          variante="secundario"
+                          variante="neutro"
+                          tamanho="pequeno"
                           onClick={() => {
                             setContribValor(null);
                             setContribuindo(f.id);
@@ -536,7 +544,7 @@ export default function Planejamento() {
             Prazo (opcional)
             <input type="date" value={prazo} onChange={(e) => setPrazo(e.target.value)} />
           </label>
-          <Botao variante="submeter" type="submit">
+          <Botao variante="primario" tamanho="grande" type="submit">
             Criar fundo
           </Botao>
         </form>
@@ -556,7 +564,7 @@ export default function Planejamento() {
             required
             disabled={contribuindoEnviando}
           />
-          <Botao variante="submeter" type="submit" disabled={contribuindoEnviando}>
+          <Botao variante="primario" tamanho="grande" type="submit" disabled={contribuindoEnviando}>
             {contribuindoEnviando ? "Aguarde…" : "Contribuir"}
           </Botao>
         </form>

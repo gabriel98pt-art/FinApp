@@ -80,7 +80,9 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
                 <span className={styles.erroMensagem}>{e.mensagem}</span>
               </div>
               <Botao
-                variante="icone"
+                variante="neutro"
+                tamanho="pequeno"
+                soIcone
                 onClick={() => void copiar(e)}
                 aria-label={`Copiar erro de ${quando(e.timestamp)}`}
               >
@@ -90,7 +92,7 @@ export default function FolhaDiagnostico({ uid }: { uid: string }) {
           ))}
         </div>
         <div className={styles.linhaAdicionar}>
-          <Botao variante="secundario" onClick={() => void limpar()}>
+          <Botao variante="neutro" tamanho="pequeno" onClick={() => void limpar()}>
             <Trash2 size={14} aria-hidden /> Limpar registo
           </Botao>
         </div>

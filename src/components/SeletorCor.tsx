@@ -50,7 +50,7 @@ export default function SeletorCor({
 }) {
   return (
     <BottomSheet aberta={aberta} aoFechar={aoFechar} titulo={titulo} nivel={nivel}>
-      <Botao variante="link" type="button" onClick={() => aoEscolher(null)}>
+      <Botao variante="fantasma" tamanho="pequeno" type="button" onClick={() => aoEscolher(null)}>
         Cor automática
       </Botao>
       <div className={`${styles.grade} ${styles.gradeCor}`}>

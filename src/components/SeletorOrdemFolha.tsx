@@ -56,7 +56,9 @@ export default function SeletorOrdemFolha<T extends string>({
     <>
       <Botao
         ref={gatilhoRef}
-        variante="icone"
+        variante="neutro"
+        tamanho="pequeno"
+        soIcone
         // Segundo clique fecha — ver a mesma nota no `Seletor`.
         onClick={() => setAberta(!aberta)}
         aria-expanded={aberta}

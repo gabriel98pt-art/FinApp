@@ -105,7 +105,12 @@ export default function APagarEsteMes() {
         <h3 id="a-pagar" className={styles.titulo}>
           A pagar este mês
         </h3>
-        <Botao variante="link" type="button" onClick={() => navegar("/calendario")}>
+        <Botao
+          variante="fantasma"
+          tamanho="pequeno"
+          type="button"
+          onClick={() => navegar("/calendario")}
+        >
           Ver todos
           <ChevronRight size={15} strokeWidth={2} aria-hidden />
         </Botao>

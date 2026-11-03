@@ -21,7 +21,7 @@ export default function ApagarConta() {
     if (apagando) return;
     if (
       !(await confirmar(
-        "Apagar a conta? Isto remove DEFINITIVAMENTE todos os seus dados — lançamentos, cartões, parcelas, metas e configurações. Não há como desfazer, e nem o backup recupera o que for apagado aqui.",
+        "Apagar a conta? Isto apaga DEFINITIVAMENTE todos os seus dados — lançamentos, cartões, parcelas, metas e configurações. Não há como desfazer, e nem o backup recupera o que for apagado aqui.",
       ))
     )
       return;
@@ -40,7 +40,7 @@ export default function ApagarConta() {
     <form className={styles.grupo} onSubmit={(e) => void submeter(e)}>
       <p className={styles.grupoTitulo}>Apagar conta</p>
       <p className={styles.nota}>
-        Remove a conta e todos os dados guardados nela, sem volta. Se quiser ficar com uma cópia,
+        Apaga a conta e todos os dados guardados nela, sem volta. Se quiser ficar com uma cópia,
         exporte o backup antes.
       </p>
       <div className={styles.linha}>
@@ -54,8 +54,8 @@ export default function ApagarConta() {
           autoComplete="current-password"
           required
         />
-        <Botao type="submit" variante="perigoForte" disabled={apagando}>
-          <Trash2 size={14} aria-hidden /> {apagando ? "A apagar…" : "Apagar conta"}
+        <Botao type="submit" variante="perigo" carregando={apagando}>
+          <Trash2 size={14} aria-hidden /> Apagar conta
         </Botao>
       </div>
     </form>

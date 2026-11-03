@@ -221,7 +221,7 @@ describe("lancarReceitaSemana", () => {
   test("recusa lançar sem conta destino configurada", async () => {
     const semConta = { ...base, cfg: s.TVDE_CFG_PADRAO };
     await expect(s.lancarReceitaSemana(UID, 1, semConta)).rejects.toThrow(
-      "Configure a conta destino da receita (aba Extras) antes de lançar.",
+      "Configure a conta destino da receita (aba Extras) antes de registar.",
     );
     expect(updates).toHaveLength(0);
     expect(snapshot).not.toHaveBeenCalled();
@@ -229,7 +229,7 @@ describe("lancarReceitaSemana", () => {
 
   test("recusa lançar a mesma semana duas vezes", async () => {
     const jaLancada = { ...base, lancamentos: { "1": "r1" } };
-    await expect(s.lancarReceitaSemana(UID, 1, jaLancada)).rejects.toThrow("já lançada");
+    await expect(s.lancarReceitaSemana(UID, 1, jaLancada)).rejects.toThrow("já registada");
     expect(updates).toHaveLength(0);
     expect(snapshot).not.toHaveBeenCalled();
   });

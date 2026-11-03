@@ -194,7 +194,7 @@ export default function FolhaBackup({
     <BottomSheet aberta={aberta} aoFechar={fechar} titulo="Backup">
       <p className={styles.nota}>Exporte todos os dados desta conta, ou restaure de um ficheiro.</p>
       <div className={styles.linhaAdicionar}>
-        <Botao variante="secundario" onClick={() => void exportar()}>
+        <Botao variante="neutro" tamanho="pequeno" onClick={() => void exportar()}>
           <Download size={14} aria-hidden /> Exportar dados
         </Botao>
       </div>
@@ -207,10 +207,10 @@ export default function FolhaBackup({
             automática dos dados atuais, recuperável.
           </p>
           <div className={styles.resumoBackupAcoes}>
-            <Botao variante="texto" onClick={cancelar} disabled={importando}>
+            <Botao variante="fantasma" tamanho="pequeno" onClick={cancelar} disabled={importando}>
               Cancelar
             </Botao>
-            <Botao variante="perigoForte" onClick={() => void restaurar()} disabled={importando}>
+            <Botao variante="perigo" onClick={() => void restaurar()} disabled={importando}>
               {importando ? "Restaurando…" : "Restaurar backup"}
             </Botao>
           </div>
@@ -227,7 +227,8 @@ export default function FolhaBackup({
             Arraste o ficheiro de backup aqui, cole com ⌘V/Ctrl+V, ou
           </p>
           <Botao
-            variante="secundario"
+            variante="neutro"
+            tamanho="pequeno"
             onClick={() => arquivoRef.current?.click()}
             disabled={etapa.tipo === "verificando"}
           >

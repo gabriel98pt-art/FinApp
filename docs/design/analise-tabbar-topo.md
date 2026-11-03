@@ -682,14 +682,15 @@ conteúdo.
 
 ### 5.4 Botões
 
-**5 estilos únicos, com o mesmo nome e o mesmo papel nas duas apps:**
+**5 estilos únicos, com o mesmo nome e o mesmo papel nas duas apps.** No
+código: `primario`, `secundario`, `neutro`, `fantasma`, `perigo`.
 
 | Estilo | Aspeto | Regra |
 |---|---|---|
 | **Principal** | cor sólida, **sem degradê** | **só 1 por ecrã** |
 | **Secundário** | fundo suave (tom leve da cor) | ações de apoio |
 | **Neutro** | cinza / cor da superfície | ações comuns, sem destaque |
-| **Simples** | só texto ou só ícone, sem fundo | links, ações de cabeçalho |
+| **Simples** (`fantasma`) | só texto ou só ícone, sem fundo | links, ações de cabeçalho |
 | **Perigo** | vermelho | **exclusivo para apagar dados** |
 
 O que isto muda já hoje:
@@ -699,18 +700,57 @@ O que isto muda já hoje:
 - As duas: as variantes atuais encaixam nestes 5 (a FinApp tem 9 e a TVDE
   Pro tem 8).
 
-### 5.5 Ainda em aberto
+### 5.5 Pontos que estavam em aberto (fechados a 03/11/2026)
 
-Pontos das partes 4.1 a 4.4 que estas regras não fecham:
-
-1. ~~Cor do Principal na FinApp~~ — **decidido:** o Botão Principal mantém-se
-   **escuro** (modo claro) e **creme** (modo escuro). O terracota fica
-   reservado ao botão «+» central e a destaques pontuais.
+1. **Cor do Principal na FinApp:** mantém-se **escuro** (modo claro) e
+   **creme** (modo escuro). O terracota fica reservado ao botão «+» central
+   e a destaques pontuais.
    **Verbos oficiais unificados:** «Registar» (substitui Adicionar/Lançar) e
    «Apagar» (substitui Eliminar/Remover).
-2. O que fica à direita no topo, e se o logotipo «FinApp» se mantém.
-3. Nome da página na barra quando há seletor de mês.
-4. Linguagem de movimento comum (curvas, durações) além da bolinha que
-   desliza.
-5. Tamanhos dos botões, estados de carregar e de desativado, e o texto do
-   botão do diálogo (verbo da ação em vez de «Confirmar»).
+2. **Lados do topo:**
+   - **Esquerda:** só o avatar de 32px. O logotipo «FinApp» sai. Em
+     sub-páginas, o avatar dá lugar a «‹ Voltar».
+   - **Direita:** mantém o olho (ocultar valores) e o sino (lembretes).
+3. **Centro do topo:**
+   - Página com seletor de mês: o centro mostra **sempre o seletor de mês**.
+   - Página sem seletor (ex.: Definições): o centro mostra o **título
+     pequeno da página ao rolar**.
+4. **Movimento:**
+   - Tempos e curvas **sem ressalto** da TVDE Pro: `--dur-fast` 0,15 s,
+     `--dur-exit` 0,2 s, `--dur-enter` 0,45 s, `--dur-mola` 0,5 s.
+   - **Todos os véus** (fundos escuros atrás de folhas, menus e diálogos):
+     **45% de opacidade + `blur(4px)`**.
+5. **Botões e diálogos:**
+   - **3 tamanhos:** `pequeno` 34px (com área de toque de 44px), `normal`
+     44px, `grande` 52px (ocupa a largura toda, para o «Guardar» no fundo
+     das folhas).
+   - Botões lado a lado no diálogo: **mesmo tamanho e mesmo raio de canto**
+     (cápsula).
+   - **Estado de carregar dentro do componente `Botao`** (`carregando`): fica
+     desativado e mostra um indicador, sem mudar de largura.
+   - **Diálogo:** o botão diz o **verbo da ação** em vez de «Confirmar».
+     Vermelho (`perigo`) **só para apagar**, com o texto «Apagar». O resto
+     usa `primario` com o verbo exato («Pagar», «Registar», «Mover»).
+
+### 5.6 Estado da aplicação na FinApp (Fase 2, 03/11/2026)
+
+Feito no código:
+- Topo sem o logotipo «FinApp» (`layout/Header.tsx`).
+- `Botao` com os 5 estilos e os 3 tamanhos; as 9 variantes antigas
+  migradas (cerca de 150 botões). «Sair da conta» passou de vermelho a
+  neutro, porque não apaga dados.
+- Diálogo de confirmação com o verbo da ação: «Apagar» a vermelho por
+  omissão; «Pagar», «Registar», «Mover» e «Separar» a escuro; «Reabrir a
+  fatura» a vermelho, porque apaga pagamentos.
+- Verbos trocados nos textos visíveis (cerca de 170): Eliminar/Remover →
+  Apagar, Adicionar/Lançar → Registar, e os particípios a acompanhar
+  («apagado», «registado»).
+- Perguntas de confirmação sem aspas retas à volta dos nomes.
+
+Ainda por aplicar:
+- Centro do topo com o título pequeno ao rolar (ponto 3).
+- Tempos de movimento e véus a 45% (ponto 4).
+- Tab bar (parte 5.1), topo transparente com vidro (5.2) e `tabular-nums`
+  (5.3).
+- Aspas retas nos toasts (`✓ "Uber" registado`) — esta fase só tratou as
+  perguntas de confirmação.
