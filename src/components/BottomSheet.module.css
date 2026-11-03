@@ -256,14 +256,22 @@
   /* Altura FIXA, não teto: com max-height a altura vinha do conteúdo e a
      folha encolhia/crescia a cada troca de tipo.
 
-     O desconto do teclado é o que faz o botão "Salvar" do Registro Rápido
-     continuar à vista: o `.acoes` do formulário tem `margin-top: auto`, ou
-     seja, está encostado ao fundo da folha — com a altura do ecrã inteiro, o
-     fundo caía debaixo do teclado e não havia como gravar sem primeiro o
-     fechar. Agora a folha acaba onde o teclado começa e o resto rola. */
-  height: calc(100dvh - 38px - var(--altura-teclado));
+     O `.acoes` do formulário tem `margin-top: auto` (encostado ao fundo). */
+  height: calc(100dvh - 38px);
+  /* O teclado NÃO mexe na folha: ficar com a altura e o fundo intactos evita o
+     salto de encolher e do botão subir por cima dos campos. O espaço do teclado
+     entra como rolagem a mais (::after, só no telemóvel), não como layout. */
+  bottom: 0;
+  max-height: none;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .folhaGrande::after {
+    content: "";
+    flex: 0 0 var(--altura-teclado);
+  }
 }
 
 /* O conteúdo (o formulário) toma a altura que sobra, para poder ancorar o

@@ -8,7 +8,8 @@
      `display: none` — é preciso ter tamanho para se saber onde cabe. */
   top: 0;
   left: -9999px;
-  z-index: 46;
+  /* Acima de qualquer folha (45+2n): o popover abre de dentro de formulários. */
+  z-index: 55;
   min-width: 200px;
   max-width: min(320px, calc(100vw - 16px));
   overflow-y: auto;
@@ -29,7 +30,7 @@
 @keyframes entrar {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: scale(0.92);
   }
   to {
     opacity: 1;

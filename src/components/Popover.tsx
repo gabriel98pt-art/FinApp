@@ -26,6 +26,7 @@ export default function Popover({
   titulo,
   ancoraRef,
   alinhar = "inicio",
+  igualarLargura = false,
   children,
 }: {
   aberta: boolean;
@@ -37,10 +38,12 @@ export default function Popover({
   ancoraRef: RefObject<HTMLElement | null>;
   /** "centro": o centro da caixa fica sob o centro do gatilho. */
   alinhar?: "inicio" | "centro";
+  /** A caixa nunca fica mais estreita do que o gatilho (seletores de formulário). */
+  igualarLargura?: boolean;
   children: ReactNode;
 }) {
   const caixaRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<PosicaoPopover | null>(null);
+  const [pos, setPos] = useState<(PosicaoPopover & { origemX: number }) | null>(null);
 
   // Ao fechar, esquece o sítio. A abertura seguinte pode ser noutro gatilho, e
   // medir a caixa ainda com o `max-height` da vez anterior daria uma decisão
@@ -64,8 +67,8 @@ export default function Popover({
       if (!ancora || !caixa) return;
 
       const r = ancora.getBoundingClientRect();
-      setPos(
-        posicionarPopover(
+      if (igualarLargura) caixa.style.minWidth = `${r.width}px`;
+      const nova = posicionarPopover(
           r,
           { largura: caixa.offsetWidth, altura: caixa.offsetHeight },
           {
@@ -75,8 +78,9 @@ export default function Popover({
             altura: document.documentElement.clientHeight,
           },
           alinhar,
-        ),
-      );
+        );
+      // A animação de entrada nasce no canto do gatilho, não no meio da caixa.
+      setPos({ ...nova, origemX: r.left + Math.min(r.width, 48) / 2 - nova.left });
     }
 
     posicionar();
@@ -90,7 +94,7 @@ export default function Popover({
       window.removeEventListener("scroll", posicionar, true);
       window.removeEventListener("resize", posicionar);
     };
-  }, [aberta, ancoraRef, alinhar]);
+  }, [aberta, ancoraRef, alinhar, igualarLargura]);
 
   // Fecha com Esc ou com um clique fora — o que o véu fazia na folha. O clique
   // no próprio gatilho fica de fora: quem o trata é o onClick dele, senão o
@@ -162,7 +166,17 @@ export default function Popover({
     <div
       ref={caixaRef}
       className={`${styles.caixa} ${pos ? styles.posicionada : ""}`}
-      style={pos ? { top: pos.top, left: pos.left, maxHeight: pos.maxAltura } : undefined}
+      data-popover=""
+      style={
+        pos
+          ? {
+              top: pos.top,
+              left: pos.left,
+              maxHeight: pos.maxAltura,
+              transformOrigin: `${pos.origemX}px ${pos.acima ? "100%" : "0"}`,
+            }
+          : undefined
+      }
       role="dialog"
       aria-label={titulo}
       // Focável por programa (o useEffect acima), sem entrar na ordem normal

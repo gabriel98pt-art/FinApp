@@ -87,6 +87,8 @@ export function useFocoModal({
       if (pilha[pilha.length - 1] !== id) return;
 
       if (e.key === "Escape") {
+        // Um menu flutuante aberto por cima trata do Esc sozinho (Popover).
+        if (document.querySelector("[data-popover]")) return;
         e.stopPropagation();
         fechar.current();
         return;

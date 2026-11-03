@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown } from "lucide-react";
-import BottomSheet from "./BottomSheet";
+import Popover from "./Popover";
 import FolhaAncorada from "./FolhaAncorada";
 import styles from "./Seletor.module.css";
 
@@ -35,7 +35,7 @@ export default function Seletor({
   rotuloOpcao?: (valor: string) => string;
   /** Quando definido, a lista ganha uma opção que limpa a escolha (valor ""). */
   rotuloVazio?: string;
-  /** A folha do seletor quase sempre abre de dentro de outra folha. */
+  /** Só vale na variante "inline" (folha no telemóvel); o menu do "campo" não empilha. */
   nivel?: number;
   /** Desenho à esquerda de cada opção (o círculo da categoria, por ex.). */
   renderIcone?: (valor: string, tamanho: number) => ReactNode;
@@ -105,9 +105,9 @@ export default function Seletor({
     </>
   );
 
-  // "inline" é a variante das listas densas — a revisão do extrato, onde há um
-  // seletor por linha e o ponteiro já está em cima dele. "campo" é o seletor de
-  // formulário, que vive dentro de uma folha e continua a abrir outra folha.
+  // "inline": listas densas (revisão do extrato) — folha no telemóvel, caixa no
+  // desktop. "campo": seletor de formulário — sempre um menu flutuante colado
+  // ao botão, sem véu nem segunda folha por cima do formulário.
   const conteudo =
     variante === "inline" ? (
       <FolhaAncorada
@@ -120,9 +120,15 @@ export default function Seletor({
         {opcoesLista}
       </FolhaAncorada>
     ) : (
-      <BottomSheet aberta={aberta} aoFechar={() => setAberta(false)} titulo={rotulo} nivel={nivel}>
+      <Popover
+        aberta={aberta}
+        aoFechar={() => setAberta(false)}
+        titulo={rotulo}
+        ancoraRef={gatilhoRef}
+        igualarLargura
+      >
         {opcoesLista}
-      </BottomSheet>
+      </Popover>
     );
 
   return (
