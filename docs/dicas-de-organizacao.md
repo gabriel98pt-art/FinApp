@@ -4,6 +4,20 @@ Problemas encontrados ao ler o código e sugestões. **Nada disto foi alterado**
 
 Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes passam (agora 110 e 2014, depois de H2); `lint` falha só em `src/dev-botoes.tsx` (ficheiro local, fora do git, por isso não falha na CI); `format:check` falha em 4 ficheiros (ver I1).
 
+## Estado em 07/11/2026
+
+Feitos ou decididos: G1a, G2, G3, G4, G6, G7, G8, A1 a A7, C1, C2, C4, B (grupos 1 e 2), H1, H2 (3 hooks), I1, I3 (parcial), I5.
+
+**Por decidir ou deixados para outra altura:**
+
+- **D:** dividir os 5 ficheiros grandes (decidido deixar para outra altura).
+- **E:** agrupar `src/components/` em pastas e juntar os ficheiros `dev-*` (depende de D e G4; não decidido).
+- **G1b:** tirar as capturas também do histórico do git (destrutivo; só se o repositório for partilhado).
+- **A8:** lista completa dos campos antigos da conta.
+- **B (terceiro grupo):** tirar o `export` de cerca de 50 funções só usadas no próprio ficheiro.
+- **H3:** testes dos hooks que faltam (`useFocoModal`, `useConfirmar`, `useNotificacoes`, `useDadosFatura`...) e do `utils/imagem.ts` (49%).
+- **I3:** os 4 avisos do Firebase só se resolvem com a versão 13 (muda a API).
+
 ## G. Privacidade e ficheiros soltos (primeiro)
 
 1. **FEITO em 07/11/2026 (G1a; G1b por decidir).** **Capturas de ecrã no git.** `.claude/qa-screenshots/` tem **34 PNG versionados** (um só commit os trouxe). Mostram ecrãs da conta de teste: nomes de cartões e bancos, valores de faturas, receitas e despesas. A regra do projeto diz que capturas nunca entram no git. Sugestão, em dois passos separados:
