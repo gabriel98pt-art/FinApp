@@ -73,7 +73,7 @@ Prova de que dividir não muda nada: mesmos testes a passar, mesmo HTML renderiz
 
 1. **FEITO em 07/11/2026.** **`format:check` falhava em 4 ficheiros** (`docs/design/analise-tabbar-topo.md`, `BottomSheet.tsx`, `Popover.tsx`, `usePullToRefresh.ts`). Correr `prettier --write` nesses 4 resolve e repõe a CI verde. É a primeira coisa a fazer na Fase 4 (muda formatação, não comportamento).
 2. **Lint com 1 erro local** em `src/dev-botoes.tsx` (react-refresh). Só afeta quem tem o ficheiro; resolvido se G4 excluir ou corrigir.
-3. **Dependências:** correr `npm outdated` e `npm audit` de vez em quando; não feito aqui.
+3. **FEITO em 07/11/2026 (parcialmente).** **Dependências:** `npm audit fix` sem forçar baixou os avisos de 32 para 22 e subiu o Firebase de 12.16 para 12.19, com login e sincronização testados no servidor local. **Ficam 4 avisos (altos) em `@grpc/grpc-js`, usado pelo Firestore, que a FinApp não usa;** só se resolvem subindo o Firebase para a 13 (muda a API), por decidir. Os outros 18 são só de ferramentas de desenvolvimento e testes.
 4. **Rotina por entrega:** typecheck, lint, format:check, build e testes antes e depois (os «5 controlos»), mais a instalação no iPhone nas mudanças de código.
 5. **Android:** quando chegar a hora, a lista do que é específico de iOS (`ios/`, o caminho do build, comportamentos de teclado e folhas) deve estar em `docs/ios-e-deploy.md` para ser isolada. Hoje não está separada.
 
