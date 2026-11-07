@@ -19,7 +19,7 @@ Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes p
 
 ## A. Contradições e riscos
 
-1. **Duas ideias de «dia de hoje»?** Na FinApp só existe `hojeIso()` (`utils/calculos.ts`), que usa o fuso do aparelho. Está bem para uma app de uso pessoal, mas se o aparelho estiver fora de Portugal o «hoje» muda. Em contraste, o `api/copiloto-ia.ts` conta a cota diária em UTC (`toISOString().slice(0,10)`). Confirmar se essa diferença é intencional.
+1. **CONFIRMADO em 07/11/2026: é intencional.** **Duas ideias de «dia de hoje»?** Na FinApp só existe `hojeIso()` (`utils/calculos.ts`), que usa o fuso do aparelho. Está bem para uma app de uso pessoal, mas se o aparelho estiver fora de Portugal o «hoje» muda. Em contraste, o `api/copiloto-ia.ts` conta a cota diária em UTC (`toISOString().slice(0,10)`). Confirmar se essa diferença é intencional.
 2. **DECIDIDO em 07/11/2026: aceitar como exceção (documentada no `CLAUDE.md`).** **Três tamanhos de letra fora da escala `--fs-*`:** `13px` em `pilulas.module.css` e `segmentado.module.css`, `17px` em `titulos.module.css`. A regra é só os 6 degraus. Decidir: aceitar como exceção documentada, ou passar para o degrau mais próximo (muda o aspeto).
 3. **FEITO em 07/11/2026 (nota no topo do documento; as citações ficam, porque descrevem o código de 02/11).** **`docs/design/analise-tabbar-topo.md` cita `--ease-spring`**, que já não existe em `motion.css` (o código usa `--ease-mola`). Corrigir o texto.
 4. **FEITO em 07/11/2026 (confirmado na TVDE Pro: é o mesmo padrão, intencional).** **O `Botao` pequeno usa `--fs-body` e o normal/grande `--fs-title`.** Confirmar se é intenção do padrão comum com a TVDE Pro.
