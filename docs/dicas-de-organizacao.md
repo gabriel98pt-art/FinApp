@@ -6,7 +6,7 @@ Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes p
 
 ## G. Privacidade e ficheiros soltos (primeiro)
 
-1. **Capturas de ecrã no git.** `.claude/qa-screenshots/` tem **34 PNG versionados** (um só commit os trouxe). Mostram ecrãs da conta de teste: nomes de cartões e bancos, valores de faturas, receitas e despesas. A regra do projeto diz que capturas nunca entram no git. Sugestão, em dois passos separados:
+1. **FEITO em 07/11/2026 (G1a; G1b por decidir).** **Capturas de ecrã no git.** `.claude/qa-screenshots/` tem **34 PNG versionados** (um só commit os trouxe). Mostram ecrãs da conta de teste: nomes de cartões e bancos, valores de faturas, receitas e despesas. A regra do projeto diz que capturas nunca entram no git. Sugestão, em dois passos separados:
    - **G1a (seguro):** `.claude/qa-screenshots/` no `.gitignore` e `git rm --cached` nas 34. Os ficheiros ficam no disco.
    - **G1b (destrutivo, decisão à parte):** tirar as imagens também do histórico (reescrever o git). Só vale a pena se o repositório for tornado público ou partilhado; implica `push --force` e muda todos os ids de commit. O `.git` pesa 17 MB, dos quais parte são estas imagens.
 2. **`public/screenshots/` (3 PNG).** São as imagens do `manifest.json` (pré-visualização de instalação). Mostram dados de exemplo (não parecem da conta real), mas estão no desenho antigo (azul-marinho, antes do «vidro + terracota»). Sugestão: refazê-las com dados fictícios e o visual atual, ou tirar `screenshots` do manifest.
