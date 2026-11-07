@@ -29,6 +29,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **Decidido deixar a regra de segurança do site em modo aviso por agora**, porque o foco é a app no iPhone. Nada mudou.
 - **Escrito nos documentos por que razão os serviços falam com as stores** (guardar o estado antes de gravar, para o desfazer, e receber os dados do Firebase). Nada mudou no código.
 - **Escrito o documento das migrações** (`docs/migracoes.md`): como a app trata dados antigos e as regras para mudar o formato dos dados sem perder nada, para o iPhone e para o Android. Só texto.
+- **Medida uma vez a cobertura de testes de toda a app** (77,5% das linhas; os hooks são o ponto mais fraco, com 44%) e escrita em `docs/testes-e-ci.md`. A medição normal continua só na lógica, de propósito. Nada mudou na app.
 
 ---
 

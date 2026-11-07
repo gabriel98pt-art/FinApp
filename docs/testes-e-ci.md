@@ -14,6 +14,28 @@ Escrito a partir da leitura do código. Se divergir do código, vale o código: 
 
 Medida só em `api/**`, `src/services/**` e `src/utils/**` (exclui `src/services/firebase.ts` e os testes), de propósito: componentes e páginas só têm testes de montagem, e medi-los daria uma percentagem que sobe sem proteger mais nada. Total medido: 94,6% das instruções e 96,3% das linhas. Páginas, componentes, hooks, stores e layout ficam fora do relatório.
 
+### Retrato de tudo, medido uma vez (07/11/2026)
+
+A configuração não mudou. Esta medição única incluiu `src/**` e `api/**` para mostrar o que a medição normal não vê. Total: 77,5% das linhas, 76,4% das instruções, 73,4% dos ramos. Linhas cobertas por pasta:
+
+| Pasta                                           | Linhas | Nota                     |
+| ----------------------------------------------- | ------ | ------------------------ |
+| `src/utils`                                     | 96,8%  | lógica, a medida oficial |
+| `src/services`                                  | 95,1%  | idem                     |
+| `api`                                           | 95,3%  | idem                     |
+| `src/constants`                                 | 100%   |                          |
+| `src/stores`                                    | 88,6%  |                          |
+| `src/pages/importar`                            | 84,3%  |                          |
+| `src/components` (inclui `analise`, `settings`) | 75,6%  |                          |
+| `src/layout`                                    | 72,3%  |                          |
+| `src/pages` (telas)                             | 58,2%  | só testes de montagem    |
+| `src/pages/definicoes`                          | 54,3%  | folhas de Definições     |
+| `src/pages/conta`                               | 55,6%  |                          |
+| `src/hooks`                                     | 43,9%  | o ponto mais fraco       |
+| `src/App.tsx`, `src/main.tsx`                   | 0%     | arranque, sem teste      |
+
+Os hooks são a pasta com menos cobertura. Entre os que não têm teste próprio estão `usePullToRefresh`, `useDragToClose`, `useSyncConta`, `useFocoModal` e `useConfirmar`. Por correr de novo: `npx vitest run --coverage --coverage.include='src/**' --coverage.include='api/**'`.
+
 ## Qualidade
 
 - TypeScript `strict`, `verbatimModuleSyntax`, `noUnusedLocals/Parameters`, `erasableSyntaxOnly`, `noEmit`. `tsconfig.json` só referencia `tsconfig.app.json` (`src`) e `tsconfig.node.json`. `npm run typecheck` = `tsc -b`.

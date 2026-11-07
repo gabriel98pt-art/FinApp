@@ -58,7 +58,7 @@ Prova de que dividir não muda nada: mesmos testes a passar, mesmo HTML renderiz
 
 ## H. Testes
 
-1. **A cobertura só mede `api/`, `src/services/` e `src/utils/`** (94,6% das instruções, 96,3% das linhas). Componentes, hooks, layout, páginas e stores não entram no número. Sugestão: acrescentar `src/**` à cobertura para ter o número real (vai baixar), ou documentar que é só lógica.
+1. **FEITO em 07/11/2026 (medida uma vez, sem mudar a configuração; números em `docs/testes-e-ci.md`).** A medição normal fica só na lógica de propósito (o `vite.config.ts` explica porquê). Total real: 77,5% das linhas; hooks 44%. **A cobertura só mede `api/`, `src/services/` e `src/utils/`** (94,6% das instruções, 96,3% das linhas). Componentes, hooks, layout, páginas e stores não entram no número. Sugestão: acrescentar `src/**` à cobertura para ter o número real (vai baixar), ou documentar que é só lógica.
 2. **Sem teste com o mesmo nome:** 18 hooks (`useAplicarTema`, `useConfirmar`, `useDragToClose`, `useFocoModal`, `usePullToRefresh`, `useSyncConta`...), 6 de layout (`AppShell`, `Sidebar`, `Fab`...), 38 componentes e 15 stores. Alguns serão cobertos por testes das telas; confirmar com a cobertura real (H1) antes de escrever testes.
 3. **Ponto fraco conhecido:** `utils/imagem.ts` com 49% (a parte de recorte e compressão).
 4. **A CI falha agora** no passo de formatação (I1), por isso hoje não dá confiança para entregar.
