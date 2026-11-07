@@ -1,6 +1,6 @@
 # FinApp
 
-Reescrita completa do app financeiro pessoal (referência funcional: **AppFinanceiro**, `financas.html`), agora com stack moderna. A fonte de verdade do escopo, regras de negócio, modelo de dados e identidade visual é o `SPEC_REESCRITA_COMPLETA.md` (local, fora do git).
+App financeiro pessoal (PWA e iOS), reescrita do antigo AppFinanceiro (`financas.html`, arquivado). A fonte de verdade do código é o próprio código e a pasta `docs/`; o `SPEC_REESCRITA_COMPLETA.md` é a especificação original (local, fora do git).
 
 O esqueleto vanilla-JS anterior deste repo foi descontinuado em 23/07/2026 e substituído por este scaffold — o histórico continua no git.
 
@@ -11,22 +11,15 @@ O esqueleto vanilla-JS anterior deste repo foi descontinuado em 23/07/2026 e sub
 - **ESLint (flat) + Prettier**, testes com **Vitest**, CI no GitHub Actions (lint + formato + testes + build)
 - Estado com **zustand** (dividido por domínio), rotas com **react-router** (lazy por página)
 
-## Estrutura (seção 8 do spec)
+## Documentação
 
-```
-src/
-  components/  layout/  pages/  hooks/  services/
-  stores/  utils/  constants/  types/  assets/  styles/
-```
+A documentação está dividida por assunto, cada parte num ficheiro `.md`. **O ponto de partida é [`docs/README.md`](docs/README.md)**, o índice: arquitetura, dados e API, stores, telas e rotas, componentes, hooks, utils, estilos e design, testes e CI, iOS e deploy, scripts e glossário. O resumo curto para trabalhar está em [`CLAUDE.md`](CLAUDE.md).
 
 Regras de ouro: UI nunca acessa Firebase/localStorage direto (só via `services/`/stores); cálculo financeiro é função pura testável; dinheiro é **centavos inteiros** (`utils/money.ts`).
 
-## Marcos
+## Destino
 
-1. ✅ **Fundação** (23/07/2026): scaffold, tokens dark/light, tipos do modelo de dados, aritmética monetária com testes, login/cadastro real, casca visual com as 11 abas + FAB
-2. ✅ Registro rápido (bottom sheet com física de mola), stores de dados + sync RTDB, telas com dados reais
-3. ✅ Fatura/parcelas/TVDE/importação/copiloto
-4. ✅ Polimento, PWA offline, undo/redo
+A FinApp é feita para virar app de loja, em iOS e Android. Por agora só se entrega iOS (Capacitor). O diário de mudanças está no `HISTORICO.md` e o que falta fazer no `PENDENCIAS.md`.
 
 ## Rodando
 

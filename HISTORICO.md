@@ -5,7 +5,7 @@ FinApp desde o primeiro dia — o que foi implementado, o que funcionou de
 primeira e o que precisou ser corrigido depois. Entrada mais recente no
 topo, uma data por vez, linguagem simples (sem termos técnicos de código).
 
-Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
+Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no topo).
 
 ---
 
@@ -17,6 +17,7 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 - **Apagados 4 ícones antigos** (versões 2 e 3), que a app já não usava. O ícone atual (versão 4) fica igual.
 - **Documentos antigos arrumados** (o relatório de auditoria, as equipas de auditoria e os registos de trabalho de fases passadas) na pasta `docs/arquivo/`. Nada foi apagado.
 - **O arranque da pré-visualização (`launch.json`) passa a ficar guardado no projeto**, e o registo da extensão `grill-me` deixa de aparecer como ficheiro por guardar.
+- **O `README.md` passa a apontar para a documentação dividida por assunto** (`docs/README.md` e `CLAUDE.md`), sem o número de abas errado nem os marcos já cumpridos. A linha do período do `HISTORICO.md` também foi atualizada.
 
 ---
 
