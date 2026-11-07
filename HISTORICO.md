@@ -27,6 +27,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **Retiradas as 3 imagens de pré-visualização da instalação pelo browser** (mostravam o desenho antigo) e a lista que as referia no `manifest.json`. A app instalada e no iPhone não muda.
 - **Confirmado que a cota diária do Copiloto conta o dia em UTC de propósito** (o servidor não sabe o fuso de cada pessoa), como o comentário do código já explica. Nada mudou.
 - **Decidido deixar a regra de segurança do site em modo aviso por agora**, porque o foco é a app no iPhone. Nada mudou.
+- **Escrito nos documentos por que razão os serviços falam com as stores** (guardar o estado antes de gravar, para o desfazer, e receber os dados do Firebase). Nada mudou no código.
 
 ---
 

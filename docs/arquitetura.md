@@ -11,7 +11,13 @@ Escrito a partir da leitura do código. Se divergir do código, vale o código: 
 5. `src/hooks/`, `src/components/`, `src/layout/`, `src/pages/`: interface.
 6. `api/`: função serverless da Vercel (`copiloto-ia.ts`), fora do `src/` e sem importar nada dele.
 
-Regra de dependência: uma camada só importa das de baixo. Exceções que vi: os serviços importam stores (`syncService` escreve nelas; `cfgService` lê as stores para montar as cascatas; `historicoService` lê-as para o desfazer; `veiculoService` e outros chamam `snapshotHistorico()` de `historicoStore`). Confirmar se isto é intencional.
+Regra de dependência: uma camada só importa das de baixo. **Exceção aceite (07/11/2026): os serviços importam stores, de propósito.** São 11 serviços, por três motivos:
+
+- `syncService` escreve nas stores os dados que chegam do Firebase (é o único que as alimenta).
+- `cfgService` e `historicoService` leem as stores para montar as cascatas de renomear e o desfazer/refazer.
+- Os restantes (`lancamentosService`, `parcelasService`, `veiculoService`, `tvdeService`, `fundosService`, `eventosService`, `faturaService`, `importacaoService`) só chamam `snapshotHistorico()` da `historicoStore`, para guardar o estado antes de cada gravação e permitir desfazer.
+
+Mudar isto seria uma refatoração grande sem ganho para quem usa a app.
 
 ## Fluxo de dados
 
