@@ -2,7 +2,7 @@
 
 Problemas encontrados ao ler o código e sugestões. **Nada disto foi alterado**: são propostas para decidir uma a uma (regra do projeto: não remover nem refatorar sem permissão). Cada item tem um número (G1, D2...) para o poder aprovar pelo nome. Dentro de cada secção, do mais seguro ao mais trabalhoso. Medido em 07/11/2026, em `main`.
 
-Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes passam; `lint` falha só em `src/dev-botoes.tsx` (ficheiro local, fora do git, por isso não falha na CI); `format:check` falha em 4 ficheiros (ver I1).
+Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes passam (agora 110 e 2014, depois de H2); `lint` falha só em `src/dev-botoes.tsx` (ficheiro local, fora do git, por isso não falha na CI); `format:check` falha em 4 ficheiros (ver I1).
 
 ## G. Privacidade e ficheiros soltos (primeiro)
 
@@ -59,7 +59,7 @@ Prova de que dividir não muda nada: mesmos testes a passar, mesmo HTML renderiz
 ## H. Testes
 
 1. **FEITO em 07/11/2026 (medida uma vez, sem mudar a configuração; números em `docs/testes-e-ci.md`).** A medição normal fica só na lógica de propósito (o `vite.config.ts` explica porquê). Total real: 77,5% das linhas; hooks 44%. **A cobertura só mede `api/`, `src/services/` e `src/utils/`** (94,6% das instruções, 96,3% das linhas). Componentes, hooks, layout, páginas e stores não entram no número. Sugestão: acrescentar `src/**` à cobertura para ter o número real (vai baixar), ou documentar que é só lógica.
-2. **Sem teste com o mesmo nome:** 18 hooks (`useAplicarTema`, `useConfirmar`, `useDragToClose`, `useFocoModal`, `usePullToRefresh`, `useSyncConta`...), 6 de layout (`AppShell`, `Sidebar`, `Fab`...), 38 componentes e 15 stores. Alguns serão cobertos por testes das telas; confirmar com a cobertura real (H1) antes de escrever testes.
+2. **FEITO em 07/11/2026 para os 3 hooks de iPhone (`useSyncConta`, `useDragToClose`, `usePullToRefresh`); restantes por decidir.** **Sem teste com o mesmo nome:** 18 hooks (`useAplicarTema`, `useConfirmar`, `useDragToClose`, `useFocoModal`, `usePullToRefresh`, `useSyncConta`...), 6 de layout (`AppShell`, `Sidebar`, `Fab`...), 38 componentes e 15 stores. Alguns serão cobertos por testes das telas; confirmar com a cobertura real (H1) antes de escrever testes.
 3. **Ponto fraco conhecido:** `utils/imagem.ts` com 49% (a parte de recorte e compressão).
 4. **A CI falha agora** no passo de formatação (I1), por isso hoje não dá confiança para entregar.
 

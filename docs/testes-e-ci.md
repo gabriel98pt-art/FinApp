@@ -4,7 +4,7 @@ Escrito a partir da leitura do código. Se divergir do código, vale o código: 
 
 ## Testes (Vitest 4)
 
-- 107 ficheiros `*.test.ts(x)`, 1985 testes (números medidos; voltam a mudar a cada teste novo). Ficheiros ao lado do código, mais `api/copiloto-ia.test.ts`.
+- 110 ficheiros `*.test.ts(x)`, 2014 testes (números de 07/11/2026; voltam a mudar a cada teste novo). Ficheiros ao lado do código, mais `api/copiloto-ia.test.ts`.
 - Ambiente por omissão `node` (`vite.config.ts`): a lógica pura corre sem DOM. Os testes de componente pedem jsdom com `// @vitest-environment jsdom` no topo do próprio ficheiro.
 - `src/testes/setup.ts`: jest-dom e `cleanup`, e um `matchMedia` por omissão (desktop). Só faz algo em jsdom (guarda `typeof window`).
 - `src/testes/dobras.ts` (formas de estado de store de lista, ex. `lista`) e `src/testes/instituicoes.ts` (fixtures de instituições e métodos de pagamento): partilham a forma, não os dados; cada teste declara os seus `vi.mock`.
@@ -34,7 +34,7 @@ A configuração não mudou. Esta medição única incluiu `src/**` e `api/**` p
 | `src/hooks`                                     | 43,9%  | o ponto mais fraco       |
 | `src/App.tsx`, `src/main.tsx`                   | 0%     | arranque, sem teste      |
 
-Os hooks são a pasta com menos cobertura. Entre os que não têm teste próprio estão `usePullToRefresh`, `useDragToClose`, `useSyncConta`, `useFocoModal` e `useConfirmar`. Por correr de novo: `npx vitest run --coverage --coverage.include='src/**' --coverage.include='api/**'`.
+Os hooks eram a pasta com menos cobertura (43,9%). Em 07/11/2026 ganharam testes `useSyncConta`, `useDragToClose` e `usePullToRefresh` (29 testes), e a pasta passou a 71,9%. Ainda sem teste próprio: `useFocoModal`, `useConfirmar`, `useNotificacoes`, `useDadosFatura` e outros. Por correr de novo: `npx vitest run --coverage --coverage.include='src/**' --coverage.include='api/**'`.
 
 ## Qualidade
 
