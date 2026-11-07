@@ -20,6 +20,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **O `README.md` passa a apontar para a documentação dividida por assunto** (`docs/README.md` e `CLAUDE.md`), sem o número de abas errado nem os marcos já cumpridos. A linha do período do `HISTORICO.md` também foi atualizada.
 - **Nota no documento de análise da barra de baixo e do topo**, a explicar que a curva de animação `--ease-spring` foi trocada por `--ease-mola`. Só texto.
 - **Decidido manter 3 tamanhos de letra fora da escala** (13 nas pílulas e nos seletores de segmento, 17 nos títulos de secção) como exceções aceites, e isso ficou escrito na documentação. A app não muda.
+- **Confirmado que o botão pequeno ter letra mais pequena é de propósito**, igual à TVDE Pro, e ficou escrito na documentação. A app não muda.
 
 ---
 
