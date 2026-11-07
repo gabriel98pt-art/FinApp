@@ -19,12 +19,12 @@ Escrito a partir da leitura do código. Se algo divergir do código, vale o cód
 
 ## Como trabalhar, testar e publicar
 
-| Ficheiro                                                     | Assunto                                                   |
-| ------------------------------------------------------------ | --------------------------------------------------------- |
-| [testes-e-ci.md](testes-e-ci.md)                             | Testes, cobertura, lint, CI                               |
-| [ios-e-deploy.md](ios-e-deploy.md)                           | PWA, Capacitor/iOS, Vercel, Firebase                      |
-| [scripts-e-ferramentas-dev.md](scripts-e-ferramentas-dev.md) | `scripts/`, ecrãs de desenvolvimento                      |
-| [dicas-de-organizacao.md](dicas-de-organizacao.md)           | Problemas e sugestões de melhoria (a preencher na Fase 3) |
+| Ficheiro                                                     | Assunto                                                                |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [testes-e-ci.md](testes-e-ci.md)                             | Testes, cobertura, lint, CI                                            |
+| [ios-e-deploy.md](ios-e-deploy.md)                           | PWA, Capacitor/iOS, Vercel, Firebase                                   |
+| [scripts-e-ferramentas-dev.md](scripts-e-ferramentas-dev.md) | `scripts/`, ecrãs de desenvolvimento                                   |
+| [dicas-de-organizacao.md](dicas-de-organizacao.md)           | Problemas e sugestões de melhoria (nada aplicado, a decidir uma a uma) |
 
 ## Já existiam (não mexidos)
 
