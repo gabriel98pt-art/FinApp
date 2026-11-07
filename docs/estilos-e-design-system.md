@@ -152,7 +152,7 @@ Todos são cápsulas (`--r-pill`); `soIcone` é redondo e exige `aria-label` com
 
 ## Para confirmar
 
-- Valores soltos fora da escala, vistos em módulos partilhados: `13px` em `pilulas.module.css` e `segmentado.module.css`, `17px` em `titulos.module.css`. A regra diz escala de 6; confirmar se são exceções aceites ou dívida.
+- **Exceções aceites pelo Gabriel (07/11/2026):** valores fora da escala em módulos partilhados: `13px` em `pilulas.module.css` e `segmentado.module.css`, `17px` em `titulos.module.css`. A regra geral continua a ser a escala de 6.
 - `base.css` e `pilulas.module.css` referem «seção 4.6» e «seção 6» do spec antigo (fora do git); confirmar se ainda interessam.
 - `docs/design/analise-tabbar-topo.md` §5.5 cita `--ease-spring`, que já não existe em `motion.css`; o código atual usa `--ease-mola`.
 - Passos de `Botao` com `--fs-body` (pequeno) e `--fs-title` (normal/grande): confirmar se é a intenção do padrão.

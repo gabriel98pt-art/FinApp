@@ -40,7 +40,7 @@ Vite 8 + React 19 + TypeScript estrito, zustand, react-router 7, CSS Modules, vi
 
 Visual «vidro + terracota». Mantém um padrão comum mínimo com a TVDE Pro, que dá o toque autoral do Gabriel; pode mudar mais tarde, mas só por decisão dele. Antes de mexer em design, ler `docs/estilos-e-design-system.md`. Mudança de design é só design: não misturar com lógica.
 
-- Cores e tamanhos só pelos tokens de `src/styles/tokens.css`: sem cores soltas, sem tamanhos de letra fora da escala de 6 (`--fs-*`), cantos pelos `--r-*`.
+- Cores e tamanhos só pelos tokens de `src/styles/tokens.css`: sem cores soltas, sem tamanhos de letra fora da escala de 6 (`--fs-*`) (exceções aceites: 13px nas pílulas e segmentados, 17px nos títulos de secção), cantos pelos `--r-*`.
 - Movimento só pelos tokens de `src/styles/motion.css`. Respeitar `prefers-reduced-motion`.
 - Botões: só o componente `Botao`, nos 5 estilos (primário, secundário, neutro, fantasma, perigo) e 3 tamanhos. Só um botão primário por ecrã. Vermelho só para apagar.
 - Alvos de toque de pelo menos 44px. Tem de funcionar em claro e em escuro.

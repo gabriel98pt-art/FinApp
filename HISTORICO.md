@@ -19,6 +19,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **O arranque da pré-visualização (`launch.json`) passa a ficar guardado no projeto**, e o registo da extensão `grill-me` deixa de aparecer como ficheiro por guardar.
 - **O `README.md` passa a apontar para a documentação dividida por assunto** (`docs/README.md` e `CLAUDE.md`), sem o número de abas errado nem os marcos já cumpridos. A linha do período do `HISTORICO.md` também foi atualizada.
 - **Nota no documento de análise da barra de baixo e do topo**, a explicar que a curva de animação `--ease-spring` foi trocada por `--ease-mola`. Só texto.
+- **Decidido manter 3 tamanhos de letra fora da escala** (13 nas pílulas e nos seletores de segmento, 17 nos títulos de secção) como exceções aceites, e isso ficou escrito na documentação. A app não muda.
 
 ---
 
