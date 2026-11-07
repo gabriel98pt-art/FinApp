@@ -33,7 +33,7 @@ Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes p
 Medido por exportações sem importadores fora dos testes. Nenhuma é apagada sem o teu «sim». Três grupos:
 
 - **FEITO em 07/11/2026 (apagadas as 4).** **Sem nenhum uso e sem teste** (candidatos a remover): `removerParcela` e `removerDespesaFixa` (`lancamentosService.ts`), `diaDe` e `lancamentosDoMesVeiculo` (`utils/calculos.ts`, `utils/veiculo.ts`).
-- **Só usadas nos testes** (confirmar se são para uso futuro): `restaurarSnapshotDeSeguranca`, `removerFixaVeiculo`, `resumoMes`, `saldoTotal`, `resumoMesCompleto`, `diasComEventoNoMes`, `podeRefazer`, `fromCents`, `ORDENS_PARCELA`, `ROTULOS_ORDEM_PARCELA`, `DADOS_RENOMEAR_VAZIOS`.
+- **DECIDIDO em 07/11/2026: manter todas, de propósito.** **Só usadas nos testes** (confirmar se são para uso futuro): `restaurarSnapshotDeSeguranca`, `removerFixaVeiculo`, `resumoMes`, `saldoTotal`, `resumoMesCompleto`, `diasComEventoNoMes`, `podeRefazer`, `fromCents`, `ORDENS_PARCELA`, `ROTULOS_ORDEM_PARCELA`, `DADOS_RENOMEAR_VAZIOS`.
 - **Exportadas sem precisarem de ser** (só usadas dentro do próprio ficheiro; tirar `export` não muda nada): cerca de 50, sobretudo em `utils/imagem.ts`, `utils/importacao.ts`, `utils/extrairExtratoPdf.ts`, `utils/notificacoes.ts`, `utils/tvde.ts`, `utils/copiloto.ts`. Muitas existem só para o teste as chamar; neste caso o `export` é razoável. Baixa prioridade.
 
 ## C. Duplicados e comentários desatualizados
