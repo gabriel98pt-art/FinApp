@@ -14,6 +14,7 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 - **O projeto passa a ter um `CLAUDE.md` e uma pasta `docs/` organizada**, como a do TVDE Pro: o resumo para trabalhar, o índice, e um ficheiro por assunto (arquitetura, dados, telas, componentes, estilos, testes, iOS, glossário e outros). Nenhuma funcionalidade foi mexida; só documentação.
 - **Arrumada a formatação de 4 ficheiros** (a barra de baixo das folhas, o balão de opções, o puxar para atualizar e um texto de design), para a verificação automática voltar a passar. A app faz exatamente o mesmo.
 - **As 34 capturas de ecrã de teste deixaram de estar no repositório.** Continuam no teu disco, na mesma pasta; só deixam de ser guardadas no git.
+- **Apagados 4 ícones antigos** (versões 2 e 3), que a app já não usava. O ícone atual (versão 4) fica igual.
 
 ---
 
