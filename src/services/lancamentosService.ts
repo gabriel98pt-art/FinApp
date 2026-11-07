@@ -107,7 +107,6 @@ export const observarParcelas = (
 export const criarParcela = (uid: string, dados: Omit<Parcela, "id">) =>
   criar<Parcela>(uid, "parcelas", dados);
 export const atualizarParcela = (uid: string, item: Parcela) => atualizar(uid, "parcelas", item);
-export const removerParcela = (uid: string, id: Id) => remover(uid, "parcelas", id);
 
 // ---- Despesas fixas gerais (aluguel, assinaturas, seguro etc. — fora do
 // veículo, que tem seu próprio domínio em veiculoService.ts) ----
@@ -120,7 +119,6 @@ export const criarDespesaFixa = (uid: string, dados: Omit<DespesaFixa, "id">) =>
   criar<DespesaFixa>(uid, "despesasFixas", dados);
 export const atualizarDespesaFixa = (uid: string, item: DespesaFixa) =>
   atualizar(uid, "despesasFixas", item);
-export const removerDespesaFixa = (uid: string, id: Id) => remover(uid, "despesasFixas", id);
 
 /** Marca (ou desmarca) uma fixa como paga num mês. Além do booleano de
  *  sempre em `pagoPorMes`, grava um lançamento-espelho com a DATA REAL do

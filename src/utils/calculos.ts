@@ -184,11 +184,6 @@ const MESES_PT = [
 /** 'jan', 'fev', … — para grades onde o nome inteiro não cabe. */
 export const MESES_CURTOS_PT = MESES_PT.map((m) => m.slice(0, 3));
 
-/** '2026-07-15' → 15. Irmão de `mesDe`: corta a string, sem passar por Date. */
-export function diaDe(data: IsoDate): number {
-  return Number(data.slice(8, 10));
-}
-
 /** Data do dia `dia` nesse mês, presa ao que o mês tem: um vencimento a 31
  *  cai no dia 28 em fevereiro, em vez de escorregar pra março. Sem `dia` (ou
  *  0), cai no dia 1 — só pra ter um lugar na ordenação. Vive aqui (módulo sem

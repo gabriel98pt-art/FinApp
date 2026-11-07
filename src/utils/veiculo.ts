@@ -11,7 +11,7 @@ import type {
   YearMonth,
 } from "../types";
 import { cargasProprias } from "./cargasProprias";
-import { despesasNosTotais, doMes, mesDe, totalDoMes } from "./calculos";
+import { despesasNosTotais, mesDe, totalDoMes } from "./calculos";
 import { fixaAtivaNoMes, fixaEfetivamentePaga, mesesPagosComoAutoDebit } from "./fatura";
 
 export function totalCargasMes(veiculo: DadosVeiculo, ym: YearMonth): Cents {
@@ -161,12 +161,5 @@ export function dadosDespesaDaCarga(
     categoria: categoria.trim() || "Outros",
     contaCartao: carga.contaCartao,
     nota: carga.nota,
-  };
-}
-
-export function lancamentosDoMesVeiculo(veiculo: DadosVeiculo, ym: YearMonth) {
-  return {
-    cargas: veiculo.cargas.filter((c) => mesDe(c.data) === ym),
-    despesas: doMes(veiculo.despesas, ym),
   };
 }
