@@ -69,16 +69,16 @@ export default function Popover({
       const r = ancora.getBoundingClientRect();
       if (igualarLargura) caixa.style.minWidth = `${r.width}px`;
       const nova = posicionarPopover(
-          r,
-          { largura: caixa.offsetWidth, altura: caixa.offsetHeight },
-          {
-            // `clientWidth` do html, e não `innerWidth`: este não conta a barra
-            // de rolagem, e a caixa ficaria a transbordar por baixo dela.
-            largura: document.documentElement.clientWidth,
-            altura: document.documentElement.clientHeight,
-          },
-          alinhar,
-        );
+        r,
+        { largura: caixa.offsetWidth, altura: caixa.offsetHeight },
+        {
+          // `clientWidth` do html, e não `innerWidth`: este não conta a barra
+          // de rolagem, e a caixa ficaria a transbordar por baixo dela.
+          largura: document.documentElement.clientWidth,
+          altura: document.documentElement.clientHeight,
+        },
+        alinhar,
+      );
       // A animação de entrada nasce no canto do gatilho, não no meio da caixa.
       setPos({ ...nova, origemX: r.left + Math.min(r.width, 48) / 2 - nova.left });
     }

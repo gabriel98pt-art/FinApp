@@ -141,7 +141,8 @@ export function usePullToRefresh() {
     // Folha, diálogo ou popover aberto: o gesto é deles. Os eventos da folha
     // sobem pela árvore do React (o portal não os corta) até aqui. As folhas
     // fechadas ficam montadas mas `inert`, por isso não contam.
-    if (document.querySelector('[aria-modal="true"]:not([inert]), [role="dialog"]:not([inert])')) return;
+    if (document.querySelector('[aria-modal="true"]:not([inert]), [role="dialog"]:not([inert])'))
+      return;
     if (animId.current !== null) {
       cancelAnimationFrame(animId.current);
       animId.current = null;

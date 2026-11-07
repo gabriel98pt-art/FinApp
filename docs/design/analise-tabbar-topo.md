@@ -14,13 +14,13 @@ fixa o padrão comum já aprovado.
 
 `src/layout/AppShell.tsx` monta tudo, sempre na mesma ordem:
 
-| Peça | Ficheiro | Telemóvel (<768px) | Tablet/desktop (≥768px) |
-|---|---|---|---|
-| Barra do topo | `layout/Header.tsx` | sim | sim |
-| Tab bar em baixo | `layout/MobileNav.tsx` | sim | escondida |
-| Barra lateral (rail) | `layout/Sidebar.tsx` | escondida | sim |
-| Botão "+" flutuante | `layout/Fab.tsx` | escondido (o "+" está na tab bar) | sim, canto inferior direito |
-| Menu do "+" | `layout/MenuRegistroRapido.tsx` | folha inferior | folha inferior |
+| Peça                 | Ficheiro                        | Telemóvel (<768px)                | Tablet/desktop (≥768px)     |
+| -------------------- | ------------------------------- | --------------------------------- | --------------------------- |
+| Barra do topo        | `layout/Header.tsx`             | sim                               | sim                         |
+| Tab bar em baixo     | `layout/MobileNav.tsx`          | sim                               | escondida                   |
+| Barra lateral (rail) | `layout/Sidebar.tsx`            | escondida                         | sim                         |
+| Botão "+" flutuante  | `layout/Fab.tsx`                | escondido (o "+" está na tab bar) | sim, canto inferior direito |
+| Menu do "+"          | `layout/MenuRegistroRapido.tsx` | folha inferior                    | folha inferior              |
 
 Fonte da verdade das abas: `src/constants/abas.ts` (ícones Lucide, mais um
 ícone próprio para Análise em `components/IconeAnalise`).
@@ -29,13 +29,13 @@ Fonte da verdade das abas: `src/constants/abas.ts` (ícones Lucide, mais um
 
 **Itens, por ordem:** Receitas · Despesas · **[+ central]** · Início · Mais
 
-| Item | Ícone (Lucide) | Ação |
-|---|---|---|
-| Receitas | `TrendingUp` | vai para `/receitas` |
-| Despesas | `TrendingDown` | vai para `/despesas` |
+| Item        | Ícone (Lucide)         | Ação                           |
+| ----------- | ---------------------- | ------------------------------ |
+| Receitas    | `TrendingUp`           | vai para `/receitas`           |
+| Despesas    | `TrendingDown`         | vai para `/despesas`           |
 | + (central) | `Plus` 26px, traço 2.5 | abre a folha "Novo lançamento" |
-| Início | `House` | vai para `/` |
-| Mais | `MoreHorizontal` | abre/fecha o menu "Mais" |
+| Início      | `House`                | vai para `/`                   |
+| Mais        | `MoreHorizontal`       | abre/fecha o menu "Mais"       |
 
 - **Só ícones.** O nome existe no código (para leitores de ecrã e `title`),
   mas não se vê. Ícones de 20px.
@@ -50,6 +50,7 @@ Fonte da verdade das abas: `src/constants/abas.ts` (ícones Lucide, mais um
   no topo.
 
 **Visual**
+
 - Pílula flutuante, não colada à borda: 14px de margem de cada lado, 6px
   acima da zona do indicador de gestos do iPhone. Altura 64px. Raio total
   (`--r-pill` 99px).
@@ -65,6 +66,7 @@ Fonte da verdade das abas: `src/constants/abas.ts` (ícones Lucide, mais um
   nível das abas (não sobe acima dela).
 
 **Interação**
+
 - Toque: aba encolhe para 96% enquanto pressionada; "+" encolhe para 92%
   com mola (`--ease-spring`).
 - Transição de cor/fundo da aba ativa: 0,18s.
@@ -93,23 +95,23 @@ fica fora do conteúdo da página.
 **Layout:** grelha de 3 colunas (esquerda | centro | direita), com o centro
 verdadeiramente centrado.
 
-| Esquerda | Centro | Direita |
-|---|---|---|
+| Esquerda                                                 | Centro                                              | Direita                                           |
+| -------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
 | Avatar 32px + logotipo "Fin**App**" ("App" em terracota) | Seletor de mês compacto (em quase todas as páginas) | Olho (mostrar/ocultar valores) + Sino (lembretes) |
 
 **O que aparece em cada página**
 
-| Página | Seletor de mês no topo? | Título dentro da página | Extra por baixo do título |
-|---|---|---|---|
-| Início `/` | sim | "Início" existe mas **escondido** | quadro de resultado é o 1.º elemento |
-| Receitas | sim | "Receitas" | painel de KPIs |
-| Despesas | sim | "Despesas" | painel de KPIs + abas |
-| Veículo | sim | "Veículo" | painel de KPIs |
-| Cartões | sim | "Cartões" | botão Importar ao lado (telemóvel) |
-| Planejamento | sim | "Planejamento" | abas Planejamento/Metas |
-| Análise | sim | "Análise" | seletor de período ao lado/por baixo |
-| TVDE | sim | "TVDE" | destaque do lucro da semana |
-| Definições | **não** | "Definições" | formulário estreito |
+| Página       | Seletor de mês no topo? | Título dentro da página           | Extra por baixo do título            |
+| ------------ | ----------------------- | --------------------------------- | ------------------------------------ |
+| Início `/`   | sim                     | "Início" existe mas **escondido** | quadro de resultado é o 1.º elemento |
+| Receitas     | sim                     | "Receitas"                        | painel de KPIs                       |
+| Despesas     | sim                     | "Despesas"                        | painel de KPIs + abas                |
+| Veículo      | sim                     | "Veículo"                         | painel de KPIs                       |
+| Cartões      | sim                     | "Cartões"                         | botão Importar ao lado (telemóvel)   |
+| Planejamento | sim                     | "Planejamento"                    | abas Planejamento/Metas              |
+| Análise      | sim                     | "Análise"                         | seletor de período ao lado/por baixo |
+| TVDE         | sim                     | "TVDE"                            | destaque do lucro da semana          |
+| Definições   | **não**                 | "Definições"                      | formulário estreito                  |
 
 - **A barra do topo nunca mostra o nome da página.** Mostra sempre a marca
   "FinApp". O nome da página é um título grande (28px, peso 600) no início
@@ -117,6 +119,7 @@ verdadeiramente centrado.
 - Não há botão "voltar" no topo em nenhuma página.
 
 **O que cada botão faz**
+
 - **Avatar** → menu pequeno ancorado com "Minha conta" (abre folha) e
   "Definições" (vai para a página). É a única porta para Definições.
 - **Seletor de mês** → setas ‹ › mudam o mês; tocar no rótulo abre um
@@ -126,6 +129,7 @@ verdadeiramente centrado.
 - **Sino** → folha inferior "Lembretes"; tem badge de contagem.
 
 **Visual**
+
 - Fixo no topo ao rolar (`sticky`). Altura ~61px + zona do notch
   (`--safe-topo`).
 - Fundo creme do próprio fundo a 90% de opacidade + fio fino de 1px por
@@ -137,6 +141,7 @@ verdadeiramente centrado.
 - Não muda ao rolar (não há título grande que encolhe).
 
 **Interação extra**
+
 - Puxar para recarregar no conteúdo principal (`usePullToRefresh`), com
   indicador próprio.
 - Faixa de erro de sincronização aparece logo por baixo do topo quando a
@@ -189,10 +194,10 @@ Toast, ConfirmarAcao. CSS Modules + variáveis CSS; ícones `lucide-react`.
 Itens das abas em `src/constants/abas.ts`. No iOS (Capacitor) é o mesmo
 código web, sem tab bar nativa.
 
-| Peça | Telemóvel (<768px) | 768–1023px | ≥1024px |
-|---|---|---|---|
-| Tab bar `MobileNav` | sim | escondida | escondida |
-| `Sidebar` | escondida | rail só de ícones (72px) | expandida com rótulos e marca «TVDE Pro» (240px) |
+| Peça                | Telemóvel (<768px) | 768–1023px               | ≥1024px                                          |
+| ------------------- | ------------------ | ------------------------ | ------------------------------------------------ |
+| Tab bar `MobileNav` | sim                | escondida                | escondida                                        |
+| `Sidebar`           | escondida          | rail só de ícones (72px) | expandida com rótulos e marca «TVDE Pro» (240px) |
 
 ### 2.2 Tab bar (telemóvel)
 
@@ -208,6 +213,7 @@ código web, sem tab bar nativa.
   `aria-current="page"`.
 
 **Visual**
+
 - Cápsula flutuante centrada. Largura `min(100vw − 32px − safe, 440px)`.
   Altura **56px**. Raio 999px.
 - Posição: `max(10px, safe-area-bottom − 14px)` do fundo — assenta dentro da
@@ -222,6 +228,7 @@ código web, sem tab bar nativa.
 - Redução de transparência / contraste alto: fundo sólido, sem blur.
 
 **Interação**
+
 - **O círculo ativo desliza** de aba para aba com mola (0,5s, curva
   `linear()` de mola crítica). CSS puro; o JS só calcula o índice.
 - Página sem aba ativa (ex.: Detalhe da semana): o círculo desvanece.
@@ -243,13 +250,14 @@ em `components/Pagina.tsx`.
 
 **Layout:** grelha de 3 colunas, centro verdadeiramente centrado.
 
-| Esquerda | Centro | Direita |
-|---|---|---|
+| Esquerda                     | Centro                                                            | Direita                                      |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------------------------------- |
 | Avatar 32px (≥768px: + nome) | Título pequeno da página (aparece ao rolar) **ou** seletor de mês | Botão de tema Lua/Sol, 22px, cor de destaque |
 
 Regra do projeto escrita no código: "Nada mais".
 
 **Comportamento estilo iOS "large title":**
+
 - Em repouso: barra transparente; título grande (34px bold) dentro da página.
 - Ao rolar 0–12px: aparece o vidro e o título pequeno (17px semibold) entra
   no centro da barra. CSS com scroll-driven animations; fallback em JS
@@ -259,21 +267,23 @@ Regra do projeto escrita no código: "Nada mais".
 
 **O que aparece em cada página**
 
-| Página | Título grande na página | Centro da barra |
-|---|---|---|
-| Início `/` | Saudação ("Bom dia/tarde/noite", hora de Lisboa) + data | "Início" ao rolar |
-| Histórico | "Histórico" | seletor de mês (sempre) |
-| Carro | "Carro" | seletor de mês (sempre) |
-| Análise | "Análise" | "Análise" ao rolar |
-| Definições `/ajustes` | "Definições" | "Definições" ao rolar |
-| Detalhe da semana | `CabecalhoDetalhe` com botão voltar + título, dentro da página | "TVDE Pro" (fallback) |
+| Página                | Título grande na página                                        | Centro da barra         |
+| --------------------- | -------------------------------------------------------------- | ----------------------- |
+| Início `/`            | Saudação ("Bom dia/tarde/noite", hora de Lisboa) + data        | "Início" ao rolar       |
+| Histórico             | "Histórico"                                                    | seletor de mês (sempre) |
+| Carro                 | "Carro"                                                        | seletor de mês (sempre) |
+| Análise               | "Análise"                                                      | "Análise" ao rolar      |
+| Definições `/ajustes` | "Definições"                                                   | "Definições" ao rolar   |
+| Detalhe da semana     | `CabecalhoDetalhe` com botão voltar + título, dentro da página | "TVDE Pro" (fallback)   |
 
 **Visual**
+
 - Altura 44px + notch (52px + notch a partir de 768px).
 - Fonte Inter (fallback -apple-system/SF Pro).
 - Alvos de toque 44×44.
 
 **O que cada botão faz**
+
 - **Avatar** → `MenuAcoesItem` (folha no telemóvel, popover em ecrã largo):
   "Minha conta" (folha) e "Definições" (página).
 - **Tema** → alterna claro/escuro (fixa o tema mesmo se estava em
@@ -321,52 +331,52 @@ Regra do projeto escrita no código: "Nada mais".
 
 ### Tab bar
 
-| Aspeto | FinApp | TVDE Pro |
-|---|---|---|
-| Nº de itens visíveis | 4 + botão "+" | 4 |
-| Overflow "Mais" | sim (popover, 2 colunas) | não |
-| Botão "+" central | sim, terracota 56px | não (removido de propósito) |
-| Posição do Início | 4.º (depois do "+") | 1.º |
-| Rótulos visíveis | não | não |
-| Altura | 64px | 56px |
-| Margem lateral | 14px | 16px (máx. 440px de largura) |
-| Distância ao fundo | indicador de gestos + 6px | dentro da faixa do indicador |
-| Blur no telemóvel | não | sim (20px) |
-| Indicador ativo | círculo branco/creme 40px, ícone escuro | círculo azul cheio 44px, ícone branco +10% |
-| Animação do ativo | troca de cor 0,18s | círculo desliza com mola 0,5s |
-| Escala ao toque | 0,96 | 0,97 |
-| Haptics / badges / voltar ao topo | não / não / não | não / não / não |
+| Aspeto                            | FinApp                                  | TVDE Pro                                   |
+| --------------------------------- | --------------------------------------- | ------------------------------------------ |
+| Nº de itens visíveis              | 4 + botão "+"                           | 4                                          |
+| Overflow "Mais"                   | sim (popover, 2 colunas)                | não                                        |
+| Botão "+" central                 | sim, terracota 56px                     | não (removido de propósito)                |
+| Posição do Início                 | 4.º (depois do "+")                     | 1.º                                        |
+| Rótulos visíveis                  | não                                     | não                                        |
+| Altura                            | 64px                                    | 56px                                       |
+| Margem lateral                    | 14px                                    | 16px (máx. 440px de largura)               |
+| Distância ao fundo                | indicador de gestos + 6px               | dentro da faixa do indicador               |
+| Blur no telemóvel                 | não                                     | sim (20px)                                 |
+| Indicador ativo                   | círculo branco/creme 40px, ícone escuro | círculo azul cheio 44px, ícone branco +10% |
+| Animação do ativo                 | troca de cor 0,18s                      | círculo desliza com mola 0,5s              |
+| Escala ao toque                   | 0,96                                    | 0,97                                       |
+| Haptics / badges / voltar ao topo | não / não / não                         | não / não / não                            |
 
 ### Barra do topo
 
-| Aspeto | FinApp | TVDE Pro |
-|---|---|---|
-| Esquerda | avatar + logotipo "FinApp" | avatar (+ nome em ecrã largo) |
-| Centro | seletor de mês (todas menos Definições) | título ao rolar, ou seletor de mês (Histórico, Carro) |
-| Direita | olho (ocultar valores) + sino | tema claro/escuro |
-| Nº de botões à direita | 2 | 1 |
-| Nome da página na barra | nunca | sim, ao rolar (exceto páginas com mês) |
-| Título grande na página | 28px peso 600 (escondido na Início) | 34px bold (saudação na Início) |
-| Altura | ~61px + notch | 44px + notch (52px em ecrã largo) |
-| Fundo em repouso | creme 90%, sólido, fio de 1px | transparente |
-| Fundo ao rolar | igual (não muda) | vidro com blur + degradê, sem fio |
-| Blur no telemóvel | não | sim |
-| Botão voltar | não existe | só no Detalhe da semana, dentro da página |
-| Menu do avatar | Minha conta + Definições (popover ancorado) | Minha conta + Definições (folha no telemóvel) |
-| Fonte | sistema (-apple-system) | Inter |
-| Pull-to-refresh | sim | sim |
+| Aspeto                  | FinApp                                      | TVDE Pro                                              |
+| ----------------------- | ------------------------------------------- | ----------------------------------------------------- |
+| Esquerda                | avatar + logotipo "FinApp"                  | avatar (+ nome em ecrã largo)                         |
+| Centro                  | seletor de mês (todas menos Definições)     | título ao rolar, ou seletor de mês (Histórico, Carro) |
+| Direita                 | olho (ocultar valores) + sino               | tema claro/escuro                                     |
+| Nº de botões à direita  | 2                                           | 1                                                     |
+| Nome da página na barra | nunca                                       | sim, ao rolar (exceto páginas com mês)                |
+| Título grande na página | 28px peso 600 (escondido na Início)         | 34px bold (saudação na Início)                        |
+| Altura                  | ~61px + notch                               | 44px + notch (52px em ecrã largo)                     |
+| Fundo em repouso        | creme 90%, sólido, fio de 1px               | transparente                                          |
+| Fundo ao rolar          | igual (não muda)                            | vidro com blur + degradê, sem fio                     |
+| Blur no telemóvel       | não                                         | sim                                                   |
+| Botão voltar            | não existe                                  | só no Detalhe da semana, dentro da página             |
+| Menu do avatar          | Minha conta + Definições (popover ancorado) | Minha conta + Definições (folha no telemóvel)         |
+| Fonte                   | sistema (-apple-system)                     | Inter                                                 |
+| Pull-to-refresh         | sim                                         | sim                                                   |
 
 ### Tokens
 
-| Aspeto | FinApp | TVDE Pro |
-|---|---|---|
-| Acento | terracota #e8703a (`--blu`) | azul #3f5ef0 (`--destaque`) |
-| Fundo | creme quente / café | lavanda fria / azul-noite |
-| Raio de cartão | 22px | 28px |
-| Raio de controle | 9px | 14px |
-| Escala de texto | 11–20px + título 28px | escala iOS 11–34px |
-| `--dur-enter` | 0,24s | 0,45s |
-| `--dur-exit` | 0,18s | 0,2s |
+| Aspeto           | FinApp                                            | TVDE Pro                                                 |
+| ---------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| Acento           | terracota #e8703a (`--blu`)                       | azul #3f5ef0 (`--destaque`)                              |
+| Fundo            | creme quente / café                               | lavanda fria / azul-noite                                |
+| Raio de cartão   | 22px                                              | 28px                                                     |
+| Raio de controle | 9px                                               | 14px                                                     |
+| Escala de texto  | 11–20px + título 28px                             | escala iOS 11–34px                                       |
+| `--dur-enter`    | 0,24s                                             | 0,45s                                                    |
+| `--dur-exit`     | 0,18s                                             | 0,2s                                                     |
 | Nomes dos tokens | mistos PT/EN, herdados (`--blu`, `--s1`, `--mut`) | PT semânticos (`--rotulo`, `--superficie`, `--destaque`) |
 
 ---
@@ -396,12 +406,14 @@ deve ser comum às duas apps e no que cada uma deve manter como seu.
 ### 4.2 Textos da interface (microcopy)
 
 **Pedido do Gabriel:** a app tem de ter ar profissional. O que o incomoda:
+
 - aspas angulares em texto visível (ex.: «Pago com»);
 - parágrafos cinzentos corridos («textos sem formatação»);
 - palavras, frases, títulos e subtítulos soltos na página (poluição visual);
 - legendas e rodapés em excesso, às vezes repetidos.
 
 **Estado na TVDE Pro (02/11/2026):**
+
 - Já há uma auditoria com pesquisa e fontes: `docs/textos/auditoria.md`, no
   ramo `textos-profissionais` do TVDE Pro. As fontes são Apple HIG (Writing,
   Lists and tables, Pop-up buttons), Material, NN/g, o guia de estilo pt-PT da
@@ -477,6 +489,7 @@ textos longos e das notas.
 ### 4.3 Animações
 
 **TVDE Pro, hoje** (`src/styles/motion.css`, regras em `DESIGN.md`):
+
 - **Molas à Apple:**
   - `--mola` é o padrão: amortecimento crítico, resposta de 0,35 s, sem
     ressalto.
@@ -498,11 +511,13 @@ textos longos e das notas.
   - pulsar ao carregar.
 
   São cerca de 11 `@keyframes` em 8 ficheiros.
+
 - **Problemas já corrigidos:** números a recomeçar do zero durante a
   transição, e uma piscadela depois do zoom. O registo está no HISTORICO.md
   (itens Z1 e Z3).
 
 **FinApp, hoje** (`src/styles/motion.css`, `hooks/useDragToClose.ts`):
+
 - **Curvas:** CSS `cubic-bezier`, não molas.
   - `--ease-enter` (0.32, 0.72, 0, 1): desacelera, para abrir/entrar.
   - `--ease-exit` (0.4, 0, 1, 1): acelera, para fechar/sair.
@@ -521,22 +536,22 @@ textos longos e das notas.
   0,96; barra lateral 0,95; «+» e botão flutuante 0,92 com ressalto.
 - **Animações existentes:**
 
-  | O quê | Como anima | Tempo |
-  |---|---|---|
-  | Página nova | fade + sobe 6px; a antiga some logo | 0,24 s |
-  | Troca de aba dentro da página (Despesas, Planejamento/Metas) | só fade | 0,15 s |
-  | Folha inferior (+, sino, conta, formulários) | sobe de fora do ecrã com mola; fecha a arrastar; véu escuro 45% + blur 4px | mola |
-  | Folha por cima de folha | a folha de baixo recua para 94%, como no iOS | 0,24 s |
-  | Menu «Mais» | balão sobe 8px + fade; véu 35% + blur 4px | 0,24 s / 0,18 s |
-  | Menus pequenos (mês, ordenar, ações do item) | telemóvel: folha inferior; desktop: balão desce 4px + fade | 0,24 s |
-  | Diálogo de confirmação | cartão central cresce de 96% para 100% + fade; véu 45% + blur 4px | 0,24 s / 0,18 s |
-  | Toast | sobe 8px + fade | 0,24 s / 0,18 s |
-  | Aba ativa (tab bar e barra lateral) | só troca de cor, fundo e sombra | 0,18 s / 0,15 s (fixos) |
-  | Barras de orçamento e metas | a largura cresce | 0,3 s |
-  | Puxar para recarregar | ícone gira | 0,8 s em ciclo |
-  | Importar | ícone de carregar gira | 0,9 s em ciclo |
-  | Abas do Veículo | as pontas esbatem conforme se rola para o lado | segue o dedo |
-  | Pequenos detalhes | donut sobe 2px ao passar o rato; setas de grupo rodam; chevron desliza 2px; modo discreto desfoca 5px | 0,15–0,24 s |
+  | O quê                                                        | Como anima                                                                                            | Tempo                   |
+  | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------- |
+  | Página nova                                                  | fade + sobe 6px; a antiga some logo                                                                   | 0,24 s                  |
+  | Troca de aba dentro da página (Despesas, Planejamento/Metas) | só fade                                                                                               | 0,15 s                  |
+  | Folha inferior (+, sino, conta, formulários)                 | sobe de fora do ecrã com mola; fecha a arrastar; véu escuro 45% + blur 4px                            | mola                    |
+  | Folha por cima de folha                                      | a folha de baixo recua para 94%, como no iOS                                                          | 0,24 s                  |
+  | Menu «Mais»                                                  | balão sobe 8px + fade; véu 35% + blur 4px                                                             | 0,24 s / 0,18 s         |
+  | Menus pequenos (mês, ordenar, ações do item)                 | telemóvel: folha inferior; desktop: balão desce 4px + fade                                            | 0,24 s                  |
+  | Diálogo de confirmação                                       | cartão central cresce de 96% para 100% + fade; véu 45% + blur 4px                                     | 0,24 s / 0,18 s         |
+  | Toast                                                        | sobe 8px + fade                                                                                       | 0,24 s / 0,18 s         |
+  | Aba ativa (tab bar e barra lateral)                          | só troca de cor, fundo e sombra                                                                       | 0,18 s / 0,15 s (fixos) |
+  | Barras de orçamento e metas                                  | a largura cresce                                                                                      | 0,3 s                   |
+  | Puxar para recarregar                                        | ícone gira                                                                                            | 0,8 s em ciclo          |
+  | Importar                                                     | ícone de carregar gira                                                                                | 0,9 s em ciclo          |
+  | Abas do Veículo                                              | as pontas esbatem conforme se rola para o lado                                                        | segue o dedo            |
+  | Pequenos detalhes                                            | donut sobe 2px ao passar o rato; setas de grupo rodam; chevron desliza 2px; modo discreto desfoca 5px | 0,15–0,24 s             |
 
 - **Contagem:** 8 `@keyframes` em 6 ficheiros (o «girar» está repetido em 2),
   cerca de 46 transições em 19 ficheiros CSS, 11 ficheiros com regras de
@@ -564,6 +579,7 @@ movimento.
 ### 4.4 Botões
 
 **TVDE Pro, hoje** (`src/components/Botao.tsx`):
+
 - **Variantes:** `filled` (primário), `tinted`, `branco`, `cinza`, `plain`
   (só texto), `submeter` (degradê azul → lilás), `perigo` e `perigoForte`.
 - **Tamanhos:** pequeno, normal e grande. Alvo mínimo de 44 px.
@@ -573,22 +589,24 @@ movimento.
     «Confirmar».
 
 **FinApp, hoje** (`src/components/Botao.tsx`):
+
 - **9 variantes**, cerca de 150 usos. Não há tamanhos (pequeno/normal/
   grande): cada variante tem a sua medida fixa.
 
-  | Variante | Aspeto | Medida | Usos | Para quê |
-  |---|---|---|---|---|
-  | `submeter` | cor cheia (quase preto no tema claro, creme no escuro), largura total | texto 15,2px, ~42px de altura | 29 | «Guardar» no fundo das folhas |
-  | `primaria` | a mesma cor cheia | texto 13,6px, ~32px | 1 | ação principal de um ecrã |
-  | `adicionar` | quadrado de cor cheia, só «+» | 34×34, ícone 18 | 15 | «+» ao lado do título de cada quadro |
-  | `secundario` | pílula bege (`--s2`) | 34px de altura, texto 13,6 peso 600 | 47 | Cancelar, Importar, Esconder, Liquidadas… |
-  | `icone` | círculo bege com borda | 34×34, ícone 18 | 14 | filtro, ordenar, menu de ações |
-  | `link` | texto terracota, sem fundo | 14px peso 500 | 17 | «Ver todos» |
-  | `texto` | texto terracota, fundo ao passar o rato | 13,6px | 3 | ação no cabeçalho de secção |
-  | `perigo` | texto vermelho, sem fundo | 13,6px | 19 | eliminar um item, terminar sessão |
-  | `perigoForte` | vermelho cheio | 13,6px, ~32px | 4 | Apagar conta e «Confirmar» do diálogo |
+  | Variante      | Aspeto                                                                | Medida                              | Usos | Para quê                                  |
+  | ------------- | --------------------------------------------------------------------- | ----------------------------------- | ---- | ----------------------------------------- |
+  | `submeter`    | cor cheia (quase preto no tema claro, creme no escuro), largura total | texto 15,2px, ~42px de altura       | 29   | «Guardar» no fundo das folhas             |
+  | `primaria`    | a mesma cor cheia                                                     | texto 13,6px, ~32px                 | 1    | ação principal de um ecrã                 |
+  | `adicionar`   | quadrado de cor cheia, só «+»                                         | 34×34, ícone 18                     | 15   | «+» ao lado do título de cada quadro      |
+  | `secundario`  | pílula bege (`--s2`)                                                  | 34px de altura, texto 13,6 peso 600 | 47   | Cancelar, Importar, Esconder, Liquidadas… |
+  | `icone`       | círculo bege com borda                                                | 34×34, ícone 18                     | 14   | filtro, ordenar, menu de ações            |
+  | `link`        | texto terracota, sem fundo                                            | 14px peso 500                       | 17   | «Ver todos»                               |
+  | `texto`       | texto terracota, fundo ao passar o rato                               | 13,6px                              | 3    | ação no cabeçalho de secção               |
+  | `perigo`      | texto vermelho, sem fundo                                             | 13,6px                              | 19   | eliminar um item, terminar sessão         |
+  | `perigoForte` | vermelho cheio                                                        | 13,6px, ~32px                       | 4    | Apagar conta e «Confirmar» do diálogo     |
 
   Mais o modificador `soIcone` (botão reduzido ao ícone, 1 uso).
+
 - **Comum a todas:** raio 9px (menos `secundario`, que é pílula, e `icone`,
   que é círculo), peso 700, desativado = opacidade 0,6, toque = escala 0,97.
 - **Sem estado de carregar** no componente.
@@ -604,6 +622,7 @@ movimento.
   `styles/segmentado`, `pilulas` e `selos`.
 
 **Diálogo de confirmação da FinApp** (`ConfirmarAcao` + `useConfirmar`):
+
 - Um só modelo: cartão central de 340px, raio 22px, mensagem a 15,2px,
   botões à direita: «Cancelar» (`secundario`) + «Confirmar»
   (`perigoForte`, vermelho). O foco começa no «Confirmar»; Esc e toque no
@@ -626,6 +645,7 @@ movimento.
      lado a lado.
 
 **A decidir:**
+
 - um conjunto comum de variantes, com nomes iguais nas duas apps;
 - a hierarquia: um só botão principal por ecrã;
 - o degradê no botão principal;
@@ -685,15 +705,16 @@ conteúdo.
 **5 estilos únicos, com o mesmo nome e o mesmo papel nas duas apps.** No
 código: `primario`, `secundario`, `neutro`, `fantasma`, `perigo`.
 
-| Estilo | Aspeto | Regra |
-|---|---|---|
-| **Principal** | cor sólida, **sem degradê** | **só 1 por ecrã** |
-| **Secundário** | fundo suave (tom leve da cor) | ações de apoio |
-| **Neutro** | cinza / cor da superfície | ações comuns, sem destaque |
-| **Simples** (`fantasma`) | só texto ou só ícone, sem fundo | links, ações de cabeçalho |
-| **Perigo** | vermelho | **exclusivo para apagar dados** |
+| Estilo                   | Aspeto                          | Regra                           |
+| ------------------------ | ------------------------------- | ------------------------------- |
+| **Principal**            | cor sólida, **sem degradê**     | **só 1 por ecrã**               |
+| **Secundário**           | fundo suave (tom leve da cor)   | ações de apoio                  |
+| **Neutro**               | cinza / cor da superfície       | ações comuns, sem destaque      |
+| **Simples** (`fantasma`) | só texto ou só ícone, sem fundo | links, ações de cabeçalho       |
+| **Perigo**               | vermelho                        | **exclusivo para apagar dados** |
 
 O que isto muda já hoje:
+
 - TVDE Pro: o `submeter` com degradê azul → lilás passa a Principal sólido.
 - FinApp: o diálogo de confirmação deixa de usar vermelho em ações que não
   apagam nada (pagar, lançar, mover).
@@ -735,6 +756,7 @@ O que isto muda já hoje:
 ### 5.6 Estado da aplicação na FinApp (fechado a 03/11/2026)
 
 Tudo o que a Parte 5 pede está no código:
+
 - **Tab bar (5.1):** 56px, vidro fosco com blur de 20px também no telemóvel
   (fundo sólido com redução de transparência), ordem Início · Receitas ·
   [+] · Despesas · Mais, círculo da aba ativa a deslizar com mola sem
