@@ -58,7 +58,7 @@ Notas:
 
 - O tema escuro é o valor por omissão do `:root`; `data-theme` é escrito no `<html>` por `useAplicarTema`. O tema `system` é resolvido por `useTemaEfetivo`.
 - O utilizador pode trocar os 5 acentos (`blu`, `grn`, `red`, `ylw`, `pur`) em Definições, por tema (`cfg.coresApp`). Sem escolha, valem os de `tokens.css`.
-- A terracota no claro só dá 2,2 a 2,8:1 como texto: serve a preenchimentos, anéis e barras; como texto usa-se `--blu-txt`. Contrastes medidos em `docs/workflow/vidro/checks.md`.
+- A terracota no claro só dá 2,2 a 2,8:1 como texto: serve a preenchimentos, anéis e barras; como texto usa-se `--blu-txt`. Contrastes medidos em `docs/arquivo/workflow/vidro/checks.md`.
 - Vermelho (`--red`) é carmim, afastado da terracota de propósito, para não se ler como a mesma cor.
 
 ### Escala tipográfica (`--fs-*`, 6 degraus)

@@ -30,8 +30,8 @@ Escrito a partir da leitura do código. Se algo divergir do código, vale o cód
 
 - [../HISTORICO.md](../HISTORICO.md): diário de mudanças, entrada nova sempre no topo.
 - [../PENDENCIAS.md](../PENDENCIAS.md): o que ficou por fazer e porquê.
-- [../RELATORIO_AUDITORIA.md](../RELATORIO_AUDITORIA.md): auditoria antiga.
+- [arquivo/RELATORIO_AUDITORIA.md](arquivo/RELATORIO_AUDITORIA.md): auditoria antiga.
 - [plano-app-apple.md](plano-app-apple.md) e [plano-mobile-capacitor.md](plano-mobile-capacitor.md): planos da app nativa.
-- [EQUIPES_AUDITORIA.md](EQUIPES_AUDITORIA.md): equipas da auditoria.
+- [arquivo/EQUIPES_AUDITORIA.md](arquivo/EQUIPES_AUDITORIA.md): equipas da auditoria.
 - `design/`: análise da barra de abas e do topo.
-- `workflow/`: registos de trabalho (`checks`, `graph`, `progress`) de análise, grelha, vidro e visual-fase2.
+- `arquivo/workflow/`: registos de trabalho (`checks`, `graph`, `progress`) de análise, grelha, vidro e visual-fase2.

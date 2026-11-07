@@ -266,7 +266,7 @@ Play Console (25 USD, pagamento único).
 
 ## 4. Equipas
 
-A tabela viva está em [`EQUIPES_AUDITORIA.md`](./EQUIPES_AUDITORIA.md). Para este
+A tabela viva está em [`EQUIPES_AUDITORIA.md`](./arquivo/EQUIPES_AUDITORIA.md). Para este
 plano há **uma equipa nova** e mudanças de âmbito em duas existentes:
 
 | Equipa                       | Skills                                                             | Etapas     |

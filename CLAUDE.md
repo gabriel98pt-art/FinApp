@@ -23,7 +23,7 @@ Vite 8 + React 19 + TypeScript estrito, zustand, react-router 7, CSS Modules, vi
 - `src/constants/`, `src/types/`, `src/styles/` (`tokens.css`, motion, typography), `src/testes/` (setup do vitest).
 - `api/`: função `copiloto-ia`. `scripts/gerar-icones.mjs`. `ios/` e `capacitor.config.ts`: app iOS (`com.gabriel98pt.finapp`).
 - `docs/README.md`: índice da documentação. Ler o ficheiro do assunto antes de mexer. `docs/dicas-de-organizacao.md`: melhorias propostas.
-- Já existiam: `HISTORICO.md` (diário, entrada nova no topo), `PENDENCIAS.md`, `RELATORIO_AUDITORIA.md`, `docs/plano-*.md`, `docs/workflow/`.
+- Já existiam: `HISTORICO.md` (diário, entrada nova no topo), `PENDENCIAS.md`, `docs/plano-*.md`; o arquivo antigo (relatório de auditoria, equipas, registos de trabalho) está em `docs/arquivo/`.
 - Só em dev e fora do app: `dev-preview.html` + `src/dev-preview.tsx` (ecrãs com dados de exemplo).
 - Ficheiros locais, fora do git: `SPEC_REESCRITA_COMPLETA.md`, `.claude/finapp-qa-credentials.local`, `dev-botoes`, `dev-captura`.
 

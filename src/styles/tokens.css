@@ -1,7 +1,7 @@
 /* Tokens de design — visual "vidro + terracota" (Fase A, 27/10/2026): fundo
    quente em mesh, superfícies de vidro, texto em castanho-tinta, terracota como
    destaque do app inteiro. Valores das prévias VidroInicio / VidroIpad /
-   VidroEscuro; contrastes medidos em docs/workflow/vidro/checks.md.
+   VidroEscuro; contrastes medidos em docs/arquivo/workflow/vidro/checks.md.
 
    Os comentários abaixo sobre a paleta antiga (navy + azul, seção 6 do spec)
    ficam como história: o nome dos tokens não mudou, só os valores.
