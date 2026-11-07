@@ -6,6 +6,8 @@ propõem mudanças. A parte 4 diz o que já está decidido mexer depois (tab bar
 topo, textos, animações e botões), para o analista poder opinar. A parte 5
 fixa o padrão comum já aprovado.
 
+> Nota de 07/11/2026: as partes 1 a 3 descrevem o código de 02/11/2026. Desde então o `--ease-spring` (com ressalto) foi substituído por `--ease-mola` (sem ressalto), como diz a parte 5. No código atual só existe `--ease-mola`.
+
 ---
 
 ## Parte 1 — FinApp
