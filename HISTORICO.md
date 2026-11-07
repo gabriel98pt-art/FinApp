@@ -32,6 +32,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **Medida uma vez a cobertura de testes de toda a app** (77,5% das linhas; os hooks são o ponto mais fraco, com 44%) e escrita em `docs/testes-e-ci.md`. A medição normal continua só na lógica, de propósito. Nada mudou na app.
 - **Novos testes para três partes do iPhone**: a sincronização da conta, o arrastar da folha para fechar e o puxar para atualizar. São 29 testes novos (ao todo 2014), e a cobertura dos hooks subiu de 44% para 72%. A app não mudou.
 - **Bibliotecas atualizadas para as versões seguras** (o Firebase passou de 12.16 para 12.19 e várias ferramentas de teste). Os avisos de segurança do npm baixaram de 32 para 22; ficam 4 de uma peça do Firebase que a app não usa. Testado com entrada na conta e sincronização.
+- **Escrita a lista de tudo o que é específico do iPhone** em `docs/ios-e-deploy.md` (zoom, entalhe, teclado, gestos de dedo, login), para o Android entrar mais tarde sem refazer a app. Só texto.
 
 ---
 
