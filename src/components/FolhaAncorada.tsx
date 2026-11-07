@@ -2,9 +2,7 @@ import { type ReactNode, type RefObject } from "react";
 import BottomSheet from "./BottomSheet";
 import Popover from "./Popover";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-
-/** Mesmo corte do resto do layout (ver `Pagina.tsx` e `RegistroRapido.tsx`). */
-const MOBILE = "(max-width: 767px)";
+import { MOBILE } from "../constants/ecra";
 
 /** Escolhe como abrir uma lista de opções (ou uma grelha curta, como o seletor
  *  de mês) conforme o tamanho da janela:

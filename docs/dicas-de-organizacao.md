@@ -38,7 +38,7 @@ Medido por exportações sem importadores fora dos testes. Nenhuma é apagada se
 
 ## C. Duplicados e comentários desatualizados
 
-1. **A constante `MOBILE = "(max-width: 767px)"`** repete-se em `layout/RegistroRapido.tsx` e `components/FolhaAncorada.tsx` (e o valor também está em `hooks/useMediaQuery.ts` como exemplo e no CSS). Sugestão: uma só constante em `constants/`.
+1. **FEITO em 07/11/2026 (`constants/ecra.ts`).** **A constante `MOBILE = "(max-width: 767px)"`** repete-se em `layout/RegistroRapido.tsx` e `components/FolhaAncorada.tsx` (e o valor também está em `hooks/useMediaQuery.ts` como exemplo e no CSS). Sugestão: uma só constante em `constants/`.
 2. **98 comentários citam «seção X.Y»** do `SPEC_REESCRITA_COMPLETA.md`, que está fora do git. Quem clona não consegue seguir a citação. Sugestão: manter o texto e tirar só o número da secção, ou copiar para `docs/` o que o spec definia e ainda vale.
 3. **Comentários «portado do `financas.html`»** em `types/tvde.ts`, `utils/importacaoParser.ts`, `utils/extrairExtratoPdf.ts`, `utils/coresCategoria.ts` e `utils/spring.ts`. São história da origem do código, não apontam para uso. Sugestão: deixar (útil para saber porquê), ou encurtar para «portado da app antiga». Não tocar no ficheiro arquivado.
 4. **FEITO em 07/11/2026.** **`README.md` desatualizado:** fala em 11 abas (são 9), lista «Marcos» já cumpridos e em «seção 8 do spec». **`HISTORICO.md`** diz «Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças», mas já vai a novembro. Sugestão: atualizar as duas linhas e apontar o `README.md` para o `CLAUDE.md` e `docs/README.md`.

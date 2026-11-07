@@ -21,6 +21,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **Nota no documento de análise da barra de baixo e do topo**, a explicar que a curva de animação `--ease-spring` foi trocada por `--ease-mola`. Só texto.
 - **Decidido manter 3 tamanhos de letra fora da escala** (13 nas pílulas e nos seletores de segmento, 17 nos títulos de secção) como exceções aceites, e isso ficou escrito na documentação. A app não muda.
 - **Confirmado que o botão pequeno ter letra mais pequena é de propósito**, igual à TVDE Pro, e ficou escrito na documentação. A app não muda.
+- **A regra «ecrã de telemóvel = até 767px» passou a estar escrita num só sítio** (antes estava repetida no registo rápido e na folha ancorada). Nada muda no que se vê.
 
 ---
 

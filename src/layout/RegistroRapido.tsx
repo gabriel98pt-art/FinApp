@@ -44,6 +44,7 @@ import {
 
 import styles from "./RegistroRapido.module.css";
 import Botao from "../components/Botao";
+import { MOBILE } from "../constants/ecra";
 
 /** Título de cada "página" de registro — ajuste A do lote de 30/08. Os
  *  mesmos nomes que o menu do "+" já usa (MenuRegistroRapido), pra abrir
@@ -72,11 +73,6 @@ const OPCOES_PARCELAS = Array.from({ length: 35 }, (_, i) => i + 2)
 function rotuloAbastecimento(tipoVeiculo: TipoVeiculo): string {
   return tipoVeiculo === "eletrico" ? "Carga Elétrica" : "Abastecimento";
 }
-
-/** Mesmo corte do resto do layout (ver `Pagina.tsx`). Acima dele a folha vira
- *  diálogo centrado (BottomSheet.module.css) e o arrasto sai de cena: puxar
- *  para fechar é gesto de dedo, não de rato. */
-const MOBILE = "(max-width: 767px)";
 
 /** Bottom sheet de registro rápido: lança (ou edita) receita/despesa, e lança
  *  carga elétrica / despesa do veículo (item 3/6 — estes dois só criam; a
