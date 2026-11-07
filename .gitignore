@@ -32,3 +32,6 @@ graphify-out/
 
 # capturas de ecrã de QA: só no disco
 .claude/qa-screenshots/
+
+# registo de extensões do Claude, só interessa a quem as usa
+skills-lock.json

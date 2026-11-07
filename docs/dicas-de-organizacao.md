@@ -15,7 +15,7 @@ Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes p
 5. **Pastas geradas** (`coverage/`, `dist/`, `graphify-out/` com 12 MB): já no `.gitignore`. Nada a fazer, só não as apagar sem saber.
 6. **FEITO em 07/11/2026 (movido para `docs/arquivo/workflow/`).** **`docs/workflow/*/{checks,graph,progress}.md`** (4 pastas, 12 ficheiros, 92 KB): registos de trabalho de fases antigas (por exemplo `progress.md` da Fase A tem tudo «por fazer»). Ninguém no código os referencia. Sugestão: manter como arquivo, ou mover para `docs/arquivo/` com uma linha a explicar. Não apagar.
 7. **FEITO em 07/11/2026 (movidos para `docs/arquivo/`).** **Relatórios antigos na raiz:** `RELATORIO_AUDITORIA.md` (26/07/2026) e `docs/EQUIPES_AUDITORIA.md`. Sugestão: mover para `docs/arquivo/`, depois de atualizar as ligações do `docs/README.md`.
-8. **`.claude/RESUME.md`** (ponto de retoma de agosto, já em `.git/info/exclude`) e `.claude/launch.json` e `skills-lock.json` (por rastrear): decidir se `launch.json` entra no git (útil para outros) e se `skills-lock.json` se ignora.
+8. **FEITO em 07/11/2026 (`launch.json` versionado, `skills-lock.json` ignorado).** **`.claude/RESUME.md`** (ponto de retoma de agosto, já em `.git/info/exclude`) e `.claude/launch.json` e `skills-lock.json` (por rastrear): decidir se `launch.json` entra no git (útil para outros) e se `skills-lock.json` se ignora.
 
 ## A. Contradições e riscos
 

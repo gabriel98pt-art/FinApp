@@ -16,6 +16,7 @@ Período coberto: 23/07/2026 a 11/10/2026 — 528 mudanças registadas.
 - **As 34 capturas de ecrã de teste deixaram de estar no repositório.** Continuam no teu disco, na mesma pasta; só deixam de ser guardadas no git.
 - **Apagados 4 ícones antigos** (versões 2 e 3), que a app já não usava. O ícone atual (versão 4) fica igual.
 - **Documentos antigos arrumados** (o relatório de auditoria, as equipas de auditoria e os registos de trabalho de fases passadas) na pasta `docs/arquivo/`. Nada foi apagado.
+- **O arranque da pré-visualização (`launch.json`) passa a ficar guardado no projeto**, e o registo da extensão `grill-me` deixa de aparecer como ficheiro por guardar.
 
 ---
 
