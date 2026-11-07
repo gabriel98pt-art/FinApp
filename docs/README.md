@@ -35,3 +35,4 @@ Escrito a partir da leitura do código. Se algo divergir do código, vale o cód
 - [arquivo/EQUIPES_AUDITORIA.md](arquivo/EQUIPES_AUDITORIA.md): equipas da auditoria.
 - `design/`: análise da barra de abas e do topo.
 - `arquivo/workflow/`: registos de trabalho (`checks`, `graph`, `progress`) de análise, grelha, vidro e visual-fase2.
+- Comentários do código que citam «seção X.Y» (por exemplo «seção 4.4») referem-se ao `SPEC_REESCRITA_COMPLETA.md`, a especificação original da reescrita. Está só no disco do Gabriel, fora do git. A explicação de cada regra está no próprio comentário e nestes documentos.

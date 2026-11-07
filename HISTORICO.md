@@ -23,6 +23,7 @@ Período coberto: desde 23/07/2026 até hoje (a entrada mais recente está no to
 - **Confirmado que o botão pequeno ter letra mais pequena é de propósito**, igual à TVDE Pro, e ficou escrito na documentação. A app não muda.
 - **A regra «ecrã de telemóvel = até 767px» passou a estar escrita num só sítio** (antes estava repetida no registo rápido e na folha ancorada). Nada muda no que se vê.
 - **Apagadas 4 funções que ninguém usava** (duas de apagar parcela e despesa fixa, uma de ler o dia de uma data e uma de listar o mês do veículo). A app faz o mesmo.
+- **Explicado nos documentos o que querem dizer os comentários «seção X.Y»** do código: referem o spec original da reescrita, que está só no teu disco. Nada mudou no código.
 
 ---
 
