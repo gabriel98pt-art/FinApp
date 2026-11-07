@@ -9,6 +9,7 @@ Escrito a partir da leitura do código. Se algo divergir do código, vale o cód
 | -------------------------------------------------------- | ---------------------------------------------------------------- |
 | [arquitetura.md](arquitetura.md)                         | Camadas, fluxo de dados, arranque, decisões já tomadas           |
 | [dados-e-api.md](dados-e-api.md)                         | Firebase: caminhos, serviços, sync, auth, regras, tipos, IA      |
+| [migracoes.md](migracoes.md)                             | Como tratar dados antigos e mudar o formato sem perder nada      |
 | [stores.md](stores.md)                                   | Stores zustand: o que cada uma guarda e quem a alimenta          |
 | [telas-e-rotas.md](telas-e-rotas.md)                     | Rotas, telas, folhas, layout, mapa interno dos ficheiros grandes |
 | [componentes.md](componentes.md)                         | Componentes de UI com as props                                   |

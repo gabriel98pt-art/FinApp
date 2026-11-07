@@ -61,7 +61,7 @@ As 8 regras de engenharia:
 1. Nunca commitar segredos. A config do Firebase em `src/services/firebase.ts` é pública por design; a segurança está em `database.rules.json`. `GEMINI_API_KEY` só no painel da Vercel. Nunca escrever uid, e-mail, UDID, id da equipa Apple ou ids de conta em `docs/`, `CLAUDE.md` ou comentários (usar `<UDID>` e `{uid}`).
 2. Nunca repetir código. Antes de criar, procurar em `docs/utils.md`, `docs/componentes.md` e `docs/hooks.md`.
 3. Nunca ignorar exceções. Sem `catch` vazio; erros de gravação vão para o toast e o `erroService`.
-4. Nunca quebrar a integridade dos dados. Sem `undefined` no RTDB; alterações ligadas num só `update`; backup e migrações nunca apagam dados da conta.
+4. Nunca quebrar a integridade dos dados. Sem `undefined` no RTDB; alterações ligadas num só `update`; backup e migrações nunca apagam dados da conta (ver `docs/migracoes.md`).
 5. Nunca ignorar segurança. Validar o que vem do banco, sem HTML não confiável, sem `any`, regras do RTDB só para o dono, cabeçalhos do `vercel.json` mantidos.
 6. Nunca deixar de documentar o essencial. O porquê num comentário curto; a mudança no `HISTORICO.md`; estrutura nova no `docs/` certo.
 7. Nunca pular testes. Antes de dar algo por feito: `npm test`, `npm run lint`, `npm run typecheck`, `npm run format:check`.

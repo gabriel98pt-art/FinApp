@@ -25,7 +25,7 @@ Ponto de partida medido: typecheck e build passam; 107 ficheiros e 1985 testes p
 4. **FEITO em 07/11/2026 (confirmado na TVDE Pro: é o mesmo padrão, intencional).** **O `Botao` pequeno usa `--fs-body` e o normal/grande `--fs-title`.** Confirmar se é intenção do padrão comum com a TVDE Pro.
 5. **DECIDIDO em 07/11/2026: deixar em modo aviso** (o foco é a app no iPhone; rever antes de lançar na loja). **CSP em modo só-relatório** (`vercel.json`: `Content-Security-Policy-Report-Only`). Não bloqueia nada. Decidir se passa a bloquear (exige testar todas as chamadas externas).
 6. **DECIDIDO em 07/11/2026: documentar como exceção (em `docs/arquitetura.md`; são 11 serviços, não 4).** **Camadas:** os serviços importam stores (`syncService`, `cfgService`, `historicoService`), o que foge à regra «só importa das camadas de baixo». Pode ser intencional (sync escreve nas stores). Confirmar e, se for, escrever a exceção em `docs/arquitetura.md`.
-7. **Sem migrações por versão.** Só há normalização na leitura (`normalizarConfig`, `normalizarTvde`). Para a app Android e novas versões de dados, convém ter um `docs/migracoes.md` com as regras (como o TVDE Pro). Proposta de documento, não de código.
+7. **FEITO em 07/11/2026 (`docs/migracoes.md`).** **Sem migrações por versão.** Só há normalização na leitura (`normalizarConfig`, `normalizarTvde`). Para a app Android e novas versões de dados, convém ter um `docs/migracoes.md` com as regras (como o TVDE Pro). Proposta de documento, não de código.
 8. **Campos antigos na conta** (`currency`, `fontesReceita`, `kpisMobile` e outros) ficam ignorados. Fazer a lista completa e decidir se algum dia se limpam (nunca apagar sem backup).
 
 ## B. Código que só os testes usam (ou ninguém)
